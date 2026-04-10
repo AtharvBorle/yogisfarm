@@ -15,9 +15,8 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // In a real scenario, an endpoint like /admin/dashboard/stats 
-                // would compile all of this.
-                const res = await api.get('/stats'); 
+                // Fetch stats from the backend
+                const res = await api.get('/dashboard'); 
                 if(res.data.status) {
                     setStats(res.data.stats);
                 }
