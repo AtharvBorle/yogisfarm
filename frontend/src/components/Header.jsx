@@ -24,7 +24,7 @@ const Header = () => {
     return (
         <header className="header-area header-style-1 header-height-2">
             {/* Top Bar */}
-            <div className="header-top header-top-ptb-1 d-none d-lg-block">
+            <div className="header-top header-top-ptb-1 d-none d-lg-block" style={{ backgroundColor: '#046938' }}>
                 <div className="container">
                     <div className="row align-items-center">
                         <div className="col-xl-3 col-lg-4">
@@ -56,13 +56,13 @@ const Header = () => {
                             <div className="search-style-2">
                                 <form onSubmit={handleSearch}>
                                     <div className="main-categori-wrap d-none d-lg-block m-0">
-                                        <Link className="categories-button-active" to="/category" style={{ borderRadius: '0px' }}>
+                                        <Link className="categories-button-active" to="/category" style={{ borderRadius: '0px', backgroundColor: '#046938' }}>
                                             <span className="et mb-1"> All </span>
                                             <i className="fi-rs-angle-down"></i>
                                         </Link>
                                     </div>
                                     <input type="text" className="form-control pt-3 home-search" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="I Am Searching For..." />
-                                    <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#004d25', borderRadius: '0px' }}>
+                                    <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#046938', borderRadius: '0px', borderColor: '#046938' }}>
                                         <i className="fi-rs-search"></i>
                                     </button>
                                 </form>

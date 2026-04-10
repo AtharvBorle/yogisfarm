@@ -60,9 +60,15 @@ const Footer = () => {
                             </ul>
                         </div>
                     </div>
-                    <p className="font-sm mb-0 text-center">Copyright © 2026 Yogis Farm<br/>Crafted by Deepminds Infotech</p>
+                    <p className="font-sm mb-0 text-center">Copyright © 2026 Yogis Farm<br/>Crafted by NeoPace Infotech LLP</p>
                 </div>
             </section>
+            {/* Bottom landscape visual */}
+            <img 
+                src="/assets/imgs/theme/btm-bg.jpg" 
+                alt="Landscape Foreground" 
+                style={{ width: '100%', display: 'block', pointerEvents: 'none', objectFit: 'cover' }} 
+            />
         </footer>
     );
 };

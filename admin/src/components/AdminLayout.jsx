@@ -38,7 +38,7 @@ const AdminLayout = ({ children }) => {
                     </div>
                 </main>
                 <footer style={{ padding: '20px', textAlign: 'center', color: '#6c757d', fontSize: '14px', borderTop: '1px solid #eee' }}>
-                    Copyright © {new Date().getFullYear()} Yogis Farm Crafted with by Deepminds Infotech Pvt.Ltd
+                    Copyright © {new Date().getFullYear()} Yogis Farm Crafted by NeoPace Infotech LLP
                 </footer>
             </div>
         </div>
