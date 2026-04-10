@@ -50,7 +50,7 @@ const Header = () => {
                 <div className="container">
                     <div className="header-wrap">
                         <div className="logo logo-width-1">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
                         </div>
                         <div className="header-right">
                             <div className="search-style-2">
@@ -138,7 +138,7 @@ const Header = () => {
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo logo-width-1 d-block d-lg-none pt-1">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
                         </div>
                         <div className="header-nav d-none d-lg-flex">
                             <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">

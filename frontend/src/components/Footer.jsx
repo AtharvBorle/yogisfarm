@@ -13,7 +13,7 @@ const Footer = () => {
                         <div className="col">
                             <div className="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp">
                                 <div className="logo mb-30">
-                                    <Link to="/" className="mb-15"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                                    <Link to="/" className="mb-15"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
                                     <p className="font-lg">Yogis Farm - Pure & Natural Farm Products</p>
                                     <div className="mobile-social-icon" style={{ justifyContent: 'start' }}>
                                         <h6>Follow Us</h6>
