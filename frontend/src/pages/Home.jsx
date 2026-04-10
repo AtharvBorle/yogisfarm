@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import SliderComponent from 'react-slick';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
+
+const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
 const Home = () => {
     const [mainSliders, setMainSliders] = useState([]);
@@ -21,8 +24,8 @@ const Home = () => {
             api.get('/sliders?position=bottom'),
             api.get('/categories?featured=true'),
             api.get('/products?featured=true&limit=10'),
-            api.get('/products?popular=true&limit=8'),
-            api.get('/products?deal=true&limit=8')
+            api.get('/products?popular=true&limit=10'),
+            api.get('/products?deal=true&limit=10')
         ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, popularRes, dealRes]) => {
             if(mainRes.data.status) setMainSliders(mainRes.data.sliders);
             if(topRes.data.status) setTopSliders(topRes.data.sliders);
@@ -44,7 +47,47 @@ const Home = () => {
         return slider.link || '#';
     };
 
-    // Reusable banner grid for slider arrays
+    // Slick Configurations
+    const heroSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        fade: true,
+        arrows: false
+    };
+
+    const categorySettings = {
+        dots: false,
+        infinite: true,
+        speed: 1000,
+        slidesToShow: 8,
+        slidesToScroll: 1,
+        autoplay: true,
+        responsive: [
+            { breakpoint: 1025, settings: { slidesToShow: 4 } },
+            { breakpoint: 768, settings: { slidesToShow: 3 } },
+            { breakpoint: 480, settings: { slidesToShow: 2 } }
+        ]
+    };
+
+    const productSliderSettings = {
+        dots: false,
+        infinite: true,
+        speed: 1000,
+        slidesToShow: 5,
+        slidesToScroll: 1,
+        autoplay: true,
+        responsive: [
+            { breakpoint: 1025, settings: { slidesToShow: 3 } },
+            { breakpoint: 768, settings: { slidesToShow: 2 } },
+            { breakpoint: 480, settings: { slidesToShow: 1 } }
+        ]
+    };
+
+    // Reusable banner grid for static slider arrays (Top, Middle, Bottom positions)
     const SliderBanner = ({ sliders, containerClass = 'container', maxCols = 4 }) => (
         <section className={`banners mb-25 ${!sliders.length ? 'd-none' : ''}`}>
             <div className={containerClass}>
@@ -65,121 +108,123 @@ const Home = () => {
 
     return (
         <>
-            {/* 1. MAIN SLIDER — Hero banner at the very top */}
+            {/* 1. MAIN SLIDER */}
             {mainSliders.length > 0 && (
                 <section className="">
                     <div className="home-slide-cover mt-10">
                         <div className="hero-slider-1 style-2 dot-style-1 dot-style-1-position-1">
-                            {mainSliders.map(slider => (
-                                <div key={slider.id}>
-                                    <a href={getSliderLink(slider)}>
-                                        <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="single-animation-wrap js-featuredItems single-hero-slider single-animation-wrap js-featuredItems rounded h-75 image-height" style={{ width: '100%' }} />
-                                    </a>
-                                </div>
-                            ))}
+                            <Slider {...heroSettings}>
+                                {mainSliders.map(slider => (
+                                    <div key={slider.id}>
+                                        <a href={getSliderLink(slider)}>
+                                            <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="single-animation-wrap js-featuredItems single-hero-slider single-animation-wrap js-featuredItems rounded h-75 image-height" style={{ width: '100%' }} />
+                                        </a>
+                                    </div>
+                                ))}
+                            </Slider>
                         </div>
                     </div>
                 </section>
             )}
 
             {/* 2. Featured Categories */}
-            <section className="popular-categories section-padding">
-                <div className="container wow animate__animated animate__fadeIn">
-                    <div className="section-title">
-                        <div className="title">
-                            <h3>Featured Categories</h3>
+            {categories.length > 0 && (
+                <section className="popular-categories section-padding">
+                    <div className="container wow animate__animated animate__fadeIn">
+                        <div className="section-title">
+                            <div className="title">
+                                <h3>Featured Categories</h3>
+                            </div>
                         </div>
-                        <div className="slider-arrow slider-arrow-2 flex-right carausel-10-columns-arrow" id="carausel-10-columns-arrows"></div>
-                    </div>
-                    <div className="carausel-8-columns-cover position-relative">
-                        <div className="carausel-8-columns" id="carausel-8-columns">
-                            {categories.map(cat => (
-                                <div key={cat.id} className="m-2 wow animate__animated animate__fadeInUp rounded-circle" data-wow-delay=".1s">
-                                    <figure className="img-hover-scale overflow-hidden">
-                                        <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>
-                                            <img src={getAssetUrl(cat.image)} alt={cat.name} className="p-2" />
-                                        </Link>
-                                        <h6 className="text-center">
-                                            <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>{cat.name}</Link>
-                                        </h6>
-                                    </figure>
-                                </div>
-                            ))}
+                        <div className="position-relative">
+                            <Slider {...categorySettings}>
+                                {categories.map(cat => (
+                                    <div key={cat.id} className="m-2 wow animate__animated animate__fadeInUp rounded-circle" data-wow-delay=".1s">
+                                        <figure className="img-hover-scale overflow-hidden text-center">
+                                            <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px', display:'inline-block' }}>
+                                                <img src={getAssetUrl(cat.image)} alt={cat.name} className="p-2 mx-auto" />
+                                            </Link>
+                                            <h6 className="text-center">
+                                                <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>{cat.name}</Link>
+                                            </h6>
+                                        </figure>
+                                    </div>
+                                ))}
+                            </Slider>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
-            {/* 3. TOP SLIDER — between Featured Categories and Featured Products */}
+            {/* 3. TOP SLIDER */}
             {topSliders.length > 0 && <SliderBanner sliders={topSliders} />}
 
-            {/* 4. Featured Products */}
-            <section className="product-tabs section-padding position-relative">
-                <div className="container">
-                    <div className="section-title style-2 wow animate__animated animate__fadeIn">
-                        <h3>Featured Products</h3>
+            {/* 4. Featured Products (Block Grid) */}
+            {featuredProducts.length > 0 && (
+                <section className="product-tabs section-padding position-relative">
+                    <div className="container">
+                        <div className="section-title style-2 wow animate__animated animate__fadeIn">
+                            <h3>Featured Products</h3>
+                        </div>
+                        <div className="tab-content">
+                            <div className="tab-pane fade show active">
+                                <div className="row product-grid-5">
+                                    {featuredProducts.map(product => (
+                                        <div key={product.id} className="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                                            <ProductCard product={product} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="tab-content" id="myTabContent">
-                        <div className="tab-pane fade show active" id="tab-one" role="tabpanel">
-                            <div className="row product-grid-5">
-                                {featuredProducts.map(product => (
-                                    <div key={product.id} className="col-lg-1-5 col-md-4 col-6 col-sm-6">
+                </section>
+            )}
+
+            {/* 5. Popular Products (Carousel Slider) */}
+            {popularProducts.length > 0 && (
+                <section className="section-padding pb-5">
+                    <div className="container">
+                        <div className="section-title">
+                            <h3>Popular Products</h3>
+                        </div>
+                        <div className="position-relative">
+                            <Slider {...productSliderSettings}>
+                                {popularProducts.map(product => (
+                                    <div key={product.id} className="px-2">
                                         <ProductCard product={product} />
                                     </div>
                                 ))}
-                            </div>
+                            </Slider>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
-            {/* 5. Popular Products */}
-            <section className="section-padding pb-5">
-                <div className="container">
-                    <div className="section-title">
-                        <h3>Popular Products</h3>
-                    </div>
-                    <div className="row">
-                        <div className="col-lg-12 col-md-12">
-                            <div className="tab-content" id="myTabContent-1">
-                                <div className="tab-pane fade show active" id="tab-one-1" role="tabpanel">
-                                    <div className="carausel-4-clumn-cover arrow-center position-relative">
-                                        <div className="slider-arrow slider-arrow-2 carausel--columns-arrow"></div>
-                                        <div className="carausel-4-columns carausel-arrow-center mb-30" id="carausel-3-columns">
-                                            {popularProducts.map(product => (
-                                                <ProductCard key={product.id} product={product} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* 6. MIDDLE SLIDER — right below Popular Products */}
+            {/* 6. MIDDLE SLIDER */}
             {middleSliders.length > 0 && <SliderBanner sliders={middleSliders} />}
 
-            {/* 7. Deals Section */}
+            {/* 7. Deals Section (Carousel Slider) */}
             {dealProducts.length > 0 && (
                 <section className="section-padding pb-5">
                     <div className="container">
                         <div className="section-title">
                             <h3>Deals Of The Day</h3>
                         </div>
-                        <div className="row product-grid-5">
-                            {dealProducts.map(product => (
-                                <div key={product.id} className="col-lg-1-5 col-md-4 col-6 col-sm-6">
-                                    <ProductCard product={product} />
-                                </div>
-                            ))}
+                        <div className="position-relative">
+                            <Slider {...productSliderSettings}>
+                                {dealProducts.map(product => (
+                                    <div key={product.id} className="px-2">
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))}
+                            </Slider>
                         </div>
                     </div>
                 </section>
             )}
 
-            {/* 8. BOTTOM SLIDER — below Deals of the Day */}
+            {/* 8. BOTTOM SLIDER */}
             {bottomSliders.length > 0 && <SliderBanner sliders={bottomSliders} containerClass="container-fluid" maxCols={2} />}
         </>
     );
