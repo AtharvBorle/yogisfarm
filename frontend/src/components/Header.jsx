@@ -1,0 +1,171 @@
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import api from '../api';
+
+const Header = () => {
+    const { user, logout } = useAuth();
+    const { cartItems, cartCount, cartTotal, removeFromCart } = useCart();
+    const [categories, setCategories] = useState([]);
+    const [keyword, setKeyword] = useState('');
+
+    useEffect(() => {
+        api.get('/categories?featured=true').then(res => {
+            if(res.data.status) setCategories(res.data.categories);
+        });
+    }, []);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        window.location.href = `/shop?keyword=${encodeURIComponent(keyword)}`;
+    };
+
+    return (
+        <header className="header-area header-style-1 header-height-2">
+            {/* Top Bar */}
+            <div className="header-top header-top-ptb-1 d-none d-lg-block">
+                <div className="container">
+                    <div className="row align-items-center">
+                        <div className="col-xl-3 col-lg-4">
+                            <div className="header-info">
+                                <ul>
+                                    <li><Link to={user ? '/dashboard' : '/login'} className="text-white">My Account</Link></li>
+                                    <li><Link to="/wishlist" className="text-white">Wishlist</Link></li>
+                                    <li><Link to="/track-order" className="text-white">Order Tracking</Link></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div className="col-xl-9 col-lg-8">
+                            <div className="text-center text-white">
+                                <div id="news-flash" className="d-block" style={{ width: '100%' }}></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Header Middle */}
+            <div className="header-middle header-middle-ptb-1 d-none d-lg-block">
+                <div className="container">
+                    <div className="header-wrap">
+                        <div className="logo logo-width-1">
+                            <Link to="/"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                        </div>
+                        <div className="header-right">
+                            <div className="search-style-2">
+                                <form onSubmit={handleSearch}>
+                                    <div className="main-categori-wrap d-none d-lg-block m-0">
+                                        <Link className="categories-button-active" to="/category" style={{ borderRadius: '0px' }}>
+                                            <span className="et mb-1"> All </span>
+                                            <i className="fi-rs-angle-down"></i>
+                                        </Link>
+                                    </div>
+                                    <input type="text" className="form-control pt-3 home-search" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="I Am Searching For..." />
+                                    <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#004d25', borderRadius: '0px' }}>
+                                        <i className="fi-rs-search"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div className="header-action-right">
+                                <div className="header-action-2">
+                                    <div className="header-action-icon-2">
+                                        <Link to="/wishlist">
+                                            <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" />
+                                            <span className="pro-count blue btn-wishlist-count">0</span>
+                                        </Link>
+                                    </div>
+                                    <div className="header-action-icon-2">
+                                        <Link className="mini-cart-icon" to="/cart">
+                                            <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" />
+                                            <span className="pro-count blue btn-cart-count">{cartCount}</span>
+                                        </Link>
+                                        <div className="cart-dropdown-wrap cart-dropdown-hm2 cart-main">
+                                            <ul>
+                                                {cartItems.map(item => (
+                                                    <li key={item.id}>
+                                                        <div className="shopping-cart-img">
+                                                            <Link to={`/product/${item.product.slug}`}><img alt={item.product.name} src={`http://localhost:5000${item.product.image}`} /></Link>
+                                                        </div>
+                                                        <div className="shopping-cart-title">
+                                                            <h4><Link to={`/product/${item.product.slug}`}>{item.product.name}</Link></h4>
+                                                            <h4><span>{item.quantity} × </span>₹{(item.variant?.salePrice || item.product.salePrice || item.variant?.price || item.product.price)}</h4>
+                                                        </div>
+                                                        <div className="shopping-cart-delete">
+                                                            <button style={{border:'none',background:'none'}} onClick={() => removeFromCart(item.id)}><i className="fi-rs-cross-small"></i></button>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="shopping-cart-footer">
+                                                <div className="shopping-cart-total">
+                                                    <h4>Total <span>₹{cartTotal}</span></h4>
+                                                </div>
+                                                <div className="shopping-cart-button">
+                                                    <Link to="/cart">View cart</Link>
+                                                    <Link to="/checkout">Checkout</Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="header-action-icon-2">
+                                        <Link to={user ? '/dashboard' : '/login'}>
+                                            <img className="svgInject" alt="My Account" src="/assets/imgs/theme/icons/icon-user.svg" />
+                                        </Link>
+                                        <div className="cart-dropdown-wrap cart-dropdown-hm2 account-dropdown">
+                                            <ul>
+                                                {user ? (
+                                                    <>
+                                                        <li><Link to="/dashboard"><i className="fi fi-rs-user mr-10"></i>Dashboard</Link></li>
+                                                        <li><Link to="/dashboard?tab=orders"><i className="fi fi-rs-shopping-bag mr-10"></i>Orders</Link></li>
+                                                        <li><a href="#" onClick={(e) => { e.preventDefault(); logout(); }}><i className="fi fi-rs-sign-out mr-10"></i>Logout</a></li>
+                                                    </>
+                                                ) : (
+                                                    <li><Link to="/login"><i className="fi fi-rs-sign-in mr-10"></i>Sign In</Link></li>
+                                                )}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bottom Nav */}
+            <div className="header-bottom header-bottom-bg-color sticky-bar">
+                <div className="container">
+                    <div className="header-wrap header-space-between position-relative">
+                        <div className="logo logo-width-1 d-block d-lg-none pt-1">
+                            <Link to="/"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                        </div>
+                        <div className="header-nav d-none d-lg-flex">
+                            <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
+                                <nav>
+                                    <ul>
+                                        <li className="hot-deals"><img src="/assets/imgs/theme/icons/icon-hot.svg" alt="hot deals" /><Link to="/deals">Deals</Link></li>
+                                        <li><Link to="/">Home</Link></li>
+                                        <li><Link to="/about-us">About Us</Link></li>
+                                        <li><Link to="/category">Category</Link></li>
+                                        <li><Link to="/shop">Shop</Link></li>
+                                        <li><Link to="/contact-us">Contact Us</Link></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                        <div className="hotline d-none d-lg-flex">
+                            <img src="/assets/imgs/theme/icons/icon-headphone.svg" alt="hotline" />
+                            <p>
+                                <a href="tel:9119501177">9119501177</a>
+                                <span className="text-center">24/7 Support Center</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
+};
+
+export default Header;

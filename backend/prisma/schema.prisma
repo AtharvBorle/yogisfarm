@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Site Settings ───
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique @db.VarChar(100)
+  value String @db.Text
+
+  @@map("settings")
+}
+
+// ─── Admin Users ───
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  email     String   @unique @db.VarChar(150)
+  password  String   @db.VarChar(255)
+  role      String   @default("admin") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+// ─── Customer Users ───
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String?  @db.VarChar(100)
+  email     String?  @db.VarChar(150)
+  phone     String   @unique @db.VarChar(15)
+  otp       String?  @db.VarChar(10)
+  otpExpiry DateTime? @map("otp_expiry")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart      Cart[]
+  wishlist  Wishlist[]
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+
+  @@map("users")
+}
+
+// ─── Categories ───
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
+  image     String?  @db.VarChar(500)
+  parentId  Int?     @map("parent_id")
+  featured  Boolean  @default(false)
+  sortOrder Int      @default(0) @map("sort_order")
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent    Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryParent")
+  products  Product[]
+  sections  Section[]
+
+  @@map("categories")
+}
+
+// ─── Brands ───
+model Brand {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
+  image     String?  @db.VarChar(500)
+  showHome  Boolean  @default(false) @map("show_home")
+  status    String   @default("active") @db.VarChar(20)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products  Product[]
+
+  @@map("brands")
+}
+
+// ─── Products ───
+model Product {
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(255)
+  slug             String   @unique @db.VarChar(280)
+  shortDescription String?  @map("short_description") @db.VarChar(500)
+  description      String?  @db.Text
+  categoryId       Int?     @map("category_id")
+  brandId          Int?     @map("brand_id")
+  taxId            Int?     @map("tax_id")
+  price            Decimal  @default(0) @db.Decimal(10, 2)
+  salePrice        Decimal? @map("sale_price") @db.Decimal(10, 2)
+  image            String?  @db.VarChar(500)
+  hoverImage       String?  @map("hover_image") @db.VarChar(500)
+  video            String?  @db.VarChar(500)
+  tags             String?  @db.VarChar(500)
+  stock            Int      @default(0)
+  unit             String?  @db.VarChar(50)
+  featured         Boolean  @default(false)
+  popular          Boolean  @default(false)
+  deal             Boolean  @default(false)
+  status           String   @default("active") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  category      Category?       @relation(fields: [categoryId], references: [id])
+  brand         Brand?          @relation(fields: [brandId], references: [id])
+  tax           Tax?            @relation(fields: [taxId], references: [id])
+  images        ProductImage[]
+  variants      ProductVariant[]
+  benefits      ProductBenefit[]
+  features      ProductFeature[]
+  cartItems     Cart[]
+  wishlistItems Wishlist[]
+  reviews       Review[]
+  orderItems    OrderItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        Int    @id @default(autoincrement())
+  productId Int    @map("product_id")
+  image     String @db.VarChar(500)
+  sortOrder Int    @default(0) @map("sort_order")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  name      String   @db.VarChar(100)
+  price     Decimal  @db.Decimal(10, 2)
+  salePrice Decimal? @map("sale_price") @db.Decimal(10, 2)
+  stock     Int      @default(0)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems Cart[]
+
+  @@map("product_variants")
+}
+
+model ProductBenefit {
+  id          Int    @id @default(autoincrement())
+  productId   Int    @map("product_id")
+  title       String @db.VarChar(200)
+  description String @db.Text
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_benefits")
+}
+
+model ProductFeature {
+  id          Int    @id @default(autoincrement())
+  productId   Int    @map("product_id")
+  feature     String @db.VarChar(200)
+  description String @db.Text
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_features")
+}
+
+// ─── Cart ───
+model Cart {
+  id        Int      @id @default(autoincrement())
+  sessionId String?  @map("session_id") @db.VarChar(100)
+  userId    Int?     @map("user_id")
+  productId Int      @map("product_id")
+  variantId Int?     @map("variant_id")
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("cart")
+}
+
+// ─── Wishlist ───
+model Wishlist {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlist")
+}
+
+// ─── Addresses ───
+model Address {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  name      String   @db.VarChar(100)
+  phone     String   @db.VarChar(15)
+  address   String   @db.Text
+  city      String   @db.VarChar(100)
+  state     String   @db.VarChar(100)
+  pincode   String   @db.VarChar(10)
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// ─── Orders ───
+model Order {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @map("user_id")
+  orderNumber        String   @unique @map("order_number") @db.VarChar(30)
+  addressId          Int?     @map("address_id")
+  addressName        String?  @map("address_name") @db.VarChar(100)
+  addressPhone       String?  @map("address_phone") @db.VarChar(15)
+  addressText        String?  @map("address_text") @db.Text
+  addressCity        String?  @map("address_city") @db.VarChar(100)
+  addressState       String?  @map("address_state") @db.VarChar(100)
+  addressPincode     String?  @map("address_pincode") @db.VarChar(10)
+  subtotal           Decimal  @default(0) @db.Decimal(10, 2)
+  shipping           Decimal  @default(0) @db.Decimal(10, 2)
+  discount           Decimal  @default(0) @db.Decimal(10, 2)
+  tax                Decimal  @default(0) @db.Decimal(10, 2)
+  total              Decimal  @default(0) @db.Decimal(10, 2)
+  couponCode         String?  @map("coupon_code") @db.VarChar(50)
+  orderStatus        String   @default("pending") @map("order_status") @db.VarChar(20)
+  paymentMethod      String   @default("cod") @map("payment_method") @db.VarChar(20)
+  paymentStatus      String   @default("pending") @map("payment_status") @db.VarChar(20)
+  paymentDescription String?  @map("payment_description") @db.Text
+  orderNote          String?  @map("order_note") @db.Text
+  deliveryBoyId      Int?     @map("delivery_boy_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user        User         @relation(fields: [userId], references: [id])
+  address     Address?     @relation(fields: [addressId], references: [id])
+  deliveryBoy DeliveryBoy? @relation(fields: [deliveryBoyId], references: [id])
+  items       OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int?    @map("product_id")
+  name      String  @db.VarChar(255)
+  variant   String? @db.VarChar(100)
+  brand     String? @db.VarChar(100)
+  price     Decimal @db.Decimal(10, 2)
+  discount  Decimal @default(0) @db.Decimal(10, 2)
+  gst       Decimal @default(0) @db.Decimal(10, 2)
+  quantity  Int     @default(1)
+  total     Decimal @db.Decimal(10, 2)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─── Delivery Boys ───
+model DeliveryBoy {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  phone     String   @db.VarChar(15)
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@map("delivery_boys")
+}
+
+// ─── Coupons ───
+model Coupon {
+  id             Int      @id @default(autoincrement())
+  name           String   @db.VarChar(100)
+  code           String   @unique @db.VarChar(50)
+  image          String?  @db.VarChar(500)
+  amountType     String   @default("percent") @map("amount_type") @db.VarChar(20)
+  amount         Decimal  @default(0) @db.Decimal(10, 2)
+  minOrderAmount Decimal  @default(0) @map("min_order_amount") @db.Decimal(10, 2)
+  maxDiscount    Decimal? @map("max_discount") @db.Decimal(10, 2)
+  description    String?  @db.Text
+  expireOn       DateTime? @map("expire_on")
+  usageLimit     Int?     @map("usage_limit")
+  usedCount      Int      @default(0) @map("used_count")
+  status         String   @default("active") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("coupons")
+}
+
+// ─── Sliders ───
+model Slider {
+  id        Int      @id @default(autoincrement())
+  name      String?  @db.VarChar(100)
+  image     String   @db.VarChar(500)
+  type      String   @default("web") @db.VarChar(20)
+  position  String   @default("main") @db.VarChar(20)
+  linkType  String?  @map("link_type") @db.VarChar(20)
+  link      String?  @db.VarChar(500)
+  sortOrder Int      @default(0) @map("sort_order")
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sliders")
+}
+
+// ─── Sections (Homepage product sections) ───
+model Section {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  categoryId Int?     @map("category_id")
+  sortOrder  Int      @default(0) @map("sort_order")
+  status     String   @default("active") @db.VarChar(20)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("sections")
+}
+
+// ─── Tax ───
+model Tax {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  tax       Decimal  @default(0) @db.Decimal(5, 2)
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("taxes")
+}
+
+// ─── Contact Submissions ───
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100)
+  email     String   @db.VarChar(150)
+  phone     String?  @db.VarChar(15)
+  subject   String?  @db.VarChar(200)
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contacts")
+}
+
+// ─── Reviews ───
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  productId Int      @map("product_id")
+  rating    Int      @default(5)
+  comment   String?  @db.Text
+  status    String   @default("active") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
