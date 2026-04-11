@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Category from './pages/Category';
+import Brands from './pages/Brands';
 import Deals from './pages/Deals';
 import Wishlist from './pages/Wishlist';
 import TrackOrder from './pages/TrackOrder';
@@ -31,6 +32,7 @@ function App() {
           <Route path="/about-us" element={<About />} />
           <Route path="/contact-us" element={<Contact />} />
           <Route path="/category" element={<Category />} />
+          <Route path="/brands" element={<Brands />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track-order" element={<TrackOrder />} />
