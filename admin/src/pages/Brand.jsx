@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
@@ -71,7 +71,7 @@ const Brand = () => {
         { header: 'ID', accessor: 'id' },
         { 
             header: 'Image', 
-            render: (row) => row.image ? <img src={`http://localhost:5000${row.image}`} alt="Brand" style={{height:'40px', objectFit:'contain'}}/> : 'N/A' 
+            render: (row) => row.image ? <img src={getAssetUrl(row.image)} alt="Brand" style={{height:'40px', objectFit:'contain'}}/> : 'N/A' 
         },
         { header: 'Name', accessor: 'name' },
         { header: 'Show on Home', render: (row) => row.showHome ? 'Yes' : 'No' },
@@ -82,44 +82,59 @@ const Brand = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Brand Management</h2>
-                <button onClick={openAddModal} style={{ background: '#3BB77E', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>+ Add New</button>
+                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
             </div>
             
             <DataTable columns={columns} data={brands} onEdit={openEditModal} onDelete={handleDelete} />
 
             <GenericModal isOpen={isModalOpen} title={editingId ? "Update Brand" : "Add Brand"} onClose={() => setModalOpen(false)}>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Brand Image</label>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            {formData.image && <img src={`http://localhost:5000${formData.image}`} style={{height:'50px', border:'1px solid #ddd'}} />}
-                            <button type="button" onClick={() => setFilemanagerOpen(true)} style={{ padding: '8px 15px', background: '#e2e6ea', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>
-                                Select from Filemanager
-                            </button>
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-form-grid">
+                        {/* LEFT COLUMN: Image */}
+                        <div className="modal-image-col">
+                            <div className="admin-form-group">
+                                <label className="admin-label">Image <span className="required">*</span></label>
+                                <div 
+                                    className="image-placeholder-box" 
+                                    onClick={() => setFilemanagerOpen(true)}
+                                >
+                                    {formData.image ? (
+                                        <img src={getAssetUrl(formData.image)} alt="Selected" />
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}>🖼️</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: Inputs */}
+                        <div className="modal-inputs-col">
+                            <div className="modal-row-2">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Name <span className="required">*</span></label>
+                                    <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="admin-input" placeholder="Enter Name" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Status <span className="required">*</span></label>
+                                    <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="admin-select">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                                <input type="checkbox" id="showHome" checked={formData.showHome} onChange={e => setFormData({...formData, showHome: e.target.checked})} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                                <label htmlFor="showHome" style={{ cursor: 'pointer', fontWeight: '500', fontSize: '14px', color: 'var(--text)' }}>Show on Homepage</label>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Name *</label>
-                        <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <input type="checkbox" id="showHome" checked={formData.showHome} onChange={e => setFormData({...formData, showHome: e.target.checked})} />
-                        <label htmlFor="showHome">Show on Homepage</label>
-                    </div>
-
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px' }}>Status *</label>
-                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 15px', border: 'none', background: '#3BB77E', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Submit</button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                        <button type="submit" className="btn-modal-submit">Submit</button>
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-modal-close">Close</button>
                     </div>
                 </form>
             </GenericModal>

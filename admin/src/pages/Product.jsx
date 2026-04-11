@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
@@ -172,7 +172,7 @@ const Product = () => {
         { header: 'ID', accessor: 'id' },
         {
             header: 'Image',
-            render: (row) => row.image ? <img src={`http://localhost:5000${row.image}`} alt="" style={{ height: '40px', objectFit: 'contain' }} /> : 'N/A'
+            render: (row) => row.image ? <img src={getAssetUrl(row.image)} alt="" style={{ height: '40px', objectFit: 'contain' }} /> : 'N/A'
         },
         { header: 'Name', render: (row) => <span style={{ fontWeight: '500' }}>{row.name}</span> },
         { header: 'Category', render: (row) => row.category?.name || '—' },
@@ -216,7 +216,7 @@ const Product = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Product Management</h2>
-                <button onClick={openAddModal} style={{ background: '#3BB77E', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>+ Add New</button>
+                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
             </div>
 
             <DataTable columns={columns} data={products} onEdit={openEditModal} onDelete={handleDelete} onView={openViewModal} />
@@ -224,168 +224,163 @@ const Product = () => {
             {/* ─── ADD / EDIT Modal ─── */}
             <GenericModal isOpen={isModalOpen} title={editingId ? "Update Product" : "Add Product"} onClose={() => setModalOpen(false)}>
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div className="modal-form-grid">
+                        {/* LEFT COLUMN: Images */}
+                        <div className="modal-image-col">
+                            <div className="admin-form-group">
+                                <label className="admin-label">Product Image <span className="required">*</span></label>
+                                <div className="image-placeholder-box" onClick={() => setFilemanagerOpen(true)}>
+                                    {formData.image ? <img src={getAssetUrl(formData.image)} alt="Selected" /> : <div style={{ fontSize: '48px', color: '#ccc' }}>🖼️</div>}
+                                </div>
+                            </div>
 
-                    {/* Main Image */}
-                    <div>
-                        <label style={labelStyle}>Product Image</label>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            {formData.image && <img src={`http://localhost:5000${formData.image}`} style={{ height: '60px', border: '1px solid #ddd', borderRadius: '4px' }} />}
-                            <button type="button" onClick={() => setFilemanagerOpen(true)} style={{ ...miniBtn, background: '#e2e6ea', border: '1px solid #ccc' }}>
-                                Select from Filemanager
+                            <div style={sectionTitle}>Gallery Images</div>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                                {formData.galleryImages.map((img, idx) => (
+                                    <div key={idx} style={{ position: 'relative' }}>
+                                        <img src={getAssetUrl(img)} style={{ height: '60px', width: '60px', objectFit: 'cover', border: '1px solid var(--border)', borderRadius: '4px' }} />
+                                        <button type="button" onClick={() => removeGalleryImage(idx)}
+                                            style={{ position: 'absolute', top: -6, right: -6, background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                                    </div>
+                                ))}
+                            </div>
+                            <button type="button" onClick={() => setGalleryFMOpen(true)} className="btn-modal-close" style={{ width: '100%' }}>
+                                + Add Gallery Image
                             </button>
                         </div>
-                    </div>
 
-                    {/* Name */}
-                    <div>
-                        <label style={labelStyle}>Name *</label>
-                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={inputStyle} />
-                    </div>
-
-                    {/* Short Description */}
-                    <div>
-                        <label style={labelStyle}>Short Description</label>
-                        <input type="text" value={formData.shortDescription} onChange={e => setFormData({ ...formData, shortDescription: e.target.value })} style={inputStyle} maxLength={500} />
-                    </div>
-
-                    {/* Full Description */}
-                    <div>
-                        <label style={labelStyle}>Description</label>
-                        <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} style={{ ...inputStyle, minHeight: '80px' }} />
-                    </div>
-
-                    {/* Dropdowns row */}
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Category</label>
-                            <select value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} style={inputStyle}>
-                                <option value="">-- Select --</option>
-                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Brand</label>
-                            <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} style={inputStyle}>
-                                <option value="">-- Select --</option>
-                                {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Tax</label>
-                            <select value={formData.taxId} onChange={e => setFormData({ ...formData, taxId: e.target.value })} style={inputStyle}>
-                                <option value="">-- No Tax --</option>
-                                {taxes.map(t => <option key={t.id} value={t.id}>{t.name} ({Number(t.tax)}%)</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Price row */}
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Price *</label>
-                            <input type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required style={inputStyle} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Sale Price</label>
-                            <input type="number" step="0.01" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Stock</label>
-                            <input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Unit</label>
-                            <input type="text" placeholder="kg, pcs, ml" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} style={inputStyle} />
-                        </div>
-                    </div>
-
-                    {/* Tags, Video */}
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Tags (comma separated)</label>
-                            <input type="text" value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} style={inputStyle} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Video URL</label>
-                            <input type="text" value={formData.video} onChange={e => setFormData({ ...formData, video: e.target.value })} style={inputStyle} />
-                        </div>
-                    </div>
-
-                    {/* Flags */}
-                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                        <label><input type="checkbox" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} /> Featured</label>
-                        <label><input type="checkbox" checked={formData.popular} onChange={e => setFormData({ ...formData, popular: e.target.checked })} /> Popular</label>
-                        <label><input type="checkbox" checked={formData.deal} onChange={e => setFormData({ ...formData, deal: e.target.checked })} /> Today's Deal</label>
-                        <div style={{ marginLeft: 'auto' }}>
-                            <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={inputStyle}>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* ─── Gallery Images ─── */}
-                    <div>
-                        <div style={sectionTitle}>Gallery Images</div>
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                            {formData.galleryImages.map((img, idx) => (
-                                <div key={idx} style={{ position: 'relative' }}>
-                                    <img src={`http://localhost:5000${img}`} style={{ height: '60px', width: '60px', objectFit: 'cover', border: '1px solid #ddd', borderRadius: '4px' }} />
-                                    <button type="button" onClick={() => removeGalleryImage(idx)}
-                                        style={{ position: 'absolute', top: -6, right: -6, background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '18px', height: '18px', cursor: 'pointer', fontSize: '10px' }}>X</button>
+                        {/* RIGHT COLUMN: Product Inputs */}
+                        <div className="modal-inputs-col">
+                            <div className="modal-row-2">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Name <span className="required">*</span></label>
+                                    <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required className="admin-input" />
                                 </div>
-                            ))}
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Short Description</label>
+                                    <input type="text" value={formData.shortDescription} onChange={e => setFormData({ ...formData, shortDescription: e.target.value })} className="admin-input" maxLength={500} />
+                                </div>
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label className="admin-label">Description</label>
+                                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="admin-input" style={{ minHeight: '80px' }} />
+                            </div>
+
+                            <div className="modal-row-3">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Category</label>
+                                    <select value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="admin-select">
+                                        <option value="">-- Select --</option>
+                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Brand</label>
+                                    <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} className="admin-select">
+                                        <option value="">-- Select --</option>
+                                        {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Tax</label>
+                                    <select value={formData.taxId} onChange={e => setFormData({ ...formData, taxId: e.target.value })} className="admin-select">
+                                        <option value="">-- No Tax --</option>
+                                        {taxes.map(t => <option key={t.id} value={t.id}>{t.name} ({Number(t.tax)}%)</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Price <span className="required">*</span></label>
+                                    <input type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Sale Price</label>
+                                    <input type="number" step="0.01" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} className="admin-input" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Stock</label>
+                                    <input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Unit</label>
+                                    <input type="text" placeholder="kg, pcs, ml" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} className="admin-input" />
+                                </div>
+                            </div>
+
+                            <div className="modal-row-2">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Tags</label>
+                                    <input type="text" value={formData.tags} onChange={e => setFormData({ ...formData, tags: e.target.value })} className="admin-input" placeholder="comma separated" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Video URL</label>
+                                    <input type="text" value={formData.video} onChange={e => setFormData({ ...formData, video: e.target.value })} className="admin-input" />
+                                </div>
+                            </div>
+
+                            {/* Flags */}
+                            <div style={{ display: 'flex', gap: '20px', alignItems: 'center', marginTop: '10px' }}>
+                                <label style={{ display: 'flex', gap: '5px', alignItems: 'center', cursor: 'pointer', color: 'var(--text)' }}>
+                                    <input type="checkbox" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} /> Featured
+                                </label>
+                                <label style={{ display: 'flex', gap: '5px', alignItems: 'center', cursor: 'pointer', color: 'var(--text)' }}>
+                                    <input type="checkbox" checked={formData.popular} onChange={e => setFormData({ ...formData, popular: e.target.checked })} /> Popular
+                                </label>
+                                <label style={{ display: 'flex', gap: '5px', alignItems: 'center', cursor: 'pointer', color: 'var(--text)' }}>
+                                    <input type="checkbox" checked={formData.deal} onChange={e => setFormData({ ...formData, deal: e.target.checked })} /> Today's Deal
+                                </label>
+                                <div style={{ marginLeft: 'auto' }}>
+                                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="admin-select" style={{ width: '120px' }}>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {/* Lists Area (Variants, Benefits, Features) */}
+                            <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
+                                <div style={sectionTitle}>Variants</div>
+                                {formData.variants.map((v, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                                        <input placeholder="Name" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
+                                        <input placeholder="Price" type="number" step="0.01" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Sale Price" type="number" step="0.01" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Stock" type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addVariant} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Variant</button>
+
+                                <div style={sectionTitle}>Benefits</div>
+                                {formData.benefits.map((b, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                                        <input placeholder="Title" value={b.title} onChange={e => updateBenefit(idx, 'title', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Description" value={b.description} onChange={e => updateBenefit(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
+                                        <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addBenefit} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Benefit</button>
+
+                                <div style={sectionTitle}>Features</div>
+                                {formData.features.map((f, idx) => (
+                                    <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                                        <input placeholder="Feature" value={f.feature} onChange={e => updateFeature(idx, 'feature', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Description" value={f.description} onChange={e => updateFeature(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
+                                        <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                    </div>
+                                ))}
+                                <button type="button" onClick={addFeature} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Feature</button>
+                            </div>
+
                         </div>
-                        <button type="button" onClick={() => setGalleryFMOpen(true)} style={{ ...miniBtn, background: '#e2e6ea', border: '1px solid #ccc' }}>
-                            + Add Gallery Image
-                        </button>
                     </div>
 
-                    {/* ─── Variants ─── */}
-                    <div>
-                        <div style={sectionTitle}>Variants</div>
-                        {formData.variants.map((v, idx) => (
-                            <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                <input placeholder="Name (e.g. 500g)" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} style={{ ...inputStyle, flex: 2 }} />
-                                <input placeholder="Price" type="number" step="0.01" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                                <input placeholder="Sale Price" type="number" step="0.01" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                                <input placeholder="Stock" type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                                <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
-                            </div>
-                        ))}
-                        <button type="button" onClick={addVariant} style={{ ...miniBtn, background: '#17a2b8', color: '#fff' }}>+ Add Variant</button>
-                    </div>
-
-                    {/* ─── Benefits ─── */}
-                    <div>
-                        <div style={sectionTitle}>Benefits</div>
-                        {formData.benefits.map((b, idx) => (
-                            <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                <input placeholder="Title" value={b.title} onChange={e => updateBenefit(idx, 'title', e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                                <input placeholder="Description" value={b.description} onChange={e => updateBenefit(idx, 'description', e.target.value)} style={{ ...inputStyle, flex: 2 }} />
-                                <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
-                            </div>
-                        ))}
-                        <button type="button" onClick={addBenefit} style={{ ...miniBtn, background: '#17a2b8', color: '#fff' }}>+ Add Benefit</button>
-                    </div>
-
-                    {/* ─── Features ─── */}
-                    <div>
-                        <div style={sectionTitle}>Features</div>
-                        {formData.features.map((f, idx) => (
-                            <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                <input placeholder="Feature" value={f.feature} onChange={e => updateFeature(idx, 'feature', e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                                <input placeholder="Description" value={f.description} onChange={e => updateFeature(idx, 'description', e.target.value)} style={{ ...inputStyle, flex: 2 }} />
-                                <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
-                            </div>
-                        ))}
-                        <button type="button" onClick={addFeature} style={{ ...miniBtn, background: '#17a2b8', color: '#fff' }}>+ Add Feature</button>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '10px' }}>
-                        <button type="submit" style={{ padding: '10px 25px', border: 'none', background: '#3BB77E', color: 'white', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>
-                            {editingId ? 'Update Product' : 'Create Product'}
-                        </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                        <button type="submit" className="btn-modal-submit">{editingId ? 'Update Product' : 'Create Product'}</button>
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-modal-close">Close</button>
                     </div>
                 </form>
             </GenericModal>
@@ -394,7 +389,7 @@ const Product = () => {
             <GenericModal isOpen={isViewOpen} title={viewProduct?.name || 'Product Details'} onClose={() => setViewOpen(false)}>
                 {viewProduct && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {viewProduct.image && <img src={`http://localhost:5000${viewProduct.image}`} style={{ maxHeight: '200px', objectFit: 'contain', borderRadius: '4px' }} />}
+                        {viewProduct.image && <img src={getAssetUrl(viewProduct.image)} style={{ maxHeight: '200px', objectFit: 'contain', borderRadius: '4px' }} />}
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <tbody>
                                 {[
@@ -445,7 +440,7 @@ const Product = () => {
                             <div>
                                 <strong>Gallery:</strong>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
-                                    {viewProduct.images.map(img => <img key={img.id} src={`http://localhost:5000${img.image}`} style={{ height: '80px', width: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} />)}
+                                    {viewProduct.images.map(img => <img key={img.id} src={getAssetUrl(img.image)} style={{ height: '80px', width: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} />)}
                                 </div>
                             </div>
                         )}

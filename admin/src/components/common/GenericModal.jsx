@@ -6,41 +6,39 @@ const GenericModal = ({ isOpen, title, onClose, children }) => {
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+            background: 'var(--modal-overlay)', zIndex: 1000,
             display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
-            <div style={{
-                background: '#fff',
-                width: '600px',
-                maxWidth: '90%',
+            <div className="admin-card" style={{
+                width: '700px',
+                maxWidth: '95%',
                 maxHeight: '90vh',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 display: 'flex',
                 flexDirection: 'column'
             }}>
                 {/* Header */}
                 <div style={{
-                    padding: '15px 20px',
-                    borderBottom: '1px solid #eee',
+                    padding: '15px 25px',
+                    borderBottom: '1px solid var(--border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between'
                 }}>
-                    <h3 style={{ margin: 0, fontSize: '18px' }}>{title}</h3>
+                    <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text)' }}>{title}</h3>
                     <button onClick={onClose} style={{
                         background: 'transparent',
                         border: 'none',
-                        fontSize: '20px',
+                        fontSize: '24px',
                         cursor: 'pointer',
-                        color: '#dc3545'
+                        color: '#8b9ca8',
+                        fontWeight: 'bold'
                     }}>
                         &times;
                     </button>
                 </div>
                 
                 {/* Body */}
-                <div style={{ padding: '20px', overflowY: 'auto' }}>
+                <div style={{ padding: '25px', overflowY: 'auto' }}>
                     {children}
                 </div>
             </div>

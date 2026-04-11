@@ -66,16 +66,33 @@ router.get('/logout', (req, res) => {
 router.get('/dashboard', requireAdmin, async (req, res) => {
   try {
     const now = new Date();
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
-    const [totalSales, totalOrders, totalUsers, totalProducts, recentOrders, topProducts] = await Promise.all([
+    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
+    const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1);
+
+    const [
+      totalSalesAgg,
+      lastMonthSalesAgg,
+      totalOrders,
+      lastMonthOrders,
+      totalUsers,
+      lastMonthUsers,
+      totalProducts,
+      recentOrders,
+      topProductsRaw
+    ] = await Promise.all([
       prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.order.count(),
+      prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.user.count(),
+      prisma.user.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.product.count(),
       prisma.order.findMany({
-        take: 5, orderBy: { createdAt: 'desc' },
+        take: 10,
+        orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true, phone: true } } }
       }),
       prisma.orderItem.groupBy({
@@ -84,13 +101,45 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       })
     ]);
 
+    // Monthly Sales Trend (Last 6 months)
+    const salesTrend = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const monthSales = await prisma.order.aggregate({
+        _sum: { total: true },
+        where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+      });
+      salesTrend.push({
+        month: d.toLocaleString('default', { month: 'short' }),
+        sales: Number(monthSales._sum.total || 0)
+      });
+    }
+
+    const totalSales = Number(totalSalesAgg._sum.total || 0);
+    const lastMonthSales = Number(lastMonthSalesAgg._sum.total || 0);
+
+    // Calculate percentage changes
+    const calcChange = (current, previous) => {
+      if (!previous) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
     res.json({
       status: true,
       stats: {
-        totalSales: totalSales._sum.total || 0,
-        totalOrders, totalUsers, totalProducts,
+        totalSales,
+        salesChange: calcChange(totalSales - lastMonthSales, lastMonthSales),
+        totalOrders,
+        ordersChange: calcChange(totalOrders - lastMonthOrders, lastMonthOrders),
+        totalUsers,
+        usersChange: calcChange(totalUsers - lastMonthUsers, lastMonthUsers),
+        totalProducts,
+        productsChange: 0, // Product count growth is usually less relevant but we can add if needed
         recentOrders,
-        topProducts: topProducts.map(p => ({ name: p.name, count: p._sum.quantity }))
+        topProducts: topProductsRaw.map(p => ({ name: p.name, value: p._sum.quantity })),
+        salesTrend
       }
     });
   } catch (e) {

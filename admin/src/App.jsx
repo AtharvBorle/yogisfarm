@@ -13,6 +13,7 @@ import Tax from './pages/Tax';
 import Contact from './pages/Contact';
 import Filemanager from './pages/Filemanager';
 import Coupon from './pages/Coupon';
+import Profile from './pages/Profile';
 
 function App() {
   const { admin, loading } = useAuth();
@@ -33,6 +34,7 @@ function App() {
       <Route path="/contacts" element={admin ? <AdminLayout><Contact /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/profile" element={admin ? <AdminLayout><Profile /></AdminLayout> : <Navigate to="/login" />} />
     </Routes>
   );
 }

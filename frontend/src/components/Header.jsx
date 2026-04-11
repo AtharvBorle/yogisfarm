@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -85,7 +85,7 @@ const Header = () => {
                                                 {cartItems.map(item => (
                                                     <li key={item.id}>
                                                         <div className="shopping-cart-img">
-                                                            <Link to={`/product/${item.product.slug}`}><img alt={item.product.name} src={`http://localhost:5000${item.product.image}`} /></Link>
+                                                            <Link to={`/product/${item.product.slug}`}><img alt={item.product.name} src={getAssetUrl(item.product.image)} /></Link>
                                                         </div>
                                                         <div className="shopping-cart-title">
                                                             <h4><Link to={`/product/${item.product.slug}`}>{item.product.name}</Link></h4>

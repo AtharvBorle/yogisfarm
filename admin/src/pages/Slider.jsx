@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
@@ -70,7 +70,7 @@ const Slider = () => {
         { header: 'ID', accessor: 'id' },
         {
             header: 'Image',
-            render: (row) => row.image ? <img src={`http://localhost:5000${row.image}`} alt="Slider" style={{ height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'N/A'
+            render: (row) => row.image ? <img src={getAssetUrl(row.image)} alt="Slider" style={{ height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'N/A'
         },
         { header: 'Name', accessor: 'name' },
         { header: 'Type', accessor: 'type' },
@@ -89,83 +89,96 @@ const Slider = () => {
         }
     ];
 
-    const inputStyle = { width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' };
-    const labelStyle = { display: 'block', marginBottom: '5px' };
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Slider Management</h2>
-                <button onClick={openAddModal} style={{ background: '#3BB77E', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer' }}>+ Add New</button>
+                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
             </div>
 
             <DataTable columns={columns} data={sliders} onEdit={openEditModal} onDelete={handleDelete} />
 
             <GenericModal isOpen={isModalOpen} title={editingId ? "Update Slider" : "Add Slider"} onClose={() => setModalOpen(false)}>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-form-grid">
+                        {/* LEFT COLUMN: Image */}
+                        <div className="modal-image-col">
+                            <div className="admin-form-group">
+                                <label className="admin-label">Image <span className="required">*</span></label>
+                                <div 
+                                    className="image-placeholder-box" 
+                                    onClick={() => setFilemanagerOpen(true)}
+                                >
+                                    {formData.image ? (
+                                        <img src={getAssetUrl(formData.image)} alt="Selected" />
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}>🖼️</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
-                    <div>
-                        <label style={labelStyle}>Slider Image *</label>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                            {formData.image && <img src={`http://localhost:5000${formData.image}`} style={{ height: '60px', border: '1px solid #ddd', borderRadius: '4px' }} />}
-                            <button type="button" onClick={() => setFilemanagerOpen(true)} style={{ padding: '8px 15px', background: '#e2e6ea', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>
-                                Select from Filemanager
-                            </button>
+                        {/* RIGHT COLUMN: Inputs */}
+                        <div className="modal-inputs-col">
+                            <div className="modal-row-2">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Name <span className="required">*</span></label>
+                                    <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="admin-input" placeholder="Enter Name" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Status <span className="required">*</span></label>
+                                    <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="admin-select">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="modal-row-3">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Type <span className="required">*</span></label>
+                                    <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} className="admin-select">
+                                        <option value="web">Web</option>
+                                        <option value="mobile_app">Mobile App</option>
+                                        <option value="mobile_category">Mobile Category</option>
+                                    </select>
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Position <span className="required">*</span></label>
+                                    <select value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="admin-select">
+                                        <option value="main">Main</option>
+                                        <option value="top">Top</option>
+                                        <option value="middle">Middle</option>
+                                        <option value="bottom">Bottom</option>
+                                    </select>
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Link Type</label>
+                                    <select value={formData.linkType} onChange={e => setFormData({ ...formData, linkType: e.target.value })} className="admin-select">
+                                        <option value="">None</option>
+                                        <option value="category">Category</option>
+                                        <option value="brand">Brand</option>
+                                        <option value="product">Product</option>
+                                        <option value="url">Custom URL</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {formData.linkType && (
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Link</label>
+                                    <input type="text" value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="URL or ID" className="admin-input" />
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div>
-                        <label style={labelStyle}>Name</label>
-                        <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={inputStyle} />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Type</label>
-                            <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} style={inputStyle}>
-                                <option value="web">Web</option>
-                                <option value="mobile_app">Mobile App</option>
-                                <option value="mobile_category">Mobile Category</option>
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Position</label>
-                            <select value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} style={inputStyle}>
-                                <option value="main">Main</option>
-                                <option value="top">Top</option>
-                                <option value="middle">Middle</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Link Type</label>
-                            <select value={formData.linkType} onChange={e => setFormData({ ...formData, linkType: e.target.value })} style={inputStyle}>
-                                <option value="">None</option>
-                                <option value="category">Category</option>
-                                <option value="brand">Brand</option>
-                                <option value="product">Product</option>
-                                <option value="url">Custom URL</option>
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Link</label>
-                            <input type="text" value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="URL or ID" style={inputStyle} />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label style={labelStyle}>Status</label>
-                        <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} style={inputStyle}>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 15px', border: 'none', background: '#3BB77E', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Submit</button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                        <button type="submit" className="btn-modal-submit">Submit</button>
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-modal-close">Close</button>
                     </div>
                 </form>
             </GenericModal>
