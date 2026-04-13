@@ -3,16 +3,23 @@ import api, { getAssetUrl } from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
+import ReorderModal from '../components/common/ReorderModal';
 import toast from 'react-hot-toast';
 
 const Slider = () => {
     const [sliders, setSliders] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [isFilemanagerOpen, setFilemanagerOpen] = useState(false);
+    const [isReorderOpen, setReorderOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
         name: '', image: '', status: 'active', type: 'web', position: 'main', linkType: '', link: ''
     });
+
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [productKeyword, setProductKeyword] = useState('');
+    const [productResults, setProductResults] = useState([]);
 
     const fetchSliders = async () => {
         try {
@@ -23,10 +30,28 @@ const Slider = () => {
         }
     };
 
-    useEffect(() => { fetchSliders(); }, []);
+    useEffect(() => { 
+        fetchSliders(); 
+        api.get('/categories').then(res => res.data.status && setCategories(res.data.categories));
+        api.get('/brands').then(res => res.data.status && setBrands(res.data.brands));
+    }, []);
+
+    useEffect(() => {
+        if (formData.linkType === 'product' && productKeyword.length > 1) {
+            const timer = setTimeout(() => {
+                api.get(`/products?search=${productKeyword}`).then(res => {
+                    if (res.data.status) setProductResults(res.data.products);
+                });
+            }, 300);
+            return () => clearTimeout(timer);
+        } else {
+            setProductResults([]);
+        }
+    }, [productKeyword, formData.linkType]);
 
     const openAddModal = () => {
         setFormData({ name: '', image: '', status: 'active', type: 'web', position: 'main', linkType: '', link: '' });
+        setProductKeyword('');
         setEditingId(null);
         setModalOpen(true);
     };
@@ -37,6 +62,7 @@ const Slider = () => {
             type: row.type || 'web', position: row.position || 'main',
             linkType: row.linkType || '', link: row.link || ''
         });
+        setProductKeyword('');
         setEditingId(row.id);
         setModalOpen(true);
     };
@@ -64,6 +90,21 @@ const Slider = () => {
                 toast.error(res.data.message);
             }
         } catch (err) { toast.error('Submit failed'); }
+    };
+
+    const handleReorderSave = async (orderedIds) => {
+        try {
+            const res = await api.put('/sliders/order/update', { order: orderedIds });
+            if (res.data.status) {
+                toast.success('Slider order saved');
+                setReorderOpen(false);
+                fetchSliders();
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (err) {
+            toast.error('Order save failed');
+        }
     };
 
     const columns = [
@@ -94,7 +135,10 @@ const Slider = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Slider Management</h2>
-                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setReorderOpen(true)} className="btn-add-new" style={{ backgroundColor: '#ff9900' }}>⇕ Order</button>
+                    <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                </div>
             </div>
 
             <DataTable columns={columns} data={sliders} onEdit={openEditModal} onDelete={handleDelete} />
@@ -157,7 +201,7 @@ const Slider = () => {
                                 </div>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Link Type</label>
-                                    <select value={formData.linkType} onChange={e => setFormData({ ...formData, linkType: e.target.value })} className="admin-select">
+                                    <select value={formData.linkType} onChange={e => setFormData({ ...formData, linkType: e.target.value, link: '' })} className="admin-select">
                                         <option value="">None</option>
                                         <option value="category">Category</option>
                                         <option value="brand">Brand</option>
@@ -167,10 +211,61 @@ const Slider = () => {
                                 </div>
                             </div>
 
-                            {formData.linkType && (
+                            {formData.linkType === 'category' && (
                                 <div className="admin-form-group">
-                                    <label className="admin-label">Link</label>
-                                    <input type="text" value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="URL or ID" className="admin-input" />
+                                    <label className="admin-label">Select Category</label>
+                                    <select value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} className="admin-select">
+                                        <option value="">-- Choose Category --</option>
+                                        {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            {formData.linkType === 'brand' && (
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Select Brand</label>
+                                    <select value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} className="admin-select">
+                                        <option value="">-- Choose Brand --</option>
+                                        {brands.map(b => <option key={b.id} value={b.slug}>{b.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
+
+                            {formData.linkType === 'product' && (
+                                <div className="admin-form-group" style={{ position: 'relative' }}>
+                                    <label className="admin-label">Search Product</label>
+                                    <input 
+                                        type="text" 
+                                        value={productKeyword} 
+                                        onChange={(e) => { setProductKeyword(e.target.value); setFormData({ ...formData, link: '' }); }}
+                                        placeholder="Type to search and select product..." 
+                                        className="admin-input" 
+                                    />
+                                    {formData.link && <div style={{ fontSize: '13px', color: '#046938', marginTop: '6px', fontWeight: 'bold' }}>Selected Product Slug: {formData.link}</div>}
+                                    {productResults.length > 0 && !formData.link && (
+                                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #ddd', borderRadius: '4px', zIndex: 99, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                                            {productResults.map(p => (
+                                                <div 
+                                                    key={p.id} 
+                                                    style={{ padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '14px' }}
+                                                    onClick={() => {
+                                                        setFormData({ ...formData, link: p.slug });
+                                                        setProductKeyword(p.name);
+                                                        setProductResults([]);
+                                                    }}
+                                                >
+                                                    {p.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {formData.linkType === 'url' && (
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Custom URL Link</label>
+                                    <input type="text" value={formData.link} onChange={e => setFormData({ ...formData, link: e.target.value })} placeholder="https://..." className="admin-input" />
                                 </div>
                             )}
                         </div>
@@ -191,6 +286,14 @@ const Slider = () => {
                     />
                 </div>
             </GenericModal>
+
+            <ReorderModal 
+                isOpen={isReorderOpen} 
+                onClose={() => setReorderOpen(false)} 
+                data={sliders} 
+                onSave={handleReorderSave} 
+                itemLabelKey="name" 
+            />
         </div>
     );
 };

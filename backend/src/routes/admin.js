@@ -270,6 +270,18 @@ router.delete('/brands/:id', requireAdmin, async (req, res) => {
   res.json({ status: true, message: 'Brand deleted' });
 });
 
+router.put('/brands/order/update', requireAdmin, async (req, res) => {
+  try {
+    const { order } = req.body;
+    for (let i = 0; i < order.length; i++) {
+      await prisma.brand.update({ where: { id: order[i] }, data: { sortOrder: i } });
+    }
+    res.json({ status: true, message: 'Brand order updated' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 // ─── Products CRUD ───
 router.get('/products', requireAdmin, async (req, res) => {
   const products = await prisma.product.findMany({
@@ -475,6 +487,18 @@ router.put('/sections/:id', requireAdmin, async (req, res) => {
 router.delete('/sections/:id', requireAdmin, async (req, res) => {
   await prisma.section.delete({ where: { id: parseInt(req.params.id) } });
   res.json({ status: true, message: 'Section deleted' });
+});
+
+router.put('/sections/order/update', requireAdmin, async (req, res) => {
+  try {
+    const { order } = req.body;
+    for (let i = 0; i < order.length; i++) {
+      await prisma.section.update({ where: { id: order[i] }, data: { sortOrder: i } });
+    }
+    res.json({ status: true, message: 'Section order updated' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Tax CRUD ───

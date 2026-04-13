@@ -19,6 +19,14 @@ import TrackOrder from './pages/TrackOrder';
 
 function App() {
   const [showScroll, setShowScroll] = useState(false);
+  const [isPreloading, setIsPreloading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPreloading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +42,12 @@ function App() {
 
   return (
     <>
+      {isPreloading && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#fff', zIndex: 99999999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <img src="/assets/imgs/theme/loader.gif" alt="Loading Yogis Farm..." style={{ width: '150px' }} />
+        </div>
+      )}
+
       <Header />
       <main className="main">
         <Routes>

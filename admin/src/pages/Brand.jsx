@@ -3,12 +3,14 @@ import api, { getAssetUrl } from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
+import ReorderModal from '../components/common/ReorderModal';
 import toast from 'react-hot-toast';
 
 const Brand = () => {
     const [brands, setBrands] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [isFilemanagerOpen, setFilemanagerOpen] = useState(false);
+    const [isReorderOpen, setReorderOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ name: '', image: '', showHome: false, status: 'active' });
 
@@ -47,13 +49,6 @@ const Brand = () => {
         e.preventDefault();
         try {
             let res;
-            // The backend expects boolean string for showHome if sent as form data, but we can send JSON since we aren't using upload.single anymore 
-            // Wait, the backend in admin.js allows json if we don't send multi-part form. But since we use Filemanager, image is just a string.
-            // Oh wait, in backend `upload.single('image')` isn't STRICTLY required if we send JSON. Wait, Multer might crash if we send JSON to upload.single?
-            // Actually, `upload.single` ignores JSON bodies, but let's test if it crashes. To be safe, we can send FormData or just JSON if the backend handles it.
-            // Let's send JSON. If multer complains, we will fix the backend or send empty file. 
-            // Better to send JSON, since we only pass image as string URL.
-            
             if (editingId) res = await api.put(`/brands/${editingId}`, { ...formData, showHome: formData.showHome.toString() });
             else res = await api.post('/brands', { ...formData, showHome: formData.showHome.toString() });
             
@@ -65,6 +60,21 @@ const Brand = () => {
                 toast.error(res.data.message);
             }
         } catch (error) { toast.error('Submit failed'); }
+    };
+
+    const handleReorderSave = async (orderedIds) => {
+        try {
+            const res = await api.put('/brands/order/update', { order: orderedIds });
+            if (res.data.status) {
+                toast.success('Brand order saved');
+                setReorderOpen(false);
+                fetchBrands();
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (err) {
+            toast.error('Order save failed');
+        }
     };
 
     const columns = [
@@ -82,7 +92,10 @@ const Brand = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Brand Management</h2>
-                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setReorderOpen(true)} className="btn-add-new" style={{ backgroundColor: '#ff9900' }}>⇕ Order</button>
+                    <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                </div>
             </div>
             
             <DataTable columns={columns} data={brands} onEdit={openEditModal} onDelete={handleDelete} />
@@ -148,6 +161,14 @@ const Brand = () => {
                     />
                 </div>
             </GenericModal>
+
+            <ReorderModal 
+                isOpen={isReorderOpen} 
+                onClose={() => setReorderOpen(false)} 
+                data={brands} 
+                onSave={handleReorderSave} 
+                itemLabelKey="name" 
+            />
         </div>
     );
 };

@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
+import ReorderModal from '../components/common/ReorderModal';
 import toast from 'react-hot-toast';
 
 const Section = () => {
     const [sections, setSections] = useState([]);
     const [categories, setCategories] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
+    const [isReorderOpen, setReorderOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ name: '', categoryId: '', status: 'active' });
 
@@ -64,6 +66,21 @@ const Section = () => {
         } catch (error) { toast.error('Submit failed'); }
     };
 
+    const handleReorderSave = async (orderedIds) => {
+        try {
+            const res = await api.put('/sections/order/update', { order: orderedIds });
+            if (res.data.status) {
+                toast.success('Section order saved');
+                setReorderOpen(false);
+                fetchData();
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (err) {
+            toast.error('Order save failed');
+        }
+    };
+
     const columns = [
         { header: 'ID', accessor: 'id' },
         { header: 'Name', accessor: 'name' },
@@ -82,7 +99,10 @@ const Section = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Section Management</h2>
-                <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setReorderOpen(true)} className="btn-add-new" style={{ backgroundColor: '#ff9900' }}>⇕ Order</button>
+                    <button onClick={openAddModal} className="btn-add-new">+ Add New</button>
+                </div>
             </div>
             
             <DataTable columns={columns} data={sections} onEdit={openEditModal} onDelete={handleDelete} />
@@ -117,6 +137,14 @@ const Section = () => {
                     </div>
                 </form>
             </GenericModal>
+
+            <ReorderModal 
+                isOpen={isReorderOpen} 
+                onClose={() => setReorderOpen(false)} 
+                data={sections} 
+                onSave={handleReorderSave} 
+                itemLabelKey="name" 
+            />
         </div>
     );
 };

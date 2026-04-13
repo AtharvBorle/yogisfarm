@@ -10,6 +10,8 @@ import toast from 'react-hot-toast';
 const Login = () => {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
     const [step, setStep] = useState(1);
     const { fetchUser } = useAuth();
     const { fetchCart } = useCart();
@@ -38,6 +40,27 @@ const Login = () => {
             const res = await api.post('/auth/verify-otp', { phone, otp });
             if (res.data.status) {
                 toast.success(res.data.message);
+                if (res.data.needsDetails) {
+                    setStep(3);
+                } else {
+                    fetchUser();
+                    fetchCart(); // Fetch new merged cart
+                    navigate(redirect);
+                }
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Invalid OTP');
+        }
+    };
+
+    const submitDetails = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.post('/auth/submit-details', { name, email });
+            if (res.data.status) {
+                toast.success('Registration successful!');
                 fetchUser();
                 fetchCart(); // Fetch new merged cart
                 navigate(redirect);
@@ -45,7 +68,7 @@ const Login = () => {
                 toast.error(res.data.message);
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Invalid OTP');
+            toast.error(err.response?.data?.message || 'Failed to save details');
         }
     };
 
@@ -73,11 +96,11 @@ const Login = () => {
                             <div className="padding_eight_all bg-white" style={{ textAlign: 'center' }}>
                                 <div className="heading_s1" style={{ marginBottom: '40px' }}>
                                     <h2 style={{ fontSize: '36px', color: '#253D4E', fontWeight: '800' }}>
-                                        {step === 1 ? 'Enter Your Mobile Number' : 'Enter OTP Code'}
+                                        {step === 1 ? 'Enter Your Mobile Number' : step === 2 ? 'Enter OTP Code' : 'Register'}
                                     </h2>
                                 </div>
                                 
-                                {step === 1 ? (
+                                {step === 1 && (
                                     <form onSubmit={sendOtp} style={{ maxWidth: '400px', margin: '0 auto' }}>
                                         <div className="form-group mb-30">
                                             <input 
@@ -99,7 +122,9 @@ const Login = () => {
                                             </button>
                                         </div>
                                     </form>
-                                ) : (
+                                )}
+
+                                {step === 2 && (
                                     <form onSubmit={verifyOtp} style={{ maxWidth: '400px', margin: '0 auto' }}>
                                         <div className="form-group mb-20">
                                             <input 
@@ -132,6 +157,41 @@ const Login = () => {
                                                 style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold' }}
                                             >
                                                 Verify & Login
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+
+                                {step === 3 && (
+                                    <form onSubmit={submitDetails} style={{ maxWidth: '400px', margin: '0 auto', textAlign: 'left' }}>
+                                        <div className="form-group mb-30">
+                                            <input 
+                                                type="text" 
+                                                value={name} 
+                                                onChange={(e) => setName(e.target.value)} 
+                                                name="name" 
+                                                placeholder="Name" 
+                                                required 
+                                                style={{ border: '1px solid #ececec', borderRadius: '5px', height: '50px', padding: '0 20px', width: '100%', fontSize: '16px' }}
+                                            />
+                                        </div>
+                                        <div className="form-group mb-30">
+                                            <input 
+                                                type="email" 
+                                                value={email} 
+                                                onChange={(e) => setEmail(e.target.value)} 
+                                                name="email" 
+                                                placeholder="Email" 
+                                                required 
+                                                style={{ border: '1px solid #ececec', borderRadius: '5px', height: '50px', padding: '0 20px', width: '100%', fontSize: '16px' }}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <button 
+                                                type="submit" 
+                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold' }}
+                                            >
+                                                Submit
                                             </button>
                                         </div>
                                     </form>
