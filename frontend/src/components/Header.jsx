@@ -13,11 +13,20 @@ const Header = () => {
     const [catOpen, setCatOpen] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+    const [isSticky, setIsSticky] = useState(false);
 
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
             if(res.data.status) setCategories(res.data.categories);
         });
+    }, []);
+
+    useEffect(() => {
+        const handleLayoutScroll = () => {
+            setIsSticky(window.scrollY > 200);
+        };
+        window.addEventListener('scroll', handleLayoutScroll);
+        return () => window.removeEventListener('scroll', handleLayoutScroll);
     }, []);
 
     useEffect(() => {
@@ -86,25 +95,23 @@ const Header = () => {
                                                 setCatOpen(!catOpen); 
                                             }}
                                         >
-                                            <span className="et"> All </span>
-                                            <i className="fi-rs-angle-down" style={{ marginLeft: '10px' }}></i>
+                                            <span className="fi-rs-apps" style={{ marginRight: '8px' }}></span> All
+                                            <i className="fi-rs-angle-down" style={{ marginLeft: '12px' }}></i>
                                         </div>
                                         {catOpen && (
-                                            <div className="cat-dropdown-custom font-heading" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, zIndex: 9999, background: '#fff', border: '1px solid #ececec', borderRadius: '0 0 10px 10px', minWidth: '260px', padding: '20px', boxShadow: '0 5px 20px rgba(0,0,0,0.05)' }}>
-                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                    {categories.slice(0, 7).map(cat => (
-                                                        <li key={cat.id} style={{ marginBottom: '15px' }}>
-                                                            <Link to={`/shop?category=${cat.slug}`} onClick={() => setCatOpen(false)} style={{ display: 'flex', alignItems: 'center', color: '#253D4E', fontWeight: 'bold' }}>
-                                                                <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: '28px', height: '28px', marginRight: '15px', objectFit: 'contain' }} />
+                                            <div className="categori-dropdown-wrap categori-dropdown-active-large open" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, zIndex: 9999, width: '250px', background: '#fff', border: '1px solid #ececec', borderRadius: '5px', padding: '20px' }}>
+                                                <ul>
+                                                    {categories.map(cat => (
+                                                        <li key={cat.id}>
+                                                            <Link to={`/shop?category=${cat.slug}`} onClick={() => setCatOpen(false)}>
+                                                                <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: 30, height: 30, objectFit: 'cover' }} />
                                                                 {cat.name}
                                                             </Link>
                                                         </li>
                                                     ))}
                                                 </ul>
-                                                <div className="more_categories" style={{ marginTop: '15px', pt: '10px' }}>
-                                                    <Link to="/category" onClick={() => setCatOpen(false)} style={{ color: '#046938', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                                                        <span className="icon" style={{ display: 'inline-block', width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #cce7d0', textAlign: 'center', lineHeight: '22px', marginRight: '8px', fontSize:'18px' }}>+</span> Show More...
-                                                    </Link>
+                                                <div className="more_categories">
+                                                    <span className="icon"></span> <Link to="/category" onClick={() => setCatOpen(false)}> <span className="heading-sm-1">+ Show More...</span> </Link>
                                                 </div>
                                             </div>
                                         )}
@@ -215,7 +222,7 @@ const Header = () => {
             </div>
 
             {/* Bottom Nav */}
-            <div className="header-bottom header-bottom-bg-color sticky-bar">
+            <div className={`header-bottom header-bottom-bg-color sticky-bar ${isSticky ? 'stick' : ''}`}>
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo logo-width-1 d-block d-lg-none pt-1">

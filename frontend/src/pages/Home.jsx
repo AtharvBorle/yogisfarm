@@ -3,6 +3,34 @@ import { Link } from 'react-router-dom';
 import SliderComponent from 'react-slick';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
+import FeatureBanners from '../components/FeatureBanners';
+
+const ProductSmallCard = ({ product }) => (
+    <article className="row align-items-center mb-10">
+        <figure className="col-md-4 mb-0">
+            <Link to={`/product/${product.slug}`}>
+                <img src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '5px', width: '100%', objectFit: 'cover' }} />
+            </Link>
+        </figure>
+        <div className="col-md-8 mb-0">
+            <h6 className="mb-0" style={{ lineHeight: '1.2' }}>
+                <Link to={`/product/${product.slug}`} style={{ color: '#253D4E', fontSize: '13px', fontWeight: 'bold' }}>{product.name}</Link>
+            </h6>
+            <div className="product-rate-cover" style={{ marginTop: '5px' }}>
+                <div className="product-rate d-inline-block">
+                    <div className="product-rating" style={{ width: '90%' }}></div>
+                </div>
+                <span className="font-small ml-5 text-muted" style={{ fontSize: '12px' }}> (0)</span>
+            </div>
+            <div className="product-price" style={{ marginTop: '5px' }}>
+                <span className="fs-6" style={{ color: '#046938', fontWeight: 'bold' }}>₹{product.salePrice || product.price}</span>
+                {product.salePrice && product.salePrice < product.price && (
+                    <span className="old-price font-md ml-5 text-muted" style={{ textDecoration: 'line-through', fontSize: '12px' }}>₹{product.price}</span>
+                )}
+            </div>
+        </div>
+    </article>
+);
 
 const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
@@ -226,6 +254,41 @@ const Home = () => {
 
             {/* 8. BOTTOM SLIDER */}
             {bottomSliders.length > 0 && <SliderBanner sliders={bottomSliders} containerClass="container-fluid" maxCols={2} />}
+
+            {/* 9. 4-Column Compact Products Section */}
+            <section className="section-padding mb-30 mt-30">
+                <div className="container">
+                    <div className="row">
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
+                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '1px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#253D4E' }}>Top Selling</h4>
+                            <div className="product-list-small">
+                                {popularProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            </div>
+                        </div>
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
+                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '1px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#253D4E' }}>Trending Products</h4>
+                            <div className="product-list-small">
+                                {dealProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            </div>
+                        </div>
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0 d-none d-lg-block">
+                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '1px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#253D4E' }}>Recently added</h4>
+                            <div className="product-list-small">
+                                {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => <ProductSmallCard key={p.id} product={p} />) : dealProducts.slice(0,3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            </div>
+                        </div>
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0 d-none d-xl-block">
+                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '1px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#253D4E' }}>Top Rated</h4>
+                            <div className="product-list-small">
+                                {featuredProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 10. Feature Banners (Perks) */}
+            <FeatureBanners />
         </>
     );
 };

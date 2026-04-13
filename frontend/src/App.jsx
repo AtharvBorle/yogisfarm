@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -17,6 +18,20 @@ import Wishlist from './pages/Wishlist';
 import TrackOrder from './pages/TrackOrder';
 
 function App() {
+  const [showScroll, setShowScroll] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScroll(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <Header />
@@ -39,6 +54,12 @@ function App() {
         </Routes>
       </main>
       <Footer />
+      
+      {showScroll && (
+        <a id="scrollUp" href="#top" style={{ position: 'fixed', zIndex: 2147483647, display: 'block' }} onClick={(e) => { e.preventDefault(); scrollToTop(); }}>
+          <i className="fi-rs-arrow-up"></i>
+        </a>
+      )}
     </>
   );
 }
