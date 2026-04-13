@@ -10,6 +10,8 @@ const Header = () => {
     const [categories, setCategories] = useState([]);
     const [keyword, setKeyword] = useState('');
 
+    const [catOpen, setCatOpen] = useState(false);
+
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
             if(res.data.status) setCategories(res.data.categories);
@@ -55,11 +57,38 @@ const Header = () => {
                         <div className="header-right">
                             <div className="search-style-2">
                                 <form onSubmit={handleSearch}>
-                                    <div className="main-categori-wrap d-none d-lg-block m-0">
-                                        <Link className="categories-button-active" to="/category" style={{ borderRadius: '0px', backgroundColor: '#046938' }}>
-                                            <span className="et mb-1"> All </span>
-                                            <i className="fi-rs-angle-down"></i>
-                                        </Link>
+                                    <div className="main-categori-wrap d-none d-lg-block m-0" style={{ position: 'relative' }}>
+                                        <div 
+                                            className="cat-btn-custom" 
+                                            style={{ borderRadius: '0px', backgroundColor: '#046938', cursor: 'pointer', padding: '16px 20px', display: 'flex', alignItems: 'center', color: '#fff', fontWeight: 'bold' }}
+                                            onClick={(e) => { 
+                                                e.preventDefault(); 
+                                                e.stopPropagation();
+                                                setCatOpen(!catOpen); 
+                                            }}
+                                        >
+                                            <span className="et"> All </span>
+                                            <i className="fi-rs-angle-down" style={{ marginLeft: '10px' }}></i>
+                                        </div>
+                                        {catOpen && (
+                                            <div className="cat-dropdown-custom font-heading" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, zIndex: 9999, background: '#fff', border: '1px solid #ececec', borderRadius: '0 0 10px 10px', minWidth: '260px', padding: '20px', boxShadow: '0 5px 20px rgba(0,0,0,0.05)' }}>
+                                                <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                    {categories.slice(0, 7).map(cat => (
+                                                        <li key={cat.id} style={{ marginBottom: '15px' }}>
+                                                            <Link to={`/shop?category=${cat.slug}`} onClick={() => setCatOpen(false)} style={{ display: 'flex', alignItems: 'center', color: '#253D4E', fontWeight: 'bold' }}>
+                                                                <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: '28px', height: '28px', marginRight: '15px', objectFit: 'contain' }} />
+                                                                {cat.name}
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <div className="more_categories" style={{ marginTop: '15px', pt: '10px' }}>
+                                                    <Link to="/category" onClick={() => setCatOpen(false)} style={{ color: '#046938', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                                                        <span className="icon" style={{ display: 'inline-block', width: '24px', height: '24px', borderRadius: '50%', border: '1px solid #cce7d0', textAlign: 'center', lineHeight: '22px', marginRight: '8px', fontSize:'18px' }}>+</span> Show More...
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <input type="text" className="form-control pt-3 home-search" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="I Am Searching For..." />
                                     <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#046938', borderRadius: '0px', borderColor: '#046938' }}>
