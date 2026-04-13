@@ -7,16 +7,35 @@ import api, { getAssetUrl } from '../api';
 const Header = () => {
     const { user, logout } = useAuth();
     const { cartItems, cartCount, cartTotal, removeFromCart } = useCart();
+    
     const [categories, setCategories] = useState([]);
     const [keyword, setKeyword] = useState('');
-
     const [catOpen, setCatOpen] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
 
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
             if(res.data.status) setCategories(res.data.categories);
         });
     }, []);
+
+    useEffect(() => {
+        if (keyword.length > 1) {
+            const delayDebounceFn = setTimeout(() => {
+                api.get(`/products?search=${encodeURIComponent(keyword)}&limit=7`).then(res => {
+                    if(res.data.status) {
+                        setSuggestions(res.data.products);
+                        setIsSuggestionsOpen(true);
+                    }
+                });
+            }, 300);
+            return () => clearTimeout(delayDebounceFn);
+        } else {
+            setSuggestions([]);
+            setIsSuggestionsOpen(false);
+        }
+    }, [keyword]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -56,11 +75,11 @@ const Header = () => {
                         </div>
                         <div className="header-right">
                             <div className="search-style-2">
-                                <form onSubmit={handleSearch}>
+                                <form onSubmit={handleSearch} style={{ position: 'relative' }}>
                                     <div className="main-categori-wrap d-none d-lg-block m-0" style={{ position: 'relative' }}>
                                         <div 
                                             className="cat-btn-custom" 
-                                            style={{ borderRadius: '0px', backgroundColor: '#046938', cursor: 'pointer', padding: '16px 20px', display: 'flex', alignItems: 'center', color: '#fff', fontWeight: 'bold' }}
+                                            style={{ borderRadius: '0px', backgroundColor: '#046938', cursor: 'pointer', padding: '0 20px', height: '50px', display: 'flex', alignItems: 'center', color: '#fff', fontWeight: 'bold' }}
                                             onClick={(e) => { 
                                                 e.preventDefault(); 
                                                 e.stopPropagation();
@@ -94,6 +113,39 @@ const Header = () => {
                                     <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#046938', borderRadius: '0px', borderColor: '#046938' }}>
                                         <i className="fi-rs-search"></i>
                                     </button>
+
+                                    {isSuggestionsOpen && suggestions.length > 0 && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: '100px',
+                                            right: '60px',
+                                            background: '#fff',
+                                            border: '1px solid #ececec',
+                                            borderTop: 'none',
+                                            boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
+                                            zIndex: 9999,
+                                            padding: '10px 0'
+                                        }}>
+                                            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                                {suggestions.map(s => {
+                                                    const regex = new RegExp(`(${keyword})`, 'gi');
+                                                    const parts = s.name.split(regex);
+                                                    return (
+                                                        <li key={s.id}>
+                                                            <Link to={`/product/${s.slug}`} onClick={() => { setKeyword(''); setIsSuggestionsOpen(false); }} style={{
+                                                                display: 'block', padding: '8px 20px', color: '#7E7E7E', cursor: 'pointer', fontSize: '15px'
+                                                            }}>
+                                                                {parts.map((part, i) => (
+                                                                    part.toLowerCase() === keyword.toLowerCase() ? <strong key={i} style={{ color: '#253D4E', fontWeight: '900' }}>{part}</strong> : part
+                                                                ))}
+                                                            </Link>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        </div>
+                                    )}
                                 </form>
                             </div>
                             <div className="header-action-right">

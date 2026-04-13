@@ -41,8 +41,8 @@ const Home = () => {
     const getSliderLink = (slider) => {
         if (!slider.linkType || slider.linkType === 'none') return '#';
         if (slider.linkType === 'url') return slider.link || '#';
-        if (slider.linkType === 'category') return `/category/${slider.link}`;
-        if (slider.linkType === 'brand') return `/brand/${slider.link}`;
+        if (slider.linkType === 'category') return `/shop?category=${slider.link}`;
+        if (slider.linkType === 'brand') return `/shop?brand=${slider.link}`;
         if (slider.linkType === 'product') return `/product/${slider.link}`;
         return slider.link || '#';
     };
@@ -141,11 +141,11 @@ const Home = () => {
                                 {categories.map(cat => (
                                     <div key={cat.id} className="m-2 wow animate__animated animate__fadeInUp rounded-circle" data-wow-delay=".1s">
                                         <figure className="img-hover-scale overflow-hidden text-center">
-                                            <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px', display:'inline-block' }}>
+                                            <Link className="end" to={`/shop?category=${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px', display:'inline-block' }}>
                                                 <img src={getAssetUrl(cat.image)} alt={cat.name} className="p-2 mx-auto" />
                                             </Link>
                                             <h6 className="text-center">
-                                                <Link className="end" to={`/category/${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>{cat.name}</Link>
+                                                <Link className="end" to={`/shop?category=${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>{cat.name}</Link>
                                             </h6>
                                         </figure>
                                     </div>
