@@ -70,12 +70,12 @@ const Category = () => {
                                     background: '#fff',
                                     boxShadow: '0 2px 5px rgba(0,0,0,0.02)'
                                 }}>
-                                    <Link to={`/category/${cat.slug}`}>
+                                    <Link to={`/shop?category=${cat.slug}`}>
                                         <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ maxWidth: '100%', maxHeight: '90px', objectFit: 'contain' }} />
                                     </Link>
                                 </div>
                                 <h6 style={{ fontWeight: '700', fontSize: '16px' }}>
-                                    <Link to={`/category/${cat.slug}`} style={{ color: '#253D4E' }}>{cat.name}</Link>
+                                    <Link to={`/shop?category=${cat.slug}`} style={{ color: '#253D4E' }}>{cat.name}</Link>
                                 </h6>
                             </div>
                         ))

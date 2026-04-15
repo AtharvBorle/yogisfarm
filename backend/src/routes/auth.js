@@ -13,6 +13,9 @@ router.post('/send-otp', async (req, res) => {
     const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(Math.floor(100000 + Math.random() * 900000));
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
+    // SMS stub — log OTP to console
+    console.log(`\n📱 [SMS] OTP for ${phone}: ${otp}\n`);
+
     let user = await prisma.user.findUnique({ where: { phone } });
     if (user) {
       await prisma.user.update({ where: { id: user.id }, data: { otp, otpExpiry } });
@@ -79,6 +82,8 @@ router.post('/resend-otp', async (req, res) => {
   try {
     const { phone } = req.body;
     const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(Math.floor(100000 + Math.random() * 900000));
+    // SMS stub — log OTP to console
+    console.log(`\n📱 [SMS] Resend OTP for ${phone}: ${otp}\n`);
     await prisma.user.update({ where: { phone }, data: { otp, otpExpiry: new Date(Date.now() + 5 * 60 * 1000) } });
     res.json({ status: true, message: 'OTP resent' });
   } catch (e) {

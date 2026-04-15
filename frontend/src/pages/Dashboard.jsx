@@ -3,42 +3,52 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
+import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const tab = searchParams.get('tab') || 'dashboard';
+    const viewOrderNum = searchParams.get('order') || null;
     
     const [orders, setOrders] = useState([]);
     const [addresses, setAddresses] = useState([]);
-    const [wishlistCount, setWishlistCount] = useState(0); // placeholder if wishlist isn't fully implemented
     const [showAddressForm, setShowAddressForm] = useState(false);
-    const [newAddress, setNewAddress] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
+    const [newAddress, setNewAddress] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home' });
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [reviewModal, setReviewModal] = useState(null);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
     useEffect(() => {
-        if(!user) {
-            navigate('/login');
-            return;
-        }
-        
-        const fetchDashboardData = async () => {
+        if (!user) { navigate('/login'); return; }
+        const fetchData = async () => {
             try {
-                if(tab === 'orders' || tab === 'dashboard') {
+                if (tab === 'orders' || tab === 'dashboard') {
                     const res = await api.get('/orders');
-                    if(res.data.status) setOrders(res.data.orders);
+                    if (res.data.status) setOrders(res.data.orders);
                 }
-                if(tab === 'addresses' || tab === 'dashboard') {
+                if (tab === 'addresses' || tab === 'dashboard') {
                     const res = await api.get('/addresses');
-                    if(res.data.status) setAddresses(res.data.addresses);
+                    if (res.data.status) setAddresses(res.data.addresses);
                 }
-            } catch (err) {
-                console.error("Dashboard fetch error", err);
-            }
+            } catch (err) { console.error(err); }
         };
-        fetchDashboardData();
+        fetchData();
     }, [user, tab, navigate]);
+
+    useEffect(() => {
+        if (viewOrderNum) {
+            const fetchOrderDetail = async () => {
+                try {
+                    const res = await api.get(`/orders/detail/${viewOrderNum}`);
+                    if (res.data.status) setSelectedOrder(res.data.order);
+                } catch (err) { console.error(err); }
+            };
+            fetchOrderDetail();
+        } else { setSelectedOrder(null); }
+    }, [viewOrderNum]);
 
     const handleLogout = async (e) => {
         e.preventDefault();
@@ -53,16 +63,42 @@ const Dashboard = () => {
                 toast.success('Address saved');
                 setAddresses([...addresses, res.data.address]);
                 setShowAddressForm(false);
-                setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '' });
+                setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home' });
             }
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to save address');
-        }
+        } catch (err) { toast.error(err.response?.data?.message || 'Failed to save address'); }
     };
 
-    const statusColors = { pending:'warning', confirmed:'info', processing:'primary', shipped:'info', delivered:'success', cancelled:'danger' };
+    const handleSubmitReview = async () => {
+        try {
+            const res = await api.post('/orders/review', { productId: reviewModal.productId, ...reviewForm });
+            if (res.data.status) { toast.success(res.data.message); setReviewModal(null); setReviewForm({ rating: 5, comment: '' }); }
+            else toast.error(res.data.message);
+        } catch (err) { toast.error('Failed to submit review'); }
+    };
 
-    if(!user) return null;
+    const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formatDateTime = (d) => {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+            dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toUpperCase();
+    };
+
+    const sidebarItems = [
+        { key: 'dashboard', icon: 'fi-rs-settings-sliders', label: 'Dashboard' },
+        { key: 'orders', icon: 'fi-rs-shopping-bag', label: 'My Order' },
+        { key: 'profile', icon: 'fi-rs-user', label: 'My Profile' },
+    ];
+
+    const payBadge = (status) => {
+        if (status === 'verified' || status === 'completed') return { bg: '#28a745', label: 'Paid' };
+        return { bg: '#dc3545', label: 'Unpaid' };
+    };
+
+    const borderStyle = '1px solid #dee2e6';
+    const cellPd = { padding: '10px 15px', borderBottom: borderStyle };
+    const headerCell = { ...cellPd, fontWeight: '600', color: '#253D4E', background: '#f8f9fa' };
+
+    if (!user) return null;
 
     return (
         <main className="main">
@@ -72,18 +108,31 @@ const Dashboard = () => {
                     <div className="row">
                         <div className="col-lg-10 m-auto">
                             <div className="row">
+                                {/* Sidebar */}
                                 <div className="col-md-3">
-                                    <div className="dashboard-menu">
-                                        <ul className="nav flex-column" role="tablist">
-                                            <li className="nav-item"><Link className={`nav-link ${tab==='dashboard'?'active':''}`} to="?tab=dashboard"><i className="fi-rs-settings-sliders mr-10"></i>Dashboard</Link></li>
-                                            <li className="nav-item"><Link className={`nav-link ${tab==='orders'?'active':''}`} to="?tab=orders"><i className="fi-rs-shopping-bag mr-10"></i>Orders</Link></li>
-                                            <li className="nav-item"><Link className={`nav-link ${tab==='addresses'?'active':''}`} to="?tab=addresses"><i className="fi-rs-marker mr-10"></i>Addresses</Link></li>
-                                            <li className="nav-item"><Link className={`nav-link ${tab==='profile'?'active':''}`} to="?tab=profile"><i className="fi-rs-user mr-10"></i>Profile</Link></li>
-                                            <li className="nav-item"><a className="nav-link" href="#" onClick={handleLogout}><i className="fi-rs-sign-out mr-10"></i>Logout</a></li>
-                                        </ul>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                                        {sidebarItems.map(item => (
+                                            <Link key={item.key}
+                                                to={`?tab=${item.key}`}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', gap: '10px', padding: '13px 20px',
+                                                    borderRadius: '5px', fontSize: '15px', fontWeight: '600',
+                                                    textDecoration: 'none', marginBottom: '5px',
+                                                    background: tab === item.key ? '#046938' : '#fff',
+                                                    color: tab === item.key ? '#fff' : '#253D4E',
+                                                    border: tab === item.key ? 'none' : '1px solid #f0f0f0',
+                                                    transition: 'all 0.2s'
+                                                }}>
+                                                <i className={item.icon}></i> {item.label}
+                                            </Link>
+                                        ))}
                                     </div>
                                 </div>
+
+                                {/* Content */}
                                 <div className="col-md-9">
+
+                                    {/* Dashboard Overview */}
                                     {tab === 'dashboard' && (
                                         <div className="card">
                                             <div className="card-header"><h3 className="mb-0">Hello {user.name || 'User'}!</h3></div>
@@ -92,19 +141,19 @@ const Dashboard = () => {
                                                 <div className="row mt-20">
                                                     <div className="col-4 text-center">
                                                         <div className="p-3 border rounded">
-                                                            <h2 className="text-brand">{orders.length}</h2>
+                                                            <h2 style={{ color: '#046938' }}>{orders.length}</h2>
                                                             <p className="mb-0">Orders</p>
                                                         </div>
                                                     </div>
                                                     <div className="col-4 text-center">
                                                         <div className="p-3 border rounded">
-                                                            <h2 className="text-brand">{wishlistCount}</h2>
+                                                            <h2 style={{ color: '#046938' }}>0</h2>
                                                             <p className="mb-0">Wishlist</p>
                                                         </div>
                                                     </div>
                                                     <div className="col-4 text-center">
                                                         <div className="p-3 border rounded">
-                                                            <h2 className="text-brand">{addresses.length}</h2>
+                                                            <h2 style={{ color: '#046938' }}>{addresses.length}</h2>
                                                             <p className="mb-0">Addresses</p>
                                                         </div>
                                                     </div>
@@ -113,43 +162,182 @@ const Dashboard = () => {
                                         </div>
                                     )}
 
-                                    {tab === 'orders' && (
-                                        <div className="card">
-                                            <div className="card-header"><h5 className="mb-0">Your Orders</h5></div>
-                                            <div className="card-body">
-                                                {orders.length === 0 ? (
-                                                    <p>No orders yet. <Link to="/shop">Start shopping!</Link></p>
-                                                ) : (
-                                                    <div className="table-responsive">
-                                                        <table className="table">
-                                                            <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th><th>Items</th></tr></thead>
-                                                            <tbody>
-                                                                {orders.map(order => (
-                                                                    <tr key={order.id}>
-                                                                        <td><strong>#{order.orderNumber}</strong></td>
-                                                                        <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                                                                        <td><span className={`badge bg-${statusColors[order.orderStatus]||'secondary'}`}>{order.orderStatus}</span></td>
-                                                                        <td>₹{parseFloat(order.total).toFixed(2)}</td>
-                                                                        <td>
-                                                                            {order.items?.map(item => (
-                                                                                <small key={item.id} className="d-block">{item.productName} × {item.quantity}</small>
-                                                                            ))}
+                                    {/* Orders Tab */}
+                                    {tab === 'orders' && !viewOrderNum && (
+                                        <div>
+                                            <h3 style={{ fontSize: '24px', fontWeight: '700', color: '#253D4E', marginBottom: '20px' }}>Your Orders</h3>
+                                            {orders.length === 0 ? (
+                                                <p>No orders yet. <Link to="/shop" style={{ color: '#046938' }}>Start shopping!</Link></p>
+                                            ) : (
+                                                <div className="table-responsive">
+                                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                        <thead>
+                                                            <tr style={{ borderBottom: '2px solid #dee2e6' }}>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Code</th>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Date</th>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Amount</th>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Delivery Status</th>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Payment Status</th>
+                                                                <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#253D4E' }}>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {orders.map(order => {
+                                                                const pb = payBadge(order.paymentStatus);
+                                                                return (
+                                                                    <tr key={order.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                                        <td style={{ padding: '12px' }}>
+                                                                            <Link to={`?tab=orders&order=${order.orderNumber}`} style={{ color: '#046938', fontWeight: '600' }}>{order.orderNumber}</Link>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px', color: '#555' }}>{formatDate(order.createdAt)}</td>
+                                                                        <td style={{ padding: '12px' }}>₹{Number(order.total).toFixed(0)}</td>
+                                                                        <td style={{ padding: '12px' }}>{order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}</td>
+                                                                        <td style={{ padding: '12px' }}>
+                                                                            <span style={{ padding: '3px 14px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', background: pb.bg, color: '#fff' }}>
+                                                                                {pb.label}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                                                                            <Link to={`?tab=orders&order=${order.orderNumber}`} title="View" style={{ color: '#046938', fontSize: '16px' }}>
+                                                                                <i className="fi-rs-eye"></i>
+                                                                            </Link>
+                                                                            <a href="#" onClick={(e) => { e.preventDefault(); window.open(`/order-success/${order.orderNumber}`, '_blank'); }} title="Download" style={{ color: '#555', fontSize: '16px' }}>
+                                                                                <i className="fi-rs-download"></i>
+                                                                            </a>
                                                                         </td>
                                                                     </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
+                                    {/* Order Detail View */}
+                                    {tab === 'orders' && viewOrderNum && selectedOrder && (
+                                        <div>
+                                            {/* Order Summary */}
+                                            <div style={{ border: borderStyle, borderRadius: '8px', overflow: 'hidden', marginBottom: '25px' }}>
+                                                <h5 style={{ padding: '12px 15px', margin: 0, fontWeight: '700', background: '#f8f9fa', borderBottom: borderStyle }}>Order Summary</h5>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td style={headerCell}>Order Code:</td>
+                                                            <td style={cellPd}>{selectedOrder.orderNumber}</td>
+                                                            <td style={headerCell}>Order Date:</td>
+                                                            <td style={cellPd}>{formatDateTime(selectedOrder.createdAt)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style={headerCell}>Customer Name:</td>
+                                                            <td style={cellPd}>{selectedOrder.user?.name}</td>
+                                                            <td style={headerCell}>Order Status:</td>
+                                                            <td style={cellPd}>{selectedOrder.orderStatus.charAt(0).toUpperCase() + selectedOrder.orderStatus.slice(1)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style={headerCell}>Phone Number:</td>
+                                                            <td style={cellPd}>{selectedOrder.user?.phone}</td>
+                                                            <td style={headerCell}>Total Order Amount:</td>
+                                                            <td style={cellPd}>₹{Number(selectedOrder.total).toFixed(0)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style={headerCell}>E-Mail Address:</td>
+                                                            <td style={cellPd}>{selectedOrder.user?.email || 'N/A'}</td>
+                                                            <td style={headerCell}>Payment Method:</td>
+                                                            <td style={cellPd}>{selectedOrder.paymentMethod === 'cod' ? 'COD' : selectedOrder.paymentMethod?.toUpperCase()}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style={headerCell}>Shipping Address:</td>
+                                                            <td style={cellPd}>{selectedOrder.addressText}, {selectedOrder.addressCity}, {selectedOrder.addressState}, India - {selectedOrder.addressPincode}</td>
+                                                            <td style={headerCell}>Payment Status:</td>
+                                                            <td style={cellPd}>
+                                                                <span style={{ padding: '3px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', background: payBadge(selectedOrder.paymentStatus).bg, color: '#fff' }}>
+                                                                    {payBadge(selectedOrder.paymentStatus).label === 'Paid' ? 'Completed' : 'Pending'}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style={headerCell}></td>
+                                                            <td style={cellPd}></td>
+                                                            <td style={headerCell}>Address Type:</td>
+                                                            <td style={cellPd}>{selectedOrder.addressType || 'Home'}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Order Details - Products */}
+                                            <div style={{ border: borderStyle, borderRadius: '8px', overflow: 'hidden', marginBottom: '25px' }}>
+                                                <h5 style={{ padding: '12px 15px', margin: 0, fontWeight: '700', background: '#f8f9fa', borderBottom: borderStyle }}>Order Details</h5>
+                                                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                    <thead>
+                                                        <tr style={{ background: '#f8f9fa' }}>
+                                                            <th style={{ ...cellPd, textAlign: 'left' }}>#</th>
+                                                            <th style={{ ...cellPd, textAlign: 'left' }}>Product</th>
+                                                            <th style={{ ...cellPd, textAlign: 'left' }}>Brand</th>
+                                                            <th style={{ ...cellPd, textAlign: 'right' }}>Price</th>
+                                                            <th style={{ ...cellPd, textAlign: 'center' }}>Quantity</th>
+                                                            <th style={{ ...cellPd, textAlign: 'right' }}>Total</th>
+                                                            <th style={{ ...cellPd, textAlign: 'center' }}>Review</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {selectedOrder.items?.map((item, i) => (
+                                                            <tr key={item.id}>
+                                                                <td style={{ ...cellPd, color: '#046938' }}>{i + 1}</td>
+                                                                <td style={cellPd}>
+                                                                    <Link to={item.product?.slug ? `/product/${item.product.slug}` : '#'} style={{ color: '#046938' }}>{item.name}</Link>
+                                                                </td>
+                                                                <td style={cellPd}>{item.brand || '—'}</td>
+                                                                <td style={{ ...cellPd, textAlign: 'right' }}>₹{Number(item.price).toFixed(0)}</td>
+                                                                <td style={{ ...cellPd, textAlign: 'center' }}>{item.quantity}</td>
+                                                                <td style={{ ...cellPd, textAlign: 'right' }}>₹{Number(item.total).toFixed(0)}</td>
+                                                                <td style={{ ...cellPd, textAlign: 'center' }}>
+                                                                    <button onClick={() => setReviewModal({ productId: item.productId, productName: item.name })}
+                                                                        style={{ background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', padding: '5px 14px', fontSize: '13px', cursor: 'pointer', fontWeight: '600' }}>
+                                                                        Review
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Order Amount */}
+                                            <div style={{ border: borderStyle, borderRadius: '8px', overflow: 'hidden', marginBottom: '25px' }}>
+                                                <h5 style={{ padding: '12px 15px', margin: 0, fontWeight: '700', background: '#f8f9fa', borderBottom: borderStyle }}>Order Amount</h5>
+                                                <div style={{ padding: '0' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Total</span>
+                                                        <span>₹{Number(selectedOrder.subtotal).toFixed(0)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges</span>
+                                                        <span>₹{Number(selectedOrder.shipping).toFixed(0)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Discount Amount</span>
+                                                        <span>₹{Number(selectedOrder.discount).toFixed(0)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
+                                                        <span style={{ color: '#046938' }}>Total</span>
+                                                        <span>₹{Number(selectedOrder.total).toFixed(0)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <Link to="?tab=orders" style={{ color: '#046938', fontWeight: '600' }}>← Back to Orders</Link>
+                                        </div>
+                                    )}
+
+                                    {/* Addresses Tab */}
                                     {tab === 'addresses' && (
                                         <div className="card">
                                             <div className="card-header d-flex justify-content-between align-items-center">
                                                 <h5 className="mb-0">My Addresses</h5>
-                                                <button className="btn btn-sm" style={{ background: 'var(--primary)', color: '#fff' }} onClick={() => setShowAddressForm(!showAddressForm)}>+ Add New</button>
+                                                <button className="btn btn-sm" style={{ background: '#046938', color: '#fff' }} onClick={() => setShowAddressForm(!showAddressForm)}>+ Add New</button>
                                             </div>
                                             <div className="card-body">
                                                 {showAddressForm && (
@@ -161,8 +349,15 @@ const Dashboard = () => {
                                                             <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="City *" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} /></div>
                                                             <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="State *" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} /></div>
                                                             <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="Pincode *" value={newAddress.pincode} onChange={e => setNewAddress({...newAddress, pincode: e.target.value})} /></div>
+                                                            <div className="col-md-4 mb-10">
+                                                                <select className="form-control" value={newAddress.addressType} onChange={e => setNewAddress({...newAddress, addressType: e.target.value})}>
+                                                                    <option value="Home">Home</option>
+                                                                    <option value="Work">Work</option>
+                                                                    <option value="Other">Other</option>
+                                                                </select>
+                                                            </div>
                                                         </div>
-                                                        <button type="button" className="btn btn-sm" style={{ background: 'var(--primary)', color: '#fff' }} onClick={handleSaveAddress}>Save</button>
+                                                        <button type="button" className="btn btn-sm" style={{ background: '#046938', color: '#fff' }} onClick={handleSaveAddress}>Save</button>
                                                     </div>
                                                 )}
                                                 <div className="row">
@@ -172,7 +367,10 @@ const Dashboard = () => {
                                                                 <strong>{addr.name}</strong>
                                                                 <p className="mb-0 font-sm">{addr.address}, {addr.city}, {addr.state} - {addr.pincode}</p>
                                                                 <small>{addr.phone}</small>
-                                                                {addr.isDefault && <span className="badge bg-success mt-5 w-25">Default</span>}
+                                                                <div style={{ marginTop: '5px', display: 'flex', gap: '5px' }}>
+                                                                    {addr.isDefault && <span className="badge bg-success">Default</span>}
+                                                                    <span className="badge" style={{ background: '#f0f0f0', color: '#555' }}>{addr.addressType || 'Home'}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -181,27 +379,16 @@ const Dashboard = () => {
                                         </div>
                                     )}
 
+                                    {/* Profile Tab */}
                                     {tab === 'profile' && (
                                         <div className="card">
-                                            <div className="card-header"><h5 className="mb-0">Profile</h5></div>
+                                            <div className="card-header"><h5 className="mb-0">My Profile</h5></div>
                                             <div className="card-body">
                                                 <div className="row">
-                                                    <div className="col-md-6 mb-15">
-                                                        <label>Name</label>
-                                                        <p className="font-lg"><strong>{user.name}</strong></p>
-                                                    </div>
-                                                    <div className="col-md-6 mb-15">
-                                                        <label>Email</label>
-                                                        <p className="font-lg"><strong>{user.email || 'Not Provided'}</strong></p>
-                                                    </div>
-                                                    <div className="col-md-6 mb-15">
-                                                        <label>Phone</label>
-                                                        <p className="font-lg"><strong>{user.phone}</strong></p>
-                                                    </div>
-                                                    <div className="col-md-6 mb-15">
-                                                        <label>Member Since</label>
-                                                        <p className="font-lg"><strong>{new Date(user.createdAt).toLocaleDateString()}</strong></p>
-                                                    </div>
+                                                    <div className="col-md-6 mb-15"><label>Name</label><p className="font-lg"><strong>{user.name}</strong></p></div>
+                                                    <div className="col-md-6 mb-15"><label>Email</label><p className="font-lg"><strong>{user.email || 'Not Provided'}</strong></p></div>
+                                                    <div className="col-md-6 mb-15"><label>Phone</label><p className="font-lg"><strong>{user.phone}</strong></p></div>
+                                                    <div className="col-md-6 mb-15"><label>Member Since</label><p className="font-lg"><strong>{new Date(user.createdAt).toLocaleDateString()}</strong></p></div>
                                                 </div>
                                             </div>
                                         </div>
@@ -212,6 +399,38 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Review Modal */}
+            {reviewModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    onClick={() => setReviewModal(null)}>
+                    <div style={{ background: '#fff', borderRadius: '10px', padding: '30px', width: '100%', maxWidth: '450px', margin: '20px' }}
+                        onClick={e => e.stopPropagation()}>
+                        <h5 style={{ marginBottom: '15px', fontWeight: '700' }}>Review: {reviewModal.productName}</h5>
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Rating</label>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                                {[1,2,3,4,5].map(star => (
+                                    <span key={star} onClick={() => setReviewForm({...reviewForm, rating: star})}
+                                        style={{ cursor: 'pointer', fontSize: '24px', color: star <= reviewForm.rating ? '#FDC040' : '#ddd' }}>★</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Comment</label>
+                            <textarea value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})}
+                                style={{ width: '100%', border: '1px solid #e6e6e6', borderRadius: '6px', padding: '10px', minHeight: '80px', resize: 'vertical' }}
+                                placeholder="Write your review..." />
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button onClick={() => setReviewModal(null)} style={{ padding: '8px 20px', border: '1px solid #ccc', borderRadius: '5px', background: '#fff', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={handleSubmitReview} style={{ padding: '8px 20px', border: 'none', borderRadius: '5px', background: '#046938', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>Submit</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <FeatureBanners />
         </main>
     );
 };

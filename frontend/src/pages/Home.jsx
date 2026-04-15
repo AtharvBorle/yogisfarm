@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SliderComponent from 'react-slick';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
@@ -35,6 +35,7 @@ const ProductSmallCard = ({ product }) => (
 const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
 const Home = () => {
+    const navigate = useNavigate();
     const [mainSliders, setMainSliders] = useState([]);
     const [topSliders, setTopSliders] = useState([]);
     const [middleSliders, setMiddleSliders] = useState([]);
@@ -168,12 +169,16 @@ const Home = () => {
                             <Slider {...categorySettings}>
                                 {categories.map(cat => (
                                     <div key={cat.id} className="m-2 wow animate__animated animate__fadeInUp rounded-circle" data-wow-delay=".1s">
-                                        <figure className="img-hover-scale overflow-hidden text-center">
-                                            <Link className="end" to={`/shop?category=${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px', display:'inline-block' }}>
+                                        <figure 
+                                            className="img-hover-scale overflow-hidden text-center"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => navigate(`/shop?category=${cat.slug}`)}
+                                        >
+                                            <div className="end" style={{ padding: '8px 15px', fontSize: '14px', display:'inline-block' }}>
                                                 <img src={getAssetUrl(cat.image)} alt={cat.name} className="p-2 mx-auto" />
-                                            </Link>
+                                            </div>
                                             <h6 className="text-center">
-                                                <Link className="end" to={`/shop?category=${cat.slug}`} style={{ padding: '8px 15px', fontSize: '14px' }}>{cat.name}</Link>
+                                                <span className="end" style={{ padding: '8px 15px', fontSize: '14px', color: '#253D4E' }}>{cat.name}</span>
                                             </h6>
                                         </figure>
                                     </div>

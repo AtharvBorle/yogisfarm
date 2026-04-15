@@ -409,7 +409,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { user: true, items: { include: { product: { include: { brand: true } } } }, deliveryBoy: true }
+      include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true }
     });
     res.json({ status: true, order });
   } catch (e) {
@@ -420,7 +420,13 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
 router.put('/orders/:id/status', requireAdmin, async (req, res) => {
   try {
     const { orderStatus } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { orderStatus } });
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) },
+      data: { orderStatus },
+      include: { user: { select: { name: true, phone: true } } }
+    });
+    // SMS stub — log status change to console
+    console.log(`\n📦 [SMS] Order ${order.orderNumber} status changed to "${orderStatus}" for ${order.user.name} (${order.user.phone})\n`);
     res.json({ status: true, message: 'Order status updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -430,7 +436,13 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
 router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
   try {
     const { paymentStatus, paymentDescription } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { paymentStatus, paymentDescription } });
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) },
+      data: { paymentStatus, paymentDescription },
+      include: { user: { select: { name: true, phone: true } } }
+    });
+    // SMS stub — log payment update to console
+    console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
     res.json({ status: true, message: 'Payment updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });

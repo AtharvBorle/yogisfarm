@@ -216,8 +216,9 @@ model Address {
   city      String   @db.VarChar(100)
   state     String   @db.VarChar(100)
   pincode   String   @db.VarChar(10)
-  isDefault Boolean  @default(false) @map("is_default")
-  createdAt DateTime @default(now()) @map("created_at")
+  addressType String   @default("Home") @map("address_type") @db.VarChar(20)
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders Order[]
@@ -248,6 +249,7 @@ model Order {
   paymentStatus      String   @default("pending") @map("payment_status") @db.VarChar(20)
   paymentDescription String?  @map("payment_description") @db.Text
   orderNote          String?  @map("order_note") @db.Text
+  addressType        String?  @default("Home") @map("address_type") @db.VarChar(20)
   deliveryBoyId      Int?     @map("delivery_boy_id")
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")

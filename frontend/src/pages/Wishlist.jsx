@@ -97,7 +97,7 @@ const Wishlist = () => {
                                                     <h5 style={{ color: '#7E7E7E', fontSize: '18px' }}>₹{item.product.salePrice || item.product.price}</h5>
                                                 </td>
                                                 <td className="text-center" data-title="Stock" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    <span style={{ background: '#FDE0E9', color: '#F74B81', padding: '5px 15px', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold' }}>In Stock</span>
+                                                    <span style={{ background: '#e8f5e9', color: '#28a745', padding: '5px 15px', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold', border: '1px solid #28a745' }}>In Stock</span>
                                                 </td>
                                                 <td className="text-right" data-title="Cart" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
                                                     <button onClick={() => handleAddToCart(item.product)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>

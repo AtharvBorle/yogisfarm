@@ -91,7 +91,7 @@ const Deals = () => {
                                         </div>
                                         <div className="product-content-wrap" style={{ padding: '30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                             <div className="product-category">
-                                                <Link to={`/category/${product.category?.slug}`}>{product.category?.name || 'Uncategorized'}</Link>
+                                                <Link to={`/shop?category=${product.category?.slug}`}>{product.category?.name || 'Uncategorized'}</Link>
                                             </div>
                                             <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}><Link to={`/product/${product.slug}`}>{product.name}</Link></h2>
                                             <div className="product-rate-cover" style={{ marginTop: '10px' }}>
@@ -128,7 +128,7 @@ const Deals = () => {
                             <ul>
                                 {categories.slice(0, 7).map(cat => (
                                     <li key={cat.id}>
-                                        <Link to={`/category/${cat.slug}`}>
+                                        <Link to={`/shop?category=${cat.slug}`}>
                                             <img src={getAssetUrl(cat.image)} alt="" style={{ width: '30px', height: '30px', objectFit: 'contain', marginRight: '10px' }} />
                                             {cat.name}
                                         </Link>

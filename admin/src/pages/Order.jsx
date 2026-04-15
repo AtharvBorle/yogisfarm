@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
 const Order = () => {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [deliveryBoys, setDeliveryBoys] = useState([]);
     const [filters, setFilters] = useState({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
     const [isViewOpen, setViewOpen] = useState(false);
-    const [isStatusOpen, setStatusOpen] = useState(false);
-    const [isPaymentOpen, setPaymentOpen] = useState(false);
-    const [isDeliveryOpen, setDeliveryOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
-
-    // Form states
-    const [statusForm, setStatusForm] = useState('');
-    const [paymentForm, setPaymentForm] = useState({ paymentStatus: '', paymentDescription: '' });
-    const [deliveryForm, setDeliveryForm] = useState('');
 
     const fetchOrders = async () => {
         try {
@@ -32,14 +26,7 @@ const Order = () => {
         }
     };
 
-    const fetchDeliveryBoys = async () => {
-        try {
-            const res = await api.get('/delivery-boys');
-            if (res.data.status) setDeliveryBoys(res.data.deliveryBoys);
-        } catch (err) { /* ignore */ }
-    };
-
-    useEffect(() => { fetchOrders(); fetchDeliveryBoys(); }, []);
+    useEffect(() => { fetchOrders(); }, []);
     useEffect(() => { fetchOrders(); }, [filters]);
 
     const openViewModal = async (row) => {
@@ -52,108 +39,84 @@ const Order = () => {
         } catch (err) { toast.error('Failed to load order details'); }
     };
 
-    const openStatusModal = (row) => {
-        setSelectedOrder(row);
-        setStatusForm(row.orderStatus);
-        setStatusOpen(true);
-    };
-
-    const openPaymentModal = (row) => {
-        setSelectedOrder(row);
-        setPaymentForm({ paymentStatus: row.paymentStatus, paymentDescription: row.paymentDescription || '' });
-        setPaymentOpen(true);
-    };
-
-    const openDeliveryModal = (row) => {
-        setSelectedOrder(row);
-        setDeliveryForm(row.deliveryBoyId || '');
-        setDeliveryOpen(true);
-    };
-
-    const updateOrderStatus = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await api.put(`/orders/${selectedOrder.id}/status`, { orderStatus: statusForm });
-            if (res.data.status) { toast.success('Order status updated'); setStatusOpen(false); fetchOrders(); }
-        } catch (err) { toast.error('Update failed'); }
-    };
-
-    const updatePayment = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await api.put(`/orders/${selectedOrder.id}/payment`, paymentForm);
-            if (res.data.status) { toast.success('Payment updated'); setPaymentOpen(false); fetchOrders(); }
-        } catch (err) { toast.error('Update failed'); }
-    };
-
-    const assignDeliveryBoy = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await api.put(`/orders/${selectedOrder.id}/delivery-boy`, { deliveryBoyId: deliveryForm });
-            if (res.data.status) { toast.success('Delivery boy assigned'); setDeliveryOpen(false); fetchOrders(); }
-        } catch (err) { toast.error('Assignment failed'); }
-    };
-
     const statusColors = {
-        pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
+        placed: '#ffc107', pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
         shipped: '#007bff', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
     };
 
-    const paymentColors = { pending: '#ffc107', verified: '#28a745', failed: '#dc3545', refunded: '#6c757d' };
+    const paymentColors = { pending: '#ffc107', verified: '#28a745', completed: '#28a745', failed: '#dc3545', refunded: '#6c757d' };
+
+    const formatDateTime = (d) => {
+        const dt = new Date(d);
+        return dt.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+            dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toUpperCase();
+    };
 
     const columns = [
-        { header: '#', render: (row) => row.orderNumber },
         {
-            header: 'Customer',
+            header: 'ORDER ID',
+            render: (row) => <span style={{ color: '#046938', fontWeight: '600', cursor: 'pointer' }} onClick={() => navigate(`/orders/detail/${row.orderNumber}`)}>{row.orderNumber}</span>
+        },
+        {
+            header: 'CUSTOMER',
             render: (row) => (
                 <div>
                     <div style={{ fontWeight: '500' }}>{row.user?.name || 'N/A'}</div>
-                    <div style={{ fontSize: '12px', color: '#888' }}>{row.user?.phone}</div>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '3px', background: '#e8f5e9', color: '#046938' }}>{row.user?.phone}</span>
                 </div>
             )
         },
-        { header: 'Total', render: (row) => <strong>₹{Number(row.total).toFixed(2)}</strong> },
-        { header: 'Payment', render: (row) => <span style={{ fontSize: '12px' }}>{row.paymentMethod?.toUpperCase()}</span> },
+        { header: 'AMOUNT', render: (row) => <strong>₹{Number(row.total).toFixed(0)}</strong> },
         {
-            header: 'Order Status',
+            header: 'DELIVERY BOY',
             render: (row) => (
-                <span onClick={() => openStatusModal(row)} style={{
-                    padding: '4px 10px', borderRadius: '12px', fontSize: '11px', cursor: 'pointer',
-                    background: (statusColors[row.orderStatus] || '#6c757d') + '22',
-                    color: statusColors[row.orderStatus] || '#6c757d', fontWeight: '600', border: `1px solid ${statusColors[row.orderStatus] || '#6c757d'}40`
+                <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '4px', fontWeight: '600', background: row.deliveryBoy ? '#e8f5e9' : '#fde8e8', color: row.deliveryBoy ? '#28a745' : '#dc3545' }}>
+                    {row.deliveryBoy?.name || 'Not Assign'}
+                </span>
+            )
+        },
+        {
+            header: 'STATUS',
+            render: (row) => (
+                <span style={{
+                    padding: '4px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: '600',
+                    background: statusColors[row.orderStatus] || '#6c757d', color: '#fff'
                 }}>
-                    {row.orderStatus}
+                    {row.orderStatus === 'placed' ? 'Order Placed' : row.orderStatus.charAt(0).toUpperCase() + row.orderStatus.slice(1)}
                 </span>
             )
         },
         {
-            header: 'Pay Status',
+            header: 'PAYMENT',
             render: (row) => (
-                <span onClick={() => openPaymentModal(row)} style={{
-                    padding: '4px 10px', borderRadius: '12px', fontSize: '11px', cursor: 'pointer',
-                    background: (paymentColors[row.paymentStatus] || '#6c757d') + '22',
-                    color: paymentColors[row.paymentStatus] || '#6c757d', fontWeight: '600', border: `1px solid ${paymentColors[row.paymentStatus] || '#6c757d'}40`
+                <span style={{
+                    padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: '600',
+                    background: (paymentColors[row.paymentStatus] || '#6c757d'), color: '#fff'
                 }}>
-                    {row.paymentStatus}
+                    {row.paymentStatus.charAt(0).toUpperCase() + row.paymentStatus.slice(1)}
                 </span>
             )
         },
         {
-            header: 'Delivery',
+            header: 'CREATED ON',
+            render: (row) => <span style={{ fontSize: '12px', color: '#888' }}>{formatDateTime(row.createdAt)}</span>
+        },
+        {
+            header: 'ACTIONS',
             render: (row) => (
-                <span onClick={() => openDeliveryModal(row)} style={{ fontSize: '12px', cursor: 'pointer', color: row.deliveryBoy ? '#28a745' : '#dc3545', textDecoration: 'underline' }}>
-                    {row.deliveryBoy?.name || 'Assign'}
-                </span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => navigate(`/orders/detail/${row.orderNumber}`)} title="Edit"
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#28a745', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                    <button onClick={() => openViewModal(row)} title="View"
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👁</button>
+                    <button onClick={() => navigate(`/orders/invoice/${row.orderNumber}`)} title="Invoice"
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#dc3545', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📄</button>
+                </div>
             )
-        },
-        {
-            header: 'Date',
-            render: (row) => <span style={{ fontSize: '12px', color: '#888' }}>{new Date(row.createdAt).toLocaleDateString('en-IN')}</span>
         }
     ];
 
-    const inputStyle = { width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' };
-    const labelStyle = { display: 'block', marginBottom: '5px', fontWeight: '500' };
+    const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box', minWidth: '120px' };
 
     return (
         <div>
@@ -162,13 +125,13 @@ const Order = () => {
                 <div style={{ fontSize: '14px', color: '#666' }}>Total: {orders.length} orders</div>
             </div>
 
-            {/* ─── Filters ─── */}
+            {/* Filters */}
             <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px', flexWrap: 'wrap' }}>
                 <div>
                     <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Order Status</label>
                     <select value={filters.orderStatus} onChange={e => setFilters({ ...filters, orderStatus: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
-                        <option value="pending">Pending</option>
+                        <option value="placed">Placed</option>
                         <option value="confirmed">Confirmed</option>
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
@@ -204,148 +167,86 @@ const Order = () => {
                 </div>
             </div>
 
-            <DataTable columns={columns} data={orders} onView={openViewModal} />
+            <DataTable columns={columns} data={orders} />
 
-            {/* ─── Order Detail View ─── */}
-            <GenericModal isOpen={isViewOpen} title={`Order #${selectedOrder?.orderNumber || ''}`} onClose={() => setViewOpen(false)}>
+            {/* Quick View Modal */}
+            <GenericModal isOpen={isViewOpen} title={`Order Details`} onClose={() => setViewOpen(false)}>
                 {selectedOrder && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {/* Summary */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                            <div style={{ padding: '12px', background: '#f8f9fa', borderRadius: '6px' }}>
-                                <div style={{ fontSize: '12px', color: '#888' }}>Customer</div>
-                                <div style={{ fontWeight: '600' }}>{selectedOrder.user?.name || 'N/A'}</div>
-                                <div style={{ fontSize: '13px' }}>{selectedOrder.user?.phone} | {selectedOrder.user?.email}</div>
+                        {/* Top Info */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div>
+                                <div style={{ fontWeight: '600', marginBottom: '5px' }}>Name: {selectedOrder.user?.name}</div>
+                                <div style={{ fontSize: '13px', color: '#555' }}>Address: {selectedOrder.addressText},{selectedOrder.addressCity}, {selectedOrder.addressState}, India - {selectedOrder.addressPincode}</div>
+                                <div style={{ fontSize: '13px', color: '#555' }}>Email Id: {selectedOrder.user?.email}</div>
+                                <div style={{ fontSize: '13px', color: '#555' }}>Phone Number: +91 - {selectedOrder.user?.phone}</div>
                             </div>
-                            <div style={{ padding: '12px', background: '#f8f9fa', borderRadius: '6px' }}>
-                                <div style={{ fontSize: '12px', color: '#888' }}>Delivery Address</div>
-                                <div style={{ fontWeight: '600' }}>{selectedOrder.addressName}</div>
-                                <div style={{ fontSize: '13px' }}>{selectedOrder.addressText}, {selectedOrder.addressCity}, {selectedOrder.addressState} - {selectedOrder.addressPincode}</div>
-                                <div style={{ fontSize: '13px' }}>📞 {selectedOrder.addressPhone}</div>
-                            </div>
-                        </div>
-
-                        {/* Financial Summary */}
-                        <div style={{ padding: '12px', background: '#f0f7f4', borderRadius: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}><span>Subtotal:</span><span>₹{Number(selectedOrder.subtotal).toFixed(2)}</span></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}><span>Shipping:</span><span>₹{Number(selectedOrder.shipping).toFixed(2)}</span></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}><span>Discount:</span><span style={{ color: '#28a745' }}>-₹{Number(selectedOrder.discount).toFixed(2)}</span></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}><span>Tax:</span><span>₹{Number(selectedOrder.tax).toFixed(2)}</span></div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700', fontSize: '16px', borderTop: '1px solid #ccc', paddingTop: '6px' }}><span>Total:</span><span>₹{Number(selectedOrder.total).toFixed(2)}</span></div>
-                            {selectedOrder.couponCode && <div style={{ fontSize: '12px', color: '#6f42c1', marginTop: '4px' }}>🎫 Coupon: {selectedOrder.couponCode}</div>}
-                        </div>
-
-                        {/* Status row */}
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                            <div style={{ padding: '8px 12px', background: '#e8f5e9', borderRadius: '6px', fontSize: '13px' }}>
-                                <strong>Order:</strong> {selectedOrder.orderStatus}
-                            </div>
-                            <div style={{ padding: '8px 12px', background: '#fff3e0', borderRadius: '6px', fontSize: '13px' }}>
-                                <strong>Payment:</strong> {selectedOrder.paymentMethod} — {selectedOrder.paymentStatus}
-                            </div>
-                            {selectedOrder.deliveryBoy && (
-                                <div style={{ padding: '8px 12px', background: '#e3f2fd', borderRadius: '6px', fontSize: '13px' }}>
-                                    <strong>Delivery:</strong> {selectedOrder.deliveryBoy.name} ({selectedOrder.deliveryBoy.phone})
+                            <div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '5px 15px', fontSize: '13px' }}>
+                                    <span style={{ fontWeight: '600' }}>Order #</span><span style={{ color: '#046938' }}>{selectedOrder.orderNumber}</span>
+                                    <span style={{ fontWeight: '600' }}>Order Status</span>
+                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: statusColors[selectedOrder.orderStatus] || '#6c757d', color: '#fff' }}>{selectedOrder.orderStatus === 'placed' ? 'Order Placed' : selectedOrder.orderStatus}</span></span>
+                                    <span style={{ fontWeight: '600' }}>Order Date</span><span>{formatDateTime(selectedOrder.createdAt)}</span>
+                                    <span style={{ fontWeight: '600' }}>Total Amount</span><span>₹{Number(selectedOrder.total).toFixed(0)}</span>
+                                    <span style={{ fontWeight: '600' }}>Payment Method</span><span>{selectedOrder.paymentMethod === 'cod' ? 'Cash On Delivery' : selectedOrder.paymentMethod?.toUpperCase()}</span>
+                                    <span style={{ fontWeight: '600' }}>Payment Status</span>
+                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: paymentColors[selectedOrder.paymentStatus] || '#ffc107', color: '#fff' }}>{selectedOrder.paymentStatus}</span></span>
+                                    <span style={{ fontWeight: '600' }}>Address Type</span><span>{selectedOrder.addressType || 'Home'}</span>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
-                        {selectedOrder.orderNote && (
-                            <div style={{ padding: '10px', background: '#fffde7', borderRadius: '6px', fontSize: '13px' }}>
-                                📝 <strong>Note:</strong> {selectedOrder.orderNote}
-                            </div>
-                        )}
-
-                        {/* Order items */}
-                        <div>
-                            <strong>Items ({selectedOrder.items?.length || 0}):</strong>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '8px' }}>
-                                <thead>
-                                    <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
-                                        <th style={{ padding: '8px', textAlign: 'left' }}>Product</th>
-                                        <th style={{ padding: '8px', textAlign: 'left' }}>Variant</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>Price</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>Qty</th>
-                                        <th style={{ padding: '8px', textAlign: 'right' }}>Total</th>
+                        {/* Items Table */}
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
+                                    <th style={{ padding: '8px', textAlign: 'left' }}>#</th>
+                                    <th style={{ padding: '8px', textAlign: 'left' }}>PRODUCT</th>
+                                    <th style={{ padding: '8px', textAlign: 'left' }}>BRAND</th>
+                                    <th style={{ padding: '8px', textAlign: 'right' }}>PRICE</th>
+                                    <th style={{ padding: '8px', textAlign: 'center' }}>QUANTITY</th>
+                                    <th style={{ padding: '8px', textAlign: 'right' }}>TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(selectedOrder.items || []).map((item, i) => (
+                                    <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
+                                        <td style={{ padding: '8px' }}>{i + 1}</td>
+                                        <td style={{ padding: '8px' }}>{item.name}</td>
+                                        <td style={{ padding: '8px' }}>{item.brand || '—'}</td>
+                                        <td style={{ padding: '8px', textAlign: 'right' }}>₹{Number(item.price).toFixed(0)}</td>
+                                        <td style={{ padding: '8px', textAlign: 'center' }}>{item.quantity}</td>
+                                        <td style={{ padding: '8px', textAlign: 'right', fontWeight: '500' }}>₹{Number(item.total).toFixed(0)}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {(selectedOrder.items || []).map((item) => (
-                                        <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
-                                            <td style={{ padding: '8px' }}>
-                                                <div>{item.name}</div>
-                                                {item.brand && <div style={{ fontSize: '11px', color: '#888' }}>{item.brand}</div>}
-                                            </td>
-                                            <td style={{ padding: '8px', fontSize: '13px' }}>{item.variant || '—'}</td>
-                                            <td style={{ padding: '8px', textAlign: 'right' }}>₹{Number(item.price).toFixed(2)}</td>
-                                            <td style={{ padding: '8px', textAlign: 'right' }}>{item.quantity}</td>
-                                            <td style={{ padding: '8px', textAlign: 'right', fontWeight: '500' }}>₹{Number(item.total).toFixed(2)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* Totals */}
+                        <div>
+                            {[
+                                { label: 'Sub Total', value: `₹${Number(selectedOrder.subtotal).toFixed(0)}` },
+                                { label: 'Shipping Charges', value: `₹${Number(selectedOrder.shipping).toFixed(0)}` },
+                            ].map(row => (
+                                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0' }}>
+                                    <span style={{ fontWeight: '600' }}>{row.label}</span>
+                                    <span>{row.value}</span>
+                                </div>
+                            ))}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontWeight: '700', fontSize: '18px' }}>
+                                <span>TOTAL</span>
+                                <span>₹{Number(selectedOrder.total).toFixed(0)}</span>
+                            </div>
+                        </div>
+
+                        {/* Second order section - delivery info */}
+                        <div style={{ marginTop: '10px', fontSize: '13px', color: '#555' }}>
+                            <div>Address: {selectedOrder.addressText},{selectedOrder.addressCity}, {selectedOrder.addressState}, India - {selectedOrder.addressPincode}</div>
+                            <div>Email Id: {selectedOrder.user?.email}</div>
+                            <div>Phone Number: +91 - {selectedOrder.user?.phone}</div>
                         </div>
                     </div>
                 )}
-            </GenericModal>
-
-            {/* ─── Change Order Status ─── */}
-            <GenericModal isOpen={isStatusOpen} title="Update Order Status" onClose={() => setStatusOpen(false)}>
-                <form onSubmit={updateOrderStatus} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label style={labelStyle}>Order Status</label>
-                        <select value={statusForm} onChange={e => setStatusForm(e.target.value)} style={inputStyle}>
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="returned">Returned</option>
-                        </select>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Update Status</button>
-                    </div>
-                </form>
-            </GenericModal>
-
-            {/* ─── Update Payment ─── */}
-            <GenericModal isOpen={isPaymentOpen} title="Update Payment Status" onClose={() => setPaymentOpen(false)}>
-                <form onSubmit={updatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label style={labelStyle}>Payment Status</label>
-                        <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} style={inputStyle}>
-                            <option value="pending">Pending</option>
-                            <option value="verified">Verified</option>
-                            <option value="failed">Failed</option>
-                            <option value="refunded">Refunded</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style={labelStyle}>Payment Notes</label>
-                        <textarea value={paymentForm.paymentDescription} onChange={e => setPaymentForm({ ...paymentForm, paymentDescription: e.target.value })} style={{ ...inputStyle, minHeight: '60px' }} placeholder="Transaction ID, notes..." />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Update Payment</button>
-                    </div>
-                </form>
-            </GenericModal>
-
-            {/* ─── Assign Delivery Boy ─── */}
-            <GenericModal isOpen={isDeliveryOpen} title="Assign Delivery Boy" onClose={() => setDeliveryOpen(false)}>
-                <form onSubmit={assignDeliveryBoy} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label style={labelStyle}>Delivery Boy</label>
-                        <select value={deliveryForm} onChange={e => setDeliveryForm(e.target.value)} required style={inputStyle}>
-                            <option value="">-- Select --</option>
-                            {deliveryBoys.map(db => <option key={db.id} value={db.id}>{db.name} ({db.phone})</option>)}
-                        </select>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Assign</button>
-                    </div>
-                </form>
             </GenericModal>
         </div>
     );

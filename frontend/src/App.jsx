@@ -16,6 +16,7 @@ import Brands from './pages/Brands';
 import Deals from './pages/Deals';
 import Wishlist from './pages/Wishlist';
 import TrackOrder from './pages/TrackOrder';
+import OrderSuccess from './pages/OrderSuccess';
 
 function App() {
   const [showScroll, setShowScroll] = useState(false);
@@ -65,6 +66,7 @@ function App() {
           <Route path="/deals" element={<Deals />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track-order" element={<TrackOrder />} />
+          <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
         </Routes>
       </main>
       <Footer />

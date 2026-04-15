@@ -72,7 +72,7 @@ const ProductCard = ({ product }) => {
             <div className="product-content-wrap" style={{ padding: '15px' }}>
                 {product.category && (
                     <div className="product-category" style={{ marginBottom: '5px' }}>
-                        <Link to={`/category/${product.category.slug}`} style={{ color: '#adadad', fontSize: '12px' }}>{product.category.name}</Link>
+                        <Link to={`/shop?category=${product.category.slug}`} style={{ color: '#adadad', fontSize: '12px' }}>{product.category.name}</Link>
                     </div>
                 )}
                 <h2 style={{ fontSize: '16px', fontWeight: 'bold', lineHeight: '1.2', marginBottom: '8px' }}>
