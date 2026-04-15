@@ -2,6 +2,8 @@ const router = require('express').Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { requireLogin } = require('../middleware/auth');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 
 // Generate order number matching reference format: YF-O26-27-0005
 const generateOrderNumber = async () => {
@@ -38,9 +40,13 @@ router.post('/place', requireLogin, async (req, res) => {
     if (!address) return res.json({ status: false, message: 'Address not found' });
 
     const cartItems = await prisma.cart.findMany({
-      where: { userId }, include: { product: { include: { tax: true, brand: true } }, variant: true }
+      where: { userId }, include: { product: { include: { brand: true } }, variant: true }
     });
     if (!cartItems.length) return res.json({ status: false, message: 'Cart is empty' });
+
+    // Fetch global tax rate from admin Tax section
+    const globalTax = await prisma.tax.findFirst({ where: { status: 'active' } });
+    const globalTaxRate = globalTax ? parseFloat(globalTax.tax) : 0;
 
     let subtotal = 0;
     let totalTax = 0;
@@ -52,8 +58,7 @@ router.post('/place', requireLogin, async (req, res) => {
         ? parseFloat(item.variant.price)
         : parseFloat(item.product.price);
       const itemTotal = price * item.quantity;
-      const taxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
-      const gst = (itemTotal * taxRate) / 100;
+      const gst = (itemTotal * globalTaxRate) / 100;
       const discount = (originalPrice - price) * item.quantity;
       subtotal += itemTotal;
       totalTax += gst;
@@ -85,7 +90,7 @@ router.post('/place', requireLogin, async (req, res) => {
     }
 
     const shipping = subtotal >= 500 ? 0 : 50;
-    const total = subtotal - discountAmount + shipping;
+    const total = subtotal - discountAmount + shipping + totalTax;
     const orderNumber = await generateOrderNumber();
 
     const order = await prisma.order.create({
@@ -106,16 +111,71 @@ router.post('/place', requireLogin, async (req, res) => {
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
 
-    // Clear cart
+    if (paymentMethod.toLowerCase() === 'online') {
+      const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+
+      const options = {
+        amount: Math.round(total * 100), // amount in paise
+        currency: 'INR',
+        receipt: orderNumber,
+      };
+
+      const razorpayOrder = await razorpay.orders.create(options);
+      
+      return res.json({
+        status: true,
+        message: 'Order created, pending payment',
+        orderNumber,
+        razorpayOrder,
+        key: process.env.RAZORPAY_KEY_ID
+      });
+    }
+
+    // Clear cart (COD only path)
     await prisma.cart.deleteMany({ where: { userId } });
 
     // SMS stub — log order confirmation to console
-    console.log(`\n📦 [SMS] Order ${orderNumber} placed by ${order.user.name} (${order.user.phone}). Total: ₹${total}\n`);
+    console.log(`\n📦 [SMS] COD Order ${orderNumber} placed by ${order.user.name} (${order.user.phone}). Total: ₹${total}\n`);
 
     res.json({ status: true, message: 'Order placed successfully', order, orderNumber: order.orderNumber });
   } catch (e) {
     console.error('Order placement error:', e);
     res.json({ status: false, message: e.message });
+  }
+});
+
+// Verify Razorpay Payment Route
+router.post('/verify-payment', requireLogin, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderNumber } = req.body;
+    
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+      const order = await prisma.order.update({
+        where: { orderNumber },
+        data: { paymentStatus: 'completed', paymentDescription: razorpay_payment_id },
+        include: { user: { select: { name: true, phone: true } } }
+      });
+      // Clear cart now
+      await prisma.cart.deleteMany({ where: { userId: req.session.userId } });
+      
+      console.log(`\n📦 [SMS] Online Order ${orderNumber} verified and placed by ${order.user.name} (${order.user.phone}). Total: ₹${order.total}\n`);
+
+      res.json({ status: true, message: 'Payment verified successfully' });
+    } else {
+      res.json({ status: false, message: 'Invalid payment signature' });
+    }
+  } catch (error) {
+    console.error('Payment verification error:', error);
+    res.json({ status: false, message: 'Verification process failed' });
   }
 });
 
@@ -139,7 +199,7 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { orderNumber: req.params.orderNumber },
       include: {
-        items: { include: { product: { include: { brand: true, images: true } } } },
+        items: { include: { product: { select: { slug: true, image: true, name: true, price: true, salePrice: true, id: true, tax: true, categoryId: true, featured: true, status: true, hoverImage: true, brand: true, images: true } } } },
         user: { select: { name: true, phone: true, email: true } },
         deliveryBoy: true
       }

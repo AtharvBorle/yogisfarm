@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import toast from 'react-hot-toast';
 import { getAssetUrl } from '../api';
 import QuickViewModal from './QuickViewModal';
 
 const ProductCard = ({ product }) => {
     const [showQuickView, setShowQuickView] = useState(false);
-    const { addToCart } = useCart();
+    const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
 
     const price = product.salePrice || product.price;
@@ -31,7 +30,6 @@ const ProductCard = ({ product }) => {
 
     const handleAddToCart = () => {
         addToCart(product.id);
-        toast.success("Added to cart");
     };
 
     const renderStars = (rating = 5) => {
@@ -92,9 +90,23 @@ const ProductCard = ({ product }) => {
                         )}
                     </div>
                     <div className="add-cart">
-                        <a className="add btn-add-to-cart" onClick={handleAddToCart} href="javascript:void(0);" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
-                            <i className="fi-rs-shopping-cart"></i> Add
-                        </a>
+                        {(() => {
+                            const cartItem = cartItems?.find(item => item.product?.id === product.id && !item.variantId);
+                            if (cartItem) {
+                                return (
+                                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
+                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="javascript:void(0);" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
+                                        <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
+                                        <a onClick={() => updateQuantity(cartItem.id, cartItem.quantity + 1)} href="javascript:void(0);" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>+</a>
+                                    </div>
+                                );
+                            }
+                            return (
+                                <a className="add btn-add-to-cart" onClick={handleAddToCart} href="javascript:void(0);" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
+                                    <i className="fi-rs-shopping-cart"></i> Add
+                                </a>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

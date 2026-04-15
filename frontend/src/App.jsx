@@ -17,6 +17,7 @@ import Deals from './pages/Deals';
 import Wishlist from './pages/Wishlist';
 import TrackOrder from './pages/TrackOrder';
 import OrderSuccess from './pages/OrderSuccess';
+import Invoice from './pages/Invoice';
 
 function App() {
   const [showScroll, setShowScroll] = useState(false);
@@ -67,6 +68,7 @@ function App() {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
+          <Route path="/invoice/:orderNumber" element={<Invoice />} />
         </Routes>
       </main>
       <Footer />

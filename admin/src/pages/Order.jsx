@@ -68,12 +68,16 @@ const Order = () => {
         },
         { header: 'AMOUNT', render: (row) => <strong>₹{Number(row.total).toFixed(0)}</strong> },
         {
-            header: 'DELIVERY BOY',
-            render: (row) => (
-                <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '4px', fontWeight: '600', background: row.deliveryBoy ? '#e8f5e9' : '#fde8e8', color: row.deliveryBoy ? '#28a745' : '#dc3545' }}>
-                    {row.deliveryBoy?.name || 'Not Assign'}
-                </span>
-            )
+            header: 'DELIVERY',
+            render: (row) => {
+                const isAssigned = row.deliveryBoy || row.courierPartner;
+                const isCourier = row.deliveryType === 'courier';
+                return (
+                    <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '4px', fontWeight: '600', background: isAssigned ? (isCourier ? '#e3f2fd' : '#e8f5e9') : '#fde8e8', color: isAssigned ? (isCourier ? '#007bff' : '#28a745') : '#dc3545' }}>
+                        {isCourier && row.courierPartner ? `📦 ${row.courierPartner.name}` : row.deliveryBoy ? `🚚 ${row.deliveryBoy.name}` : 'Not Assigned'}
+                    </span>
+                );
+            }
         },
         {
             header: 'STATUS',

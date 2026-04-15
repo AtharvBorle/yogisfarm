@@ -8,7 +8,7 @@ import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
 const Wishlist = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const { addToCart } = useCart();
     const { toggleWishlist } = useWishlist();
     const [items, setItems] = useState([]);
@@ -41,8 +41,9 @@ const Wishlist = () => {
     const handleAddToCart = (product) => {
         const price = product.salePrice || product.price;
         addToCart(product, null, 1, price);
-        toast.success("Added to cart");
     };
+
+    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
 
     return (
         <main className="main">

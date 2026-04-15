@@ -33,7 +33,6 @@ const Deals = () => {
         e.preventDefault();
         const priceToUse = product.salePrice || product.price;
         addToCart(product, null, 1, priceToUse);
-        toast.success(`Added ${product.name} to cart`);
     };
 
     return (

@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import api, { getAssetUrl } from '../api';
 
 const Header = () => {
     const { user, logout } = useAuth();
     const { cartItems, cartCount, cartTotal, removeFromCart } = useCart();
+    const { wishlist } = useWishlist();
     
     const [categories, setCategories] = useState([]);
     const [keyword, setKeyword] = useState('');
@@ -160,7 +162,7 @@ const Header = () => {
                                     <div className="header-action-icon-2">
                                         <Link to="/wishlist">
                                             <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" />
-                                            <span className="pro-count blue btn-wishlist-count">0</span>
+                                            <span className="pro-count blue btn-wishlist-count">{wishlist?.length || 0}</span>
                                         </Link>
                                     </div>
                                     <div className="header-action-icon-2">

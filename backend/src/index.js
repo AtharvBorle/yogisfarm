@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
+const PrismaStore = require('./utils/sessionStore');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -27,6 +28,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'yogisfarm-secret',
   resave: true,
   saveUninitialized: false,
+  store: new PrismaStore(prisma),
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,

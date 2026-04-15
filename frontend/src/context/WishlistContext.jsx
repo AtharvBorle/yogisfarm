@@ -50,15 +50,13 @@ export const WishlistProvider = ({ children }) => {
         try {
             const res = await api.post('/wishlist/toggle', { productId });
             if (res.data.status) {
-                setWishlist(prev => {
-                    if (res.data.inWishlist) {
-                        toast.success("Added to wishlist");
-                        return [...prev, productId];
-                    } else {
-                        toast.success("Removed from wishlist");
-                        return prev.filter(id => id !== productId);
-                    }
-                });
+                if (res.data.inWishlist) {
+                    toast.success("Added to wishlist");
+                    setWishlist(prev => [...prev, productId]);
+                } else {
+                    toast.success("Removed from wishlist");
+                    setWishlist(prev => prev.filter(id => id !== productId));
+                }
             } else {
                 toast.error(res.data.message || "Failed to update wishlist");
             }

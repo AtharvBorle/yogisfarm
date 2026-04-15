@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const tab = searchParams.get('tab') || 'dashboard';
@@ -22,6 +22,7 @@ const Dashboard = () => {
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
     useEffect(() => {
+        if (authLoading) return;
         if (!user) { navigate('/login'); return; }
         const fetchData = async () => {
             try {
@@ -99,6 +100,8 @@ const Dashboard = () => {
     const headerCell = { ...cellPd, fontWeight: '600', color: '#253D4E', background: '#f8f9fa' };
 
     if (!user) return null;
+
+    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
 
     return (
         <main className="main">
@@ -201,7 +204,7 @@ const Dashboard = () => {
                                                                             <Link to={`?tab=orders&order=${order.orderNumber}`} title="View" style={{ color: '#046938', fontSize: '16px' }}>
                                                                                 <i className="fi-rs-eye"></i>
                                                                             </Link>
-                                                                            <a href="#" onClick={(e) => { e.preventDefault(); window.open(`/order-success/${order.orderNumber}`, '_blank'); }} title="Download" style={{ color: '#555', fontSize: '16px' }}>
+                                                                            <a href="#" onClick={(e) => { e.preventDefault(); window.open(`/invoice/${order.orderNumber}`, '_blank'); }} title="Download Invoice" style={{ color: '#555', fontSize: '16px' }}>
                                                                                 <i className="fi-rs-download"></i>
                                                                             </a>
                                                                         </td>
@@ -220,7 +223,12 @@ const Dashboard = () => {
                                         <div>
                                             {/* Order Summary */}
                                             <div style={{ border: borderStyle, borderRadius: '8px', overflow: 'hidden', marginBottom: '25px' }}>
-                                                <h5 style={{ padding: '12px 15px', margin: 0, fontWeight: '700', background: '#f8f9fa', borderBottom: borderStyle }}>Order Summary</h5>
+                                                <div style={{ padding: '12px 15px', background: '#f8f9fa', borderBottom: borderStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <h5 style={{ margin: 0, fontWeight: '700' }}>Order Summary</h5>
+                                                    <Link to="?tab=orders" className="btn btn-sm" style={{ background: '#046938', color: '#fff', padding: '5px 12px', fontSize: '13px', borderRadius: '4px' }}>
+                                                        <i className="fi-rs-arrow-left" style={{ marginRight: '5px' }}></i> Back to Orders
+                                                    </Link>
+                                                </div>
                                                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                                     <tbody>
                                                         <tr>
@@ -274,6 +282,7 @@ const Dashboard = () => {
                                                     <thead>
                                                         <tr style={{ background: '#f8f9fa' }}>
                                                             <th style={{ ...cellPd, textAlign: 'left' }}>#</th>
+                                                            <th style={{ ...cellPd, textAlign: 'center' }}>Image</th>
                                                             <th style={{ ...cellPd, textAlign: 'left' }}>Product</th>
                                                             <th style={{ ...cellPd, textAlign: 'left' }}>Brand</th>
                                                             <th style={{ ...cellPd, textAlign: 'right' }}>Price</th>
@@ -286,6 +295,13 @@ const Dashboard = () => {
                                                         {selectedOrder.items?.map((item, i) => (
                                                             <tr key={item.id}>
                                                                 <td style={{ ...cellPd, color: '#046938' }}>{i + 1}</td>
+                                                                <td style={{ ...cellPd, textAlign: 'center' }}>
+                                                                    {item.product?.image ? (
+                                                                        <img src={getAssetUrl(item.product.image)} alt={item.name} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px' }} />
+                                                                    ) : (
+                                                                        <span>—</span>
+                                                                    )}
+                                                                </td>
                                                                 <td style={cellPd}>
                                                                     <Link to={item.product?.slug ? `/product/${item.product.slug}` : '#'} style={{ color: '#046938' }}>{item.name}</Link>
                                                                 </td>

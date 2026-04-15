@@ -13,11 +13,17 @@ const Login = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [step, setStep] = useState(1);
-    const { fetchUser } = useAuth();
+    const { fetchUser, user, loading: authLoading } = useAuth();
     const { fetchCart } = useCart();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const redirect = searchParams.get('redirect') || '/dashboard';
+
+    React.useEffect(() => {
+        if (!authLoading && user) {
+            navigate(redirect);
+        }
+    }, [user, authLoading, navigate, redirect]);
 
     const sendOtp = async (e) => {
         e.preventDefault();

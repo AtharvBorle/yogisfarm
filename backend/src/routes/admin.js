@@ -397,7 +397,7 @@ router.get('/orders', requireAdmin, async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where, orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true }
+      include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true, courierPartner: true }
     });
     res.json({ status: true, orders });
   } catch (e) {
@@ -409,7 +409,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true }
+      include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true, courierPartner: true }
     });
     res.json({ status: true, order });
   } catch (e) {
@@ -449,20 +449,95 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
   }
 });
 
-router.put('/orders/:id/delivery-boy', requireAdmin, async (req, res) => {
+// ─── Delivery Option Assignment ───
+router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
   try {
-    const { deliveryBoyId } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { deliveryBoyId: parseInt(deliveryBoyId) } });
-    res.json({ status: true, message: 'Delivery boy assigned' });
+    const { deliveryType, deliveryBoyId, courierPartnerId, trackingId } = req.body;
+    const data = { deliveryType };
+    if (deliveryType === 'delivery_boy') {
+      data.deliveryBoyId = parseInt(deliveryBoyId);
+      data.courierPartnerId = null;
+      data.trackingId = null;
+    } else if (deliveryType === 'courier') {
+      data.courierPartnerId = parseInt(courierPartnerId);
+      data.trackingId = trackingId || null;
+      data.deliveryBoyId = null;
+    }
+    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data });
+    res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
-// ─── Delivery Boys ───
+// ─── Delivery Boys CRUD ───
 router.get('/delivery-boys', requireAdmin, async (req, res) => {
-  const boys = await prisma.deliveryBoy.findMany({ where: { status: 'active' } });
+  const boys = await prisma.deliveryBoy.findMany({ where: { status: 'active' }, orderBy: { createdAt: 'desc' } });
   res.json({ status: true, deliveryBoys: boys });
+});
+
+router.post('/delivery-boys', requireAdmin, async (req, res) => {
+  try {
+    const { name, phone, city, pincode } = req.body;
+    const boy = await prisma.deliveryBoy.create({ data: { name, phone, city, pincode } });
+    res.json({ status: true, message: 'Delivery boy created', deliveryBoy: boy });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/delivery-boys/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, phone, city, pincode, status } = req.body;
+    const boy = await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data: { name, phone, city, pincode, status } });
+    res.json({ status: true, message: 'Delivery boy updated', deliveryBoy: boy });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/delivery-boys/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data: { status: 'inactive' } });
+    res.json({ status: true, message: 'Delivery boy removed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Courier Partners CRUD ───
+router.get('/courier-partners', requireAdmin, async (req, res) => {
+  const partners = await prisma.courierPartner.findMany({ where: { status: 'active' }, orderBy: { createdAt: 'desc' } });
+  res.json({ status: true, courierPartners: partners });
+});
+
+router.post('/courier-partners', requireAdmin, async (req, res) => {
+  try {
+    const { name, trackingLink } = req.body;
+    const partner = await prisma.courierPartner.create({ data: { name, trackingLink } });
+    res.json({ status: true, message: 'Courier partner created', courierPartner: partner });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/courier-partners/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, trackingLink, status } = req.body;
+    const partner = await prisma.courierPartner.update({ where: { id: parseInt(req.params.id) }, data: { name, trackingLink, status } });
+    res.json({ status: true, message: 'Courier partner updated', courierPartner: partner });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/courier-partners/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.courierPartner.update({ where: { id: parseInt(req.params.id) }, data: { status: 'inactive' } });
+    res.json({ status: true, message: 'Courier partner removed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Sections CRUD ───

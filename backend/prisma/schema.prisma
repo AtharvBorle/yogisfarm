@@ -251,13 +251,17 @@ model Order {
   orderNote          String?  @map("order_note") @db.Text
   addressType        String?  @default("Home") @map("address_type") @db.VarChar(20)
   deliveryBoyId      Int?     @map("delivery_boy_id")
+  deliveryType       String?  @map("delivery_type") @db.VarChar(20)
+  courierPartnerId   Int?     @map("courier_partner_id")
+  trackingId         String?  @map("tracking_id") @db.VarChar(100)
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  user        User         @relation(fields: [userId], references: [id])
-  address     Address?     @relation(fields: [addressId], references: [id])
-  deliveryBoy DeliveryBoy? @relation(fields: [deliveryBoyId], references: [id])
-  items       OrderItem[]
+  user           User            @relation(fields: [userId], references: [id])
+  address        Address?        @relation(fields: [addressId], references: [id])
+  deliveryBoy    DeliveryBoy?    @relation(fields: [deliveryBoyId], references: [id])
+  courierPartner CourierPartner? @relation(fields: [courierPartnerId], references: [id])
+  items          OrderItem[]
 
   @@map("orders")
 }
@@ -286,12 +290,27 @@ model DeliveryBoy {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(100)
   phone     String   @db.VarChar(15)
+  city      String?  @db.VarChar(100)
+  pincode   String?  @db.VarChar(10)
   status    String   @default("active") @db.VarChar(20)
   createdAt DateTime @default(now()) @map("created_at")
 
   orders Order[]
 
   @@map("delivery_boys")
+}
+
+// ─── Courier Partners ───
+model CourierPartner {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  trackingLink String   @map("tracking_link") @db.VarChar(500)
+  status       String   @default("active") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@map("courier_partners")
 }
 
 // ─── Coupons ───
@@ -388,4 +407,15 @@ model Review {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
+}
+
+// ─── Session Store ───
+model Session {
+  id        Int      @id @default(autoincrement())
+  sid       String   @unique
+  data      String   @db.Text
+  expiresAt DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("sessions")
 }

@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
 const Checkout = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const { cartItems, cartTotal, fetchCart } = useCart();
     const navigate = useNavigate();
     
@@ -24,11 +22,32 @@ const Checkout = () => {
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [termsError, setTermsError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [globalTaxRate, setGlobalTaxRate] = useState(0);
 
+    const totalTax = cartItems.reduce((total, item) => {
+        const price = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
+        const itemTotal = price * item.quantity;
+        return total + ((itemTotal * globalTaxRate) / 100);
+    }, 0);
     const shipping = cartTotal >= 500 ? 0 : 50;
-    const grandTotal = cartTotal + shipping - discount;
+    const grandTotal = cartTotal + totalTax + shipping - discount;
 
     useEffect(() => {
+        // Fetch global tax rate
+        const fetchTax = async () => {
+            try {
+                const res = await api.get('/taxes');
+                if (res.data.status && res.data.taxes?.length > 0) {
+                    const activeTax = res.data.taxes.find(t => t.status === 'active');
+                    if (activeTax) setGlobalTaxRate(parseFloat(activeTax.tax));
+                }
+            } catch (err) { console.error(err); }
+        };
+        fetchTax();
+    }, []);
+
+    useEffect(() => {
+        if (authLoading) return;
         if (!user) { navigate('/login?redirect=checkout'); return; }
         if (cartItems.length === 0) { navigate('/cart'); return; }
         const fetchAddresses = async () => {
@@ -47,7 +66,7 @@ const Checkout = () => {
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
         try {
-            const res = await api.post('/cart/coupon', { code: couponCode });
+            const res = await api.post('/coupons/apply', { code: couponCode, subtotal: cartTotal });
             if (res.data.status) { toast.success('Coupon applied'); setDiscount(res.data.discount || 0); }
             else { toast.error(res.data.message); }
         } catch (err) { toast.error(err.response?.data?.message || 'Invalid coupon'); setDiscount(0); }
@@ -67,15 +86,58 @@ const Checkout = () => {
                 agreeTerms: true
             });
             if (res.data.status) {
-                toast.success(res.data.message);
-                fetchCart();
-                navigate(`/order-success/${res.data.orderNumber}`);
+                if (paymentMethod === 'online' && res.data.razorpayOrder) {
+                    const options = {
+                        key: res.data.key,
+                        amount: res.data.razorpayOrder.amount,
+                        currency: res.data.razorpayOrder.currency,
+                        name: "Yogis Farm",
+                        description: "Organic Products Purchase",
+                        order_id: res.data.razorpayOrder.id,
+                        handler: async function (response) {
+                            try {
+                                const verifyRes = await api.post('/orders/verify-payment', {
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    orderNumber: res.data.orderNumber
+                                });
+                                if (verifyRes.data.status) {
+                                    toast.success('Payment successful!');
+                                    fetchCart();
+                                    navigate(`/order-success/${res.data.orderNumber}`);
+                                } else {
+                                    toast.error(verifyRes.data.message || 'Payment verification failed');
+                                }
+                            } catch (err) {
+                                toast.error('Error verifying payment');
+                            }
+                        },
+                        prefill: {
+                            name: user?.name || '',
+                            email: user?.email || '',
+                            contact: user?.phone || ''
+                        },
+                        theme: { color: "#046938" }
+                    };
+                    const rzp = new window.Razorpay(options);
+                    rzp.on('payment.failed', function (response){
+                        toast.error(response.error.description || 'Payment Failed');
+                    });
+                    rzp.open();
+                } else {
+                    toast.success(res.data.message);
+                    fetchCart();
+                    navigate(`/order-success/${res.data.orderNumber}`);
+                }
             } else { toast.error(res.data.message); }
         } catch (err) { toast.error(err.response?.data?.message || 'Failed to place order'); }
         finally { setLoading(false); }
     };
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
 
     return (
         <main className="main">
@@ -100,7 +162,7 @@ const Checkout = () => {
                             <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#253D4E', marginBottom: '20px' }}>Your Order</h4>
                             {cartItems.map(item => {
                                 const price = item.variant ? (item.variant.salePrice || item.variant.price) : (item.product.salePrice || item.product.price);
-                                const imgSrc = item.product.image ? (item.product.image.startsWith('/') ? `${API_BASE}${item.product.image}` : item.product.image) : '/assets/imgs/theme/placeholder.png';
+                                const imgSrc = item.product.image ? getAssetUrl(item.product.image) : '/assets/imgs/theme/placeholder.png';
                                 return (
                                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #f0f0f0' }}>
                                         <img src={imgSrc} alt={item.product.name} style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginRight: '15px' }} />
@@ -116,6 +178,24 @@ const Checkout = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', padding: '10px 0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal :</span>
                                 <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{cartTotal.toFixed(0)}</span>
+                            </div>
+                            {discount > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+                                    <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({couponCode}) :</span>
+                                    <span style={{ fontWeight: '700', color: '#dc3545', fontSize: '16px' }}>-₹{discount.toFixed(0)}</span>
+                                </div>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+                                <span style={{ fontWeight: '600', color: '#253D4E' }}>Tax :</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(0)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+                                <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping :</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0 0 0', marginTop: '5px' }}>
+                                <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>
+                                <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{grandTotal.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>
@@ -135,14 +215,27 @@ const Checkout = () => {
                                 <span>Delivery Address : {selectedAddress ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state},India` : 'No address'}</span>
                                 <Link to="/dashboard?tab=addresses" style={{ color: '#046938', fontSize: '14px' }}>Edit</Link>
                             </div>
-                            <div style={{ display: 'flex', padding: '15px 20px', gap: '10px' }}>
-                                <input type="text" placeholder="Enter Your Coupon" value={couponCode} onChange={e => setCouponCode(e.target.value)}
-                                    style={{ flex: 1, border: '1px solid #e6e6e6', borderRadius: '5px', padding: '10px 15px', fontSize: '14px', outline: 'none' }} />
-                                <button onClick={handleApplyCoupon}
-                                    style={{ background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                    <i className="fi-rs-label" style={{ fontSize: '14px' }}></i> Apply
-                                </button>
-                            </div>
+                            {discount > 0 ? (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8f9fa' }}>
+                                    <div>
+                                        <i className="fi-rs-label" style={{ color: '#046938', marginRight: '8px' }}></i>
+                                        <span style={{ fontWeight: '600', color: '#046938' }}>{couponCode}</span> applied!
+                                    </div>
+                                    <button onClick={() => { setDiscount(0); setCouponCode(''); toast.success('Coupon removed'); }}
+                                        style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <i className="fi-rs-cross-small"></i> Remove
+                                    </button>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', padding: '15px 20px', gap: '10px' }}>
+                                    <input type="text" placeholder="Enter Your Coupon" value={couponCode} onChange={e => setCouponCode(e.target.value)}
+                                        style={{ flex: 1, border: '1px solid #e6e6e6', borderRadius: '5px', padding: '10px 15px', fontSize: '14px', outline: 'none' }} />
+                                    <button onClick={handleApplyCoupon}
+                                        style={{ background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <i className="fi-rs-label" style={{ fontSize: '14px' }}></i> Apply
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -177,12 +270,12 @@ const Checkout = () => {
 
                 {/* Terms */}
                 <div style={{ marginBottom: '5px' }}>
-                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#253D4E' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#253D4E' }}>
                         <input type="checkbox" checked={agreeTerms} onChange={e => { setAgreeTerms(e.target.checked); if (e.target.checked) setTermsError(''); }}
-                            style={{ marginTop: '3px', accentColor: '#046938' }} />
+                            style={{ width: '16px', height: '16px', accentColor: '#046938', flexShrink: 0 }} />
                         <span>I Agree To The <a href="#" style={{ color: '#046938' }}>Terms & Conditions</a> <a href="#" style={{ color: '#046938' }}>Return, Refund And Cancellation Policy</a> & <a href="#" style={{ color: '#046938' }}>Privacy Policy</a></span>
                     </label>
-                    {termsError && <div style={{ color: '#dc3545', fontSize: '13px', marginTop: '3px', marginLeft: '22px' }}>{termsError}</div>}
+                    {termsError && <div style={{ color: '#dc3545', fontSize: '13px', marginTop: '3px', marginLeft: '24px' }}>{termsError}</div>}
                 </div>
 
                 {/* Additional Notes */}

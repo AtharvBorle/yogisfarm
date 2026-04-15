@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
     const items = await prisma.cart.findMany({
       where,
       include: {
-        product: { include: { category: true, images: true } },
+        product: { include: { category: true, images: true, tax: true } },
         variant: true
       }
     });

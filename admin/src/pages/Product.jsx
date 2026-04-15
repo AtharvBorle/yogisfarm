@@ -18,7 +18,7 @@ const Product = () => {
     const [editingId, setEditingId] = useState(null);
 
     const defaultForm = {
-        name: '', shortDescription: '', description: '', categoryId: '', brandId: '', taxId: '',
+        name: '', shortDescription: '', description: '', categoryId: '', brandId: '',
         price: '', salePrice: '', image: '', video: '', tags: '', stock: '0', unit: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
@@ -50,7 +50,7 @@ const Product = () => {
     const openEditModal = (row) => {
         setFormData({
             name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
-            categoryId: row.categoryId || '', brandId: row.brandId || '', taxId: row.taxId || '',
+            categoryId: row.categoryId || '', brandId: row.brandId || '',
             price: row.price || '', salePrice: row.salePrice || '', image: row.image || '',
             video: row.video || '', tags: row.tags || '', stock: row.stock || 0, unit: row.unit || '',
             status: row.status, featured: row.featured, popular: row.popular, deal: row.deal,
@@ -88,7 +88,7 @@ const Product = () => {
                 name: formData.name, shortDescription: formData.shortDescription,
                 description: formData.description, image: formData.image,
                 categoryId: formData.categoryId || null, brandId: formData.brandId || null,
-                taxId: formData.taxId || null, price: formData.price, salePrice: formData.salePrice || null,
+                price: formData.price, salePrice: formData.salePrice || null,
                 video: formData.video, tags: formData.tags, stock: formData.stock, unit: formData.unit,
                 status: formData.status, featured: formData.featured.toString(),
                 popular: formData.popular.toString(), deal: formData.deal.toString()
@@ -267,7 +267,7 @@ const Product = () => {
                                 <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="admin-input" style={{ minHeight: '80px' }} />
                             </div>
 
-                            <div className="modal-row-3">
+                            <div className="modal-row-2">
                                 <div className="admin-form-group">
                                     <label className="admin-label">Category</label>
                                     <select value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="admin-select">
@@ -280,13 +280,6 @@ const Product = () => {
                                     <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} className="admin-select">
                                         <option value="">-- Select --</option>
                                         {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Tax</label>
-                                    <select value={formData.taxId} onChange={e => setFormData({ ...formData, taxId: e.target.value })} className="admin-select">
-                                        <option value="">-- No Tax --</option>
-                                        {taxes.map(t => <option key={t.id} value={t.id}>{t.name} ({Number(t.tax)}%)</option>)}
                                     </select>
                                 </div>
                             </div>

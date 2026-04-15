@@ -10,13 +10,9 @@ const Invoice = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const res = await api.get('/orders');
+                const res = await api.get(`/orders/detail/${orderNumber}`);
                 if (res.data.status) {
-                    const found = res.data.orders.find(o => o.orderNumber === orderNumber);
-                    if (found) {
-                        const detail = await api.get(`/orders/${found.id}`);
-                        if (detail.data.status) setOrder(detail.data.order);
-                    }
+                    setOrder(res.data.order);
                 }
             } catch (err) { console.error(err); }
         };
@@ -35,9 +31,9 @@ const Invoice = () => {
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
-                    // Do not close tab automatically in Admin, they might want to stay on page or we can navigate back. 
-                    // Wait, if they opened it in new tab? Admin usually doesn't open in new tab.
-                    // Wait! Let's check admin Order.jsx if it opens in _blank.
+                    setTimeout(() => {
+                        window.close();
+                    }, 500); 
                 });
             }, 500);
         }
@@ -95,7 +91,7 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Unit', 'Price', 'Discount', 'Sub Total', 'Tax', 'Total', 'Quantity', 'Grand Total'].map(h => (
+                        {['#', 'Product', 'Brand', 'Unit', 'Price', 'Discount', 'Sub Total', 'Tax', 'Total', 'Quantity', 'Grand Total'].map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
                     </tr>
@@ -105,6 +101,7 @@ const Invoice = () => {
                         <tr key={item.id}>
                             <td style={tdStyle}>{i + 1}</td>
                             <td style={{ ...tdStyle, textAlign: 'left' }}>{item.name}</td>
+                            <td style={tdStyle}>{item.product?.brand?.name || '—'}</td>
                             <td style={tdStyle}>{item.variant || '1 Unit'}</td>
                             <td style={tdStyle}>₹{Number(item.price).toFixed(0)}</td>
                             <td style={tdStyle}>
@@ -131,8 +128,8 @@ const Invoice = () => {
             </div>
 
             {/* Signature */}
-            <div style={{ border: '1px solid #ccc', padding: '30px', textAlign: 'right', marginTop: '30px' }}>
-                <em>Authorized Signature</em>
+            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>
+                <em>This is a computer generated invoice and does not require a physical signature.</em>
             </div>
 
             {/* Removed print styles as html2pdf renders directly */}

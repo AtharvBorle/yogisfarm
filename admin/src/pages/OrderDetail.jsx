@@ -9,12 +9,26 @@ const OrderDetail = () => {
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
     const [deliveryBoys, setDeliveryBoys] = useState([]);
+    const [courierPartners, setCourierPartners] = useState([]);
     const [isStatusOpen, setStatusOpen] = useState(false);
     const [isPaymentOpen, setPaymentOpen] = useState(false);
-    const [isDeliveryOpen, setDeliveryOpen] = useState(false);
+    const [isDeliveryOptionOpen, setDeliveryOptionOpen] = useState(false);
+    const [isManageOpen, setManageOpen] = useState(false);
     const [statusForm, setStatusForm] = useState('');
     const [paymentForm, setPaymentForm] = useState({ paymentStatus: '', paymentDescription: '' });
-    const [deliveryForm, setDeliveryForm] = useState('');
+
+    // Delivery option form
+    const [deliveryOptionType, setDeliveryOptionType] = useState('delivery_boy');
+    const [selectedDeliveryBoyId, setSelectedDeliveryBoyId] = useState('');
+    const [selectedCourierPartnerId, setSelectedCourierPartnerId] = useState('');
+    const [trackingId, setTrackingId] = useState('');
+
+    // Manage form
+    const [manageType, setManageType] = useState('delivery_boy');
+    const [addDeliveryBoyForm, setAddDeliveryBoyForm] = useState({ name: '', phone: '', city: '', pincode: '' });
+    const [addCourierForm, setAddCourierForm] = useState({ name: '', trackingLink: '' });
+    const [editingId, setEditingId] = useState(null);
+    const [editForm, setEditForm] = useState({});
 
     const fetchOrder = async () => {
         try {
@@ -36,7 +50,14 @@ const OrderDetail = () => {
         } catch (err) { /* ignore */ }
     };
 
-    useEffect(() => { fetchOrder(); fetchDeliveryBoys(); }, [orderNumber]);
+    const fetchCourierPartners = async () => {
+        try {
+            const res = await api.get('/courier-partners');
+            if (res.data.status) setCourierPartners(res.data.courierPartners);
+        } catch (err) { /* ignore */ }
+    };
+
+    useEffect(() => { fetchOrder(); fetchDeliveryBoys(); fetchCourierPartners(); }, [orderNumber]);
 
     const updateStatus = async (e) => {
         e.preventDefault();
@@ -54,12 +75,82 @@ const OrderDetail = () => {
         } catch (err) { toast.error('Update failed'); }
     };
 
-    const assignDelivery = async (e) => {
+    const assignDeliveryOption = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.put(`/orders/${order.id}/delivery-boy`, { deliveryBoyId: deliveryForm });
-            if (res.data.status) { toast.success('Delivery boy assigned'); setDeliveryOpen(false); fetchOrder(); }
+            const payload = { deliveryType: deliveryOptionType };
+            if (deliveryOptionType === 'delivery_boy') {
+                if (!selectedDeliveryBoyId) { toast.error('Please select a delivery boy'); return; }
+                payload.deliveryBoyId = selectedDeliveryBoyId;
+            } else {
+                if (!selectedCourierPartnerId) { toast.error('Please select a courier partner'); return; }
+                payload.courierPartnerId = selectedCourierPartnerId;
+                payload.trackingId = trackingId;
+            }
+            const res = await api.put(`/orders/${order.id}/delivery-option`, payload);
+            if (res.data.status) { toast.success('Delivery option updated'); setDeliveryOptionOpen(false); fetchOrder(); }
         } catch (err) { toast.error('Assignment failed'); }
+    };
+
+    const handleAddDeliveryBoy = async (e) => {
+        e.preventDefault();
+        if (!addDeliveryBoyForm.name || !addDeliveryBoyForm.phone) { toast.error('Name and phone are required'); return; }
+        try {
+            const res = await api.post('/delivery-boys', addDeliveryBoyForm);
+            if (res.data.status) {
+                toast.success('Delivery boy added');
+                setAddDeliveryBoyForm({ name: '', phone: '', city: '', pincode: '' });
+                fetchDeliveryBoys();
+            } else { toast.error(res.data.message); }
+        } catch (err) { toast.error('Failed to add'); }
+    };
+
+    const handleAddCourier = async (e) => {
+        e.preventDefault();
+        if (!addCourierForm.name || !addCourierForm.trackingLink) { toast.error('Name and tracking link are required'); return; }
+        try {
+            const res = await api.post('/courier-partners', addCourierForm);
+            if (res.data.status) {
+                toast.success('Courier partner added');
+                setAddCourierForm({ name: '', trackingLink: '' });
+                fetchCourierPartners();
+            } else { toast.error(res.data.message); }
+        } catch (err) { toast.error('Failed to add'); }
+    };
+
+    const handleEditSave = async () => {
+        try {
+            if (manageType === 'delivery_boy') {
+                const res = await api.put(`/delivery-boys/${editingId}`, editForm);
+                if (res.data.status) { toast.success('Updated'); setEditingId(null); fetchDeliveryBoys(); }
+                else { toast.error(res.data.message); }
+            } else {
+                const res = await api.put(`/courier-partners/${editingId}`, editForm);
+                if (res.data.status) { toast.success('Updated'); setEditingId(null); fetchCourierPartners(); }
+                else { toast.error(res.data.message); }
+            }
+        } catch (err) { toast.error('Update failed'); }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to remove this?')) return;
+        try {
+            if (manageType === 'delivery_boy') {
+                const res = await api.delete(`/delivery-boys/${id}`);
+                if (res.data.status) { toast.success('Removed'); fetchDeliveryBoys(); }
+            } else {
+                const res = await api.delete(`/courier-partners/${id}`);
+                if (res.data.status) { toast.success('Removed'); fetchCourierPartners(); }
+            }
+        } catch (err) { toast.error('Delete failed'); }
+    };
+
+    const openDeliveryOptionModal = () => {
+        setDeliveryOptionType(order.deliveryType || 'delivery_boy');
+        setSelectedDeliveryBoyId(order.deliveryBoyId || '');
+        setSelectedCourierPartnerId(order.courierPartnerId || '');
+        setTrackingId(order.trackingId || '');
+        setDeliveryOptionOpen(true);
     };
 
     const formatDateTime = (d) => {
@@ -80,6 +171,7 @@ const OrderDetail = () => {
     const labelStyle = { fontSize: '12px', color: '#999', marginBottom: '2px' };
     const valueStyle = { fontSize: '14px', fontWeight: '600', color: '#253D4E' };
     const inputStyle = { width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' };
+    const radioLabelStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', transition: 'all 0.2s' };
 
     return (
         <div>
@@ -92,9 +184,13 @@ const OrderDetail = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button onClick={() => { setDeliveryForm(order.deliveryBoyId || ''); setDeliveryOpen(true); }}
+                    <button onClick={openDeliveryOptionModal}
                         style={{ padding: '8px 18px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        🚚 Delivery Boy
+                        🚚 Delivery Option
+                    </button>
+                    <button onClick={() => { setManageType('delivery_boy'); setEditingId(null); setManageOpen(true); }}
+                        style={{ padding: '8px 18px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        ⚙️ Manage
                     </button>
                     <button onClick={() => navigate(`/orders/invoice/${order.orderNumber}`)}
                         style={{ padding: '8px 18px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -211,15 +307,34 @@ const OrderDetail = () => {
                 </div>
             </div>
 
-            {/* Delivery Boy */}
-            {order.deliveryBoy && (
+            {/* Delivery Info Card */}
+            {(order.deliveryBoy || order.courierPartner) && (
                 <div style={{ ...cardStyle, marginBottom: '25px' }}>
-                    <h5 style={{ fontWeight: '700', marginBottom: '10px', fontSize: '16px' }}>Delivery Boy</h5>
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                        <span style={{ fontWeight: '600' }}>{order.deliveryBoy.name}</span>
-                        <span style={{ color: '#888' }}>{order.deliveryBoy.phone}</span>
-                        <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#28a745', color: '#fff' }}>Assigned</span>
-                    </div>
+                    <h5 style={{ fontWeight: '700', marginBottom: '10px', fontSize: '16px' }}>
+                        {order.deliveryType === 'courier' ? '📦 Courier Partner' : '🚚 Delivery Boy'}
+                    </h5>
+                    {order.deliveryType === 'courier' && order.courierPartner ? (
+                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: '600' }}>{order.courierPartner.name}</span>
+                            {order.trackingId && (
+                                <span style={{ fontSize: '13px', color: '#555' }}>Tracking ID: <strong>{order.trackingId}</strong></span>
+                            )}
+                            {order.courierPartner.trackingLink && (
+                                <a href={order.courierPartner.trackingLink} target="_blank" rel="noreferrer"
+                                    style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#007bff', color: '#fff', textDecoration: 'none' }}>
+                                    Track
+                                </a>
+                            )}
+                            <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#28a745', color: '#fff' }}>Assigned</span>
+                        </div>
+                    ) : order.deliveryBoy ? (
+                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: '600' }}>{order.deliveryBoy.name}</span>
+                            <span style={{ color: '#888' }}>{order.deliveryBoy.phone}</span>
+                            {order.deliveryBoy.city && <span style={{ fontSize: '12px', color: '#555' }}>📍 {order.deliveryBoy.city}{order.deliveryBoy.pincode ? ` - ${order.deliveryBoy.pincode}` : ''}</span>}
+                            <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#28a745', color: '#fff' }}>Assigned</span>
+                        </div>
+                    ) : null}
                 </div>
             )}
 
@@ -324,20 +439,243 @@ const OrderDetail = () => {
                 </form>
             </GenericModal>
 
-            {/* Assign Delivery Boy Modal */}
-            <GenericModal isOpen={isDeliveryOpen} title="Assign Delivery Boy" onClose={() => setDeliveryOpen(false)}>
-                <form onSubmit={assignDelivery} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Delivery Boy</label>
-                        <select value={deliveryForm} onChange={e => setDeliveryForm(e.target.value)} required style={inputStyle}>
-                            <option value="">-- Select --</option>
-                            {deliveryBoys.map(db => <option key={db.id} value={db.id}>{db.name} ({db.phone})</option>)}
-                        </select>
+            {/* Delivery Option Modal */}
+            <GenericModal isOpen={isDeliveryOptionOpen} title="Assign Delivery Option" onClose={() => setDeliveryOptionOpen(false)}>
+                <form onSubmit={assignDeliveryOption} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                    {/* Radio Selection */}
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: deliveryOptionType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
+                            <input type="radio" name="deliveryOptionType" value="delivery_boy" checked={deliveryOptionType === 'delivery_boy'}
+                                onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#28a745' }} />
+                            🚚 Delivery Boy
+                        </label>
+                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: deliveryOptionType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
+                            <input type="radio" name="deliveryOptionType" value="courier" checked={deliveryOptionType === 'courier'}
+                                onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#007bff' }} />
+                            📦 Courier Partner
+                        </label>
                     </div>
+
+                    {/* Delivery Boy Dropdown */}
+                    {deliveryOptionType === 'delivery_boy' && (
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Select Delivery Boy</label>
+                            <select value={selectedDeliveryBoyId} onChange={e => setSelectedDeliveryBoyId(e.target.value)} style={inputStyle}>
+                                <option value="">-- Select Delivery Boy --</option>
+                                {deliveryBoys.map(db => (
+                                    <option key={db.id} value={db.id}>{db.name} ({db.phone})</option>
+                                ))}
+                            </select>
+                            {deliveryBoys.length === 0 && (
+                                <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No delivery boys available. Use the ⚙️ Manage button to create one.</div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Courier Partner Dropdown + Tracking ID */}
+                    {deliveryOptionType === 'courier' && (
+                        <>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Select Courier Partner</label>
+                                <select value={selectedCourierPartnerId} onChange={e => setSelectedCourierPartnerId(e.target.value)} style={inputStyle}>
+                                    <option value="">-- Select Courier Partner --</option>
+                                    {courierPartners.map(cp => (
+                                        <option key={cp.id} value={cp.id}>{cp.name}</option>
+                                    ))}
+                                </select>
+                                {courierPartners.length === 0 && (
+                                    <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No courier partners available. Use the ⚙️ Manage button to create one.</div>
+                                )}
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Tracking ID</label>
+                                <input type="text" value={trackingId} onChange={e => setTrackingId(e.target.value)}
+                                    placeholder="Enter tracking ID" style={inputStyle} />
+                            </div>
+                        </>
+                    )}
+
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Assign</button>
                     </div>
                 </form>
+            </GenericModal>
+
+            {/* Manage Delivery Boys / Courier Partners Modal */}
+            <GenericModal isOpen={isManageOpen} title="Manage Delivery Boys / Courier Partners" onClose={() => { setManageOpen(false); setEditingId(null); }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                    {/* Radio Selection */}
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <label style={{ ...radioLabelStyle, background: manageType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: manageType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
+                            <input type="radio" name="manageType" value="delivery_boy" checked={manageType === 'delivery_boy'}
+                                onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#28a745' }} />
+                            🚚 Delivery Boys
+                        </label>
+                        <label style={{ ...radioLabelStyle, background: manageType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: manageType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
+                            <input type="radio" name="manageType" value="courier" checked={manageType === 'courier'}
+                                onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#007bff' }} />
+                            📦 Courier Partners
+                        </label>
+                    </div>
+
+                    {/* --- Delivery Boys List + Add --- */}
+                    {manageType === 'delivery_boy' && (
+                        <>
+                            {/* Existing List */}
+                            <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Name</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Phone</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>City</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Pincode</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: '700' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {deliveryBoys.length === 0 && (
+                                            <tr><td colSpan="5" style={{ padding: '15px', textAlign: 'center', color: '#999' }}>No delivery boys added yet</td></tr>
+                                        )}
+                                        {deliveryBoys.map(db => (
+                                            <tr key={db.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                {editingId === db.id ? (
+                                                    <>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.pincode || ''} onChange={e => setEditForm({ ...editForm, pincode: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
+                                                                <button onClick={() => setEditingId(null)} style={{ padding: '3px 10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Cancel</button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <td style={{ padding: '8px 10px', fontWeight: '500' }}>{db.name}</td>
+                                                        <td style={{ padding: '8px 10px' }}>{db.phone}</td>
+                                                        <td style={{ padding: '8px 10px' }}>{db.city || '—'}</td>
+                                                        <td style={{ padding: '8px 10px' }}>{db.pincode || '—'}</td>
+                                                        <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, city: db.city || '', pincode: db.pincode || '' }); }}
+                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>✏️</button>
+                                                                <button onClick={() => handleDelete(db.id)}
+                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>🗑️</button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Add New Form */}
+                            <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}>➕ Add New Delivery Boy</div>
+                                <form onSubmit={handleAddDeliveryBoy} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                    <div style={{ flex: '1', minWidth: '120px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>
+                                        <input type="text" value={addDeliveryBoyForm.name} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, name: e.target.value })}
+                                            placeholder="Name" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <div style={{ flex: '1', minWidth: '120px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Phone *</label>
+                                        <input type="text" value={addDeliveryBoyForm.phone} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, phone: e.target.value })}
+                                            placeholder="Phone" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <div style={{ flex: '1', minWidth: '100px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>City</label>
+                                        <input type="text" value={addDeliveryBoyForm.city} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, city: e.target.value })}
+                                            placeholder="City" style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <div style={{ flex: '1', minWidth: '80px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Pincode</label>
+                                        <input type="text" value={addDeliveryBoyForm.pincode} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, pincode: e.target.value })}
+                                            placeholder="Pincode" style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <button type="submit" style={{ padding: '7px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', whiteSpace: 'nowrap' }}>Add</button>
+                                </form>
+                            </div>
+                        </>
+                    )}
+
+                    {/* --- Courier Partners List + Add --- */}
+                    {manageType === 'courier' && (
+                        <>
+                            {/* Existing List */}
+                            <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Name</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Tracking Link</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: '700' }}>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {courierPartners.length === 0 && (
+                                            <tr><td colSpan="3" style={{ padding: '15px', textAlign: 'center', color: '#999' }}>No courier partners added yet</td></tr>
+                                        )}
+                                        {courierPartners.map(cp => (
+                                            <tr key={cp.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                {editingId === cp.id ? (
+                                                    <>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.trackingLink || ''} onChange={e => setEditForm({ ...editForm, trackingLink: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px', textAlign: 'center' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
+                                                                <button onClick={() => setEditingId(null)} style={{ padding: '3px 10px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Cancel</button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <td style={{ padding: '8px 10px', fontWeight: '500' }}>{cp.name}</td>
+                                                        <td style={{ padding: '8px 10px' }}>
+                                                            <a href={cp.trackingLink} target="_blank" rel="noreferrer" style={{ color: '#007bff', fontSize: '12px', wordBreak: 'break-all' }}>{cp.trackingLink}</a>
+                                                        </td>
+                                                        <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                                                            <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                                                                <button onClick={() => { setEditingId(cp.id); setEditForm({ name: cp.name, trackingLink: cp.trackingLink }); }}
+                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>✏️</button>
+                                                                <button onClick={() => handleDelete(cp.id)}
+                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>🗑️</button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Add New Form */}
+                            <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}>➕ Add New Courier Partner</div>
+                                <form onSubmit={handleAddCourier} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                    <div style={{ flex: '1', minWidth: '150px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>
+                                        <input type="text" value={addCourierForm.name} onChange={e => setAddCourierForm({ ...addCourierForm, name: e.target.value })}
+                                            placeholder="Partner name" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <div style={{ flex: '2', minWidth: '200px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Tracking Link *</label>
+                                        <input type="text" value={addCourierForm.trackingLink} onChange={e => setAddCourierForm({ ...addCourierForm, trackingLink: e.target.value })}
+                                            placeholder="https://track.example.com/" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <button type="submit" style={{ padding: '7px 16px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', whiteSpace: 'nowrap' }}>Add</button>
+                                </form>
+                            </div>
+                        </>
+                    )}
+                </div>
             </GenericModal>
         </div>
     );
