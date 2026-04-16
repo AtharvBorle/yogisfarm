@@ -13,7 +13,8 @@ import {
   Users, 
   FolderOpen, 
   TicketPercent,
-  Star
+  Star,
+  Wallet
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
     { name: 'Brand', path: '/brands', icon: Tag },
     { name: 'Product', path: '/products', icon: ShoppingBag },
     { name: 'Order', path: '/orders', icon: ShoppingCart },
+    { name: 'Collections', path: '/collections', icon: Wallet },
     { name: 'Section', path: '/sections', icon: LayoutGrid },
     { name: 'Tax', path: '/taxes', icon: Percent },
     { name: 'Shipping', path: '/shipping', icon: Truck },

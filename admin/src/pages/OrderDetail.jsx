@@ -25,7 +25,7 @@ const OrderDetail = () => {
 
     // Manage form
     const [manageType, setManageType] = useState('delivery_boy');
-    const [addDeliveryBoyForm, setAddDeliveryBoyForm] = useState({ name: '', phone: '', city: '', pincode: '' });
+    const [addDeliveryBoyForm, setAddDeliveryBoyForm] = useState({ name: '', phone: '', pin: '', city: '', pincode: '' });
     const [addCourierForm, setAddCourierForm] = useState({ name: '', trackingLink: '' });
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({});
@@ -99,7 +99,7 @@ const OrderDetail = () => {
             const res = await api.post('/delivery-boys', addDeliveryBoyForm);
             if (res.data.status) {
                 toast.success('Delivery boy added');
-                setAddDeliveryBoyForm({ name: '', phone: '', city: '', pincode: '' });
+                setAddDeliveryBoyForm({ name: '', phone: '', pin: '', city: '', pincode: '' });
                 fetchDeliveryBoys();
             } else { toast.error(res.data.message); }
         } catch (err) { toast.error('Failed to add'); }
@@ -161,7 +161,7 @@ const OrderDetail = () => {
 
     const statusColors = {
         placed: '#ffc107', pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
-        shipped: '#007bff', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
+        shipped: '#007bff', out_for_delivery: '#fd7e14', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
     };
 
     if (!order) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading order...</div>;
@@ -415,7 +415,9 @@ const OrderDetail = () => {
                             {order.orderStatus === 'placed' && <option value="cancelled">Cancelled</option>}
                             {order.orderStatus === 'confirmed' && <option value="shipped">Shipped</option>}
                             {order.orderStatus === 'confirmed' && <option value="cancelled">Cancelled</option>}
+                            {order.orderStatus === 'shipped' && <option value="out_for_delivery">Out for Delivery</option>}
                             {order.orderStatus === 'shipped' && <option value="delivered">Delivered</option>}
+                            {order.orderStatus === 'out_for_delivery' && <option value="delivered">Delivered</option>}
                         </select>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -542,7 +544,7 @@ const OrderDetail = () => {
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Name</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Phone</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>City</th>
-                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Pincode</th>
+                                            <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Balance</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: '700' }}>Actions</th>
                                         </tr>
                                     </thead>
@@ -555,9 +557,12 @@ const OrderDetail = () => {
                                                 {editingId === db.id ? (
                                                     <>
                                                         <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}>
+                                                            <input value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px', marginBottom: '4px' }} placeholder="Phone" />
+                                                            <input value={editForm.pin || ''} onChange={e => setEditForm({ ...editForm, pin: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} placeholder="New PIN (optional)" />
+                                                        </td>
                                                         <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.pincode || ''} onChange={e => setEditForm({ ...editForm, pincode: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{db.outstandingAmount || 0}</td>
                                                         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
@@ -570,10 +575,10 @@ const OrderDetail = () => {
                                                         <td style={{ padding: '8px 10px', fontWeight: '500' }}>{db.name}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.phone}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.city || '—'}</td>
-                                                        <td style={{ padding: '8px 10px' }}>{db.pincode || '—'}</td>
+                                                        <td style={{ padding: '8px 10px', fontWeight: 'bold' }}>₹{db.outstandingAmount || 0}</td>
                                                         <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                                                                <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, city: db.city || '', pincode: db.pincode || '' }); }}
+                                                                <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, pin: '', city: db.city || '', pincode: db.pincode || '' }); }}
                                                                     style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>✏️</button>
                                                                 <button onClick={() => handleDelete(db.id)}
                                                                     style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>🗑️</button>
@@ -600,6 +605,11 @@ const OrderDetail = () => {
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Phone *</label>
                                         <input type="text" value={addDeliveryBoyForm.phone} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, phone: e.target.value })}
                                             placeholder="Phone" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                    </div>
+                                    <div style={{ flex: '1', minWidth: '100px' }}>
+                                        <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Login PIN *</label>
+                                        <input type="text" value={addDeliveryBoyForm.pin} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, pin: e.target.value })}
+                                            placeholder="Set PIN" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
                                     </div>
                                     <div style={{ flex: '1', minWidth: '100px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>City</label>

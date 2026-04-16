@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 import OrderDetail from './pages/OrderDetail';
 import Invoice from './pages/Invoice';
 import Review from './pages/Review';
+import Collections from './pages/Collections';
 
 function App() {
   const { admin, loading } = useAuth();
@@ -38,6 +39,7 @@ function App() {
       <Route path="/sections" element={admin ? <AdminLayout><Section /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/taxes" element={admin ? <AdminLayout><Tax /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/shipping" element={admin ? <AdminLayout><Shipping /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/collections" element={admin ? <AdminLayout><Collections /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/contacts" element={admin ? <AdminLayout><Contact /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />

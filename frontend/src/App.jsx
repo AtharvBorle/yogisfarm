@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -19,6 +19,11 @@ import TrackOrder from './pages/TrackOrder';
 import OrderSuccess from './pages/OrderSuccess';
 import Invoice from './pages/Invoice';
 
+// Delivery Portal Pages
+import DeliveryLogin from './pages/delivery/Login';
+import DeliveryDashboard from './pages/delivery/Dashboard';
+import DeliveryOrderDetails from './pages/delivery/OrderDetails';
+
 function App() {
   const [showScroll, setShowScroll] = useState(false);
   const [isPreloading, setIsPreloading] = useState(true);
@@ -38,9 +43,8 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const location = useLocation();
+  const isDeliveryRoute = location.pathname.startsWith('/delivery');
 
   return (
     <>
@@ -50,7 +54,7 @@ function App() {
         </div>
       )}
 
-      <Header />
+      {!isDeliveryRoute && <Header />}
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -69,11 +73,16 @@ function App() {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
           <Route path="/invoice/:orderNumber" element={<Invoice />} />
+          
+          {/* Delivery Portal Routes */}
+          <Route path="/delivery/login" element={<DeliveryLogin />} />
+          <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+          <Route path="/delivery/order/:id" element={<DeliveryOrderDetails />} />
         </Routes>
       </main>
-      <Footer />
+      {!isDeliveryRoute && <Footer />}
       
-      {showScroll && (
+      {showScroll && !isDeliveryRoute && (
         <a id="scrollUp" href="#top" style={{ position: 'fixed', zIndex: 2147483647, display: 'block' }} onClick={(e) => { e.preventDefault(); scrollToTop(); }}>
           <i className="fi-rs-arrow-up"></i>
         </a>
