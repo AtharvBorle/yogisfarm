@@ -59,11 +59,11 @@ const Collections = () => {
     };
 
     const columns = [
-        { header: 'Delivery Boy', accessor: row => <span style={{ fontWeight: '600' }}>{row.name}</span> },
+        { header: 'Delivery Boy', render: row => <span style={{ fontWeight: '600' }}>{row.name}</span> },
         { header: 'Phone', accessor: 'phone' },
         { 
             header: 'Outstanding Balance', 
-            accessor: row => (
+            render: row => (
                 <span style={{ 
                     color: Number(row.outstandingAmount) > 0 ? '#dc3545' : '#28a745', 
                     fontWeight: 'bold' 
@@ -74,7 +74,7 @@ const Collections = () => {
         },
         {
             header: 'Actions',
-            accessor: row => (
+            render: row => (
                 <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => openCollectModal(row)} className="btn-edit" style={{ background: '#28a745', padding: '6px 12px' }}>💰 Collect Cash</button>
                     <button onClick={() => openHistoryModal(row)} className="btn-edit" style={{ background: '#6c757d', padding: '6px 12px' }}>🕒 History</button>

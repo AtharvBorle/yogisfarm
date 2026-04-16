@@ -285,7 +285,7 @@ router.put('/brands/order/update', requireAdmin, async (req, res) => {
 // ─── Products CRUD ───
 router.get('/products', requireAdmin, async (req, res) => {
   const products = await prisma.product.findMany({
-    include: { category: true, brand: true, images: true, variants: true },
+    include: { category: true, brand: true, images: true, variants: true, benefits: true, features: true },
     orderBy: { createdAt: 'desc' }
   });
   res.json({ status: true, products });
@@ -324,7 +324,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
   try {
     const id = parseInt(req.params.id);
     const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, image: bodyImage } = req.body;
+      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
       name, shortDescription, description, video, tags,
@@ -337,6 +337,10 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
     };
     if (req.file) data.image = '/uploads/' + req.file.filename;
     else if (bodyImage) data.image = bodyImage;
+
+    if (variants) data.variants = { deleteMany: {}, create: JSON.parse(variants) };
+    if (benefits) data.benefits = { deleteMany: {}, create: JSON.parse(benefits) };
+    if (features) data.features = { deleteMany: {}, create: JSON.parse(features) };
 
     const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true } });
     res.json({ status: true, message: 'Product updated', product });
@@ -442,9 +446,21 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       return res.json({ status: false, message: `Cannot change status from "${current.orderStatus}" to "${orderStatus}"` });
     }
 
+    // Fetch full order before update to check payment method
+    const fullOrder = await prisma.order.findUnique({
+      where: { id: parseInt(req.params.id) },
+      select: { paymentMethod: true, paymentStatus: true }
+    });
+
+    const updateData = { orderStatus };
+    // Auto-mark COD as paid when delivered
+    if (orderStatus === 'delivered' && fullOrder.paymentMethod === 'cod' && fullOrder.paymentStatus === 'pending') {
+      updateData.paymentStatus = 'paid';
+    }
+
     const order = await prisma.order.update({
       where: { id: parseInt(req.params.id) },
-      data: { orderStatus },
+      data: updateData,
       include: { user: { select: { name: true, phone: true } }, items: true }
     });
 

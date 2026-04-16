@@ -161,7 +161,10 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
     const orderId = parseInt(req.params.id);
     const boyId = req.session.deliveryBoyId;
     
-    const current = await prisma.order.findFirst({ where: { id: orderId, deliveryBoyId: boyId } });
+    const current = await prisma.order.findFirst({ 
+      where: { id: orderId, deliveryBoyId: boyId },
+      include: { user: true }
+    });
     if (!current) return res.json({ status: false, message: 'Order not found' });
     
     if (current.orderStatus === 'delivered' || current.orderStatus === 'cancelled') {
@@ -170,19 +173,36 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
 
     await prisma.$transaction(async (tx) => {
       // update order
+      const data = { orderStatus };
+      
+      let becamePaid = false;
+      if (orderStatus === 'delivered' && current.paymentMethod === 'cod' && current.paymentStatus === 'pending') {
+        data.paymentStatus = 'paid';
+        becamePaid = true;
+      }
+
       const updatedOrder = await tx.order.update({
         where: { id: orderId },
-        data: { orderStatus }
+        data
       });
 
-      // if delivered & cod & pending, increase outstanding amount
-      if (orderStatus === 'delivered' && updatedOrder.paymentMethod === 'cod' && updatedOrder.paymentStatus === 'pending') {
+      // if collected COD, increase outstanding amount
+      if (becamePaid) {
         await tx.deliveryBoy.update({
           where: { id: boyId },
           data: { outstandingAmount: { increment: updatedOrder.total } }
         });
       }
     });
+
+    const smsMessages = {
+      out_for_delivery: `🛵 [SMS] Dear ${current.user?.name || 'Customer'}, your order ${current.orderNumber} is out for delivery today!`,
+      delivered: `📬 [SMS] Dear ${current.user?.name || 'Customer'}, your order ${current.orderNumber} has been delivered! Thank you for shopping with Yogi's Farm.`
+    };
+
+    if (smsMessages[orderStatus]) {
+      console.log(`\n${smsMessages[orderStatus]} | Phone: ${current.user?.phone}\n`);
+    }
 
     res.json({ status: true, message: 'Status updated successfully' });
   } catch (e) {

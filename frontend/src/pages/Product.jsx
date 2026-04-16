@@ -145,9 +145,9 @@ const Product = () => {
                                             </div>
                                         )}
 
-                                        {product.unit && (
+                                        {(selectedVariant || product.unit) && (
                                             <div className="font-xs mb-20">
-                                                <span className="text-muted">Unit: </span><strong>{product.unit}</strong>
+                                                <span className="text-muted">Unit: </span><strong>{selectedVariant ? selectedVariant.name : product.unit}</strong>
                                             </div>
                                         )}
 

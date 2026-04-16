@@ -34,7 +34,7 @@ const OrderSuccess = () => {
             dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toUpperCase();
     };
 
-    const paymentStatusColor = order.paymentStatus === 'verified' || order.paymentStatus === 'completed'
+    const paymentStatusColor = order.paymentStatus === 'verified' || order.paymentStatus === 'completed' || order.paymentStatus === 'paid'
         ? { bg: '#28a745', text: '#fff' }
         : { bg: '#dc3545', text: '#fff' };
 

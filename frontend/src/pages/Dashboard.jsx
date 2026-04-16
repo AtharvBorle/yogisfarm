@@ -91,7 +91,7 @@ const Dashboard = () => {
     ];
 
     const payBadge = (status) => {
-        if (status === 'verified' || status === 'completed') return { bg: '#28a745', label: 'Paid' };
+        if (status === 'verified' || status === 'completed' || status === 'paid') return { bg: '#28a745', label: 'Paid' };
         return { bg: '#dc3545', label: 'Unpaid' };
     };
 

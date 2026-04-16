@@ -94,26 +94,24 @@ const Product = () => {
                 popular: formData.popular.toString(), deal: formData.deal.toString()
             };
 
-            // For new products, include variants/benefits/features as JSON string
-            if (!editingId) {
-                if (formData.variants.length > 0) {
-                    payload.variants = JSON.stringify(formData.variants.map(v => ({
-                        name: v.name, price: parseFloat(v.price || 0),
-                        salePrice: v.salePrice ? parseFloat(v.salePrice) : null,
-                        stock: parseInt(v.stock || 0)
-                    })));
-                }
-                if (formData.benefits.length > 0) {
-                    payload.benefits = JSON.stringify(formData.benefits.map(b => ({
-                        title: b.title, description: b.description
-                    })));
-                }
-                if (formData.features.length > 0) {
-                    payload.features = JSON.stringify(formData.features.map(f => ({
-                        feature: f.feature, description: f.description
-                    })));
-                }
-            }
+            // For new and edited products, include variants/benefits/features as JSON string
+            if (formData.variants.length > 0) {
+                payload.variants = JSON.stringify(formData.variants.map(v => ({
+                    name: v.name, price: parseFloat(v.price || 0),
+                    salePrice: v.salePrice ? parseFloat(v.salePrice) : null,
+                    stock: parseInt(v.stock || 0)
+                })));
+            } else { payload.variants = "[]"; }
+            if (formData.benefits.length > 0) {
+                payload.benefits = JSON.stringify(formData.benefits.map(b => ({
+                    title: b.title, description: b.description
+                })));
+            } else { payload.benefits = "[]"; }
+            if (formData.features.length > 0) {
+                payload.features = JSON.stringify(formData.features.map(f => ({
+                    feature: f.feature, description: f.description
+                })));
+            } else { payload.features = "[]"; }
 
             let res;
             if (editingId) res = await api.put(`/products/${editingId}`, payload);
@@ -284,7 +282,7 @@ const Product = () => {
                                 </div>
                             </div>
 
-                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Price <span className="required">*</span></label>
                                     <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
@@ -296,10 +294,6 @@ const Product = () => {
                                 <div className="admin-form-group">
                                     <label className="admin-label">Stock</label>
                                     <input type="number" min="0" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Unit</label>
-                                    <input type="text" placeholder="kg, pcs, ml" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} className="admin-input" />
                                 </div>
                             </div>
 
