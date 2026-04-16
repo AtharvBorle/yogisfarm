@@ -81,6 +81,7 @@ router.post('/add', async (req, res) => {
         where: { id: existing.id },
         data: { quantity: existing.quantity + data.quantity }
       });
+    } else {
       if (data.quantity > availableStock) {
         return res.json({ status: false, message: `Only ${availableStock} units available in stock.` });
       }
