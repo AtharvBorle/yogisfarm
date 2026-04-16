@@ -419,3 +419,16 @@ model Session {
 
   @@map("sessions")
 }
+
+// ─── Shipping ───
+model Shipping {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(100)
+  charge        Decimal  @db.Decimal(10, 2)
+  minCartValue  Decimal  @map("min_cart_value") @db.Decimal(10, 2)
+  status        String   @default("active") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("shipping")
+}

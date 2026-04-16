@@ -23,27 +23,41 @@ const Checkout = () => {
     const [termsError, setTermsError] = useState('');
     const [loading, setLoading] = useState(false);
     const [globalTaxRate, setGlobalTaxRate] = useState(0);
+    const [activeTax, setActiveTax] = useState(null);
+    const [shippingCharge, setShippingCharge] = useState(0);
+    const [shippingThreshold, setShippingThreshold] = useState(0);
 
     const totalTax = cartItems.reduce((total, item) => {
         const price = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
         const itemTotal = price * item.quantity;
         return total + ((itemTotal * globalTaxRate) / 100);
     }, 0);
-    const shipping = cartTotal >= 500 ? 0 : 50;
+    const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
     const grandTotal = cartTotal + totalTax + shipping - discount;
 
     useEffect(() => {
-        // Fetch global tax rate
-        const fetchTax = async () => {
+        // Fetch global tax rate and shipping rules
+        const fetchSettings = async () => {
             try {
-                const res = await api.get('/taxes');
-                if (res.data.status && res.data.taxes?.length > 0) {
-                    const activeTax = res.data.taxes.find(t => t.status === 'active');
-                    if (activeTax) setGlobalTaxRate(parseFloat(activeTax.tax));
+                const [taxRes, shipRes] = await Promise.all([
+                    api.get('/taxes'),
+                    api.get('/shipping')
+                ]);
+                if (taxRes.data.status && taxRes.data.taxes?.length > 0) {
+                    const activeTax = taxRes.data.taxes.find(t => t.status === 'active');
+                    if (activeTax) {
+                        setGlobalTaxRate(parseFloat(activeTax.tax));
+                        setActiveTax(activeTax);
+                    }
+                }
+                if (shipRes.data.status && shipRes.data.shipping?.length > 0) {
+                    const activeShipping = shipRes.data.shipping[0];
+                    setShippingCharge(parseFloat(activeShipping.charge));
+                    setShippingThreshold(parseFloat(activeShipping.minCartValue));
                 }
             } catch (err) { console.error(err); }
         };
-        fetchTax();
+        fetchSettings();
     }, []);
 
     useEffect(() => {
@@ -186,7 +200,7 @@ const Checkout = () => {
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-                                <span style={{ fontWeight: '600', color: '#253D4E' }}>Tax :</span>
+                                <span style={{ fontWeight: '600', color: '#253D4E' }}>{activeTax ? `${activeTax.name} (${activeTax.tax}%)` : 'Tax'} :</span>
                                 <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(0)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>

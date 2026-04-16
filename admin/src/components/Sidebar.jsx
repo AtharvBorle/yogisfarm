@@ -9,9 +9,11 @@ import {
   ShoppingCart, 
   LayoutGrid, 
   Percent, 
+  Truck,
   Users, 
   FolderOpen, 
-  TicketPercent 
+  TicketPercent,
+  Star
 } from 'lucide-react';
 
 const navItems = [
@@ -23,7 +25,9 @@ const navItems = [
     { name: 'Order', path: '/orders', icon: ShoppingCart },
     { name: 'Section', path: '/sections', icon: LayoutGrid },
     { name: 'Tax', path: '/taxes', icon: Percent },
+    { name: 'Shipping', path: '/shipping', icon: Truck },
     { name: 'Contact', path: '/contacts', icon: Users },
+    { name: 'Review', path: '/reviews', icon: Star },
     { name: 'Filemanager', path: '/filemanager', icon: FolderOpen },
     { name: 'Coupon Code', path: '/coupons', icon: TicketPercent },
 ];

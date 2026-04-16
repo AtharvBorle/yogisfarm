@@ -10,12 +10,14 @@ import Product from './pages/Product';
 import Order from './pages/Order';
 import Section from './pages/Section';
 import Tax from './pages/Tax';
+import Shipping from './pages/Shipping';
 import Contact from './pages/Contact';
 import Filemanager from './pages/Filemanager';
 import Coupon from './pages/Coupon';
 import Profile from './pages/Profile';
 import OrderDetail from './pages/OrderDetail';
 import Invoice from './pages/Invoice';
+import Review from './pages/Review';
 
 function App() {
   const { admin, loading } = useAuth();
@@ -35,9 +37,11 @@ function App() {
       <Route path="/orders/invoice/:orderNumber" element={admin ? <Invoice /> : <Navigate to="/login" />} />
       <Route path="/sections" element={admin ? <AdminLayout><Section /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/taxes" element={admin ? <AdminLayout><Tax /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/shipping" element={admin ? <AdminLayout><Shipping /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/contacts" element={admin ? <AdminLayout><Contact /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/reviews" element={admin ? <AdminLayout><Review /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/profile" element={admin ? <AdminLayout><Profile /></AdminLayout> : <Navigate to="/login" />} />
     </Routes>
   );

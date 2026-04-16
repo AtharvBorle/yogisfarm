@@ -305,8 +305,8 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
-        price: parseFloat(price || 0), salePrice: salePrice ? parseFloat(salePrice) : null,
-        stock: parseInt(stock || 0), unit, status: status || 'active',
+        price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
+        stock: Math.max(0, parseInt(stock || 0)), unit, status: status || 'active',
         featured: featured === 'true', popular: popular === 'true', deal: deal === 'true',
         ...(variants ? { variants: { create: JSON.parse(variants) } } : {}),
         ...(benefits ? { benefits: { create: JSON.parse(benefits) } } : {}),
@@ -331,8 +331,8 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
-      price: parseFloat(price || 0), salePrice: salePrice ? parseFloat(salePrice) : null,
-      stock: parseInt(stock || 0), unit, status,
+      price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
+      stock: Math.max(0, parseInt(stock || 0)), unit, status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
     if (req.file) data.image = '/uploads/' + req.file.filename;
@@ -378,7 +378,11 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
       imageData = imageData.concat(fmImages);
     }
     if (imageData.length > 0) {
+      await prisma.productImage.deleteMany({ where: { productId } });
       await prisma.productImage.createMany({ data: imageData });
+    } else {
+      // If empty array sent, clear all
+      await prisma.productImage.deleteMany({ where: { productId } });
     }
     res.json({ status: true, message: 'Images uploaded' });
   } catch (e) {
@@ -420,13 +424,59 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
 router.put('/orders/:id/status', requireAdmin, async (req, res) => {
   try {
     const { orderStatus } = req.body;
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true } });
+    if (!current) return res.json({ status: false, message: 'Order not found' });
+
+    // Status flow validation
+    const allowedTransitions = {
+      placed: ['confirmed', 'cancelled'],
+      confirmed: ['shipped', 'cancelled'],
+      shipped: ['delivered'],
+      delivered: [],
+      cancelled: [],
+      returned: []
+    };
+    const allowed = allowedTransitions[current.orderStatus] || [];
+    if (!allowed.includes(orderStatus)) {
+      return res.json({ status: false, message: `Cannot change status from "${current.orderStatus}" to "${orderStatus}"` });
+    }
+
     const order = await prisma.order.update({
       where: { id: parseInt(req.params.id) },
       data: { orderStatus },
-      include: { user: { select: { name: true, phone: true } } }
+      include: { user: { select: { name: true, phone: true } }, items: true }
     });
-    // SMS stub — log status change to console
-    console.log(`\n📦 [SMS] Order ${order.orderNumber} status changed to "${orderStatus}" for ${order.user.name} (${order.user.phone})\n`);
+
+    if (orderStatus === 'cancelled') {
+        for (const item of order.items) {
+           if (item.variant) {
+               const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
+               if (variant) {
+                   await prisma.productVariant.update({
+                       where: { id: variant.id },
+                       data: { stock: { increment: item.quantity } }
+                   });
+               }
+           } else {
+               await prisma.product.update({
+                   where: { id: item.productId },
+                   data: { stock: { increment: item.quantity } }
+               });
+           }
+        }
+    }
+
+    // Status-specific SMS stubs
+    const smsMessages = {
+      confirmed: `✅ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been confirmed! We are preparing it for dispatch.`,
+      shipped: `🚚 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been shipped! It's on its way to you.`,
+      delivered: `📬 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been delivered! Thank you for shopping with Yogi's Farm.`,
+      cancelled: `❌ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been cancelled. If you have any questions, please contact us.`
+    };
+    if (smsMessages[orderStatus]) {
+      console.log(`\n${smsMessages[orderStatus]} | Phone: ${order.user.phone}\n`);
+    }
+
     res.json({ status: true, message: 'Order status updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -463,7 +513,22 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
       data.trackingId = trackingId || null;
       data.deliveryBoyId = null;
     }
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data });
+
+    // Auto-set status to shipped when delivery is assigned (only if currently confirmed)
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true }, });
+    if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed')) {
+      data.orderStatus = 'shipped';
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) }, data,
+      include: { user: { select: { name: true, phone: true } } }
+    });
+
+    if (data.orderStatus === 'shipped') {
+      console.log(`\n🚚 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been shipped! It's on its way to you. | Phone: ${order.user.phone}\n`);
+    }
+
     res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -620,6 +685,73 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
 router.delete('/taxes/:id', requireAdmin, async (req, res) => {
   await prisma.tax.delete({ where: { id: parseInt(req.params.id) } });
   res.json({ status: true, message: 'Tax deleted' });
+});
+
+// ─── Shipping CRUD ───
+router.get('/shipping', requireAdmin, async (req, res) => {
+  const shipping = await prisma.shipping.findMany({ orderBy: { createdAt: 'desc' } });
+  res.json({ status: true, shipping });
+});
+
+router.post('/shipping', requireAdmin, async (req, res) => {
+  try {
+    const { name, charge, minCartValue, status } = req.body;
+    const shipping = await prisma.shipping.create({
+      data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status: status || 'active' }
+    });
+    res.json({ status: true, message: 'Shipping rule created', shipping });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/shipping/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, charge, minCartValue, status } = req.body;
+    const shipping = await prisma.shipping.update({
+      where: { id: parseInt(req.params.id) },
+      data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status }
+    });
+    res.json({ status: true, message: 'Shipping rule updated', shipping });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/shipping/:id', requireAdmin, async (req, res) => {
+  await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+  res.json({ status: true, message: 'Shipping rule deleted' });
+});
+
+// ─── Reviews CRUD ───
+router.get('/reviews', requireAdmin, async (req, res) => {
+  const reviews = await prisma.review.findMany({
+    include: { user: { select: { name: true, phone: true } }, product: { select: { name: true, id: true } } },
+    orderBy: { createdAt: 'desc' }
+  });
+  res.json({ status: true, reviews });
+});
+
+router.put('/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const { status, comment } = req.body;
+    const review = await prisma.review.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status, comment }
+    });
+    res.json({ status: true, message: 'Review updated', review });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.review.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ status: true, message: 'Review deleted' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Contact Submissions ───
@@ -786,6 +918,30 @@ router.delete('/files', requireAdmin, async (req, res) => {
     const fullPath = path.join(__dirname, '..', '..', filePath);
     if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
     res.json({ status: true, message: 'File deleted' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Settings ───
+router.get('/settings', requireAdmin, async (req, res) => {
+  const settings = await prisma.setting.findMany();
+  const obj = {};
+  settings.forEach(s => { obj[s.key] = s.value; });
+  res.json({ status: true, settings: obj });
+});
+
+router.put('/settings', requireAdmin, async (req, res) => {
+  try {
+    const { settings } = req.body; // { key: value, key: value }
+    for (const [key, value] of Object.entries(settings)) {
+      await prisma.setting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) }
+      });
+    }
+    res.json({ status: true, message: 'Settings saved' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

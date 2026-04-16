@@ -263,10 +263,12 @@ const OrderDetail = () => {
                                 style={{ padding: '4px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
                                 ✏️ Edit Payment
                             </button>
-                            <button onClick={() => { setStatusForm(order.orderStatus); setStatusOpen(true); }}
-                                style={{ padding: '4px 10px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
-                                ✏️ Edit Order
-                            </button>
+                            {!['delivered', 'cancelled', 'returned'].includes(order.orderStatus) && (
+                                <button onClick={() => { setStatusForm(''); setStatusOpen(true); }}
+                                    style={{ padding: '4px 10px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
+                                    ✏️ Edit Order
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
@@ -293,14 +295,19 @@ const OrderDetail = () => {
                             <div style={iconCircle}>💳</div>
                             <div>
                                 <div style={labelStyle}>Payment Status</div>
-                                <div style={{ display: 'flex', gap: '0' }}>
+                                <div style={{ display: 'flex', gap: '0', alignItems: 'center' }}>
                                     <span style={{ padding: '4px 14px', borderRadius: '4px 0 0 4px', fontSize: '12px', fontWeight: '600', background: '#28a745', color: '#fff' }}>
                                         {order.paymentMethod?.toUpperCase()}
                                     </span>
-                                    <span style={{ padding: '4px 14px', borderRadius: '0 4px 4px 0', fontSize: '12px', fontWeight: '600', background: '#ffc107', color: '#fff' }}>
+                                    <span style={{ padding: '4px 14px', borderRadius: '0 4px 4px 0', fontSize: '12px', fontWeight: '600', background: order.paymentStatus === 'completed' ? '#28a745' : order.paymentStatus === 'failed' ? '#dc3545' : '#ffc107', color: '#fff' }}>
                                         {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                                     </span>
                                 </div>
+                                {order.paymentMethod === 'online' && order.paymentDescription && (
+                                    <div style={{ fontSize: '12px', color: '#007bff', marginTop: '6px', fontWeight: '500' }}>
+                                        💳 Payment ID: <strong>{order.paymentDescription}</strong>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -395,23 +402,24 @@ const OrderDetail = () => {
             </div>
 
             {/* Edit Order Status Modal */}
-            <GenericModal isOpen={isStatusOpen} title="Order Details" onClose={() => setStatusOpen(false)}>
+            <GenericModal isOpen={isStatusOpen} title="Update Order Status" onClose={() => setStatusOpen(false)}>
                 <form onSubmit={updateStatus} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Status *</label>
+                        <div style={{ marginBottom: '10px', padding: '10px 15px', background: '#f8f9fa', borderRadius: '6px', fontSize: '13px' }}>
+                            Current Status: <strong style={{ color: statusColors[order.orderStatus], textTransform: 'capitalize' }}>{order.orderStatus}</strong>
+                        </div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>New Status *</label>
                         <select value={statusForm} onChange={e => setStatusForm(e.target.value)} style={inputStyle}>
-                            <option value="">Select</option>
-                            <option value="placed">Placed</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="cancelled">Cancelled</option>
-                            <option value="returned">Returned</option>
+                            <option value="">Select Next Status</option>
+                            {order.orderStatus === 'placed' && <option value="confirmed">Confirmed</option>}
+                            {order.orderStatus === 'placed' && <option value="cancelled">Cancelled</option>}
+                            {order.orderStatus === 'confirmed' && <option value="shipped">Shipped</option>}
+                            {order.orderStatus === 'confirmed' && <option value="cancelled">Cancelled</option>}
+                            {order.orderStatus === 'shipped' && <option value="delivered">Delivered</option>}
                         </select>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Update</button>
+                        <button type="submit" disabled={!statusForm} style={{ padding: '8px 20px', background: statusForm ? '#3BB77E' : '#ccc', color: '#fff', border: 'none', borderRadius: '4px', cursor: statusForm ? 'pointer' : 'not-allowed', fontWeight: '600' }}>Update</button>
                     </div>
                 </form>
             </GenericModal>
@@ -419,19 +427,24 @@ const OrderDetail = () => {
             {/* Edit Payment Modal */}
             <GenericModal isOpen={isPaymentOpen} title="Update Payment Status" onClose={() => setPaymentOpen(false)}>
                 <form onSubmit={updatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {order.paymentMethod === 'online' && order.paymentDescription && (
+                        <div style={{ padding: '10px 15px', background: '#e3f2fd', borderRadius: '6px', fontSize: '13px' }}>
+                            💳 Razorpay Payment ID: <strong style={{ color: '#007bff' }}>{order.paymentDescription}</strong>
+                        </div>
+                    )}
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Payment Status</label>
                         <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} style={inputStyle}>
                             <option value="pending">Pending</option>
-                            <option value="verified">Completed</option>
+                            <option value="completed">Completed</option>
                             <option value="failed">Failed</option>
                             <option value="refunded">Refunded</option>
                         </select>
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Description</label>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Notes</label>
                         <textarea value={paymentForm.paymentDescription} onChange={e => setPaymentForm({ ...paymentForm, paymentDescription: e.target.value })}
-                            style={{ ...inputStyle, minHeight: '60px' }} placeholder="Notes..." />
+                            style={{ ...inputStyle, minHeight: '60px' }} placeholder="Admin notes..." />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Update</button>

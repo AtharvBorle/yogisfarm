@@ -52,7 +52,7 @@ router.get('/:slug', async (req, res) => {
         category: true, brand: true, tax: true,
         images: { orderBy: { sortOrder: 'asc' } },
         variants: true, benefits: true, features: true,
-        reviews: { include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } }
+        reviews: { where: { status: 'active' }, include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } }
       }
     });
     if (!product) return res.json({ status: false, message: 'Product not found' });

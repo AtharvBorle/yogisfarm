@@ -1,10 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../api';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
     const { admin } = useAuth();
     const [activeTab, setActiveTab] = useState('basic');
+    const [gstNumber, setGstNumber] = useState('');
+    const [savingSettings, setSavingSettings] = useState(false);
+
+    useEffect(() => {
+        api.get('/settings').then(res => {
+            if (res.data.status && res.data.settings) {
+                setGstNumber(res.data.settings.gst_number || '');
+            }
+        }).catch(() => {});
+    }, []);
+
+    const handleSaveSettings = async () => {
+        setSavingSettings(true);
+        try {
+            const res = await api.put('/settings', { settings: { gst_number: gstNumber } });
+            if (res.data.status) toast.success('Settings saved successfully');
+            else toast.error(res.data.message);
+        } catch (e) { toast.error('Failed to save settings'); }
+        setSavingSettings(false);
+    };
 
     return (
         <div>
@@ -76,6 +97,15 @@ const Profile = () => {
                             }}
                         >
                             TWO-FACTOR AUTHENTICATION (2FA)
+                        </div>
+                        <div 
+                            onClick={() => setActiveTab('business')}
+                            style={{ padding: '20px 5px', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                                color: activeTab === 'business' ? '#006233' : 'var(--text)',
+                                borderBottom: activeTab === 'business' ? '3px solid #006233' : '3px solid transparent'
+                            }}
+                        >
+                            BUSINESS SETTINGS
                         </div>
                     </div>
 
@@ -187,6 +217,38 @@ const Profile = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* BUSINESS SETTINGS */}
+                        {activeTab === 'business' && (
+                            <div>
+                                <div style={{ marginBottom: '20px', padding: '12px 16px', background: '#f0f9f4', border: '1px solid #c3e6cb', borderRadius: '6px', fontSize: '13px', color: '#155724' }}>
+                                    <strong>Note:</strong> These settings will appear on all generated invoices. Changes take effect on the next invoice generated.
+                                </div>
+                                <div className="admin-form-group" style={{ maxWidth: '500px' }}>
+                                    <label className="admin-label">GST Number <span className="required">*</span></label>
+                                    <input 
+                                        type="text" 
+                                        className="admin-input" 
+                                        value={gstNumber}
+                                        onChange={e => setGstNumber(e.target.value.toUpperCase())}
+                                        placeholder="e.g., 27AABCU9603R1ZM"
+                                        maxLength={15}
+                                    />
+                                </div>
+                                <div style={{ borderTop: '1px solid var(--border)', margin: '30px 0 20px' }}></div>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <button 
+                                        className="btn-modal-submit" 
+                                        style={{ background: '#006233', padding: '10px 30px' }}
+                                        onClick={handleSaveSettings}
+                                        disabled={savingSettings}
+                                    >
+                                        {savingSettings ? 'Saving...' : 'Save Settings'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
 
                     </div>
                 </div>

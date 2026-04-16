@@ -91,13 +91,21 @@ const ProductCard = ({ product }) => {
                     </div>
                     <div className="add-cart">
                         {(() => {
+                            if (product.stock <= 0) {
+                                return (
+                                    <button className="add" disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'not-allowed', width: '100%', fontSize: '13px' }}>
+                                        Out of stock
+                                    </button>
+                                );
+                            }
+
                             const cartItem = cartItems?.find(item => item.product?.id === product.id && !item.variantId);
                             if (cartItem) {
                                 return (
                                     <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
                                         <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="javascript:void(0);" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
                                         <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                        <a onClick={() => updateQuantity(cartItem.id, cartItem.quantity + 1)} href="javascript:void(0);" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>+</a>
+                                        <a onClick={() => cartItem.quantity < product.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="javascript:void(0);" style={{ padding: '6px 10px', color: cartItem.quantity >= product.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer' }}>+</a>
                                     </div>
                                 );
                             }

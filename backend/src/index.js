@@ -62,6 +62,7 @@ app.use('/api/search', require('./routes/search'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/sections', require('./routes/sections'));
 app.use('/api/taxes', require('./routes/taxes'));
+app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/reviews', require('./routes/reviews'));
 
 // Admin routes

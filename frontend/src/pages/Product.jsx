@@ -12,6 +12,7 @@ const Product = () => {
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [selectedVariant, setSelectedVariant] = useState(null);
+    const [mainImage, setMainImage] = useState(null);
     const { addToCart } = useCart();
 
     useEffect(() => {
@@ -19,6 +20,7 @@ const Product = () => {
         api.get(`/products/${slug}`).then(res => {
             if(res.data.status) {
                 setProduct(res.data.product);
+                setMainImage(res.data.product.image);
                 setRelated(res.data.related || []);
                 if(res.data.product.variants && res.data.product.variants.length > 0) {
                     setSelectedVariant(res.data.product.variants[0]);
@@ -55,12 +57,19 @@ const Product = () => {
         addToCart(product.id, selectedVariant?.id, quantity);
     };
 
-    const renderStars = (rating = 5) => {
-        let stars = [];
-        for(let i=1; i<=5; i++) {
-            stars.push(<img key={i} src="/assets/imgs/theme/rating-stars/star-on.png" alt="" style={{width:'15px', height:'15px'}} />);
-        }
-        return <div className="rating-result" title={`${rating * 20}%`}>{stars}</div>;
+    const avgRating = product.reviews?.length > 0 
+        ? Math.round(product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length) 
+        : 5;
+
+    const renderStars = (rating = avgRating) => {
+        const rounded = Math.round(rating);
+        return (
+            <div className="d-inline-block" title={`${rating * 20}%`} style={{ verticalAlign: 'middle' }}>
+                <span style={{ color: '#FDC040', fontSize: '16px', letterSpacing: '2px' }}>
+                    {'★'.repeat(rounded)}{'☆'.repeat(5 - rounded)}
+                </span>
+            </div>
+        );
     };
 
     return (
@@ -75,11 +84,28 @@ const Product = () => {
                                 <div className="col-md-6 col-sm-12 col-xs-12 mb-md-0 mb-sm-5">
                                     <div className="detail-gallery">
                                         <div className="product-image-slider-details">
-                                            <figure className="border-radius-10">
-                                                <img src={getAssetUrl(product.image)} alt={product.name} />
+                                            <figure className="border-radius-10" style={{ border: '1px solid #eee', overflow: 'hidden' }}>
+                                                <img src={getAssetUrl(mainImage)} alt={product.name} style={{ width: '100%', objectFit: 'contain', aspectRatio: '1/1' }} />
                                             </figure>
                                         </div>
-                                        {/* Gallery thumbnails would go here, simplified for React for now */}
+                                        {/* Gallery Thumbnails */}
+                                        <div style={{ display: 'flex', gap: '10px', marginTop: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                            <div 
+                                                onClick={() => setMainImage(product.image)}
+                                                style={{ border: mainImage === product.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', minWidth: '80px', height: '80px' }}
+                                            >
+                                                <img src={getAssetUrl(product.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </div>
+                                            {product.images?.map(img => (
+                                                <div 
+                                                    key={img.id}
+                                                    onClick={() => setMainImage(img.image)}
+                                                    style={{ border: mainImage === img.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', minWidth: '80px', height: '80px' }}
+                                                >
+                                                    <img src={getAssetUrl(img.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -88,9 +114,9 @@ const Product = () => {
                                     <div className="detail-info pr-30 pl-30">
                                         {badge && <span className="stock-status out-stock" style={{backgroundColor: 'var(--primary)', color: '#fff'}}>{badge}</span>}
                                         <h2 className="title-detail">{product.name}</h2>
-                                        <div className="product-detail-rating mb-15">
-                                            {renderStars(5)}
-                                            <span className="font-small ml-5 text-muted">({product.reviews?.length || 0} reviews)</span>
+                                        <div className="mb-15" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
+                                            {renderStars()}
+                                            <span className="font-small text-muted" style={{ marginTop: '3px' }}>({product.reviews?.length || 0} reviews)</span>
                                         </div>
                                         <div className="clearfix product-price-cover">
                                             <div className="product-price primary-color float-left">
@@ -112,7 +138,7 @@ const Product = () => {
                                                 <ul className="list-filter size-filter font-small">
                                                     {product.variants.map(v => (
                                                         <li key={v.id} className={selectedVariant?.id === v.id ? 'active' : ''}>
-                                                            <a href="javascript:void(0);" onClick={() => setSelectedVariant(v)}>{v.name}</a>
+                                                            <a href="javascript:void(0);" onClick={() => setSelectedVariant(v)}>{v.name} {v.unit ? `(${v.unit})` : ''}</a>
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -125,17 +151,28 @@ const Product = () => {
                                             </div>
                                         )}
 
-                                        <div className="detail-extralink mb-50">
-                                            <div className="detail-qty border radius">
-                                                <a href="javascript:void(0);" className="qty-down" onClick={() => setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
-                                                <input type="text" className="qty-val" value={quantity} readOnly />
-                                                <a href="javascript:void(0);" className="qty-up" onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
-                                            </div>
-                                            <div className="product-extra-link2">
-                                                <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
-                                                <a aria-label="Add To Wishlist" className="action-btn hover-up" href="javascript:void(0);"><i className="fi-rs-heart"></i></a>
-                                            </div>
-                                        </div>
+                                        {(() => {
+                                            const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
+                                            const isOutOfStock = currentStock <= 0;
+                                            
+                                            return (
+                                                <div className="detail-extralink mb-50">
+                                                    <div className="detail-qty border radius">
+                                                        <a href="javascript:void(0);" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                        <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
+                                                        <a href="javascript:void(0);" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
+                                                    </div>
+                                                    <div className="product-extra-link2">
+                                                        {isOutOfStock ? (
+                                                            <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
+                                                        ) : (
+                                                            <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
+                                                        )}
+                                                        <a aria-label="Add To Wishlist" className="action-btn hover-up" href="javascript:void(0);"><i className="fi-rs-heart"></i></a>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
 
                                         <div className="font-xs">
                                             <ul className="mr-50 float-start">
@@ -161,8 +198,36 @@ const Product = () => {
                                         <div className="tab-pane fade" id="reviews-tab">
                                             <div className="p-30">
                                                 {product.reviews && product.reviews.length > 0 ? (
-                                                    // Render actual reviews if present
-                                                    product.reviews.map(r => <div key={r.id}><strong>{r.user.name}</strong> - {r.rating} stars<br/>{r.comment}</div>)
+                                                    <div className="comments-area">
+                                                        <div className="row">
+                                                            <div className="col-lg-8">
+                                                                <h4 className="mb-30">Customer Questions & Answers</h4>
+                                                                <div className="comment-list">
+                                                                    {product.reviews.map(r => (
+                                                                        <div key={r.id} className="single-comment justify-content-between d-flex mb-30" style={{ borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                                                                            <div className="user justify-content-between d-flex">
+                                                                                <div className="thumb text-center" style={{ marginRight: '20px' }}>
+                                                                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#3BB77E', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold' }}>
+                                                                                        {r.user.name ? r.user.name.charAt(0).toUpperCase() : 'U'}
+                                                                                    </div>
+                                                                                    <a href="javascript:void(0);" className="font-heading text-brand" style={{ display: 'block', marginTop: '10px' }}>{r.user.name || 'Anonymous'}</a>
+                                                                                </div>
+                                                                                <div className="desc">
+                                                                                    <div className="d-flex justify-content-between mb-10">
+                                                                                        <div className="d-flex align-items-center">
+                                                                                            <span className="font-xs text-muted">{new Date(r.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                                                        </div>
+                                                                                        {renderStars(r.rating)}
+                                                                                    </div>
+                                                                                    <p className="mb-10 text-muted">{r.comment}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 ) : <p>No reviews yet. Be the first to review!</p>}
                                             </div>
                                         </div>

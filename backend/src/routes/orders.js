@@ -89,7 +89,12 @@ router.post('/place', requireLogin, async (req, res) => {
       }
     }
 
-    const shipping = subtotal >= 500 ? 0 : 50;
+    // Fetch dynamic shipping from admin settings
+    const shippingRule = await prisma.shipping.findFirst({ where: { status: 'active' }, orderBy: { minCartValue: 'asc' } });
+    let shipping = 0;
+    if (shippingRule) {
+      shipping = subtotal >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
+    }
     const total = subtotal - discountAmount + shipping + totalTax;
     const orderNumber = await generateOrderNumber();
 
@@ -110,6 +115,26 @@ router.post('/place', requireLogin, async (req, res) => {
       },
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
+
+    // Deduct stock
+    for (const item of cartItems) {
+      if (item.variantId) {
+        await prisma.productVariant.update({
+          where: { id: item.variantId },
+          data: { stock: { decrement: item.quantity } }
+        });
+      } else {
+        await prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } }
+        });
+      }
+    }
+
+    // Clear cart (moved here because the order implies they checked out)
+    if (paymentMethod.toLowerCase() === 'cod') {
+       await prisma.cart.deleteMany({ where: { userId } });
+    }
 
     if (paymentMethod.toLowerCase() === 'online') {
       const razorpay = new Razorpay({

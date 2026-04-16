@@ -120,9 +120,9 @@ const Product = () => {
             else res = await api.post('/products', payload);
 
             if (res.data.status) {
-                // Upload gallery images if any new ones selected
+                // Sync gallery images
                 const productId = editingId || res.data.product?.id;
-                if (formData.galleryImages.length > 0 && productId) {
+                if (productId) {
                     await api.post(`/products/${productId}/images`, {
                         images: formData.galleryImages
                     });
@@ -287,15 +287,15 @@ const Product = () => {
                             <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Price <span className="required">*</span></label>
-                                    <input type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
+                                    <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
                                 </div>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Sale Price</label>
-                                    <input type="number" step="0.01" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} className="admin-input" />
+                                    <input type="number" step="0.01" min="0" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} className="admin-input" />
                                 </div>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Stock</label>
-                                    <input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
+                                    <input type="number" min="0" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
                                 </div>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Unit</label>
@@ -339,9 +339,9 @@ const Product = () => {
                                 {formData.variants.map((v, idx) => (
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                                         <input placeholder="Name" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <input placeholder="Price" type="number" step="0.01" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Sale Price" type="number" step="0.01" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Stock" type="number" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Price" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Sale Price" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Stock" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
                                     </div>
                                 ))}

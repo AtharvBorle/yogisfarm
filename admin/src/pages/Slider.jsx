@@ -292,7 +292,9 @@ const Slider = () => {
                 onClose={() => setReorderOpen(false)} 
                 data={sliders} 
                 onSave={handleReorderSave} 
-                itemLabelKey="name" 
+                itemLabelKey="name"
+                itemImageKey="image"
+                getImageUrl={getAssetUrl}
             />
         </div>
     );

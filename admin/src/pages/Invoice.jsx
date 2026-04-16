@@ -6,6 +6,7 @@ import html2pdf from 'html2pdf.js';
 const Invoice = () => {
     const { orderNumber } = useParams();
     const [order, setOrder] = useState(null);
+    const [gstNumber, setGstNumber] = useState('');
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -21,6 +22,10 @@ const Invoice = () => {
             } catch (err) { console.error(err); }
         };
         fetchOrder();
+        // Fetch GST number
+        api.get('/settings').then(res => {
+            if (res.data.status && res.data.settings) setGstNumber(res.data.settings.gst_number || '');
+        }).catch(() => {});
     }, [orderNumber]);
 
     useEffect(() => {
@@ -71,6 +76,7 @@ const Invoice = () => {
                     Pune, Maharashtra - 411058<br />
                     E-Mail Address: info@yogisfarm.in<br />
                     Phone Number: +91 9119501177
+                    {gstNumber && <><br />GST Number: <strong>{gstNumber}</strong></>}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     Invoice Number: <strong>{invoiceNumber}</strong><br />
@@ -125,6 +131,7 @@ const Invoice = () => {
             {/* Totals */}
             <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                 <div style={{ marginBottom: '3px' }}><strong>Sub Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.subtotal).toFixed(0)}</span></div>
+                <div style={{ marginBottom: '3px' }}><strong>Tax Amount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Shipping Charges</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.shipping).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Coupon Discount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.discount).toFixed(0)}</span></div>
                 <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '5px' }}><strong>Grand Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.total).toFixed(0)}</span></div>

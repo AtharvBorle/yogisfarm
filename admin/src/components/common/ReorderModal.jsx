@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import GenericModal from './GenericModal';
 import { GripVertical } from 'lucide-react';
 
-const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name' }) => {
+const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name', itemImageKey = null, getImageUrl = null }) => {
     const [items, setItems] = useState([]);
     const [draggedStartIdx, setDraggedStartIdx] = useState(null);
 
     useEffect(() => {
         // Deep copy the original data array strictly mapping ID and label
         if (data && isOpen) {
-            setItems(data.map(item => ({ id: item.id, label: item[itemLabelKey] || `Item ID: ${item.id}` })));
+            setItems(data.map(item => ({ id: item.id, label: item[itemLabelKey] || `Item ID: ${item.id}`, image: itemImageKey ? item[itemImageKey] : null })));
         }
     }, [data, isOpen, itemLabelKey]);
 
@@ -85,6 +85,9 @@ const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name' }) 
                             }}
                         >
                             <GripVertical size={18} color="#aaa" style={{ marginRight: '15px' }} />
+                            {item.image && getImageUrl && (
+                                <img src={getImageUrl(item.image)} alt="" style={{ width: '50px', height: '35px', objectFit: 'cover', borderRadius: '4px', marginRight: '12px', border: '1px solid #eee' }} />
+                            )}
                             <span style={{ fontWeight: '500', color: '#333' }}>{item.label}</span>
                         </div>
                     ))
