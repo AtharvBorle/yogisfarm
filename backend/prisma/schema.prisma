@@ -18,13 +18,15 @@ model Setting {
 
 // ─── Admin Users ───
 model Admin {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  email     String   @unique @db.VarChar(150)
-  password  String   @db.VarChar(255)
-  role      String   @default("admin") @db.VarChar(20)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  email       String   @unique @db.VarChar(150)
+  password    String   @db.VarChar(255)
+  role        String   @default("admin") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  collections DeliveryCollection[]
 
   @@map("admins")
 }
@@ -287,19 +289,35 @@ model OrderItem {
 
 // ─── Delivery Boys ───
 model DeliveryBoy {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  phone     String   @db.VarChar(15)
-  city      String?  @db.VarChar(100)
-  pincode   String?  @db.VarChar(10)
-  status    String   @default("active") @db.VarChar(20)
-  createdAt DateTime @default(now()) @map("created_at")
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(100)
+  phone            String   @db.VarChar(15)
+  pin              String?  @db.VarChar(255)
+  city             String?  @db.VarChar(100)
+  pincode          String?  @db.VarChar(10)
+  status           String   @default("active") @db.VarChar(20)
+  outstandingAmount Decimal @default(0) @map("outstanding_amount") @db.Decimal(10, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  orders Order[]
+  orders           Order[]
+  collections      DeliveryCollection[]
 
   @@map("delivery_boys")
 }
 
+// ─── Delivery Collections ───
+model DeliveryCollection {
+  id              Int      @id @default(autoincrement())
+  deliveryBoyId   Int      @map("delivery_boy_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  adminId         Int      @map("admin_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  deliveryBoy     DeliveryBoy @relation(fields: [deliveryBoyId], references: [id])
+  admin           Admin       @relation(fields: [adminId], references: [id])
+
+  @@map("delivery_collections")
+}
 // ─── Courier Partners ───
 model CourierPartner {
   id           Int      @id @default(autoincrement())

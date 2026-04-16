@@ -68,6 +68,9 @@ app.use('/api/reviews', require('./routes/reviews'));
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
 
+// Delivery routes
+app.use('/api/delivery', require('./routes/delivery'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -431,7 +431,8 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     const allowedTransitions = {
       placed: ['confirmed', 'cancelled'],
       confirmed: ['shipped', 'cancelled'],
-      shipped: ['delivered'],
+      shipped: ['out_for_delivery', 'delivered'],
+      out_for_delivery: ['delivered'],
       delivered: [],
       cancelled: [],
       returned: []
@@ -470,11 +471,22 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     const smsMessages = {
       confirmed: `✅ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been confirmed! We are preparing it for dispatch.`,
       shipped: `🚚 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been shipped! It's on its way to you.`,
+      out_for_delivery: `🛵 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} is out for delivery today!`,
       delivered: `📬 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been delivered! Thank you for shopping with Yogi's Farm.`,
       cancelled: `❌ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been cancelled. If you have any questions, please contact us.`
     };
     if (smsMessages[orderStatus]) {
       console.log(`\n${smsMessages[orderStatus]} | Phone: ${order.user.phone}\n`);
+    }
+
+    // COD handling
+    if (orderStatus === 'delivered' && order.paymentMethod === 'cod' && order.paymentStatus === 'pending') {
+      if (order.deliveryBoyId) {
+        await prisma.deliveryBoy.update({
+          where: { id: order.deliveryBoyId },
+          data: { outstandingAmount: { increment: order.total } }
+        });
+      }
     }
 
     res.json({ status: true, message: 'Order status updated' });
@@ -537,15 +549,27 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
 
 // ─── Delivery Boys CRUD ───
 router.get('/delivery-boys', requireAdmin, async (req, res) => {
-  const boys = await prisma.deliveryBoy.findMany({ where: { status: 'active' }, orderBy: { createdAt: 'desc' } });
-  res.json({ status: true, deliveryBoys: boys });
+  const boys = await prisma.deliveryBoy.findMany({ 
+    where: { status: 'active' }, 
+    orderBy: { createdAt: 'desc' },
+    include: { collections: { orderBy: { createdAt: 'desc' }, take: 5 } }
+  });
+  // Strip pins before sending
+  const safeBoys = boys.map(b => {
+    const { pin, ...safe } = b;
+    return safe;
+  });
+  res.json({ status: true, deliveryBoys: safeBoys });
 });
 
 router.post('/delivery-boys', requireAdmin, async (req, res) => {
   try {
-    const { name, phone, city, pincode } = req.body;
-    const boy = await prisma.deliveryBoy.create({ data: { name, phone, city, pincode } });
-    res.json({ status: true, message: 'Delivery boy created', deliveryBoy: boy });
+    const { name, phone, pin, city, pincode } = req.body;
+    let hashedPin = null;
+    if (pin) hashedPin = await bcrypt.hash(pin, 10);
+    const boy = await prisma.deliveryBoy.create({ data: { name, phone, pin: hashedPin, city, pincode } });
+    const { pin: _, ...safeBoy } = boy;
+    res.json({ status: true, message: 'Delivery boy created', deliveryBoy: safeBoy });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -553,9 +577,12 @@ router.post('/delivery-boys', requireAdmin, async (req, res) => {
 
 router.put('/delivery-boys/:id', requireAdmin, async (req, res) => {
   try {
-    const { name, phone, city, pincode, status } = req.body;
-    const boy = await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data: { name, phone, city, pincode, status } });
-    res.json({ status: true, message: 'Delivery boy updated', deliveryBoy: boy });
+    const { name, phone, pin, city, pincode, status } = req.body;
+    const data = { name, phone, city, pincode, status };
+    if (pin) data.pin = await bcrypt.hash(pin, 10);
+    const boy = await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data });
+    const { pin: _, ...safeBoy } = boy;
+    res.json({ status: true, message: 'Delivery boy updated', deliveryBoy: safeBoy });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -565,6 +592,43 @@ router.delete('/delivery-boys/:id', requireAdmin, async (req, res) => {
   try {
     await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data: { status: 'inactive' } });
     res.json({ status: true, message: 'Delivery boy removed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Delivery Collections ───
+router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const collectAmount = parseFloat(amount);
+    if (!collectAmount || collectAmount <= 0) {
+      return res.json({ status: false, message: 'Invalid collection amount' });
+    }
+
+    const deliveryBoy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!deliveryBoy) return res.json({ status: false, message: 'Delivery boy not found' });
+    
+    if (collectAmount > deliveryBoy.outstandingAmount) {
+      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${deliveryBoy.outstandingAmount})` });
+    }
+
+    await prisma.$transaction([
+      prisma.deliveryCollection.create({
+        data: {
+          deliveryBoyId: deliveryBoy.id,
+          amount: collectAmount,
+          adminId: req.session.adminId
+        }
+      }),
+      prisma.deliveryBoy.update({
+        where: { id: deliveryBoy.id },
+        data: { outstandingAmount: { decrement: collectAmount } }
+      })
+    ]);
+
+    const updated = await prisma.deliveryBoy.findUnique({ where: { id: deliveryBoy.id } });
+    res.json({ status: true, message: 'Cash collected successfully', outstandingAmount: updated.outstandingAmount });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
