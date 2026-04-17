@@ -154,7 +154,7 @@ const Login = () => {
                                         </div>
                                         <div className="login_footer form-group mb-30" style={{ textAlign: 'left' }}>
                                             <div className="text-muted">
-                                                Didn't receive? <a href="javascript:void(0);" onClick={sendOtp} style={{ color: '#046938', fontWeight: 'bold' }}>Resend OTP</a>
+                                                Didn't receive? <a href="#!" onClick={sendOtp} style={{ color: '#046938', fontWeight: 'bold' }}>Resend OTP</a>
                                             </div>
                                         </div>
                                         <div className="form-group" style={{ textAlign: 'left' }}>

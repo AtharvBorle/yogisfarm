@@ -72,15 +72,15 @@ const Cart = () => {
                                                         <td className="text-center detail-info" data-title="Stock">
                                                             <div className="detail-extralink mr-15">
                                                                 <div className="detail-qty border radius">
-                                                                    <a href="javascript:void(0);" className="qty-down" onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                                    <a href="#!" className="qty-down" onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}><i className="fi-rs-angle-small-down"></i></a>
                                                                     <span className="qty-val">{item.quantity}</span>
-                                                                    <a href="javascript:void(0);" className="qty-up" onClick={() => updateQuantity(item.id, item.quantity + 1)}><i className="fi-rs-angle-small-up"></i></a>
+                                                                    <a href="#!" className="qty-up" onClick={() => updateQuantity(item.id, item.quantity + 1)}><i className="fi-rs-angle-small-up"></i></a>
                                                                 </div>
                                                             </div>
                                                         </td>
                                                         <td className="price" data-title="Subtotal"><h4 className="text-brand">₹{parseFloat(subtotal).toFixed(2)}</h4></td>
                                                         <td className="action text-center" data-title="Remove">
-                                                            <a href="javascript:void(0);" onClick={() => removeFromCart(item.id)}><i className="fi-rs-trash"></i></a>
+                                                            <a href="#!" onClick={() => removeFromCart(item.id)}><i className="fi-rs-trash"></i></a>
                                                         </td>
                                                     </tr>
                                                 );

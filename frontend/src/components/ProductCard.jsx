@@ -52,10 +52,10 @@ const ProductCard = ({ product }) => {
                     </Link>
                 </div>
                 <div className="product-action-1">
-                    <a aria-label="Add To Wishlist" className={`action-btn ${inWishlist ? 'btn-remove-from-wishlist' : 'btn-add-to-wishlist'}`} onClick={() => toggleWishlist(product.id)} href="javascript:void(0);">
+                    <a aria-label="Add To Wishlist" className={`action-btn ${inWishlist ? 'btn-remove-from-wishlist' : 'btn-add-to-wishlist'}`} onClick={() => toggleWishlist(product.id)} href="#!">
                         <i className="fi-rs-heart" style={{ color: inWishlist ? 'red' : 'inherit' }}></i>
                     </a>
-                    <a aria-label="Quick View" className="action-btn btn-quick-view" onClick={() => setShowQuickView(true)} href="javascript:void(0);">
+                    <a aria-label="Quick View" className="action-btn btn-quick-view" onClick={() => setShowQuickView(true)} href="#!">
                         <i className="fi-rs-eye"></i>
                     </a>
                 </div>
@@ -103,14 +103,14 @@ const ProductCard = ({ product }) => {
                             if (cartItem) {
                                 return (
                                     <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
-                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="javascript:void(0);" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
+                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
                                         <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                        <a onClick={() => cartItem.quantity < product.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="javascript:void(0);" style={{ padding: '6px 10px', color: cartItem.quantity >= product.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer' }}>+</a>
+                                        <a onClick={() => cartItem.quantity < product.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '6px 10px', color: cartItem.quantity >= product.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer' }}>+</a>
                                     </div>
                                 );
                             }
                             return (
-                                <a className="add btn-add-to-cart" onClick={handleAddToCart} href="javascript:void(0);" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
+                                <a className="add btn-add-to-cart" onClick={handleAddToCart} href="#!" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
                                     <i className="fi-rs-shopping-cart"></i> Add
                                 </a>
                             );

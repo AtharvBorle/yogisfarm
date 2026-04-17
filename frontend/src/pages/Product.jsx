@@ -138,7 +138,7 @@ const Product = () => {
                                                 <ul className="list-filter size-filter font-small">
                                                     {product.variants.map(v => (
                                                         <li key={v.id} className={selectedVariant?.id === v.id ? 'active' : ''}>
-                                                            <a href="javascript:void(0);" onClick={() => setSelectedVariant(v)}>{v.name} {v.unit ? `(${v.unit})` : ''}</a>
+                                                            <a href="#!" onClick={() => setSelectedVariant(v)}>{v.name} {v.unit ? `(${v.unit})` : ''}</a>
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -158,9 +158,9 @@ const Product = () => {
                                             return (
                                                 <div className="detail-extralink mb-50">
                                                     <div className="detail-qty border radius">
-                                                        <a href="javascript:void(0);" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                        <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
                                                         <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
-                                                        <a href="javascript:void(0);" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
+                                                        <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
                                                     </div>
                                                     <div className="product-extra-link2">
                                                         {isOutOfStock ? (
@@ -168,7 +168,7 @@ const Product = () => {
                                                         ) : (
                                                             <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
                                                         )}
-                                                        <a aria-label="Add To Wishlist" className="action-btn hover-up" href="javascript:void(0);"><i className="fi-rs-heart"></i></a>
+                                                        <a aria-label="Add To Wishlist" className="action-btn hover-up" href="#!"><i className="fi-rs-heart"></i></a>
                                                     </div>
                                                 </div>
                                             );
@@ -210,7 +210,7 @@ const Product = () => {
                                                                                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#3BB77E', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold' }}>
                                                                                         {r.user.name ? r.user.name.charAt(0).toUpperCase() : 'U'}
                                                                                     </div>
-                                                                                    <a href="javascript:void(0);" className="font-heading text-brand" style={{ display: 'block', marginTop: '10px' }}>{r.user.name || 'Anonymous'}</a>
+                                                                                    <a href="#!" className="font-heading text-brand" style={{ display: 'block', marginTop: '10px' }}>{r.user.name || 'Anonymous'}</a>
                                                                                 </div>
                                                                                 <div className="desc">
                                                                                     <div className="d-flex justify-content-between mb-10">

@@ -103,7 +103,7 @@ const Wishlist = () => {
                                                     <button onClick={() => handleAddToCart(item.product)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
                                                 </td>
                                                 <td className="action" data-title="Remove" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    <a href="javascript:void(0)" onClick={() => handleRemove(item.productId)} style={{ color: '#7E7E7E' }}><i className="fi-rs-trash"></i></a>
+                                                    <a href="#!" onClick={() => handleRemove(item.productId)} style={{ color: '#7E7E7E' }}><i className="fi-rs-trash"></i></a>
                                                 </td>
                                             </tr>
                                         ))}
