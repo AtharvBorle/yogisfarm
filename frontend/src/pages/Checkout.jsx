@@ -301,7 +301,7 @@ const Checkout = () => {
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '25px' }}>
                     {/* Online */}
                     <div onClick={() => setPaymentMethod('online')}
-                        style={{ width: '180px', height: '140px', border: paymentMethod === 'online' ? '2px solid #046938' : '1px solid #e6e6e6', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', background: paymentMethod === 'online' ? '#f0f9f4' : '#fff' }}>
+                        style={{ flex: '1 1 140px', height: '140px', border: paymentMethod === 'online' ? '2px solid #046938' : '1px solid #e6e6e6', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', background: paymentMethod === 'online' ? '#f0f9f4' : '#fff' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="22" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold">CARDS</text><text x="40" y="38" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold">UPI & NET</text></svg>
                         </div>
@@ -309,14 +309,14 @@ const Checkout = () => {
                     </div>
                     {/* COD */}
                     <div onClick={() => setPaymentMethod('cod')}
-                        style={{ width: '180px', height: '140px', border: paymentMethod === 'cod' ? '2px solid #046938' : '1px solid #e6e6e6', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', background: paymentMethod === 'cod' ? '#f0f9f4' : '#fff' }}>
+                        style={{ flex: '1 1 140px', height: '140px', border: paymentMethod === 'cod' ? '2px solid #046938' : '1px solid #e6e6e6', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', background: paymentMethod === 'cod' ? '#f0f9f4' : '#fff' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="32" textAnchor="middle" fill="#fff" fontSize="16" fontWeight="bold">COD</text></svg>
                         </div>
                         <span style={{ fontWeight: '600', fontSize: '14px', color: '#253D4E' }}>Cash On Delivery</span>
                     </div>
                     {/* Wallet - Disabled */}
-                    <div style={{ width: '180px', height: '140px', border: '1px solid #e6e6e6', borderRadius: '10px', cursor: 'not-allowed', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, background: '#f8f8f8' }}>
+                    <div style={{ flex: '1 1 140px', height: '140px', border: '1px solid #e6e6e6', borderRadius: '10px', cursor: 'not-allowed', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, background: '#f8f8f8' }}>
                         <div style={{ marginBottom: '8px' }}>
                             <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="20" textAnchor="middle" fill="#fff" fontSize="24">💰</text><text x="40" y="42" textAnchor="middle" fill="#fff" fontSize="10">₹0</text></svg>
                         </div>

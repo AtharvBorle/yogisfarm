@@ -43,6 +43,10 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const location = useLocation();
   const isDeliveryRoute = location.pathname.startsWith('/delivery');
 

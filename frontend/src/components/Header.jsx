@@ -16,6 +16,7 @@ const Header = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
     const [isSticky, setIsSticky] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
@@ -251,6 +252,77 @@ const Header = () => {
                                 <a href="tel:9119501177">9119501177</a>
                                 <span className="text-center">24/7 Support Center</span>
                             </p>
+                        </div>
+                        <div className="header-action-right d-block d-lg-none">
+                            <div className="header-action-2">
+                                <div className="header-action-icon-2">
+                                    <Link to="/wishlist">
+                                        <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" />
+                                        <span className="pro-count white">{wishlist?.length || 0}</span>
+                                    </Link>
+                                </div>
+                                <div className="header-action-icon-2">
+                                    <Link className="mini-cart-icon" to="/cart">
+                                        <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" />
+                                        <span className="pro-count white">{cartCount}</span>
+                                    </Link>
+                                </div>
+                                <div className="header-action-icon-2">
+                                    <div className="burger-icon burger-icon-white" onClick={() => setIsMobileMenuOpen(true)}>
+                                        <span className="burger-icon-top"></span>
+                                        <span className="burger-icon-mid"></span>
+                                        <span className="burger-icon-bottom"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile Menu */}
+            <div className={`mobile-header-active mobile-header-wrapper-style ${isMobileMenuOpen ? 'sidebar-visible' : ''}`}>
+                <div className="mobile-header-wrapper-inner">
+                    <div className="mobile-header-top">
+                        <div className="mobile-header-logo">
+                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="logo" /></Link>
+                        </div>
+                        <div className="mobile-menu-close close-style-wrap close-style-position-inherit" onClick={() => setIsMobileMenuOpen(false)}>
+                            <button className="close-style search-close">
+                                <i className="icon-top"></i>
+                                <i className="icon-bottom"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div className="mobile-header-content-area">
+                        <div className="mobile-search search-style-3 mobile-header-border">
+                            <form action="/shop">
+                                <input type="text" placeholder="Search for items…" name="keyword" />
+                                <button type="submit"><i className="fi-rs-search"></i></button>
+                            </form>
+                        </div>
+                        <div className="mobile-menu-wrap mobile-header-border">
+                            <nav>
+                                <ul className="mobile-menu font-heading">
+                                    <li><Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link></li>
+                                    <li><Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link></li>
+                                    <li><Link to="/category" onClick={() => setIsMobileMenuOpen(false)}>Category</Link></li>
+                                    <li><Link to="/brands" onClick={() => setIsMobileMenuOpen(false)}>Brands</Link></li>
+                                    <li><Link to="/deals" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link></li>
+                                    <li><Link to="/contact-us" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link></li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div className="mobile-header-info-wrap">
+                            <div className="single-mobile-header-info">
+                                <Link to={user ? '/dashboard' : '/login'} onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-user"></i> {user ? 'My Account' : 'Log In / Sign Up'} </Link>
+                            </div>
+                            <div className="single-mobile-header-info">
+                                <Link to="/track-order" onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-truck"></i> Track Order</Link>
+                            </div>
+                            <div className="single-mobile-header-info">
+                                <a href="tel:9119501177"><i className="fi-rs-headphones"></i> 9119501177 </a>
+                            </div>
                         </div>
                     </div>
                 </div>

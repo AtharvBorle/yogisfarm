@@ -126,7 +126,7 @@ const Home = () => {
             <div className={containerClass}>
                 <div className="row">
                     {sliders.map(slider => (
-                        <div key={slider.id} className={`col-lg-${Math.floor(12 / Math.min(sliders.length, maxCols))} col-md-6 mb-10`}>
+                        <div key={slider.id} className={`col-lg-${Math.floor(12 / Math.min(sliders.length, maxCols))} col-md-6 col-12 mb-10`}>
                             <div className="banner-img wow animate__animated animate__fadeInUp" data-wow-delay="0">
                                 <a href={getSliderLink(slider)}>
                                     <img src={getAssetUrl(slider.image)} alt={slider.name || ''} style={{ width: '100%', borderRadius: '8px' }} />
