@@ -45,6 +45,8 @@ const Home = () => {
     const [popularProducts, setPopularProducts] = useState([]);
     const [dealProducts, setDealProducts] = useState([]);
 
+    const [sections, setSections] = useState([]);
+
     useEffect(() => {
         Promise.all([
             api.get('/sliders?position=main'),
@@ -54,8 +56,9 @@ const Home = () => {
             api.get('/categories?featured=true'),
             api.get('/products?featured=true&limit=10'),
             api.get('/products?popular=true&limit=10'),
-            api.get('/products?deal=true&limit=10')
-        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, popularRes, dealRes]) => {
+            api.get('/products?deal=true&limit=10'),
+            api.get('/sections')
+        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, popularRes, dealRes, secRes]) => {
             if(mainRes.data.status) setMainSliders(mainRes.data.sliders);
             if(topRes.data.status) setTopSliders(topRes.data.sliders);
             if(midRes.data.status) setMiddleSliders(midRes.data.sliders);
@@ -64,6 +67,7 @@ const Home = () => {
             if(featuredRes.data.status) setFeaturedProducts(featuredRes.data.products);
             if(popularRes.data.status) setPopularProducts(popularRes.data.products);
             if(dealRes.data.status) setDealProducts(dealRes.data.products);
+            if(secRes.data.status) setSections(secRes.data.sections);
         }).catch(err => console.error(err));
     }, []);
 
@@ -236,6 +240,29 @@ const Home = () => {
 
             {/* 6. MIDDLE SLIDER */}
             {middleSliders.length > 0 && <SliderBanner sliders={middleSliders} />}
+
+            {/* 6.5 DYNAMIC SECTIONS from Admin */}
+            {sections.map(section => {
+                const products = section.category?.products || [];
+                if (products.length === 0) return null;
+                return (
+                    <section key={section.id} className="section-padding pb-5">
+                        <div className="container">
+                            <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontStyle: 'italic' }}>{section.name}</h3>
+                                <Link to={`/shop?category=${section.category?.slug}`} style={{ color: '#046938', fontSize: '14px', fontWeight: '600' }}>View All →</Link>
+                            </div>
+                            <div className="row product-grid-4">
+                                {products.map(product => (
+                                    <div key={product.id} className="col-lg-1-5 col-md-4 col-12 col-sm-6">
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                );
+            })}
 
             {/* 7. Deals Section (Carousel Slider) */}
             {dealProducts.length > 0 && (
