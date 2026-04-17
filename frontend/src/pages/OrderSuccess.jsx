@@ -132,6 +132,10 @@ const OrderSuccess = () => {
                     {/* Totals */}
                     <div style={{ borderTop: borderStyle }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                            <span style={{ fontWeight: '600', color: '#253D4E' }}>{order.items && order.items[0]?.product?.tax ? `${order.items[0].product.tax.name} (${order.items[0].product.tax.tax}%)` : 'Tax Amount'}:</span>
+                            <span>₹{Number(order.tax || 0).toFixed(0)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
                             <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges:</span>
                             <span>₹{Number(order.shipping).toFixed(0)}</span>
                         </div>

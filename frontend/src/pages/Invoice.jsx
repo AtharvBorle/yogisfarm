@@ -88,8 +88,7 @@ const Invoice = () => {
                 {order.addressText}, {order.addressCity}, {order.addressState}, India - {order.addressPincode}<br />
                 E-Mail Address: {order.user?.email || 'N/A'}<br />
                 Phone Number: +91 - {order.addressPhone}<br />
-                Address Type: {order.addressType || 'Home'}<br />
-                Order-Note: {order.orderNote || ''}
+                Address Type: {order.addressType || 'Home'}
             </div>
 
             {/* Products Table */}
@@ -127,7 +126,7 @@ const Invoice = () => {
             {/* Totals */}
             <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                 <div style={{ marginBottom: '3px' }}><strong>Sub Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.subtotal).toFixed(0)}</span></div>
-                <div style={{ marginBottom: '3px' }}><strong>Tax Amount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
+                <div style={{ marginBottom: '3px' }}><strong>{order.items && order.items[0]?.product?.tax ? `${order.items[0].product.tax.name} (${order.items[0].product.tax.tax}%)` : 'Tax Amount'}</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Shipping Charges</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.shipping).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Coupon Discount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.discount).toFixed(0)}</span></div>
                 <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '5px' }}><strong>Grand Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.total).toFixed(0)}</span></div>
