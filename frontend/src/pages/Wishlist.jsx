@@ -39,8 +39,7 @@ const Wishlist = () => {
     };
 
     const handleAddToCart = (product) => {
-        const price = product.salePrice || product.price;
-        addToCart(product, null, 1, price);
+        addToCart(product.id, null, 1);
     };
 
     if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;

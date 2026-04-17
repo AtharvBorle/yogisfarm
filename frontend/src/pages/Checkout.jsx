@@ -58,6 +58,17 @@ const Checkout = () => {
             } catch (err) { console.error(err); }
         };
         fetchSettings();
+
+        // Cleanup Razorpay on unmount to prevent background SPA polling
+        return () => {
+            const rzpScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+            if (rzpScript) rzpScript.remove();
+            
+            const rzpContainer = document.querySelector('.razorpay-container');
+            if (rzpContainer) rzpContainer.remove();
+            
+            if (window.Razorpay) delete window.Razorpay;
+        };
     }, []);
 
     useEffect(() => {
@@ -86,6 +97,20 @@ const Checkout = () => {
         } catch (err) { toast.error(err.response?.data?.message || 'Invalid coupon'); setDiscount(0); }
     };
 
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            if (window.Razorpay) {
+                resolve(true);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
     const handlePlaceOrder = async () => {
         if (!selectedAddress) { toast.error('Please select a delivery address'); return; }
         if (!agreeTerms) { setTermsError('This value is required.'); return; }
@@ -101,6 +126,12 @@ const Checkout = () => {
             });
             if (res.data.status) {
                 if (paymentMethod === 'online' && res.data.razorpayOrder) {
+                    const loaded = await loadRazorpay();
+                    if (!loaded) {
+                        toast.error('Failed to load payment gateway. Check your connection.');
+                        setLoading(false);
+                        return;
+                    }
                     const options = {
                         key: res.data.key,
                         amount: res.data.razorpayOrder.amount,
@@ -132,7 +163,18 @@ const Checkout = () => {
                             email: user?.email || '',
                             contact: user?.phone || ''
                         },
-                        theme: { color: "#046938" }
+                        theme: { color: "#046938" },
+                        modal: {
+                            ondismiss: function() {
+                                // User canceled the payment, purge razorpay and reset state
+                                setLoading(false);
+                                const rzpScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+                                if (rzpScript) rzpScript.remove();
+                                const rzpContainer = document.querySelector('.razorpay-container');
+                                if (rzpContainer) rzpContainer.remove();
+                                if (window.Razorpay) delete window.Razorpay;
+                            }
+                        }
                     };
                     const rzp = new window.Razorpay(options);
                     rzp.on('payment.failed', function (response){
@@ -260,10 +302,10 @@ const Checkout = () => {
                     {/* Online */}
                     <div onClick={() => setPaymentMethod('online')}
                         style={{ width: '180px', height: '140px', border: paymentMethod === 'online' ? '2px solid #046938' : '1px solid #e6e6e6', borderRadius: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', background: paymentMethod === 'online' ? '#f0f9f4' : '#fff' }}>
-                        <div style={{ fontSize: '50px', marginBottom: '8px' }}>
-                            <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="32" textAnchor="middle" fill="#fff" fontSize="20" fontWeight="bold">UPI</text></svg>
+                        <div style={{ marginBottom: '8px' }}>
+                            <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="22" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold">CARDS</text><text x="40" y="38" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="bold">UPI & NET</text></svg>
                         </div>
-                        <span style={{ fontWeight: '600', fontSize: '14px', color: '#253D4E' }}>Online</span>
+                        <span style={{ fontWeight: '600', fontSize: '14px', color: '#253D4E', textAlign: 'center', lineHeight: '1.2' }}>Online Payment<br/><small style={{fontSize: '11px', color: '#888'}}>By Razorpay</small></span>
                     </div>
                     {/* COD */}
                     <div onClick={() => setPaymentMethod('cod')}

@@ -31,8 +31,7 @@ const Deals = () => {
 
     const handleAddToCart = (e, product) => {
         e.preventDefault();
-        const priceToUse = product.salePrice || product.price;
-        addToCart(product, null, 1, priceToUse);
+        addToCart(product.id, null, 1);
     };
 
     return (
