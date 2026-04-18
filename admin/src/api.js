@@ -11,7 +11,9 @@ const api = axios.create({
 export const getAssetUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `http://${window.location.hostname}:5000${path.startsWith('/') ? '' : '/'}${path}`;
+
+  // Use relative paths in production to let Nginx handle the routing
+  return `${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
 api.interceptors.response.use(
