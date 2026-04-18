@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
+const { sendOutForDeliverySMS, sendDeliveredSMS } = require('../utils/sms');
 
 // ─── Delivery Boy Auth Middleware ───
 const requireDeliveryBoy = (req, res, next) => {
@@ -195,13 +196,13 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
       }
     });
 
-    const smsMessages = {
-      out_for_delivery: `🛵 [SMS] Dear ${current.user?.name || 'Customer'}, your order ${current.orderNumber} is out for delivery today!`,
-      delivered: `📬 [SMS] Dear ${current.user?.name || 'Customer'}, your order ${current.orderNumber} has been delivered! Thank you for shopping with Yogi's Farm.`
-    };
-
-    if (smsMessages[orderStatus]) {
-      console.log(`\n${smsMessages[orderStatus]} | Phone: ${current.user?.phone}\n`);
+    // Send status-specific SMS via Way2Smart
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    if (orderStatus === 'out_for_delivery') {
+      sendOutForDeliverySMS(current.user?.phone, current.orderNumber);
+    } else if (orderStatus === 'delivered') {
+      const invoiceLink = `${FRONTEND_URL}/invoice/${current.orderNumber}`;
+      sendDeliveredSMS(current.user?.phone, current.orderNumber, invoiceLink);
     }
 
     res.json({ status: true, message: 'Status updated successfully' });

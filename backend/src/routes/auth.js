@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { requireLogin } = require('../middleware/auth');
 const crypto = require('crypto');
+const { sendOtpSMS } = require('../utils/sms');
 
 // Send OTP
 router.post('/send-otp', async (req, res) => {
@@ -14,8 +15,8 @@ router.post('/send-otp', async (req, res) => {
     const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
-    // SMS stub — log OTP to console
-    console.log(`\n📱 [SMS] OTP for ${phone}: ${otp} | Expires: ${otpExpiry.toLocaleTimeString()}\n`);
+    // Send OTP via Way2Smart SMS
+    sendOtpSMS(phone, otp);
 
     let user = await prisma.user.findUnique({ where: { phone } });
     if (user) {
@@ -83,8 +84,8 @@ router.post('/resend-otp', async (req, res) => {
   try {
     const { phone } = req.body;
     const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
-    // SMS stub — log OTP to console
-    console.log(`\n📱 [SMS] Resend OTP for ${phone}: ${otp} | Expires: ${new Date(Date.now() + 5 * 60 * 1000).toLocaleTimeString()}\n`);
+    // Resend OTP via Way2Smart SMS
+    sendOtpSMS(phone, otp);
     await prisma.user.update({ where: { phone }, data: { otp, otpExpiry: new Date(Date.now() + 5 * 60 * 1000) } });
     res.json({ status: true, message: 'OTP resent' });
   } catch (e) {

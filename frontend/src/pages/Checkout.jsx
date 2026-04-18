@@ -144,13 +144,12 @@ const Checkout = () => {
                                 const verifyRes = await api.post('/orders/verify-payment', {
                                     razorpay_order_id: response.razorpay_order_id,
                                     razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    orderNumber: res.data.orderNumber
+                                    razorpay_signature: response.razorpay_signature
                                 });
                                 if (verifyRes.data.status) {
                                     toast.success('Payment successful!');
                                     fetchCart();
-                                    navigate(`/order-success/${res.data.orderNumber}`);
+                                    navigate(`/order-success/${verifyRes.data.orderNumber}`);
                                 } else {
                                     toast.error(verifyRes.data.message || 'Payment verification failed');
                                 }

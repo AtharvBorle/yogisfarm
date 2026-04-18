@@ -40,12 +40,13 @@ class PrismaStore extends session.Store {
   }
 
   async destroy(sid, cb) {
+    const callback = cb || (() => {});
     try {
       await this.prisma.session.delete({ where: { sid } });
-      cb(null);
+      callback(null);
     } catch (err) {
-      if (err.code === 'P2025') return cb(null); // Record doesn't exist
-      cb(err);
+      if (err.code === 'P2025') return callback(null); // Record doesn't exist
+      callback(err);
     }
   }
 }

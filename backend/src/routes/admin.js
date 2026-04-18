@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
+const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
 
 // Multer config — supports subfolder uploads via uploadPath field
 const storage = multer.diskStorage({
@@ -483,16 +484,24 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
         }
     }
 
-    // Status-specific SMS stubs
-    const smsMessages = {
-      confirmed: `✅ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been confirmed! We are preparing it for dispatch.`,
-      shipped: `🚚 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been shipped! It's on its way to you.`,
-      out_for_delivery: `🛵 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} is out for delivery today!`,
-      delivered: `📬 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been delivered! Thank you for shopping with Yogi's Farm.`,
-      cancelled: `❌ [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been cancelled. If you have any questions, please contact us.`
-    };
-    if (smsMessages[orderStatus]) {
-      console.log(`\n${smsMessages[orderStatus]} | Phone: ${order.user.phone}\n`);
+    // Send status-specific SMS via Way2Smart
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    if (orderStatus === 'confirmed') {
+      sendOrderConfirmSMS(order.user.phone, order.orderNumber);
+    } else if (orderStatus === 'shipped') {
+      let trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
+      if (order.deliveryType === 'courier' && order.courierPartnerId) {
+        const partner = await prisma.courierPartner.findUnique({ where: { id: order.courierPartnerId } });
+        if (partner && partner.trackingLink) {
+          trackingLink = order.trackingId ? `${partner.trackingLink}${order.trackingId}` : partner.trackingLink;
+        }
+      }
+      sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+    } else if (orderStatus === 'out_for_delivery') {
+      sendOutForDeliverySMS(order.user.phone, order.orderNumber);
+    } else if (orderStatus === 'delivered') {
+      const invoiceLink = `${FRONTEND_URL}/invoice/${order.orderNumber}`;
+      sendDeliveredSMS(order.user.phone, order.orderNumber, invoiceLink);
     }
 
     // COD handling
@@ -553,9 +562,32 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
       include: { user: { select: { name: true, phone: true } } }
     });
 
-    if (data.orderStatus === 'shipped') {
-      console.log(`\n🚚 [SMS] Dear ${order.user.name}, your order ${order.orderNumber} has been shipped! It's on its way to you. | Phone: ${order.user.phone}\n`);
-    }
+    // Start background task to send SMS without blocking the UI response
+    (async () => {
+      // 1. Send the SHIPPED SMS first
+      if (data.orderStatus === 'shipped') {
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+        let trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
+        if (deliveryType === 'courier' && courierPartnerId) {
+          const partner = await prisma.courierPartner.findUnique({ where: { id: parseInt(courierPartnerId) } });
+          if (partner && partner.trackingLink) {
+            trackingLink = trackingId ? `${partner.trackingLink}${trackingId}` : partner.trackingLink;
+          }
+        }
+        await sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+      }
+
+      // 2. Send the ASSIGNED SMS second, with a delay if shipped was just sent
+      if (deliveryType === 'delivery_boy' && deliveryBoyId) {
+        const boy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(deliveryBoyId) }, select: { phone: true } });
+        if (boy) {
+          if (data.orderStatus === 'shipped') {
+            await new Promise(r => setTimeout(r, 4000));
+          }
+          await sendAssignedSMS(order.user.phone, order.orderNumber, boy.phone);
+        }
+      }
+    })().catch(err => console.error("Background SMS Error:", err));
 
     res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {

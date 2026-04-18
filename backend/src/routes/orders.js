@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 const { requireLogin } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { sendOrderConfirmSMS } = require('../utils/sms');
 
 // Generate order number matching reference format: YF-O26-27-0005
 const generateOrderNumber = async () => {
@@ -76,6 +77,7 @@ router.post('/place', requireLogin, async (req, res) => {
     });
 
     let discountAmount = 0;
+    let appliedCouponId = null;
     if (couponCode) {
       const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
       if (coupon && coupon.status === 'active') {
@@ -84,7 +86,7 @@ router.post('/place', requireLogin, async (req, res) => {
             ? (subtotal * parseFloat(coupon.amount)) / 100
             : parseFloat(coupon.amount);
           if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
-          await prisma.coupon.update({ where: { id: coupon.id }, data: { usedCount: coupon.usedCount + 1 } });
+          appliedCouponId = coupon.id;
         }
       }
     }
@@ -96,7 +98,49 @@ router.post('/place', requireLogin, async (req, res) => {
       shipping = subtotal >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
     }
     const total = subtotal - discountAmount + shipping + totalTax;
+
+    // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
+    if (paymentMethod.toLowerCase() === 'online') {
+      const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+
+      const razorpayOrder = await razorpay.orders.create({
+        amount: Math.round(total * 100),
+        currency: 'INR',
+        receipt: `pending_${userId}_${Date.now()}`,
+      });
+
+      // Store all order details in session so we can create the DB order after payment
+      req.session.pendingOrder = {
+        addressId: address.id,
+        addressName: address.name, addressPhone: address.phone,
+        addressText: address.address, addressCity: address.city,
+        addressState: address.state, addressPincode: address.pincode,
+        addressType: address.addressType || 'Home',
+        subtotal, shipping, discount: discountAmount, tax: totalTax, total,
+        couponCode: couponCode || null, orderNote: orderNote || null,
+        appliedCouponId,
+        orderItems,
+        cartItemIds: cartItems.map(c => ({ id: c.id, productId: c.productId, variantId: c.variantId, quantity: c.quantity }))
+      };
+
+      return res.json({
+        status: true,
+        message: 'Payment gateway ready',
+        razorpayOrder,
+        key: process.env.RAZORPAY_KEY_ID
+      });
+    }
+
+    // ─── COD: Create order immediately ───
     const orderNumber = await generateOrderNumber();
+
+    // Update coupon usage
+    if (appliedCouponId) {
+      await prisma.coupon.update({ where: { id: appliedCouponId }, data: { usedCount: { increment: 1 } } });
+    }
 
     const order = await prisma.order.create({
       data: {
@@ -108,7 +152,7 @@ router.post('/place', requireLogin, async (req, res) => {
         addressType: address.addressType || 'Home',
         subtotal, shipping, discount: discountAmount, tax: totalTax, total,
         couponCode: couponCode || null, orderNote: orderNote || null,
-        paymentMethod: paymentMethod.toLowerCase(),
+        paymentMethod: 'cod',
         orderStatus: 'placed',
         paymentStatus: 'pending',
         items: { create: orderItems }
@@ -116,7 +160,7 @@ router.post('/place', requireLogin, async (req, res) => {
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
 
-    // Deduct stock
+    // Deduct stock for COD
     for (const item of cartItems) {
       if (item.variantId) {
         await prisma.productVariant.update({
@@ -131,39 +175,11 @@ router.post('/place', requireLogin, async (req, res) => {
       }
     }
 
-    // Clear cart (moved here because the order implies they checked out)
-    if (paymentMethod.toLowerCase() === 'cod') {
-       await prisma.cart.deleteMany({ where: { userId } });
-    }
-
-    if (paymentMethod.toLowerCase() === 'online') {
-      const razorpay = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET,
-      });
-
-      const options = {
-        amount: Math.round(total * 100), // amount in paise
-        currency: 'INR',
-        receipt: orderNumber,
-      };
-
-      const razorpayOrder = await razorpay.orders.create(options);
-      
-      return res.json({
-        status: true,
-        message: 'Order created, pending payment',
-        orderNumber,
-        razorpayOrder,
-        key: process.env.RAZORPAY_KEY_ID
-      });
-    }
-
-    // Clear cart (COD only path)
+    // Clear cart
     await prisma.cart.deleteMany({ where: { userId } });
 
-    // SMS stub — log order confirmation to console
-    console.log(`\n📦 [SMS] COD Order ${orderNumber} placed by ${order.user.name} (${order.user.phone}). Total: ₹${total}\n`);
+    // Send Order Confirmed SMS
+    sendOrderConfirmSMS(order.user.phone, orderNumber);
 
     res.json({ status: true, message: 'Order placed successfully', order, orderNumber: order.orderNumber });
   } catch (e) {
@@ -172,32 +188,81 @@ router.post('/place', requireLogin, async (req, res) => {
   }
 });
 
-// Verify Razorpay Payment Route
+// Verify Razorpay Payment — creates the actual DB order only after payment success
 router.post('/verify-payment', requireLogin, async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderNumber } = req.body;
-    
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const userId = req.session.userId;
+    const pendingOrder = req.session.pendingOrder;
+
+    if (!pendingOrder) {
+      return res.json({ status: false, message: 'No pending order found. Please try again.' });
+    }
+
+    // Verify Razorpay signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest('hex');
 
-    if (expectedSignature === razorpay_signature) {
-      const order = await prisma.order.update({
-        where: { orderNumber },
-        data: { paymentStatus: 'completed', paymentDescription: razorpay_payment_id },
-        include: { user: { select: { name: true, phone: true } } }
-      });
-      // Clear cart now
-      await prisma.cart.deleteMany({ where: { userId: req.session.userId } });
-      
-      console.log(`\n📦 [SMS] Online Order ${orderNumber} verified and placed by ${order.user.name} (${order.user.phone}). Total: ₹${order.total}\n`);
-
-      res.json({ status: true, message: 'Payment verified successfully' });
-    } else {
-      res.json({ status: false, message: 'Invalid payment signature' });
+    if (expectedSignature !== razorpay_signature) {
+      return res.json({ status: false, message: 'Invalid payment signature' });
     }
+
+    // Payment verified — now create the real order
+    const orderNumber = await generateOrderNumber();
+
+    // Update coupon usage
+    if (pendingOrder.appliedCouponId) {
+      await prisma.coupon.update({ where: { id: pendingOrder.appliedCouponId }, data: { usedCount: { increment: 1 } } });
+    }
+
+    const order = await prisma.order.create({
+      data: {
+        userId, orderNumber,
+        addressId: pendingOrder.addressId,
+        addressName: pendingOrder.addressName, addressPhone: pendingOrder.addressPhone,
+        addressText: pendingOrder.addressText, addressCity: pendingOrder.addressCity,
+        addressState: pendingOrder.addressState, addressPincode: pendingOrder.addressPincode,
+        addressType: pendingOrder.addressType,
+        subtotal: pendingOrder.subtotal, shipping: pendingOrder.shipping,
+        discount: pendingOrder.discount, tax: pendingOrder.tax, total: pendingOrder.total,
+        couponCode: pendingOrder.couponCode, orderNote: pendingOrder.orderNote,
+        paymentMethod: 'online',
+        orderStatus: 'placed',
+        paymentStatus: 'completed',
+        paymentDescription: razorpay_payment_id,
+        items: { create: pendingOrder.orderItems }
+      },
+      include: { items: true, user: { select: { name: true, phone: true, email: true } } }
+    });
+
+    // Deduct stock
+    for (const ci of pendingOrder.cartItemIds) {
+      if (ci.variantId) {
+        await prisma.productVariant.update({
+          where: { id: ci.variantId },
+          data: { stock: { decrement: ci.quantity } }
+        });
+      } else {
+        await prisma.product.update({
+          where: { id: ci.productId },
+          data: { stock: { decrement: ci.quantity } }
+        });
+      }
+    }
+
+    // Clear cart
+    await prisma.cart.deleteMany({ where: { userId } });
+
+    // Clear pending order from session
+    delete req.session.pendingOrder;
+
+    // Send Order Confirmed SMS
+    sendOrderConfirmSMS(order.user.phone, orderNumber);
+
+    res.json({ status: true, message: 'Payment verified and order placed successfully', orderNumber });
   } catch (error) {
     console.error('Payment verification error:', error);
     res.json({ status: false, message: 'Verification process failed' });
