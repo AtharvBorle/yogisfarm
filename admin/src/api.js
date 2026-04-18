@@ -19,8 +19,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear cookie/session implicitly by enforcing login redirect
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/admin/login';
       }
     }
     return Promise.reject(error);
