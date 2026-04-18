@@ -16,12 +16,21 @@ router.get('/', requireLogin, async (req, res) => {
 
 router.post('/', requireLogin, async (req, res) => {
   try {
-    const { name, phone, address, city, state, pincode, isDefault } = req.body;
+    const { name, phone, address, city, state, pincode, isDefault, addressType } = req.body;
+    
+    // Validations
+    if (!phone || !/^\d{10}$/.test(phone.toString())) {
+      return res.json({ status: false, message: 'Phone number must be exactly 10 digits' });
+    }
+    if (!pincode || !/^\d{6}$/.test(pincode.toString())) {
+      return res.json({ status: false, message: 'Pincode must be exactly 6 digits' });
+    }
+
     if (isDefault) {
       await prisma.address.updateMany({ where: { userId: req.session.userId }, data: { isDefault: false } });
     }
     const addr = await prisma.address.create({
-      data: { userId: req.session.userId, name, phone, address, city, state, pincode, isDefault: !!isDefault }
+      data: { userId: req.session.userId, name, phone: phone.toString(), address, city, state, pincode: pincode.toString(), isDefault: !!isDefault, addressType: addressType || 'Home' }
     });
     res.json({ status: true, message: 'Address added', address: addr });
   } catch (e) {

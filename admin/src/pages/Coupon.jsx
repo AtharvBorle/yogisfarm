@@ -118,7 +118,7 @@ const Coupon = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Coupon Management</h2>
-                <button onClick={openAddModal} style={{ background: '#3BB77E', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button onClick={openAddModal} className="btn-add-new">
                     + Add New
                 </button>
             </div>
@@ -135,68 +135,68 @@ const Coupon = () => {
                 title={editingId ? "Update Coupon" : "Add New Coupon"} 
                 onClose={() => setModalOpen(false)}
             >
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Coupon Name *</label>
+                <form onSubmit={handleSubmit}>
+                    <div className="admin-form-row">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Coupon Name *</label>
                             <input 
                                 type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} 
-                                required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                                required className="admin-input"
                             />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Coupon Code *</label>
+                        <div className="admin-form-group">
+                            <label className="admin-label">Coupon Code *</label>
                             <div style={{ display: 'flex' }}>
                                 <input 
                                     type="text" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} 
-                                    required style={{ flex: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '4px 0 0 4px', textTransform: 'uppercase' }}
+                                    required className="admin-input" style={{ borderRadius: '6px 0 0 6px' }}
                                 />
-                                <button type="button" onClick={generateCode} style={{ background: '#1a6e3a', color: 'white', border: 'none', padding: '0 10px', borderRadius: '0 4px 4px 0', cursor: 'pointer' }}>Generate</button>
+                                <button type="button" onClick={generateCode} style={{ background: '#1a6e3a', color: 'white', border: 'none', padding: '0 15px', borderRadius: '0 6px 6px 0', cursor: 'pointer' }}>Generate</button>
                             </div>
                         </div>
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Discount Type *</label>
-                            <select value={formData.amountType} onChange={e => setFormData({...formData, amountType: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
+                    <div className="admin-form-row">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Discount Type *</label>
+                            <select value={formData.amountType} onChange={e => setFormData({...formData, amountType: e.target.value})} className="admin-select">
                                 <option value="percent">Percent (%)</option>
                                 <option value="amount">Amount (₹)</option>
                             </select>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Amount *</label>
-                            <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: parseFloat(e.target.value)})} required style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                        <div className="admin-form-group">
+                            <label className="admin-label">Amount *</label>
+                            <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: parseFloat(e.target.value)})} required className="admin-input" />
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Min Order Amount (₹)</label>
-                            <input type="number" step="0.01" value={formData.minOrderAmount} onChange={e => setFormData({...formData, minOrderAmount: parseFloat(e.target.value)})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                    <div className="admin-form-row">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Min Order Amount (₹)</label>
+                            <input type="number" step="0.01" value={formData.minOrderAmount} onChange={e => setFormData({...formData, minOrderAmount: parseFloat(e.target.value)})} className="admin-input" />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Expire On</label>
-                            <input type="date" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                        <div className="admin-form-group">
+                            <label className="admin-label">Expire On</label>
+                            <input type="date" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
                         </div>
                     </div>
 
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Status *</label>
-                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}>
+                    <div className="admin-form-group">
+                        <label className="admin-label">Status *</label>
+                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="admin-select">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
                     </div>
                     
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description</label>
-                        <textarea rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}></textarea>
+                    <div className="admin-form-group">
+                        <label className="admin-label">Description</label>
+                        <textarea rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="admin-textarea"></textarea>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                        <button type="button" onClick={() => setModalOpen(false)} style={{ padding: '8px 15px', border: '1px solid #ccc', background: '#f8f9fa', borderRadius: '4px', cursor: 'pointer' }}>Close</button>
-                        <button type="submit" style={{ padding: '8px 15px', border: 'none', background: '#3BB77E', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Submit</button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-modal-close">Close</button>
+                        <button type="submit" className="btn-modal-submit">Submit</button>
                     </div>
                 </form>
             </GenericModal>

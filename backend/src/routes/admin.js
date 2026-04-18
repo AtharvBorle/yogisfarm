@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
+const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
 
 // Multer config — supports subfolder uploads via uploadPath field
 const storage = multer.diskStorage({
@@ -66,16 +67,33 @@ router.get('/logout', (req, res) => {
 router.get('/dashboard', requireAdmin, async (req, res) => {
   try {
     const now = new Date();
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
-    const [totalSales, totalOrders, totalUsers, totalProducts, recentOrders, topProducts] = await Promise.all([
+    const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
+    const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1);
+
+    const [
+      totalSalesAgg,
+      lastMonthSalesAgg,
+      totalOrders,
+      lastMonthOrders,
+      totalUsers,
+      lastMonthUsers,
+      totalProducts,
+      recentOrders,
+      topProductsRaw
+    ] = await Promise.all([
       prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.order.count(),
+      prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.user.count(),
+      prisma.user.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.product.count(),
       prisma.order.findMany({
-        take: 5, orderBy: { createdAt: 'desc' },
+        take: 10,
+        orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true, phone: true } } }
       }),
       prisma.orderItem.groupBy({
@@ -84,13 +102,45 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       })
     ]);
 
+    // Monthly Sales Trend (Last 6 months)
+    const salesTrend = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const monthSales = await prisma.order.aggregate({
+        _sum: { total: true },
+        where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+      });
+      salesTrend.push({
+        month: d.toLocaleString('default', { month: 'short' }),
+        sales: Number(monthSales._sum.total || 0)
+      });
+    }
+
+    const totalSales = Number(totalSalesAgg._sum.total || 0);
+    const lastMonthSales = Number(lastMonthSalesAgg._sum.total || 0);
+
+    // Calculate percentage changes
+    const calcChange = (current, previous) => {
+      if (!previous) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
     res.json({
       status: true,
       stats: {
-        totalSales: totalSales._sum.total || 0,
-        totalOrders, totalUsers, totalProducts,
+        totalSales,
+        salesChange: calcChange(totalSales - lastMonthSales, lastMonthSales),
+        totalOrders,
+        ordersChange: calcChange(totalOrders - lastMonthOrders, lastMonthOrders),
+        totalUsers,
+        usersChange: calcChange(totalUsers - lastMonthUsers, lastMonthUsers),
+        totalProducts,
+        productsChange: 0, // Product count growth is usually less relevant but we can add if needed
         recentOrders,
-        topProducts: topProducts.map(p => ({ name: p.name, count: p._sum.quantity }))
+        topProducts: topProductsRaw.map(p => ({ name: p.name, value: p._sum.quantity })),
+        salesTrend
       }
     });
   } catch (e) {
@@ -221,10 +271,22 @@ router.delete('/brands/:id', requireAdmin, async (req, res) => {
   res.json({ status: true, message: 'Brand deleted' });
 });
 
+router.put('/brands/order/update', requireAdmin, async (req, res) => {
+  try {
+    const { order } = req.body;
+    for (let i = 0; i < order.length; i++) {
+      await prisma.brand.update({ where: { id: order[i] }, data: { sortOrder: i } });
+    }
+    res.json({ status: true, message: 'Brand order updated' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 // ─── Products CRUD ───
 router.get('/products', requireAdmin, async (req, res) => {
   const products = await prisma.product.findMany({
-    include: { category: true, brand: true, images: true, variants: true },
+    include: { category: true, brand: true, images: true, variants: true, benefits: true, features: true },
     orderBy: { createdAt: 'desc' }
   });
   res.json({ status: true, products });
@@ -244,8 +306,8 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
-        price: parseFloat(price || 0), salePrice: salePrice ? parseFloat(salePrice) : null,
-        stock: parseInt(stock || 0), unit, status: status || 'active',
+        price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
+        stock: Math.max(0, parseInt(stock || 0)), unit, status: status || 'active',
         featured: featured === 'true', popular: popular === 'true', deal: deal === 'true',
         ...(variants ? { variants: { create: JSON.parse(variants) } } : {}),
         ...(benefits ? { benefits: { create: JSON.parse(benefits) } } : {}),
@@ -263,19 +325,23 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
   try {
     const id = parseInt(req.params.id);
     const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, image: bodyImage } = req.body;
+      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
       name, shortDescription, description, video, tags,
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
-      price: parseFloat(price || 0), salePrice: salePrice ? parseFloat(salePrice) : null,
-      stock: parseInt(stock || 0), unit, status,
+      price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
+      stock: Math.max(0, parseInt(stock || 0)), unit, status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
     if (req.file) data.image = '/uploads/' + req.file.filename;
     else if (bodyImage) data.image = bodyImage;
+
+    if (variants) data.variants = { deleteMany: {}, create: JSON.parse(variants) };
+    if (benefits) data.benefits = { deleteMany: {}, create: JSON.parse(benefits) };
+    if (features) data.features = { deleteMany: {}, create: JSON.parse(features) };
 
     const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true } });
     res.json({ status: true, message: 'Product updated', product });
@@ -317,7 +383,11 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
       imageData = imageData.concat(fmImages);
     }
     if (imageData.length > 0) {
+      await prisma.productImage.deleteMany({ where: { productId } });
       await prisma.productImage.createMany({ data: imageData });
+    } else {
+      // If empty array sent, clear all
+      await prisma.productImage.deleteMany({ where: { productId } });
     }
     res.json({ status: true, message: 'Images uploaded' });
   } catch (e) {
@@ -336,7 +406,7 @@ router.get('/orders', requireAdmin, async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where, orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true }
+      include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true, courierPartner: true }
     });
     res.json({ status: true, orders });
   } catch (e) {
@@ -348,7 +418,7 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { user: true, items: { include: { product: { include: { brand: true } } } }, deliveryBoy: true }
+      include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true, courierPartner: true }
     });
     res.json({ status: true, order });
   } catch (e) {
@@ -359,7 +429,91 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
 router.put('/orders/:id/status', requireAdmin, async (req, res) => {
   try {
     const { orderStatus } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { orderStatus } });
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true } });
+    if (!current) return res.json({ status: false, message: 'Order not found' });
+
+    // Status flow validation
+    const allowedTransitions = {
+      placed: ['confirmed', 'cancelled'],
+      confirmed: ['shipped', 'cancelled'],
+      shipped: ['out_for_delivery', 'delivered'],
+      out_for_delivery: ['delivered'],
+      delivered: [],
+      cancelled: [],
+      returned: []
+    };
+    const allowed = allowedTransitions[current.orderStatus] || [];
+    if (!allowed.includes(orderStatus)) {
+      return res.json({ status: false, message: `Cannot change status from "${current.orderStatus}" to "${orderStatus}"` });
+    }
+
+    // Fetch full order before update to check payment method
+    const fullOrder = await prisma.order.findUnique({
+      where: { id: parseInt(req.params.id) },
+      select: { paymentMethod: true, paymentStatus: true }
+    });
+
+    const updateData = { orderStatus };
+    // Auto-mark COD as paid when delivered
+    if (orderStatus === 'delivered' && fullOrder.paymentMethod === 'cod' && fullOrder.paymentStatus === 'pending') {
+      updateData.paymentStatus = 'paid';
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateData,
+      include: { user: { select: { name: true, phone: true } }, items: true }
+    });
+
+    if (orderStatus === 'cancelled') {
+        for (const item of order.items) {
+           if (item.variant) {
+               const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
+               if (variant) {
+                   await prisma.productVariant.update({
+                       where: { id: variant.id },
+                       data: { stock: { increment: item.quantity } }
+                   });
+               }
+           } else {
+               await prisma.product.update({
+                   where: { id: item.productId },
+                   data: { stock: { increment: item.quantity } }
+               });
+           }
+        }
+    }
+
+    // Send status-specific SMS via Way2Smart
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+    if (orderStatus === 'confirmed') {
+      sendOrderConfirmSMS(order.user.phone, order.orderNumber);
+    } else if (orderStatus === 'shipped') {
+      let trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
+      if (order.deliveryType === 'courier' && order.courierPartnerId) {
+        const partner = await prisma.courierPartner.findUnique({ where: { id: order.courierPartnerId } });
+        if (partner && partner.trackingLink) {
+          trackingLink = order.trackingId ? `${partner.trackingLink}${order.trackingId}` : partner.trackingLink;
+        }
+      }
+      sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+    } else if (orderStatus === 'out_for_delivery') {
+      sendOutForDeliverySMS(order.user.phone, order.orderNumber);
+    } else if (orderStatus === 'delivered') {
+      const invoiceLink = `${FRONTEND_URL}/invoice/${order.orderNumber}`;
+      sendDeliveredSMS(order.user.phone, order.orderNumber, invoiceLink);
+    }
+
+    // COD handling
+    if (orderStatus === 'delivered' && order.paymentMethod === 'cod' && order.paymentStatus === 'pending') {
+      if (order.deliveryBoyId) {
+        await prisma.deliveryBoy.update({
+          where: { id: order.deliveryBoyId },
+          data: { outstandingAmount: { increment: order.total } }
+        });
+      }
+    }
+
     res.json({ status: true, message: 'Order status updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -369,27 +523,198 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
 router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
   try {
     const { paymentStatus, paymentDescription } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { paymentStatus, paymentDescription } });
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) },
+      data: { paymentStatus, paymentDescription },
+      include: { user: { select: { name: true, phone: true } } }
+    });
+    // SMS stub — log payment update to console
+    console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
     res.json({ status: true, message: 'Payment updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
-router.put('/orders/:id/delivery-boy', requireAdmin, async (req, res) => {
+// ─── Delivery Option Assignment ───
+router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
   try {
-    const { deliveryBoyId } = req.body;
-    await prisma.order.update({ where: { id: parseInt(req.params.id) }, data: { deliveryBoyId: parseInt(deliveryBoyId) } });
-    res.json({ status: true, message: 'Delivery boy assigned' });
+    const { deliveryType, deliveryBoyId, courierPartnerId, trackingId } = req.body;
+    const data = { deliveryType };
+    if (deliveryType === 'delivery_boy') {
+      data.deliveryBoyId = parseInt(deliveryBoyId);
+      data.courierPartnerId = null;
+      data.trackingId = null;
+    } else if (deliveryType === 'courier') {
+      data.courierPartnerId = parseInt(courierPartnerId);
+      data.trackingId = trackingId || null;
+      data.deliveryBoyId = null;
+    }
+
+    // Auto-set status to shipped when delivery is assigned (only if currently confirmed)
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true }, });
+    if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed')) {
+      data.orderStatus = 'shipped';
+    }
+
+    const order = await prisma.order.update({
+      where: { id: parseInt(req.params.id) }, data,
+      include: { user: { select: { name: true, phone: true } } }
+    });
+
+    // Start background task to send SMS without blocking the UI response
+    (async () => {
+      // 1. Send the SHIPPED SMS first
+      if (data.orderStatus === 'shipped') {
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+        let trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
+        if (deliveryType === 'courier' && courierPartnerId) {
+          const partner = await prisma.courierPartner.findUnique({ where: { id: parseInt(courierPartnerId) } });
+          if (partner && partner.trackingLink) {
+            trackingLink = trackingId ? `${partner.trackingLink}${trackingId}` : partner.trackingLink;
+          }
+        }
+        await sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+      }
+
+      // 2. Send the ASSIGNED SMS second, with a delay if shipped was just sent
+      if (deliveryType === 'delivery_boy' && deliveryBoyId) {
+        const boy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(deliveryBoyId) }, select: { phone: true } });
+        if (boy) {
+          if (data.orderStatus === 'shipped') {
+            await new Promise(r => setTimeout(r, 4000));
+          }
+          await sendAssignedSMS(order.user.phone, order.orderNumber, boy.phone);
+        }
+      }
+    })().catch(err => console.error("Background SMS Error:", err));
+
+    res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
-// ─── Delivery Boys ───
+// ─── Delivery Boys CRUD ───
 router.get('/delivery-boys', requireAdmin, async (req, res) => {
-  const boys = await prisma.deliveryBoy.findMany({ where: { status: 'active' } });
-  res.json({ status: true, deliveryBoys: boys });
+  const boys = await prisma.deliveryBoy.findMany({ 
+    where: { status: 'active' }, 
+    orderBy: { createdAt: 'desc' },
+    include: { collections: { orderBy: { createdAt: 'desc' }, take: 5 } }
+  });
+  // Strip pins before sending
+  const safeBoys = boys.map(b => {
+    const { pin, ...safe } = b;
+    return safe;
+  });
+  res.json({ status: true, deliveryBoys: safeBoys });
+});
+
+router.post('/delivery-boys', requireAdmin, async (req, res) => {
+  try {
+    const { name, phone, pin, city, pincode } = req.body;
+    let hashedPin = null;
+    if (pin) hashedPin = await bcrypt.hash(pin, 10);
+    const boy = await prisma.deliveryBoy.create({ data: { name, phone, pin: hashedPin, city, pincode } });
+    const { pin: _, ...safeBoy } = boy;
+    res.json({ status: true, message: 'Delivery boy created', deliveryBoy: safeBoy });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/delivery-boys/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, phone, pin, city, pincode, status } = req.body;
+    const data = { name, phone, city, pincode, status };
+    if (pin) data.pin = await bcrypt.hash(pin, 10);
+    const boy = await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data });
+    const { pin: _, ...safeBoy } = boy;
+    res.json({ status: true, message: 'Delivery boy updated', deliveryBoy: safeBoy });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/delivery-boys/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.deliveryBoy.update({ where: { id: parseInt(req.params.id) }, data: { status: 'inactive' } });
+    res.json({ status: true, message: 'Delivery boy removed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Delivery Collections ───
+router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const collectAmount = parseFloat(amount);
+    if (!collectAmount || collectAmount <= 0) {
+      return res.json({ status: false, message: 'Invalid collection amount' });
+    }
+
+    const deliveryBoy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!deliveryBoy) return res.json({ status: false, message: 'Delivery boy not found' });
+    
+    if (collectAmount > deliveryBoy.outstandingAmount) {
+      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${deliveryBoy.outstandingAmount})` });
+    }
+
+    await prisma.$transaction([
+      prisma.deliveryCollection.create({
+        data: {
+          deliveryBoyId: deliveryBoy.id,
+          amount: collectAmount,
+          adminId: req.session.adminId
+        }
+      }),
+      prisma.deliveryBoy.update({
+        where: { id: deliveryBoy.id },
+        data: { outstandingAmount: { decrement: collectAmount } }
+      })
+    ]);
+
+    const updated = await prisma.deliveryBoy.findUnique({ where: { id: deliveryBoy.id } });
+    res.json({ status: true, message: 'Cash collected successfully', outstandingAmount: updated.outstandingAmount });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Courier Partners CRUD ───
+router.get('/courier-partners', requireAdmin, async (req, res) => {
+  const partners = await prisma.courierPartner.findMany({ where: { status: 'active' }, orderBy: { createdAt: 'desc' } });
+  res.json({ status: true, courierPartners: partners });
+});
+
+router.post('/courier-partners', requireAdmin, async (req, res) => {
+  try {
+    const { name, trackingLink } = req.body;
+    const partner = await prisma.courierPartner.create({ data: { name, trackingLink } });
+    res.json({ status: true, message: 'Courier partner created', courierPartner: partner });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/courier-partners/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, trackingLink, status } = req.body;
+    const partner = await prisma.courierPartner.update({ where: { id: parseInt(req.params.id) }, data: { name, trackingLink, status } });
+    res.json({ status: true, message: 'Courier partner updated', courierPartner: partner });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/courier-partners/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.courierPartner.update({ where: { id: parseInt(req.params.id) }, data: { status: 'inactive' } });
+    res.json({ status: true, message: 'Courier partner removed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Sections CRUD ───
@@ -428,6 +753,18 @@ router.delete('/sections/:id', requireAdmin, async (req, res) => {
   res.json({ status: true, message: 'Section deleted' });
 });
 
+router.put('/sections/order/update', requireAdmin, async (req, res) => {
+  try {
+    const { order } = req.body;
+    for (let i = 0; i < order.length; i++) {
+      await prisma.section.update({ where: { id: order[i] }, data: { sortOrder: i } });
+    }
+    res.json({ status: true, message: 'Section order updated' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 // ─── Tax CRUD ───
 router.get('/taxes', requireAdmin, async (req, res) => {
   const taxes = await prisma.tax.findMany({ orderBy: { createdAt: 'desc' } });
@@ -460,6 +797,73 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
 router.delete('/taxes/:id', requireAdmin, async (req, res) => {
   await prisma.tax.delete({ where: { id: parseInt(req.params.id) } });
   res.json({ status: true, message: 'Tax deleted' });
+});
+
+// ─── Shipping CRUD ───
+router.get('/shipping', requireAdmin, async (req, res) => {
+  const shipping = await prisma.shipping.findMany({ orderBy: { createdAt: 'desc' } });
+  res.json({ status: true, shipping });
+});
+
+router.post('/shipping', requireAdmin, async (req, res) => {
+  try {
+    const { name, charge, minCartValue, status } = req.body;
+    const shipping = await prisma.shipping.create({
+      data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status: status || 'active' }
+    });
+    res.json({ status: true, message: 'Shipping rule created', shipping });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/shipping/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, charge, minCartValue, status } = req.body;
+    const shipping = await prisma.shipping.update({
+      where: { id: parseInt(req.params.id) },
+      data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status }
+    });
+    res.json({ status: true, message: 'Shipping rule updated', shipping });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/shipping/:id', requireAdmin, async (req, res) => {
+  await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+  res.json({ status: true, message: 'Shipping rule deleted' });
+});
+
+// ─── Reviews CRUD ───
+router.get('/reviews', requireAdmin, async (req, res) => {
+  const reviews = await prisma.review.findMany({
+    include: { user: { select: { name: true, phone: true } }, product: { select: { name: true, id: true } } },
+    orderBy: { createdAt: 'desc' }
+  });
+  res.json({ status: true, reviews });
+});
+
+router.put('/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    const { status, comment } = req.body;
+    const review = await prisma.review.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status, comment }
+    });
+    res.json({ status: true, message: 'Review updated', review });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.delete('/reviews/:id', requireAdmin, async (req, res) => {
+  try {
+    await prisma.review.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ status: true, message: 'Review deleted' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Contact Submissions ───
@@ -626,6 +1030,30 @@ router.delete('/files', requireAdmin, async (req, res) => {
     const fullPath = path.join(__dirname, '..', '..', filePath);
     if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
     res.json({ status: true, message: 'File deleted' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Settings ───
+router.get('/settings', requireAdmin, async (req, res) => {
+  const settings = await prisma.setting.findMany();
+  const obj = {};
+  settings.forEach(s => { obj[s.key] = s.value; });
+  res.json({ status: true, settings: obj });
+});
+
+router.put('/settings', requireAdmin, async (req, res) => {
+  try {
+    const { settings } = req.body; // { key: value, key: value }
+    for (const [key, value] of Object.entries(settings)) {
+      await prisma.setting.upsert({
+        where: { key },
+        update: { value: String(value) },
+        create: { key, value: String(value) }
+      });
+    }
+    res.json({ status: true, message: 'Settings saved' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

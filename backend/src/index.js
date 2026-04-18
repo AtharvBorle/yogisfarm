@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
+const PrismaStore = require('./utils/sessionStore');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
@@ -11,16 +12,30 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174'],
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:3001', 
+    'http://localhost:5173', 
+    'http://localhost:5174',
+    'http://192.168.0.151:5173', 
+    'http://192.168.0.151:5174',
+    'https://yf.travelcarts.co.in'
+  ],
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'yogisfarm-secret',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  resave: true,
+  saveUninitialized: false,
+  store: new PrismaStore(prisma),
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: false
+  }
 }));
 
 // Static files
@@ -48,10 +63,14 @@ app.use('/api/search', require('./routes/search'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/sections', require('./routes/sections'));
 app.use('/api/taxes', require('./routes/taxes'));
+app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/reviews', require('./routes/reviews'));
 
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
+
+// Delivery routes
+app.use('/api/delivery', require('./routes/delivery'));
 
 // Health check
 app.get('/api/health', (req, res) => {

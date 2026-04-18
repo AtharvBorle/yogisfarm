@@ -2,16 +2,21 @@ const router = require('express').Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { requireLogin } = require('../middleware/auth');
+const crypto = require('crypto');
+const { sendOtpSMS } = require('../utils/sms');
 
 // Send OTP
 router.post('/send-otp', async (req, res) => {
   try {
     const { phone } = req.body;
-    if (!phone || phone.length < 10) {
-      return res.json({ status: false, message: 'Valid phone number required' });
+    if (!phone || !/^\d{10}$/.test(phone.toString())) {
+      return res.json({ status: false, message: 'Phone number must be exactly 10 digits' });
     }
-    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(Math.floor(100000 + Math.random() * 900000));
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+    // Send OTP via Way2Smart SMS
+    sendOtpSMS(phone, otp);
 
     let user = await prisma.user.findUnique({ where: { phone } });
     if (user) {
@@ -78,7 +83,9 @@ router.post('/submit-details', requireLogin, async (req, res) => {
 router.post('/resend-otp', async (req, res) => {
   try {
     const { phone } = req.body;
-    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(Math.floor(100000 + Math.random() * 900000));
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    // Resend OTP via Way2Smart SMS
+    sendOtpSMS(phone, otp);
     await prisma.user.update({ where: { phone }, data: { otp, otpExpiry: new Date(Date.now() + 5 * 60 * 1000) } });
     res.json({ status: true, message: 'OTP resent' });
   } catch (e) {

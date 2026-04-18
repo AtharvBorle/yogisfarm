@@ -2,17 +2,17 @@ import React from 'react';
 
 const DataTable = ({ columns, data, onEdit, onDelete, onView }) => {
     return (
-        <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <div className="admin-card" style={{ overflowX: 'auto', border: 'none' }}>
+            <table className="admin-table">
                 <thead>
-                    <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #ddd' }}>
+                    <tr>
                         {columns.map((col, idx) => (
-                            <th key={idx} style={{ padding: '12px 15px', color: '#333', fontWeight: 'bold' }}>
+                            <th key={idx}>
                                 {col.header}
                             </th>
                         ))}
                         {(onEdit || onDelete || onView) && (
-                            <th style={{ padding: '12px 15px', color: '#333', fontWeight: 'bold', width: '150px' }}>Actions</th>
+                            <th style={{ width: '150px' }}>Actions</th>
                         )}
                     </tr>
                 </thead>
@@ -25,14 +25,14 @@ const DataTable = ({ columns, data, onEdit, onDelete, onView }) => {
                         </tr>
                     ) : (
                         data.map((row, rowIndex) => (
-                            <tr key={rowIndex} style={{ borderBottom: '1px solid #eee' }}>
+                            <tr key={rowIndex}>
                                 {columns.map((col, colIndex) => (
-                                    <td key={colIndex} style={{ padding: '12px 15px', color: '#555' }}>
+                                    <td key={colIndex}>
                                         {col.render ? col.render(row) : row[col.accessor]}
                                     </td>
                                 ))}
                                 {(onEdit || onDelete || onView) && (
-                                    <td style={{ padding: '12px 15px' }}>
+                                    <td>
                                         <div style={{ display: 'flex', gap: '5px' }}>
                                             {onView && (
                                                 <button onClick={() => onView(row)} style={{ padding: '5px 10px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>View</button>

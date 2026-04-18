@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../../api';
+import api, { getAssetUrl } from '../../api';
 import toast from 'react-hot-toast';
 
 const FileManager = ({ onSelect, onClose }) => {
@@ -115,24 +115,24 @@ const FileManager = ({ onSelect, onClose }) => {
     return (
         <div style={{ padding: '10px', height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Toolbar */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', background: '#f8f9fa', padding: '10px', borderRadius: '4px' }}>
+            <div className="admin-card" style={{ display: 'flex', gap: '10px', marginBottom: '15px', padding: '10px' }}>
                 <button onClick={() => fileInputRef.current.click()} style={{ padding: '6px 12px', background: '#17a2b8', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     Upload Files
                 </button>
                 <input type="file" multiple ref={fileInputRef} style={{ display: 'none' }} onChange={handleUpload} />
                 
-                <button onClick={createFolder} style={{ padding: '6px 12px', background: '#e2e6ea', border: '1px solid #dae0e5', borderRadius: '4px', cursor: 'pointer' }}>
+                <button onClick={createFolder} className="btn-modal-close" style={{ padding: '6px 12px' }}>
                     New Folder
                 </button>
             </div>
 
             {/* Path */}
-            <div style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+            <div style={{ marginBottom: '10px', fontSize: '14px', color: 'var(--text)' }}>
                 Location: <strong>/uploads/{currentPath}</strong>
             </div>
 
             {/* Grid */}
-            <div style={{ flex: 1, overflowY: 'auto', border: '1px solid #eee', padding: '15px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignContent: 'flex-start' }}>
+            <div style={{ flex: 1, overflowY: 'auto', border: '1px solid var(--border)', padding: '15px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignContent: 'flex-start' }}>
                 {loading ? <div style={{ width: '100%', textAlign: 'center' }}>Loading...</div> : (
                     <>
                         {currentPath && (
@@ -165,7 +165,7 @@ const FileManager = ({ onSelect, onClose }) => {
                                     }}
                                     style={{ 
                                         height: '80px', 
-                                        background: `url(http://localhost:5000${file.path}) center/cover`, 
+                                        background: `url(${getAssetUrl(file.path)}) center/cover`, 
                                         border: '1px solid #ddd',
                                         borderRadius: '4px',
                                         marginBottom: '5px'

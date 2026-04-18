@@ -13,7 +13,7 @@ const Footer = () => {
                         <div className="col">
                             <div className="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp">
                                 <div className="logo mb-30">
-                                    <Link to="/" className="mb-15"><img src="/assets/imgs/theme/logo.svg" alt="Yogis Farm" /></Link>
+                                    <Link to="/" className="mb-15"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
                                     <p className="font-lg">Yogis Farm - Pure & Natural Farm Products</p>
                                     <div className="mobile-social-icon" style={{ justifyContent: 'start' }}>
                                         <h6>Follow Us</h6>
@@ -60,9 +60,15 @@ const Footer = () => {
                             </ul>
                         </div>
                     </div>
-                    <p className="font-sm mb-0 text-center">Copyright © 2026 Yogis Farm<br/>Crafted by Deepminds Infotech</p>
+                    <p className="font-sm mb-0 text-center">Copyright © 2026 Yogis Farm<br/>Crafted by NeoPace Infotech LLP</p>
                 </div>
             </section>
+            {/* Bottom landscape visual */}
+            <img 
+                src="/assets/imgs/theme/btm-bg.jpg" 
+                alt="Landscape Foreground" 
+                style={{ width: '100%', display: 'block', pointerEvents: 'none', objectFit: 'cover' }} 
+            />
         </footer>
     );
 };

@@ -114,7 +114,7 @@ const Shop = () => {
                                             <ul className="dropdown-menu">
                                                 {Object.entries(sortLabels).map(([key, label]) => (
                                                     <li key={key}>
-                                                        <a className={`dropdown-item ${sort === key ? 'active' : ''}`} onClick={() => handleSortChange(key)} href="javascript:void(0);">
+                                                        <a className={`dropdown-item ${sort === key ? 'active' : ''}`} onClick={() => handleSortChange(key)} href="#!">
                                                             {label}
                                                         </a>
                                                     </li>
@@ -148,7 +148,7 @@ const Shop = () => {
                                     <ul className="pagination justify-content-start">
                                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                                             <li key={p} className={`page-item ${p === page ? 'active' : ''}`}>
-                                                <a className="page-link" onClick={() => handlePageChange(p)} href="javascript:void(0);">{p}</a>
+                                                <a className="page-link" onClick={() => handlePageChange(p)} href="#!">{p}</a>
                                             </li>
                                         ))}
                                     </ul>

@@ -1,111 +1,214 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --text: #334151;
+  --bg: #f4f5f9;
+  --border: #e9ecef;
+  --primary: #3BB77E;
+  --font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  /* Component colors */
+  --card-bg: #fff;
+  --table-head-bg: #f8f9fa;
+  --table-border: #eee;
+  --input-bg: #fff;
+  --input-border: #ddd;
+  --modal-overlay: rgba(0,0,0,0.5);
 }
 
 body {
   margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+/* =========================================
+   DARK MODE VARIABLES
+   ========================================= */
+
+body.dark-mode {
+  --bg: #1a1a1a;
+  --text: #ccc;
+  --border: #333;
+  
+  --card-bg: #242424;
+  --table-head-bg: #2d2d2d;
+  --table-border: #333;
+  --input-bg: #242424;
+  --input-border: #444;
+  --modal-overlay: rgba(0,0,0,0.8);
+}
+
+/* Base Component Classes */
+.admin-card {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+  transition: background-color 0.3s, border 0.3s;
+}
+
+/* Tables */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.admin-table th {
+  padding: 12px 15px;
+  background-color: var(--table-head-bg);
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--table-border);
+  transition: background-color 0.3s, border 0.3s, color 0.3s;
+}
+.admin-table td {
+  padding: 12px 15px;
+  color: var(--text);
+  border-bottom: 1px solid var(--table-border);
+  transition: border 0.3s, color 0.3s;
+}
+.admin-table tr:hover td {
+  background-color: var(--table-head-bg);
+}
+
+/* Buttons */
+.btn-add-new {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-add-new:hover {
+  background: var(--table-head-bg);
+  border-color: #ccc;
+}
+
+.btn-modal-close {
+  background: white;
+  color: #e77242;
+  border: 1px solid #e77242;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+.btn-modal-close:hover {
+  background: #fdf1ec;
+}
+
+.btn-modal-submit {
+  background: #007b36;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+.btn-modal-submit:hover {
+  background: #005a27;
+}
+
+/* Forms */
+.admin-form-group {
+  margin-bottom: 15px;
+}
+
+.admin-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--text);
+  font-size: 13px;
+}
+
+/* Apply asterisk styles */
+.admin-label sup, .admin-label .required {
+  color: #e77242;
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+.admin-input, .admin-select {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
+.admin-input:focus, .admin-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Modal Grid Framework */
+.modal-form-grid {
+  display: flex;
+  gap: 30px;
+}
+.modal-image-col {
+  width: 250px;
+  flex-shrink: 0;
+}
+.modal-inputs-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+}
+.modal-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.modal-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
+/* Image Placeholder Box */
+.image-placeholder-box {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
-  color: var(--text-h);
+  background: var(--table-head-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+.image-placeholder-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Other Global Overrides */
+body.dark-mode input[type="checkbox"] {
+  accent-color: var(--primary);
+}
+body.dark-mode h2, 
+body.dark-mode h3, 
+body.dark-mode h4, 
+body.dark-mode h5 {
+  color: #fff;
 }

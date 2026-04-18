@@ -99,7 +99,7 @@ const Tax = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2>Tax Management</h2>
-                <button onClick={openAddModal} style={{ background: '#3BB77E', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button onClick={openAddModal} className="btn-add-new">
                     + Add New
                 </button>
             </div>
@@ -116,44 +116,46 @@ const Tax = () => {
                 title={editingId ? "Update Tax" : "Add New Tax"} 
                 onClose={() => setModalOpen(false)}
             >
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Name *</label>
-                        <input 
-                            type="text" 
-                            value={formData.name} 
-                            onChange={e => setFormData({...formData, name: e.target.value})} 
-                            required 
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            placeholder="e.g., GST 5%"
-                        />
+                <form onSubmit={handleSubmit}>
+                    <div className="modal-row-3">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Name <span className="required">*</span></label>
+                            <input 
+                                type="text" 
+                                value={formData.name} 
+                                onChange={e => setFormData({...formData, name: e.target.value})} 
+                                required 
+                                className="admin-input"
+                                placeholder="e.g., GST 5%"
+                            />
+                        </div>
+                        <div className="admin-form-group">
+                            <label className="admin-label">Tax (%) <span className="required">*</span></label>
+                            <input 
+                                type="number" 
+                                step="0.01"
+                                value={formData.tax} 
+                                onChange={e => setFormData({...formData, tax: parseFloat(e.target.value)})} 
+                                required 
+                                className="admin-input"
+                                placeholder="e.g., 5"
+                            />
+                        </div>
+                        <div className="admin-form-group">
+                            <label className="admin-label">Status <span className="required">*</span></label>
+                            <select 
+                                value={formData.status} 
+                                onChange={e => setFormData({...formData, status: e.target.value})}
+                                className="admin-select"
+                            >
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Tax (%) *</label>
-                        <input 
-                            type="number" 
-                            step="0.01"
-                            value={formData.tax} 
-                            onChange={e => setFormData({...formData, tax: parseFloat(e.target.value)})} 
-                            required 
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            placeholder="e.g., 5"
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Status *</label>
-                        <select 
-                            value={formData.status} 
-                            onChange={e => setFormData({...formData, status: e.target.value})}
-                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                        <button type="button" onClick={() => setModalOpen(false)} style={{ padding: '8px 15px', border: '1px solid #ccc', background: '#f8f9fa', borderRadius: '4px', cursor: 'pointer' }}>Close</button>
-                        <button type="submit" style={{ padding: '8px 15px', border: 'none', background: '#3BB77E', color: 'white', borderRadius: '4px', cursor: 'pointer' }}>Submit</button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                        <button type="submit" className="btn-modal-submit">Submit</button>
+                        <button type="button" onClick={() => setModalOpen(false)} className="btn-modal-close">Close</button>
                     </div>
                 </form>
             </GenericModal>
