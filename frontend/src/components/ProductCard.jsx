@@ -16,14 +16,8 @@ const ProductCard = ({ product }) => {
     let badgeText = null;
     if (product.salePrice && product.price > product.salePrice) {
         const discountAmt = product.price - product.salePrice;
-        if (discountAmt >= 100 || discountAmt % 10 === 0) {
-            badgeText = `₹${discountAmt} OFF`;
-        } else {
-            const discountPct = Math.round((discountAmt / product.price) * 100);
-            badgeText = `${discountPct}% OFF`;
-        }
-    } else if (product.deal) {
-        badgeText = "Deal";
+        const discountPct = Math.round((discountAmt / product.price) * 100);
+        badgeText = `${discountPct}% OFF`;
     }
 
     const inWishlist = isInWishlist(product.id);
