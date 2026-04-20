@@ -14,9 +14,12 @@ const ProductCard = ({ product }) => {
     const oldPrice = product.salePrice ? product.price : null;
 
     let badgeText = null;
-    if (product.salePrice && product.price > product.salePrice) {
-        const discountAmt = product.price - product.salePrice;
-        const discountPct = Math.round((discountAmt / product.price) * 100);
+    const numPrice = parseFloat(product.price);
+    const numSalePrice = parseFloat(product.salePrice);
+    
+    if (product.salePrice && numPrice > numSalePrice) {
+        const discountAmt = numPrice - numSalePrice;
+        const discountPct = Math.round((discountAmt / numPrice) * 100);
         badgeText = `${discountPct}% OFF`;
     }
 
