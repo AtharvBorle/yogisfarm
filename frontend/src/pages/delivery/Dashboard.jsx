@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api'; // Fixed from ../../../api
 import toast from 'react-hot-toast';
 
+import { User, Clock, CheckCircle, Inbox } from 'react-feather';
+
 const DeliveryDashboard = () => {
     const [boy, setBoy] = useState(null);
     const [stats, setStats] = useState({ pendingCount: 0, assignedTodayCount: 0 });
@@ -121,7 +123,7 @@ const DeliveryDashboard = () => {
             {/* Header */}
             <div style={{ background: '#fff', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 100 }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '18px', color: '#253D4E' }}>Hi, {boy.name} 👋</h2>
+                    <h2 style={{ margin: 0, fontSize: '18px', color: '#253D4E' }}>Hi, {boy.name} <User size={24} /></h2>
                     <p style={{ margin: 0, fontSize: '12px', color: '#7E7E7E' }}>Delivery Portal</p>
                 </div>
                 <button onClick={handleLogout} style={{ background: 'transparent', border: '1px solid #dc3545', color: '#dc3545', padding: '6px 12px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Logout</button>
@@ -142,8 +144,8 @@ const DeliveryDashboard = () => {
 
                 {/* Tabs */}
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                    <button onClick={() => setViewMode('pending')} style={navStyle(viewMode === 'pending')}>⏳ Pending</button>
-                    <button onClick={() => setViewMode('history')} style={navStyle(viewMode === 'history')}>✅ History</button>
+                    <button onClick={() => setViewMode('pending')} style={navStyle(viewMode === 'pending')}><Clock size={16} /> Pending</button>
+                    <button onClick={() => setViewMode('history')} style={navStyle(viewMode === 'history')}><CheckCircle size={16} color="green" /> History</button>
                 </div>
 
                 {/* Content */}
@@ -188,7 +190,7 @@ const DeliveryDashboard = () => {
                                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
                             </div>
                             <div>
-                                <button onClick={downloadCSV} style={{ background: '#253D4E', color: '#fff', border: 'none', padding: '9px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>📥 CSV</button>
+                                <button onClick={downloadCSV} style={{ background: '#253D4E', color: '#fff', border: 'none', padding: '9px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}><Inbox size={16} /> CSV</button>
                             </div>
                         </div>
 

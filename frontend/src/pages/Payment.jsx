@@ -7,6 +7,8 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
+import { DollarSign, ArrowRight } from 'react-feather';
+
 const Payment = () => {
     const { user, loading: authLoading } = useAuth();
     const { cartItems, cartTotal, fetchCart } = useCart();
@@ -324,7 +326,7 @@ const Payment = () => {
                     {/* Wallet - Disabled */}
                     <div style={{ flex: '1 1 140px', height: '140px', border: '1px solid #e6e6e6', borderRadius: '10px', cursor: 'not-allowed', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5, background: '#f8f8f8' }}>
                         <div style={{ marginBottom: '8px' }}>
-                            <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="20" textAnchor="middle" fill="#fff" fontSize="24">💰</text><text x="40" y="42" textAnchor="middle" fill="#fff" fontSize="10">₹0</text></svg>
+                            <svg width="80" height="50" viewBox="0 0 80 50"><rect fill="#046938" rx="8" width="80" height="50"/><text x="40" y="20" textAnchor="middle" fill="#fff" fontSize="24"><DollarSign size={16} /></text><text x="40" y="42" textAnchor="middle" fill="#fff" fontSize="10">₹0</text></svg>
                         </div>
                         <span style={{ fontWeight: '600', fontSize: '12px', color: '#253D4E', textAlign: 'center' }}>Insufficient Wallet Balance</span>
                     </div>
@@ -349,7 +351,7 @@ const Payment = () => {
                 <div style={{ textAlign: 'center' }}>
                     <button onClick={handlePlaceOrder} disabled={loading}
                         style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: loading ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                        {loading ? 'Processing...' : 'Complete Order'} <span style={{ fontSize: '18px' }}>➜</span>
+                        {loading ? 'Processing...' : 'Complete Order'} <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
                     </button>
                 </div>
             </div>

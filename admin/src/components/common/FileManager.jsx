@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import api, { getAssetUrl } from '../../api';
 import toast from 'react-hot-toast';
 
+import { Folder } from 'react-feather';
+
 const FileManager = ({ onSelect, onClose }) => {
     const [currentPath, setCurrentPath] = useState('');
     const [folders, setFolders] = useState([]);
@@ -137,14 +139,14 @@ const FileManager = ({ onSelect, onClose }) => {
                     <>
                         {currentPath && (
                             <div onClick={navigateUp} style={{ width: '100px', cursor: 'pointer', textAlign: 'center' }}>
-                                <div style={{ fontSize: '40px', color: '#ffc107' }}>📁</div>
+                                <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px' }}>.. (Up)</div>
                             </div>
                         )}
                         
                         {folders.map(folder => (
                             <div key={folder} onClick={() => loadFiles(currentPath ? `${currentPath}/${folder}` : folder)} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', position: 'relative' }}>
-                                <div style={{ fontSize: '40px', color: '#ffc107' }}>📁</div>
+                                <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px', wordBreak: 'break-all' }}>{folder}</div>
                                 <button 
                                     onClick={(e) => deleteFolder(folder, e)} 

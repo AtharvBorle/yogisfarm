@@ -6,6 +6,8 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
+import { ArrowLeft } from 'react-feather';
+
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
     const navigate = useNavigate();
@@ -363,7 +365,7 @@ const Dashboard = () => {
                                                 </div>
                                             </div>
 
-                                            <Link to="?tab=orders" style={{ color: '#046938', fontWeight: '600' }}>← Back to Orders</Link>
+                                            <Link to="?tab=orders" style={{ color: '#046938', fontWeight: '600' }}><ArrowLeft size={16} /> Back to Orders</Link>
                                         </div>
                                     )}
 

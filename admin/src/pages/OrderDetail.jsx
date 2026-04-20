@@ -4,6 +4,8 @@ import api from '../api';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
+import { Edit, Truck, Settings, Printer, Menu, User, Smartphone, Mail, MapPin, Phone, Calendar, BarChart2, CreditCard, Package, FileText, Trash2, Plus } from 'react-feather';
+
 const OrderDetail = () => {
     const { orderNumber } = useParams();
     const navigate = useNavigate();
@@ -186,19 +188,19 @@ const OrderDetail = () => {
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <button onClick={openDeliveryOptionModal}
                         style={{ padding: '8px 18px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        🚚 Delivery Option
+                        <Truck size={16} /> Delivery Option
                     </button>
                     <button onClick={() => { setManageType('delivery_boy'); setEditingId(null); setManageOpen(true); }}
                         style={{ padding: '8px 18px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        ⚙️ Manage
+                        <Settings size={16} /> Manage
                     </button>
                     <button onClick={() => navigate(`/orders/invoice/${order.orderNumber}`)}
                         style={{ padding: '8px 18px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        🖨 Print
+                        <Printer size={16} /> Print
                     </button>
                     <button onClick={() => navigate('/orders')}
                         style={{ padding: '8px 18px', background: '#253D4E', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        ☰ Order List
+                        <Menu size={16} /> Order List
                     </button>
                 </div>
             </div>
@@ -210,21 +212,21 @@ const OrderDetail = () => {
                     <h5 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: '#253D4E' }}>Contact Details</h5>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>👤</div>
+                            <div style={iconCircle}><User size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Name</div>
                                 <div style={valueStyle}>{order.user?.name || 'N/A'}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>📱</div>
+                            <div style={iconCircle}><Smartphone size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Mobile No</div>
                                 <div style={valueStyle}>+91 - {order.user?.phone}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>✉️</div>
+                            <div style={iconCircle}><Mail size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Email Id</div>
                                 <div style={valueStyle}>{order.user?.email || 'N/A'}</div>
@@ -238,14 +240,14 @@ const OrderDetail = () => {
                     <h5 style={{ fontWeight: '700', marginBottom: '20px', fontSize: '16px', color: '#253D4E' }}>Delivery Address</h5>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                            <div style={iconCircle}>📍</div>
+                            <div style={iconCircle}><MapPin size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Address</div>
                                 <div style={valueStyle}>{order.addressText}, {order.addressCity}, {order.addressState}, India - {order.addressPincode}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>📞</div>
+                            <div style={iconCircle}><Phone size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Phone</div>
                                 <div style={valueStyle}>+91 - {order.addressPhone}</div>
@@ -261,26 +263,26 @@ const OrderDetail = () => {
                         <div style={{ display: 'flex', gap: '6px' }}>
                             <button onClick={() => { setPaymentForm({ paymentStatus: order.paymentStatus, paymentDescription: order.paymentDescription || '' }); setPaymentOpen(true); }}
                                 style={{ padding: '4px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
-                                ✏️ Edit Payment
+                                <Edit size={16} /> Edit Payment
                             </button>
                             {!['delivered', 'cancelled', 'returned'].includes(order.orderStatus) && (
                                 <button onClick={() => { setStatusForm(''); setStatusOpen(true); }}
                                     style={{ padding: '4px 10px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
-                                    ✏️ Edit Order
+                                    <Edit size={16} /> Edit Order
                                 </button>
                             )}
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>📅</div>
+                            <div style={iconCircle}><Calendar size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Date & Time</div>
                                 <div style={valueStyle}>{formatDateTime(order.createdAt)}</div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>📊</div>
+                            <div style={iconCircle}><BarChart2 size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Order Status</div>
                                 <span style={{
@@ -292,7 +294,7 @@ const OrderDetail = () => {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                            <div style={iconCircle}>💳</div>
+                            <div style={iconCircle}><CreditCard size={16} /></div>
                             <div>
                                 <div style={labelStyle}>Payment Status</div>
                                 <div style={{ display: 'flex', gap: '0', alignItems: 'center' }}>
@@ -305,7 +307,7 @@ const OrderDetail = () => {
                                 </div>
                                 {order.paymentMethod === 'online' && order.paymentDescription && (
                                     <div style={{ fontSize: '12px', color: '#007bff', marginTop: '6px', fontWeight: '500' }}>
-                                        💳 Payment ID: <strong>{order.paymentDescription}</strong>
+                                        <CreditCard size={16} /> Payment ID: <strong>{order.paymentDescription}</strong>
                                     </div>
                                 )}
                             </div>
@@ -318,7 +320,7 @@ const OrderDetail = () => {
             {(order.deliveryBoy || order.courierPartner) && (
                 <div style={{ ...cardStyle, marginBottom: '25px' }}>
                     <h5 style={{ fontWeight: '700', marginBottom: '10px', fontSize: '16px' }}>
-                        {order.deliveryType === 'courier' ? '📦 Courier Partner' : '🚚 Delivery Boy'}
+                        {order.deliveryType === 'courier' ? '<Package size={16} /> Courier Partner' : '<Truck size={16} /> Delivery Boy'}
                     </h5>
                     {order.deliveryType === 'courier' && order.courierPartner ? (
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -338,7 +340,7 @@ const OrderDetail = () => {
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: '600' }}>{order.deliveryBoy.name}</span>
                             <span style={{ color: '#888' }}>{order.deliveryBoy.phone}</span>
-                            {order.deliveryBoy.city && <span style={{ fontSize: '12px', color: '#555' }}>📍 {order.deliveryBoy.city}{order.deliveryBoy.pincode ? ` - ${order.deliveryBoy.pincode}` : ''}</span>}
+                            {order.deliveryBoy.city && <span style={{ fontSize: '12px', color: '#555' }}><MapPin size={16} /> {order.deliveryBoy.city}{order.deliveryBoy.pincode ? ` - ${order.deliveryBoy.pincode}` : ''}</span>}
                             <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#28a745', color: '#fff' }}>Assigned</span>
                         </div>
                     ) : null}
@@ -348,7 +350,7 @@ const OrderDetail = () => {
             {/* Order Note */}
             <div style={{ ...cardStyle, marginBottom: '25px' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={iconCircle}>📝</div>
+                    <div style={iconCircle}><FileText size={16} /></div>
                     <strong>Order Note:</strong> <span style={{ color: '#555' }}>{order.orderNote || '—'}</span>
                 </div>
             </div>
@@ -431,7 +433,7 @@ const OrderDetail = () => {
                 <form onSubmit={updatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     {order.paymentMethod === 'online' && order.paymentDescription && (
                         <div style={{ padding: '10px 15px', background: '#e3f2fd', borderRadius: '6px', fontSize: '13px' }}>
-                            💳 Razorpay Payment ID: <strong style={{ color: '#007bff' }}>{order.paymentDescription}</strong>
+                            <CreditCard size={16} /> Razorpay Payment ID: <strong style={{ color: '#007bff' }}>{order.paymentDescription}</strong>
                         </div>
                     )}
                     <div>
@@ -462,12 +464,12 @@ const OrderDetail = () => {
                         <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: deliveryOptionType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
                             <input type="radio" name="deliveryOptionType" value="delivery_boy" checked={deliveryOptionType === 'delivery_boy'}
                                 onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#28a745' }} />
-                            🚚 Delivery Boy
+                            <Truck size={16} /> Delivery Boy
                         </label>
                         <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: deliveryOptionType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
                             <input type="radio" name="deliveryOptionType" value="courier" checked={deliveryOptionType === 'courier'}
                                 onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#007bff' }} />
-                            📦 Courier Partner
+                            <Package size={16} /> Courier Partner
                         </label>
                     </div>
 
@@ -482,7 +484,7 @@ const OrderDetail = () => {
                                 ))}
                             </select>
                             {deliveryBoys.length === 0 && (
-                                <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No delivery boys available. Use the ⚙️ Manage button to create one.</div>
+                                <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No delivery boys available. Use the <Settings size={16} /> Manage button to create one.</div>
                             )}
                         </div>
                     )}
@@ -499,7 +501,7 @@ const OrderDetail = () => {
                                     ))}
                                 </select>
                                 {courierPartners.length === 0 && (
-                                    <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No courier partners available. Use the ⚙️ Manage button to create one.</div>
+                                    <div style={{ fontSize: '12px', color: '#dc3545', marginTop: '5px' }}>No courier partners available. Use the <Settings size={16} /> Manage button to create one.</div>
                                 )}
                             </div>
                             <div>
@@ -524,12 +526,12 @@ const OrderDetail = () => {
                         <label style={{ ...radioLabelStyle, background: manageType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: manageType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
                             <input type="radio" name="manageType" value="delivery_boy" checked={manageType === 'delivery_boy'}
                                 onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#28a745' }} />
-                            🚚 Delivery Boys
+                            <Truck size={16} /> Delivery Boys
                         </label>
                         <label style={{ ...radioLabelStyle, background: manageType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: manageType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
                             <input type="radio" name="manageType" value="courier" checked={manageType === 'courier'}
                                 onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#007bff' }} />
-                            📦 Courier Partners
+                            <Package size={16} /> Courier Partners
                         </label>
                     </div>
 
@@ -579,9 +581,9 @@ const OrderDetail = () => {
                                                         <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, pin: '', city: db.city || '', pincode: db.pincode || '' }); }}
-                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>✏️</button>
+                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}><Edit size={16} /></button>
                                                                 <button onClick={() => handleDelete(db.id)}
-                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>🗑️</button>
+                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}><Trash2 size={16} /></button>
                                                             </div>
                                                         </td>
                                                     </>
@@ -594,7 +596,7 @@ const OrderDetail = () => {
 
                             {/* Add New Form */}
                             <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
-                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}>➕ Add New Delivery Boy</div>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}><Plus size={16} /> Add New Delivery Boy</div>
                                 <form onSubmit={handleAddDeliveryBoy} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                                     <div style={{ flex: '1', minWidth: '120px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>
@@ -666,9 +668,9 @@ const OrderDetail = () => {
                                                         <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={() => { setEditingId(cp.id); setEditForm({ name: cp.name, trackingLink: cp.trackingLink }); }}
-                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>✏️</button>
+                                                                    style={{ padding: '3px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}><Edit size={16} /></button>
                                                                 <button onClick={() => handleDelete(cp.id)}
-                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>🗑️</button>
+                                                                    style={{ padding: '3px 10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}><Trash2 size={16} /></button>
                                                             </div>
                                                         </td>
                                                     </>
@@ -681,7 +683,7 @@ const OrderDetail = () => {
 
                             {/* Add New Form */}
                             <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
-                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}>➕ Add New Courier Partner</div>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}><Plus size={16} /> Add New Courier Partner</div>
                                 <form onSubmit={handleAddCourier} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                                     <div style={{ flex: '1', minWidth: '150px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>

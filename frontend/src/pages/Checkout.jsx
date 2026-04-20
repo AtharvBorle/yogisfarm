@@ -7,6 +7,8 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
+import { X, ArrowRight } from 'react-feather';
+
 const Checkout = () => {
     const { user, loading: authLoading } = useAuth();
     const { cartItems, cartTotal } = useCart();
@@ -247,7 +249,7 @@ const Checkout = () => {
                     <div style={{ textAlign: 'center', marginTop: '40px' }}>
                         <button onClick={handleProceedToPayment}
                             style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                            Proceed To Payment <span style={{ fontSize: '18px' }}>➜</span>
+                            Proceed To Payment <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
                         </button>
                     </div>
                 )}
@@ -259,7 +261,7 @@ const Checkout = () => {
                     <div style={{ background: '#fff', width: '100%', maxWidth: '500px', borderRadius: '8px', overflow: 'hidden' }} onMouseDown={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #e6e6e6' }}>
                             <h5 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#253D4E' }}>New Address</h5>
-                            <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#7E7E7E' }}>✕</button>
+                            <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#7E7E7E' }}><X size={18} /></button>
                         </div>
                         
                         <div style={{ padding: '20px', maxHeight: '70vh', overflowY: 'auto' }}>

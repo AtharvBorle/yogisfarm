@@ -4,6 +4,8 @@ import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
+import { DollarSign, Clock } from 'react-feather';
+
 const Collections = () => {
     const [deliveryBoys, setDeliveryBoys] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
@@ -76,8 +78,8 @@ const Collections = () => {
             header: 'Actions',
             render: row => (
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => openCollectModal(row)} className="btn-edit" style={{ background: '#28a745', padding: '6px 12px' }}>💰 Collect Cash</button>
-                    <button onClick={() => openHistoryModal(row)} className="btn-edit" style={{ background: '#6c757d', padding: '6px 12px' }}>🕒 History</button>
+                    <button onClick={() => openCollectModal(row)} className="btn-edit" style={{ background: '#28a745', padding: '6px 12px' }}><DollarSign size={16} /> Collect Cash</button>
+                    <button onClick={() => openHistoryModal(row)} className="btn-edit" style={{ background: '#6c757d', padding: '6px 12px' }}><Clock size={16} /> History</button>
                 </div>
             )
         }

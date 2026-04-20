@@ -5,6 +5,8 @@ import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
 import FeatureBanners from '../components/FeatureBanners';
 
+import { ArrowRight } from 'react-feather';
+
 const ProductSmallCard = ({ product }) => (
     <article className="row align-items-center mb-10">
         <figure className="col-md-4 mb-0">
@@ -250,7 +252,7 @@ const Home = () => {
                         <div className="container">
                             <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <h3 style={{ fontStyle: 'italic' }}>{section.name}</h3>
-                                <Link to={`/shop?category=${section.category?.slug}`} style={{ color: '#046938', fontSize: '14px', fontWeight: '600' }}>View All →</Link>
+                                <Link to={`/shop?category=${section.category?.slug}`} style={{ color: '#046938', fontSize: '14px', fontWeight: '600' }}>View All <ArrowRight size={16} /></Link>
                             </div>
                             <div className="row product-grid-4">
                                 {products.map(product => (

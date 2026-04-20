@@ -5,6 +5,8 @@ import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
+import { Edit, Eye, FileText } from 'react-feather';
+
 const Order = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
@@ -111,11 +113,11 @@ const Order = () => {
             render: (row) => (
                 <div style={{ display: 'flex', gap: '6px' }}>
                     <button onClick={() => navigate(`/orders/detail/${row.orderNumber}`)} title="Edit"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#28a745', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#28a745', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit size={16} /></button>
                     <button onClick={() => openViewModal(row)} title="View"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👁</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Eye size={16} /></button>
                     <button onClick={() => navigate(`/orders/invoice/${row.orderNumber}`)} title="Invoice"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#dc3545', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📄</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#dc3545', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FileText size={16} /></button>
                 </div>
             )
         }

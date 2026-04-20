@@ -6,6 +6,8 @@ import FileManager from '../components/common/FileManager';
 import ReorderModal from '../components/common/ReorderModal';
 import toast from 'react-hot-toast';
 
+import { Image } from 'react-feather';
+
 const Slider = () => {
     const [sliders, setSliders] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
@@ -158,7 +160,7 @@ const Slider = () => {
                                         <img src={getAssetUrl(formData.image)} alt="Selected" />
                                     ) : (
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}>🖼️</div>
+                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}><Image size={48} /></div>
                                         </div>
                                     )}
                                 </div>

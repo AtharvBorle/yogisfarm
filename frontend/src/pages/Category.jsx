@@ -4,6 +4,8 @@ import api, { getAssetUrl } from '../api';
 import FeatureBanners from '../components/FeatureBanners';
 import ProductCard from '../components/ProductCard';
 
+import { X } from 'react-feather';
+
 const Category = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -140,7 +142,7 @@ const Category = () => {
                         <div style={{ marginTop: '50px', background: '#fcfcfc', padding: '30px', borderRadius: '15px', border: '1px solid #eaeaea' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                 <h3 style={{ fontSize: '24px', color: '#253D4E', fontWeight: '700' }}>{selectedParent.name}</h3>
-                                <button onClick={() => setSelectedParent(null)} style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+                                <button onClick={() => setSelectedParent(null)} style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', fontSize: '18px' }}><X size={18} /></button>
                             </div>
                             
                             {/* Children Pills */}

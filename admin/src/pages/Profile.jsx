@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import toast from 'react-hot-toast';
 
+import { ChevronDown } from 'react-feather';
+
 const Profile = () => {
     const { admin } = useAuth();
     const [activeTab, setActiveTab] = useState('basic');
@@ -130,7 +132,7 @@ const Profile = () => {
                                             <div style={{ border: '1px solid var(--border)', borderRight: 'none', padding: '8px 12px', background: 'transparent', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                 <img src="https://flagcdn.com/w20/in.png" alt="India" style={{ width: '16px' }} />
                                                 <span style={{ fontSize: '14px', color: 'var(--text)' }}>+91</span>
-                                                <span style={{ fontSize: '10px' }}>▼</span>
+                                                <span style={{ fontSize: '10px' }}><ChevronDown size={16} /></span>
                                             </div>
                                             <input type="text" className="admin-input" defaultValue="72100 43004" style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }} />
                                         </div>

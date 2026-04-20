@@ -5,6 +5,8 @@ import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
 import toast from 'react-hot-toast';
 
+import { Image, X } from 'react-feather';
+
 const Product = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -235,7 +237,7 @@ const Product = () => {
                             <div className="admin-form-group">
                                 <label className="admin-label">Product Image <span className="required">*</span></label>
                                 <div className="image-placeholder-box" onClick={() => setFilemanagerOpen(true)}>
-                                    {formData.image ? <img src={getAssetUrl(formData.image)} alt="Selected" /> : <div style={{ fontSize: '48px', color: '#ccc' }}>🖼️</div>}
+                                    {formData.image ? <img src={getAssetUrl(formData.image)} alt="Selected" /> : <div style={{ fontSize: '48px', color: '#ccc' }}><Image size={48} /></div>}
                                 </div>
                             </div>
 
@@ -371,7 +373,7 @@ const Product = () => {
                                         <input placeholder="Price" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Sale Price" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Stock" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addVariant} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Variant</button>
@@ -381,7 +383,7 @@ const Product = () => {
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                                         <input placeholder="Title" value={b.title} onChange={e => updateBenefit(idx, 'title', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Description" value={b.description} onChange={e => updateBenefit(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addBenefit} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Benefit</button>
@@ -391,7 +393,7 @@ const Product = () => {
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                                         <input placeholder="Feature" value={f.feature} onChange={e => updateFeature(idx, 'feature', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Description" value={f.description} onChange={e => updateFeature(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addFeature} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Feature</button>
