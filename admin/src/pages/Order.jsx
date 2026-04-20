@@ -10,6 +10,7 @@ const Order = () => {
     const [orders, setOrders] = useState([]);
     const [deliveryBoys, setDeliveryBoys] = useState([]);
     const [filters, setFilters] = useState({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
+    const [searchQuery, setSearchQuery] = useState('');
     const [isViewOpen, setViewOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -74,7 +75,7 @@ const Order = () => {
                 const isCourier = row.deliveryType === 'courier';
                 return (
                     <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '4px', fontWeight: '600', background: isAssigned ? (isCourier ? '#e3f2fd' : '#e8f5e9') : '#fde8e8', color: isAssigned ? (isCourier ? '#007bff' : '#28a745') : '#dc3545' }}>
-                        {isCourier && row.courierPartner ? `📦 ${row.courierPartner.name}` : row.deliveryBoy ? `🚚 ${row.deliveryBoy.name}` : 'Not Assigned'}
+                        {isCourier && row.courierPartner ? row.courierPartner.name : row.deliveryBoy ? row.deliveryBoy.name : 'Not Assigned'}
                     </span>
                 );
             }
@@ -163,15 +164,36 @@ const Order = () => {
                         <option value="refunded">Refunded</option>
                     </select>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', flex: 1 }}>
+                    <div style={{ marginRight: 'auto', width: '100%', maxWidth: '300px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Search Order</label>
+                        <input 
+                            type="text" 
+                            placeholder="Order ID, Name, Email, Phone" 
+                            value={searchQuery} 
+                            onChange={(e) => setSearchQuery(e.target.value)} 
+                            style={{ ...inputStyle, width: '100%' }} 
+                        />
+                    </div>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button onClick={() => setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' })}
+                    <button onClick={() => { setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' }); setSearchQuery(''); }}
                         style={{ padding: '8px 15px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                         Clear Filters
                     </button>
                 </div>
             </div>
 
-            <DataTable columns={columns} data={orders} />
+            <DataTable columns={columns} data={orders.filter(order => {
+                if (!searchQuery) return true;
+                const query = searchQuery.toLowerCase();
+                return (
+                    (order.orderNumber?.toLowerCase().includes(query)) ||
+                    (order.user?.name?.toLowerCase().includes(query)) ||
+                    (order.user?.email?.toLowerCase().includes(query)) ||
+                    (order.user?.phone?.toLowerCase().includes(query))
+                );
+            })} />
 
             {/* Quick View Modal */}
             <GenericModal isOpen={isViewOpen} title={`Order Details`} onClose={() => setViewOpen(false)}>

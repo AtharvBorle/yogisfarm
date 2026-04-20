@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import { useCart } from '../context/CartContext';
 import ProductCard from '../components/ProductCard';
@@ -14,6 +14,7 @@ const Product = () => {
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [mainImage, setMainImage] = useState(null);
     const { addToCart } = useCart();
+    const navigate = useNavigate();
 
     useEffect(() => {
         setLoading(true);
@@ -55,6 +56,22 @@ const Product = () => {
 
     const handleAddToCart = () => {
         addToCart(product.id, selectedVariant?.id, quantity);
+    };
+
+    const handleBuyNow = () => {
+        addToCart(product.id, selectedVariant?.id, quantity);
+        navigate('/checkout');
+    };
+
+    const handleWishlist = async () => {
+        try {
+            const res = await api.post('/wishlist', { productId: product.id });
+            if (res.data.status) {
+                // Success feedback if needed (optional toast)
+            }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const avgRating = product.reviews?.length > 0 
@@ -162,13 +179,16 @@ const Product = () => {
                                                         <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
                                                         <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
                                                     </div>
-                                                    <div className="product-extra-link2">
+                                                    <div className="product-extra-link2" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                         {isOutOfStock ? (
                                                             <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
                                                         ) : (
-                                                            <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
+                                                            <>
+                                                                <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
+                                                                <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
+                                                            </>
                                                         )}
-                                                        <a aria-label="Add To Wishlist" className="action-btn hover-up" href="#!"><i className="fi-rs-heart"></i></a>
+                                                        <button aria-label="Add To Wishlist" className="action-btn hover-up" onClick={handleWishlist} style={{ border: '1px solid #ddd', background: '#fff', borderRadius: '5px', padding: '10px 15px' }}><i className="fi-rs-heart"></i></button>
                                                     </div>
                                                 </div>
                                             );
@@ -178,6 +198,7 @@ const Product = () => {
                                             <ul className="mr-50 float-start">
                                                 {product.category && <li className="mb-5">Category: <Link to={`/shop?category=${product.category.slug}`}>{product.category.name}</Link></li>}
                                                 <li className="mb-5">Availability: <span className={product.stock > 0 ? "in-stock text-success" : "text-danger"}>{product.stock > 0 ? "In Stock" : "Out of Stock"}</span></li>
+                                                {product.tags && <li className="mb-5">Tags: {product.tags.split(',').map(t => <span key={t} style={{ background: '#eee', padding: '2px 8px', borderRadius: '10px', marginRight: '5px' }}>{t.trim()}</span>)}</li>}
                                             </ul>
                                         </div>
                                     </div>
@@ -189,12 +210,36 @@ const Product = () => {
                                 <div className="tab-style3">
                                     <ul className="nav nav-tabs text-uppercase">
                                         <li className="nav-item"><a className="nav-link active" data-bs-toggle="tab" href="#desc-tab">Description</a></li>
+                                        {product.features && product.features.length > 0 && <li className="nav-item"><a className="nav-link" data-bs-toggle="tab" href="#features-tab">Features</a></li>}
+                                        {product.benefits && product.benefits.length > 0 && <li className="nav-item"><a className="nav-link" data-bs-toggle="tab" href="#benefits-tab">Benefits</a></li>}
                                         <li className="nav-item"><a className="nav-link" data-bs-toggle="tab" href="#reviews-tab">Reviews ({product.reviews?.length || 0})</a></li>
                                     </ul>
                                     <div className="tab-content shop_info_tab entry-main-content">
                                         <div className="tab-pane fade show active" id="desc-tab">
                                             <div className="p-30">{product.description || 'No description available.'}</div>
                                         </div>
+                                        {product.features && product.features.length > 0 && (
+                                            <div className="tab-pane fade" id="features-tab">
+                                                <div className="p-30">
+                                                    <ul style={{ listStyle: 'disc', paddingLeft: '20px' }}>
+                                                        {product.features.map((f, i) => (
+                                                            <li key={i} className="mb-10"><strong>{f.feature}:</strong> {f.description}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {product.benefits && product.benefits.length > 0 && (
+                                            <div className="tab-pane fade" id="benefits-tab">
+                                                <div className="p-30">
+                                                    <ul style={{ listStyle: 'disc', paddingLeft: '20px' }}>
+                                                        {product.benefits.map((b, i) => (
+                                                            <li key={i} className="mb-10"><strong>{b.title}:</strong> {b.description}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="tab-pane fade" id="reviews-tab">
                                             <div className="p-30">
                                                 {product.reviews && product.reviews.length > 0 ? (

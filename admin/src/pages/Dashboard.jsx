@@ -184,7 +184,7 @@ const Dashboard = () => {
                                             <td style={{ padding: '15px 10px', fontSize: '14px' }}>{order.paymentMethod.toUpperCase()}</td>
                                             <td style={{ padding: '15px 10px', fontSize: '14px' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
                                             <td style={{ padding: '15px 10px' }}>
-                                                <Link to={`/orders/${order.id}`} style={{ color: '#1a73e8' }}><Eye size={18} /></Link>
+                                                <Link to={`/orders/detail/${order.orderNumber}`} style={{ color: '#1a73e8' }}><Eye size={18} /></Link>
                                             </td>
                                         </tr>
                                     ))

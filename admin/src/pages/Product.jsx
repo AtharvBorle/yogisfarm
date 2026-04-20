@@ -18,7 +18,7 @@ const Product = () => {
     const [editingId, setEditingId] = useState(null);
 
     const defaultForm = {
-        name: '', shortDescription: '', description: '', categoryId: '', brandId: '',
+        name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '',
         price: '', salePrice: '', image: '', video: '', tags: '', stock: '0', unit: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
@@ -48,9 +48,16 @@ const Product = () => {
     };
 
     const openEditModal = (row) => {
+        let parentCatId = '';
+        if (row.categoryId) {
+            const cat = categories.find(c => c.id === row.categoryId);
+            if (cat && cat.parentId) parentCatId = cat.parentId;
+            else parentCatId = row.categoryId || '';
+        }
+
         setFormData({
             name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
-            categoryId: row.categoryId || '', brandId: row.brandId || '',
+            parentCategoryId: parentCatId, categoryId: row.categoryId || '', brandId: row.brandId || '',
             price: row.price || '', salePrice: row.salePrice || '', image: row.image || '',
             video: row.video || '', tags: row.tags || '', stock: row.stock || 0, unit: row.unit || '',
             status: row.status, featured: row.featured, popular: row.popular, deal: row.deal,
@@ -268,11 +275,35 @@ const Product = () => {
                             <div className="modal-row-2">
                                 <div className="admin-form-group">
                                     <label className="admin-label">Category</label>
-                                    <select value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="admin-select">
+                                    <select 
+                                        value={formData.parentCategoryId} 
+                                        onChange={e => {
+                                            const newParentId = e.target.value;
+                                            setFormData({ ...formData, parentCategoryId: newParentId, categoryId: newParentId });
+                                        }} 
+                                        className="admin-select"
+                                    >
                                         <option value="">-- Select --</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {categories.filter(c => !c.parentId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
+                                {formData.parentCategoryId && categories.some(c => c.parentId === Number(formData.parentCategoryId)) && (
+                                    <div className="admin-form-group">
+                                        <label className="admin-label">Sub Category</label>
+                                        <select 
+                                            value={formData.categoryId !== formData.parentCategoryId ? formData.categoryId : ''} 
+                                            onChange={e => {
+                                                const newChildId = e.target.value;
+                                                // If 'All' is selected, fallback to parent id
+                                                setFormData({ ...formData, categoryId: newChildId ? newChildId : formData.parentCategoryId });
+                                            }} 
+                                            className="admin-select"
+                                        >
+                                            <option value="">-- All --</option>
+                                            {categories.filter(c => c.parentId === Number(formData.parentCategoryId)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="admin-form-group">
                                     <label className="admin-label">Brand</label>
                                     <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} className="admin-select">
@@ -282,7 +313,7 @@ const Product = () => {
                                 </div>
                             </div>
 
-                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
                                 <div className="admin-form-group">
                                     <label className="admin-label">Price <span className="required">*</span></label>
                                     <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
@@ -294,6 +325,10 @@ const Product = () => {
                                 <div className="admin-form-group">
                                     <label className="admin-label">Stock</label>
                                     <input type="number" min="0" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Unit</label>
+                                    <input type="text" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} className="admin-input" placeholder="e.g. 1kg" />
                                 </div>
                             </div>
 
