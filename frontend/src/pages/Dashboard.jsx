@@ -16,7 +16,7 @@ const Dashboard = () => {
     const [orders, setOrders] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [showAddressForm, setShowAddressForm] = useState(false);
-    const [newAddress, setNewAddress] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home' });
+    const [newAddress, setNewAddress] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home', isDefault: false });
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [reviewModal, setReviewModal] = useState(null);
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
@@ -59,12 +59,30 @@ const Dashboard = () => {
 
     const handleSaveAddress = async () => {
         try {
-            const res = await api.post('/addresses', { ...newAddress, isDefault: addresses.length === 0 });
+            let res;
+            if (newAddress.id) {
+                res = await api.put(`/addresses/${newAddress.id}`, { ...newAddress, isDefault: newAddress.isDefault !== undefined ? newAddress.isDefault : addresses.length === 1 });
+            } else {
+                res = await api.post('/addresses', { ...newAddress, isDefault: addresses.length === 0 || newAddress.isDefault });
+            }
+            
             if (res.data.status) {
-                toast.success('Address saved');
-                setAddresses([...addresses, res.data.address]);
+                toast.success(`Address ${newAddress.id ? 'updated' : 'saved'}`);
+                if (newAddress.id) {
+                    let updatedAddresses = addresses.map(a => a.id === res.data.address.id ? res.data.address : a);
+                    if (res.data.address.isDefault) {
+                        updatedAddresses = updatedAddresses.map(a => a.id !== res.data.address.id ? { ...a, isDefault: false } : a);
+                    }
+                    setAddresses(updatedAddresses);
+                } else {
+                    let updatedAddresses = [...addresses, res.data.address];
+                    if (res.data.address.isDefault) {
+                        updatedAddresses = updatedAddresses.map(a => a.id !== res.data.address.id ? { ...a, isDefault: false } : a);
+                    }
+                    setAddresses(updatedAddresses);
+                }
                 setShowAddressForm(false);
-                setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home' });
+                setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home', isDefault: false });
             }
         } catch (err) { toast.error(err.response?.data?.message || 'Failed to save address'); }
     };
@@ -371,6 +389,10 @@ const Dashboard = () => {
                                                                     <option value="Work">Work</option>
                                                                     <option value="Other">Other</option>
                                                                 </select>
+                                                                <div className="mt-10" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <input type="checkbox" id="isDefault" checked={newAddress.isDefault || false} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#046938' }} />
+                                                                    <label htmlFor="isDefault" style={{ color: '#253D4E', fontWeight: '600', cursor: 'pointer', margin: 0 }}>Set as Default Address</label>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <button type="button" className="btn btn-sm" style={{ background: '#046938', color: '#fff' }} onClick={handleSaveAddress}>Save</button>
@@ -383,9 +405,10 @@ const Dashboard = () => {
                                                                 <strong>{addr.name}</strong>
                                                                 <p className="mb-0 font-sm">{addr.address}, {addr.city}, {addr.state} - {addr.pincode}</p>
                                                                 <small>{addr.phone}</small>
-                                                                <div style={{ marginTop: '5px', display: 'flex', gap: '5px' }}>
+                                                                <div style={{ marginTop: '5px', display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                                     {addr.isDefault && <span className="badge bg-success">Default</span>}
                                                                     <span className="badge" style={{ background: '#f0f0f0', color: '#555' }}>{addr.addressType || 'Home'}</span>
+                                                                    <button onClick={() => { setNewAddress(addr); setShowAddressForm(true); }} style={{ marginLeft: 'auto', background: 'none', border: '1px solid #e6e6e6', padding: '3px 10px', borderRadius: '4px', fontSize: '12px', color: '#046938', cursor: 'pointer' }}>Edit</button>
                                                                 </div>
                                                             </div>
                                                         </div>
