@@ -105,6 +105,7 @@ const Dashboard = () => {
     const sidebarItems = [
         { key: 'dashboard', icon: 'fi-rs-settings-sliders', label: 'Dashboard' },
         { key: 'orders', icon: 'fi-rs-shopping-bag', label: 'My Order' },
+        { key: 'addresses', icon: 'fi-rs-marker', label: 'My Addresses' },
         { key: 'profile', icon: 'fi-rs-user', label: 'My Profile' },
     ];
 
