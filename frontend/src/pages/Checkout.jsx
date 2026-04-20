@@ -126,11 +126,16 @@ const Checkout = () => {
 
     const handleSaveAddress = async () => {
         try {
-            const payload = { ...newAddress, isDefault: addresses.length === 0 };
+            const payload = { ...newAddress, isDefault: addresses.length === 0 || newAddress.isDefault };
             const res = await api.post('/addresses', payload);
             if (res.data.status) {
                 toast.success('Address saved successfully');
-                setAddresses([...addresses, res.data.address]);
+                if (payload.isDefault) {
+                    const updatedAddresses = addresses.map(a => ({ ...a, isDefault: false }));
+                    setAddresses([...updatedAddresses, res.data.address]);
+                } else {
+                    setAddresses([...addresses, res.data.address]);
+                }
                 setSelectedAddress(res.data.address);
                 setShowModal(false);
                 setNewAddress({
@@ -299,13 +304,17 @@ const Checkout = () => {
 
                             <div style={{ marginBottom: '15px' }}>
                                 <label style={{ fontSize: '14px', fontWeight: '700', color: '#253D4E', marginBottom: '10px', display: 'block' }}>Save Address As</label>
-                                <div style={{ display: 'flex', gap: '15px' }}>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                     {['Home', 'Work', 'Other'].map(type => (
                                         <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#7E7E7E', fontSize: '14px', margin: 0 }}>
                                             <input type="radio" checked={newAddress.addressType === type} onChange={() => setNewAddress({...newAddress, addressType: type})} style={{ width: '16px', height: '16px', accentColor: '#046938' }} />
                                             {type}
                                         </label>
                                     ))}
+                                </div>
+                                <div style={{ marginTop: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input type="checkbox" id="isDefaultCheckout" checked={newAddress.isDefault || false} onChange={e => setNewAddress({...newAddress, isDefault: e.target.checked})} style={{ width: '16px', height: '16px', accentColor: '#046938' }} />
+                                    <label htmlFor="isDefaultCheckout" style={{ color: '#253D4E', fontWeight: '600', cursor: 'pointer', margin: 0, fontSize: '14px' }}>Set as Default Address</label>
                                 </div>
                             </div>
                         </div>
