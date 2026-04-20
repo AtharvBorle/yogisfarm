@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import FeatureBanners from '../components/FeatureBanners';
 
-import { Check, Leaf, Heart } from 'react-feather';
+import { Check, Feather, Heart } from 'react-feather';
 
 const About = () => {
     return (
@@ -109,10 +109,10 @@ const About = () => {
                                         <span style={{ color: '#046938' }}><Check size={16} /></span> <strong>Purity:</strong> 100% natural and unrefined food without any adulteration.
                                     </li>
                                     <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Leaf size={16} /></span> <strong>Nutrition:</strong> Products rich in vitamins, minerals, and natural goodness.
+                                        <span style={{ color: '#046938' }}><Feather size={16} /></span> <strong>Nutrition:</strong> Products rich in vitamins, minerals, and natural goodness.
                                     </li>
                                     <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Leaf size={16} color="green" /></span> <strong>Sustainability:</strong> Supporting eco-friendly and sustainable farming practices.
+                                        <span style={{ color: '#046938' }}><Feather size={16} color="green" /></span> <strong>Sustainability:</strong> Supporting eco-friendly and sustainable farming practices.
                                     </li>
                                     <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
                                         <span style={{ color: '#046938' }}><Heart size={16} color="red" /></span> <strong>Trust:</strong> Every item is processed and packed with care.
