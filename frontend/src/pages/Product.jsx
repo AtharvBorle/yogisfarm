@@ -183,10 +183,10 @@ const Product = () => {
                                                         {isOutOfStock ? (
                                                             <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
                                                         ) : cartItem ? (
-                                                            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938', height: '100%' }}>
-                                                                <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '10px 15px', color: '#046938', fontSize: '20px', fontWeight: 'bold' }}>-</a>
-                                                                <span style={{ padding: '0 12px', fontSize: '16px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                                                <a onClick={() => cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '10px 15px', color: cartItem.quantity >= currentStock ? '#ccc' : '#046938', fontSize: '20px', fontWeight: 'bold', cursor: cartItem.quantity >= currentStock ? 'not-allowed' : 'pointer' }}>+</a>
+                                                            <div className="detail-qty border radius" style={{ margin: 0, height: '46px' }}>
+                                                                <a href="#!" className="qty-down" onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }}><i className="fi-rs-angle-small-down"></i></a>
+                                                                <span className="qty-val" style={{ display: 'inline-block', textAlign: 'center', minWidth: '40px', paddingTop: '10px', fontSize: '18px', fontWeight: 'bold' }}>{cartItem.quantity}</span>
+                                                                <a href="#!" className="qty-up" onClick={(e) => { e.preventDefault(); cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1); }}><i className="fi-rs-angle-small-up"></i></a>
                                                             </div>
                                                         ) : (
                                                             <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i> Add to cart</button>
