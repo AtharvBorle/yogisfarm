@@ -341,7 +341,7 @@ const Dashboard = () => {
                                                             <td style={headerCell}>Payment Status:</td>
                                                             <td style={cellPd}>
                                                                 <span style={{ padding: '3px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', background: payBadge(selectedOrder.paymentStatus).bg, color: '#fff' }}>
-                                                                    {payBadge(selectedOrder.paymentStatus).label === 'Paid' ? 'Completed' : 'Pending'}
+                                                                    {payBadge(selectedOrder.paymentStatus).label}
                                                                 </span>
                                                             </td>
                                                         </tr>
