@@ -63,33 +63,23 @@ const Dashboard = () => {
     const handleSaveAddress = async () => {
         try {
             let res;
+            const addressData = { ...newAddress, isDefault: addresses.length === 0 ? true : !!newAddress.isDefault };
             if (newAddress.id) {
-                res = await api.put(`/addresses/${newAddress.id}`, { ...newAddress, isDefault: newAddress.isDefault !== undefined ? newAddress.isDefault : addresses.length === 1 });
+                res = await api.put(`/addresses/${newAddress.id}`, addressData);
             } else {
-                res = await api.post('/addresses', { ...newAddress, isDefault: addresses.length === 0 || newAddress.isDefault });
-            }
-            
-            if (res.data.status) {
-                toast.success(`Address ${newAddress.id ? 'updated' : 'saved'}`);
-                if (newAddress.id) {
-                    let updatedAddresses = addresses.map(a => a.id === res.data.address.id ? res.data.address : a);
-                    if (res.data.address.isDefault) {
-                        updatedAddresses = updatedAddresses.map(a => a.id !== res.data.address.id ? { ...a, isDefault: false } : a);
-                    }
-                    setAddresses(updatedAddresses);
-                res = await api.put(`/addresses/${newAddress.id}`, newAddress);
-            } else {
-                res = await api.post('/addresses', newAddress);
+                res = await api.post('/addresses', addressData);
             }
             if (res.data.status) {
-                toast.success('Address saved successfully');
+                toast.success(`Address ${newAddress.id ? 'updated' : 'saved'} successfully`);
                 setShowAddressForm(false);
                 setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home', isDefault: false });
                 fetchAddresses();
             } else {
                 toast.error(res.data.message || 'Failed to save address');
             }
-        } catch (e) { toast.error('Error saving address'); }
+        } catch (e) {
+            toast.error(e.response?.data?.message || 'Error saving address');
+        }
     };
 
     const handleDeleteAddress = async (id) => {
