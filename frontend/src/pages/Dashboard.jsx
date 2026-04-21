@@ -24,6 +24,13 @@ const Dashboard = () => {
     const [reviewModal, setReviewModal] = useState(null);
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
+    const fetchAddresses = async () => {
+        try {
+            const res = await api.get('/addresses');
+            if (res.data.status) setAddresses(res.data.addresses);
+        } catch (err) { console.error(err); }
+    };
+
     useEffect(() => {
         if (authLoading) return;
         if (!user) { navigate('/login'); return; }
@@ -34,8 +41,7 @@ const Dashboard = () => {
                     if (res.data.status) setOrders(res.data.orders);
                 }
                 if (tab === 'addresses' || tab === 'dashboard') {
-                    const res = await api.get('/addresses');
-                    if (res.data.status) setAddresses(res.data.addresses);
+                    fetchAddresses();
                 }
             } catch (err) { console.error(err); }
         };
@@ -415,14 +421,17 @@ const Dashboard = () => {
                                                         <div className="row">
                                                             <div className="col-md-6 mb-10"><input type="text" className="form-control" placeholder="Name *" value={newAddress.name} onChange={e => setNewAddress({...newAddress, name: e.target.value})} /></div>
                                                             <div className="col-md-6 mb-10"><input type="text" className="form-control" placeholder="Phone *" value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} maxLength="10" /></div>
-                                                            <div className="col-12 mb-10"><textarea className="form-control" placeholder="Address *" value={newAddress.address} onChange={e => setNewAddress({...newAddress, address: e.target.value})}></textarea></div>
-                                                            <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="City *" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} /></div>
-                                                            <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="State *" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} /></div>
+                                                            
                                                             <div className="col-md-4 mb-10" style={{ position: 'relative' }}>
                                                                 <input type="text" className="form-control" placeholder="Pincode *" value={newAddress.pincode} onChange={handlePincodeChange} maxLength="6" />
                                                                 {loadingPincode && <span style={{ position: 'absolute', right: '20px', top: '10px', fontSize: '12px', color: '#046938' }}>Loading...</span>}
                                                             </div>
-                                                            <div className="col-md-4 mb-10">
+                                                            <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="State/Division *" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} /></div>
+                                                            <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="City *" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} /></div>
+
+                                                            <div className="col-12 mb-10"><textarea className="form-control" placeholder="Address *" value={newAddress.address} onChange={e => setNewAddress({...newAddress, address: e.target.value})}></textarea></div>
+                                                            
+                                                            <div className="col-md-6 mb-10">
                                                                 <select className="form-control" value={newAddress.addressType} onChange={e => setNewAddress({...newAddress, addressType: e.target.value})}>
                                                                     <option value="Home">Home</option>
                                                                     <option value="Work">Work</option>
