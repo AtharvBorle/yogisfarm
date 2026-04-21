@@ -320,7 +320,7 @@ const OrderDetail = () => {
             {(order.deliveryBoy || order.courierPartner) && (
                 <div style={{ ...cardStyle, marginBottom: '25px' }}>
                     <h5 style={{ fontWeight: '700', marginBottom: '10px', fontSize: '16px' }}>
-                        {order.deliveryType === 'courier' ? '<Package size={16} /> Courier Partner' : '<Truck size={16} /> Delivery Boy'}
+                        {order.deliveryType === 'courier' ? <><Package size={16} /> Courier Partner</> : <><Truck size={16} /> Delivery Boy</>}
                     </h5>
                     {order.deliveryType === 'courier' && order.courierPartner ? (
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>

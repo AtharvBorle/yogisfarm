@@ -152,7 +152,21 @@ const Dashboard = () => {
 
     const payBadge = (status) => {
         if (status === 'verified' || status === 'completed' || status === 'paid') return { bg: '#28a745', label: 'Paid' };
+        if (status === 'refunded') return { bg: '#ffc107', label: 'Refunded' };
+        if (status === 'failed') return { bg: '#dc3545', label: 'Failed' };
         return { bg: '#dc3545', label: 'Unpaid' };
+    };
+
+    const orderBadge = (status) => {
+        const bgColors = {
+            placed: '#fff4e5', pending: '#fff4e5', confirmed: '#e3f2fd', processing: '#e0d4f5',
+            shipped: '#cce5ff', out_for_delivery: '#ffe8cc', delivered: '#e6f4ea', cancelled: '#f8d7da', returned: '#e2e3e5'
+        };
+        const textColors = {
+            placed: '#ff9800', pending: '#ff9800', confirmed: '#007bff', processing: '#6f42c1',
+            shipped: '#0056b3', out_for_delivery: '#fd7e14', delivered: '#3BB77E', cancelled: '#dc3545', returned: '#383d41'
+        };
+        return { bg: bgColors[status] || '#f0f0f0', color: textColors[status] || '#555' };
     };
 
     const borderStyle = '1px solid #dee2e6';
@@ -254,7 +268,13 @@ const Dashboard = () => {
                                                                         </td>
                                                                         <td style={{ padding: '12px', color: '#555' }}>{formatDate(order.createdAt)}</td>
                                                                         <td style={{ padding: '12px' }}>₹{Number(order.total).toFixed(0)}</td>
-                                                                        <td style={{ padding: '12px' }}>{order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}</td>
+                                                                        <td style={{ padding: '12px' }}>
+                                                                            {(() => { const ob = orderBadge(order.orderStatus); return (
+                                                                                <span style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', background: ob.bg, color: ob.color }}>
+                                                                                    {order.orderStatus.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                                                                </span>
+                                                                            ); })()}
+                                                                        </td>
                                                                         <td style={{ padding: '12px' }}>
                                                                             <span style={{ padding: '3px 14px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', background: pb.bg, color: '#fff' }}>
                                                                                 {pb.label}
