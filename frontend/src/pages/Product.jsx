@@ -171,29 +171,25 @@ const Product = () => {
                                             const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === (selectedVariant?.id || null));
                                             
                                             return (
-                                                <div className="detail-extralink mb-50" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                                                    {!cartItem && (
-                                                        <div className="detail-qty border radius">
-                                                            <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
-                                                            <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
-                                                            <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
-                                                        </div>
-                                                    )}
-                                                    <div className="product-extra-link2" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                <div className="detail-extralink mb-50">
+                                                    <div className="detail-qty border radius">
+                                                        <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                        <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
+                                                        <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
+                                                    </div>
+                                                    <div className="product-extra-link2" style={{ display: 'inline-flex', gap: '10px', alignItems: 'center' }}>
                                                         {isOutOfStock ? (
                                                             <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
                                                         ) : cartItem ? (
-                                                            <div className="detail-qty border radius" style={{ margin: 0, height: '46px' }}>
-                                                                <a href="#!" className="qty-down" onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }}><i className="fi-rs-angle-small-down"></i></a>
-                                                                <span className="qty-val" style={{ display: 'inline-block', textAlign: 'center', minWidth: '40px', paddingTop: '10px', fontSize: '18px', fontWeight: 'bold' }}>{cartItem.quantity}</span>
-                                                                <a href="#!" className="qty-up" onClick={(e) => { e.preventDefault(); cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1); }}><i className="fi-rs-angle-small-up"></i></a>
-                                                            </div>
+                                                            <button type="button" className="button button-add-to-cart" style={{ padding: 0, display: 'inline-flex', alignItems: 'stretch', height: '46px' }}>
+                                                                <span onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }} style={{ padding: '0 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '18px' }}>-</span>
+                                                                <span style={{ padding: '0 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 'bold' }}>{cartItem.quantity}</span>
+                                                                <span onClick={(e) => { e.preventDefault(); cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1); }} style={{ padding: '0 15px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '18px' }}>+</span>
+                                                            </button>
                                                         ) : (
                                                             <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i> Add to cart</button>
                                                         )}
-                                                        {(!cartItem && !isOutOfStock) && (
-                                                            <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
-                                                        )}
+                                                        <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
                                                         <button 
                                                             aria-label="Add To Wishlist" 
                                                             className="action-btn hover-up" 
