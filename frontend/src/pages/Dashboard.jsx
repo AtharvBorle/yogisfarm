@@ -18,6 +18,7 @@ const Dashboard = () => {
     const [orders, setOrders] = useState([]);
     const [addresses, setAddresses] = useState([]);
     const [showAddressForm, setShowAddressForm] = useState(false);
+    const [loadingPincode, setLoadingPincode] = useState(false);
     const [newAddress, setNewAddress] = useState({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home', isDefault: false });
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [reviewModal, setReviewModal] = useState(null);
@@ -76,17 +77,59 @@ const Dashboard = () => {
                         updatedAddresses = updatedAddresses.map(a => a.id !== res.data.address.id ? { ...a, isDefault: false } : a);
                     }
                     setAddresses(updatedAddresses);
-                } else {
-                    let updatedAddresses = [...addresses, res.data.address];
-                    if (res.data.address.isDefault) {
-                        updatedAddresses = updatedAddresses.map(a => a.id !== res.data.address.id ? { ...a, isDefault: false } : a);
-                    }
-                    setAddresses(updatedAddresses);
-                }
+                res = await api.put(`/addresses/${newAddress.id}`, newAddress);
+            } else {
+                res = await api.post('/addresses', newAddress);
+            }
+            if (res.data.status) {
+                toast.success('Address saved successfully');
                 setShowAddressForm(false);
                 setNewAddress({ name: '', phone: '', address: '', city: '', state: '', pincode: '', addressType: 'Home', isDefault: false });
+                fetchAddresses();
+            } else {
+                toast.error(res.data.message || 'Failed to save address');
             }
-        } catch (err) { toast.error(err.response?.data?.message || 'Failed to save address'); }
+        } catch (e) { toast.error('Error saving address'); }
+    };
+
+    const handleDeleteAddress = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this address?')) return;
+        try {
+            const res = await api.delete(`/addresses/${id}`);
+            if (res.data.status) {
+                toast.success('Address deleted successfully');
+                fetchAddresses();
+            } else {
+                toast.error(res.data.message || 'Failed to delete address');
+            }
+        } catch (e) { toast.error('Error deleting address'); }
+    };
+
+    const handlePincodeChange = async (e) => {
+        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+        setNewAddress(prev => ({ ...prev, pincode: value }));
+        
+        if (value.length === 6) {
+            setLoadingPincode(true);
+            try {
+                const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+                const data = await res.json();
+                if (data && data[0].Status === 'Success') {
+                    const postOffice = data[0].PostOffice[0];
+                    setNewAddress(prev => ({
+                        ...prev,
+                        city: postOffice.District,
+                        state: postOffice.State
+                    }));
+                } else {
+                    toast.error('Invalid Pincode');
+                }
+            } catch (err) {
+                console.error("Error fetching pincode data", err);
+            } finally {
+                setLoadingPincode(false);
+            }
+        }
     };
 
     const handleSubmitReview = async () => {
@@ -385,7 +428,10 @@ const Dashboard = () => {
                                                             <div className="col-12 mb-10"><textarea className="form-control" placeholder="Address *" value={newAddress.address} onChange={e => setNewAddress({...newAddress, address: e.target.value})}></textarea></div>
                                                             <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="City *" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} /></div>
                                                             <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="State *" value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} /></div>
-                                                            <div className="col-md-4 mb-10"><input type="text" className="form-control" placeholder="Pincode *" value={newAddress.pincode} onChange={e => setNewAddress({...newAddress, pincode: e.target.value.replace(/\D/g, '').slice(0, 6)})} maxLength="6" /></div>
+                                                            <div className="col-md-4 mb-10" style={{ position: 'relative' }}>
+                                                                <input type="text" className="form-control" placeholder="Pincode *" value={newAddress.pincode} onChange={handlePincodeChange} maxLength="6" />
+                                                                {loadingPincode && <span style={{ position: 'absolute', right: '20px', top: '10px', fontSize: '12px', color: '#046938' }}>Loading...</span>}
+                                                            </div>
                                                             <div className="col-md-4 mb-10">
                                                                 <select className="form-control" value={newAddress.addressType} onChange={e => setNewAddress({...newAddress, addressType: e.target.value})}>
                                                                     <option value="Home">Home</option>
@@ -412,6 +458,7 @@ const Dashboard = () => {
                                                                     {addr.isDefault && <span className="badge bg-success">Default</span>}
                                                                     <span className="badge" style={{ background: '#f0f0f0', color: '#555' }}>{addr.addressType || 'Home'}</span>
                                                                     <button onClick={() => { setNewAddress(addr); setShowAddressForm(true); }} style={{ marginLeft: 'auto', background: 'none', border: '1px solid #e6e6e6', padding: '3px 10px', borderRadius: '4px', fontSize: '12px', color: '#046938', cursor: 'pointer' }}>Edit</button>
+                                                                    <button onClick={() => handleDeleteAddress(addr.id)} style={{ background: 'none', border: '1px solid #ff4d4f', padding: '3px 10px', borderRadius: '4px', fontSize: '12px', color: '#ff4d4f', cursor: 'pointer' }}>Delete</button>
                                                                 </div>
                                                             </div>
                                                         </div>

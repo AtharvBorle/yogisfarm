@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api, { getAssetUrl } from '../api';
 import { Link } from 'react-router-dom';
+import DataTable from '../components/common/DataTable';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend 
@@ -146,51 +147,33 @@ const Dashboard = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                         <h4 style={{ margin: 0, fontSize: '16px', color: '#333' }}>New Order List</h4>
                     </div>
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>ORDER ID</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>CUSTOMER</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>MOBILE NO</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>AMOUNT (₹)</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>STATUS</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>PAYMENT</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>CREATED ON</th>
-                                    <th style={{ padding: '12px 10px', fontSize: '12px', color: '#adb5bd', fontWeight: '600' }}>ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {stats.recentOrders?.length === 0 ? (
-                                    <tr><td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No orders found</td></tr>
-                                ) : (
-                                    stats.recentOrders?.map(order => (
-                                        <tr key={order.id} style={{ borderBottom: '1px solid #f8f9fa' }}>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px', fontWeight: '500' }}>#{order.orderNumber}</td>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px' }}>{order.user?.name}</td>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px' }}>{order.user?.phone}</td>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px', fontWeight: '600' }}>{order.total}</td>
-                                            <td style={{ padding: '15px 10px' }}>
-                                                <span style={{ 
-                                                    padding: '4px 10px', 
-                                                    borderRadius: '4px', 
-                                                    fontSize: '12px', 
-                                                    background: order.orderStatus === 'pending' ? '#fff4e5' : '#e6f4ea', 
-                                                    color: order.orderStatus === 'pending' ? '#ff9800' : '#3BB77E' 
-                                                }}>
-                                                    {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px' }}>{order.paymentMethod.toUpperCase()}</td>
-                                            <td style={{ padding: '15px 10px', fontSize: '14px' }}>{new Date(order.createdAt).toLocaleDateString()}</td>
-                                            <td style={{ padding: '15px 10px' }}>
-                                                <Link to={`/orders/detail/${order.orderNumber}`} style={{ color: '#1a73e8' }}><Eye size={18} /></Link>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
+                        <DataTable 
+                            columns={[
+                                { header: 'ORDER ID', accessor: 'orderNumber', render: (row) => <span style={{fontWeight:'500'}}>#{row.orderNumber}</span> },
+                                { header: 'CUSTOMER', render: (row) => row.user?.name },
+                                { header: 'MOBILE NO', render: (row) => row.user?.phone },
+                                { header: 'AMOUNT (₹)', accessor: 'total', render: (row) => <span style={{fontWeight:'600'}}>{row.total}</span> },
+                                { 
+                                    header: 'STATUS', 
+                                    render: (row) => (
+                                        <span style={{ 
+                                            padding: '4px 10px', borderRadius: '4px', fontSize: '12px', 
+                                            background: row.orderStatus === 'pending' ? '#fff4e5' : '#e6f4ea', color: row.orderStatus === 'pending' ? '#ff9800' : '#3BB77E' 
+                                        }}>
+                                            {row.orderStatus.charAt(0).toUpperCase() + row.orderStatus.slice(1)}
+                                        </span>
+                                    )
+                                },
+                                { header: 'PAYMENT', render: (row) => row.paymentMethod.toUpperCase() },
+                                { header: 'CREATED ON', render: (row) => new Date(row.createdAt).toLocaleDateString() },
+                                { 
+                                    header: 'ACTIONS', 
+                                    render: (row) => <Link to={`/orders/detail/${row.orderNumber}`} style={{ color: '#1a73e8' }}><Eye size={18} /></Link>
+                                }
+                            ]} 
+                            data={stats.recentOrders || []} 
+                        />
                     </div>
                 </div>
                 
