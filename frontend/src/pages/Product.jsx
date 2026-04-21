@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import ProductCard from '../components/ProductCard';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -13,7 +14,8 @@ const Product = () => {
     const [quantity, setQuantity] = useState(1);
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [mainImage, setMainImage] = useState(null);
-    const { addToCart } = useCart();
+    const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -63,16 +65,11 @@ const Product = () => {
         navigate('/checkout');
     };
 
-    const handleWishlist = async () => {
-        try {
-            const res = await api.post('/wishlist', { productId: product.id });
-            if (res.data.status) {
-                // Success feedback if needed (optional toast)
-            }
-        } catch (e) {
-            console.error(e);
-        }
+    const handleWishlist = () => {
+        toggleWishlist(product.id);
     };
+
+    const inWishlist = isInWishlist(product?.id);
 
     const avgRating = product.reviews?.length > 0 
         ? Math.round(product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length) 
@@ -171,24 +168,40 @@ const Product = () => {
                                         {(() => {
                                             const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
                                             const isOutOfStock = currentStock <= 0;
+                                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === (selectedVariant?.id || null));
                                             
                                             return (
-                                                <div className="detail-extralink mb-50">
-                                                    <div className="detail-qty border radius">
-                                                        <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
-                                                        <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
-                                                        <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
-                                                    </div>
+                                                <div className="detail-extralink mb-50" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                                                    {!cartItem && (
+                                                        <div className="detail-qty border radius">
+                                                            <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                            <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
+                                                            <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
+                                                        </div>
+                                                    )}
                                                     <div className="product-extra-link2" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                         {isOutOfStock ? (
                                                             <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
+                                                        ) : cartItem ? (
+                                                            <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938', height: '100%' }}>
+                                                                <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '10px 15px', color: '#046938', fontSize: '20px', fontWeight: 'bold' }}>-</a>
+                                                                <span style={{ padding: '0 12px', fontSize: '16px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
+                                                                <a onClick={() => cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '10px 15px', color: cartItem.quantity >= currentStock ? '#ccc' : '#046938', fontSize: '20px', fontWeight: 'bold', cursor: cartItem.quantity >= currentStock ? 'not-allowed' : 'pointer' }}>+</a>
+                                                            </div>
                                                         ) : (
-                                                            <>
-                                                                <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
-                                                                <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
-                                                            </>
+                                                            <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i> Add to cart</button>
                                                         )}
-                                                        <button aria-label="Add To Wishlist" className="action-btn hover-up" onClick={handleWishlist} style={{ border: '1px solid #ddd', background: '#fff', borderRadius: '5px', padding: '10px 15px' }}><i className="fi-rs-heart"></i></button>
+                                                        {(!cartItem && !isOutOfStock) && (
+                                                            <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
+                                                        )}
+                                                        <button 
+                                                            aria-label="Add To Wishlist" 
+                                                            className="action-btn hover-up" 
+                                                            onClick={handleWishlist} 
+                                                            style={{ border: '1px solid #ddd', background: '#fff', borderRadius: '5px', padding: '10px 15px' }}
+                                                        >
+                                                            <i className="fi-rs-heart" style={{ color: inWishlist ? 'red' : 'inherit' }}></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );
