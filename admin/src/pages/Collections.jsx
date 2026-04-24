@@ -111,7 +111,7 @@ const Collections = () => {
                                 value={collectAmount}
                                 onChange={e => setCollectAmount(e.target.value)}
                                 max={Number(selectedBoy.outstandingAmount)}
-                                step="0.01"
+                                step="1"
                                 required
                                 style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', boxSizing: 'border-box' }}
                             />

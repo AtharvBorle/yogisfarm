@@ -31,11 +31,12 @@ const Dashboard = () => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [period, setPeriod] = useState('month');
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await api.get('/dashboard'); 
+                const res = await api.get(`/dashboard?period=${period}`); 
                 if(res.data.status) {
                     setStats(res.data.stats);
                 }
@@ -46,20 +47,21 @@ const Dashboard = () => {
             }
         };
         fetchStats();
-    }, []);
+    }, [period]);
 
     const COLORS = ['#3BB77E', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545', '#6610f2', '#6f42c1', '#e83e8c', '#20c997', '#007bff'];
 
     const StatCard = ({ title, value, change, icon: Icon, color }) => (
         <div style={{ 
             flex: 1, 
-            background: '#fff', 
+            background: 'var(--card-bg)', 
             padding: '24px', 
             borderRadius: '12px', 
             boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '8px'
+            gap: '8px',
+            border: '1px solid var(--border)'
         }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#6c757d', fontSize: '14px', fontWeight: '500' }}>{title}</span>
@@ -99,8 +101,18 @@ const Dashboard = () => {
 
             {/* Charts Row */}
             <div style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1.5, background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                    <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>Overview Of Sales</h4>
+                <div style={{ flex: 1.5, background: 'var(--card-bg)', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h4 style={{ margin: '0', fontSize: '16px', color: 'var(--text)' }}>Overview Of Sales</h4>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            {['week', 'month', 'year'].map(p => (
+                                <button key={p} onClick={() => setPeriod(p)} style={{ 
+                                    padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid var(--border)',
+                                    background: period === p ? '#3BB77E' : 'var(--card-bg)', color: period === p ? '#fff' : 'var(--text)'
+                                }}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
+                            ))}
+                        </div>
+                    </div>
                     <div style={{ height: '300px', width: '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={stats.salesTrend}>
@@ -114,8 +126,8 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                <div style={{ flex: 1, background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                    <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>Top 10 Selling Products</h4>
+                <div style={{ flex: 1, background: 'var(--card-bg)', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
+                    <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: 'var(--text)' }}>Top 10 Selling Products</h4>
                     <div style={{ height: '300px', width: '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -123,9 +135,7 @@ const Dashboard = () => {
                                     data={stats.topProducts}
                                     cx="50%"
                                     cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
+                                    outerRadius={100}
                                     dataKey="value"
                                 >
                                     {stats.topProducts.map((entry, index) => (
@@ -143,9 +153,9 @@ const Dashboard = () => {
             {/* Bottom Row */}
             <div style={{ display: 'flex', gap: '20px' }}>
                 {/* Orders Table */}
-                <div style={{ flex: 2, background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                <div style={{ flex: 2, background: 'var(--card-bg)', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h4 style={{ margin: 0, fontSize: '16px', color: '#333' }}>New Order List</h4>
+                        <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text)' }}>New Order List</h4>
                     </div>
                     <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
                         <DataTable 
@@ -178,8 +188,8 @@ const Dashboard = () => {
                 </div>
                 
                 {/* Most Sold Products List */}
-                <div style={{ flex: 1, background: '#fff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-                    <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>Most Sold Products</h4>
+                <div style={{ flex: 1, background: 'var(--card-bg)', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid var(--border)' }}>
+                    <h4 style={{ margin: '0 0 20px 0', fontSize: '16px', color: 'var(--text)' }}>Most Sold Products</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {stats.topProducts?.length === 0 ? (
                             <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No data</div>

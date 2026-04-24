@@ -84,11 +84,11 @@ const Shop = () => {
                                 </li>
                                 {categories.map(cat => (
                                     <li key={cat.id}>
-                                        <Link className={category === cat.slug ? 'active' : ''} to={`/shop?category=${cat.slug}`}>
+                                        <Link className={category === cat.slug ? 'active' : ''} to={`/shop?category=${cat.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                             <img src={getAssetUrl(cat.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
                                             {cat.name}
+                                            <span className="count" style={{ marginLeft: 'auto' }}>{cat._count?.products || 0}</span>
                                         </Link>
-                                        <span className="count">{cat._count?.products || 0}</span>
                                     </li>
                                 ))}
                             </ul>

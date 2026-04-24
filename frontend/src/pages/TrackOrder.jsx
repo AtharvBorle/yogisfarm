@@ -142,7 +142,7 @@ const TrackOrder = () => {
                                     {/* Status Timeline */}
                                     {isCancelled ? (
                                         <div style={{ textAlign: 'center', padding: '30px', background: '#fff3f3', borderRadius: '10px', border: '1px solid #ffdddd' }}>
-                                            <div style={{ fontSize: '40px', marginBottom: '10px' }}><XSquare size={16} color="red" /></div>
+                                            <div style={{ fontSize: '40px', marginBottom: '10px' }}><XSquare size={40} color="red" /></div>
                                             <div style={{ fontWeight: '700', color: '#e74c3c', fontSize: '18px' }}>Order Cancelled</div>
                                             <p style={{ color: '#7E7E7E', marginTop: '8px' }}>This order has been cancelled. If you have questions, please contact support.</p>
                                         </div>
@@ -191,7 +191,7 @@ const TrackOrder = () => {
                                                                 boxShadow: isCurrent ? '0 0 0 4px rgba(4,105,56,0.2)' : 'none',
                                                                 transition: 'all 0.3s'
                                                             }}>
-                                                                {isCompleted ? '<Check size={16} />' : ''}
+                                                                {isCompleted ? <Check size={16} /> : ''}
                                                             </div>
                                                             <div style={{
                                                                 fontSize: '12px',

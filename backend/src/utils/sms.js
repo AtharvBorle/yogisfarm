@@ -96,7 +96,7 @@ function sendOrderConfirmSMS(phone, orderId) {
  * 3. NYSHIPPED — Order shipped
  */
 function sendShippedSMS(phone, orderId, trackingLink = '') {
-  const message = `Dear Customer, Your order with ID ${orderId} has been shipped. You can track your order here:${trackingLink} Pune. Regards, Team YogisFarms`;
+  const message = `Dear Customer, Your order with ID ${orderId} has been shipped. You can track your order here: ${trackingLink} Regards, Team YogisFarms`;
   return sendSMS(phone, message, SMS_CONFIG.templates.SHIPPED);
 }
 
@@ -112,7 +112,7 @@ function sendOutForDeliverySMS(phone, orderId) {
  * 2. NYDELINV — Delivered + invoice link
  */
 function sendDeliveredSMS(phone, orderId, invoiceLink = '') {
-  const message = `Dear Customer, Your order with ID ${orderId} has been delivered. You can download your invoice here: ${invoiceLink}. Regards, Team YogisFarms`;
+  const message = `Dear Customer, Your order with ID ${orderId} has been delivered. You can download your invoice here: ${invoiceLink} Regards, Team YogisFarms`;
   return sendSMS(phone, message, SMS_CONFIG.templates.DELIVERED_INV);
 }
 

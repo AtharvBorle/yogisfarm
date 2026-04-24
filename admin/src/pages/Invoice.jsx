@@ -7,6 +7,7 @@ const Invoice = () => {
     const { orderNumber } = useParams();
     const [order, setOrder] = useState(null);
     const [gstNumber, setGstNumber] = useState('');
+    const [activeTax, setActiveTax] = useState(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -25,6 +26,13 @@ const Invoice = () => {
         // Fetch GST number
         api.get('/settings').then(res => {
             if (res.data.status && res.data.settings) setGstNumber(res.data.settings.gst_number || '');
+        }).catch(() => {});
+        // Fetch Taxes
+        api.get('/taxes').then(res => {
+            if (res.data.status && res.data.taxes?.length > 0) {
+                const tax = res.data.taxes.find(t => t.status === 'active');
+                if (tax) setActiveTax(tax);
+            }
         }).catch(() => {});
     }, [orderNumber]);
 
@@ -100,7 +108,7 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Unit', 'Price', 'Discount', 'Sub Total', 'Tax', 'Total', 'Quantity', 'Grand Total'].map(h => (
+                        {['#', 'Product', 'Brand', 'Unit', 'Price', 'Discount', 'Sub Total', 'Tax', 'Total', 'Quantity', 'Grand Total'].map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
                     </tr>
@@ -110,6 +118,7 @@ const Invoice = () => {
                         <tr key={item.id}>
                             <td style={tdStyle}>{i + 1}</td>
                             <td style={{ ...tdStyle, textAlign: 'left' }}>{item.name}</td>
+                            <td style={tdStyle}>{item.product?.brand?.name || '—'}</td>
                             <td style={tdStyle}>{item.variant || '1 Unit'}</td>
                             <td style={tdStyle}>₹{Number(item.price).toFixed(0)}</td>
                             <td style={tdStyle}>
@@ -118,7 +127,7 @@ const Invoice = () => {
                                 ) : '—'}
                             </td>
                             <td style={tdStyle}>₹{Number(item.total).toFixed(2)}</td>
-                            <td style={tdStyle}>₹{Number(item.gst).toFixed(0)}{item.product?.tax ? `\n(${Number(item.product.tax.tax)}% Including)` : ''}</td>
+                            <td style={tdStyle}>₹{Number(item.gst).toFixed(0)}{activeTax ? <><br /><small>({activeTax.name} {activeTax.tax}%)</small></> : ''}</td>
                             <td style={tdStyle}>{Number(item.total).toFixed(0)}</td>
                             <td style={tdStyle}>{item.quantity}</td>
                             <td style={{ ...tdStyle, fontWeight: '700' }}>₹{Number(item.total).toFixed(0)}</td>
@@ -130,7 +139,7 @@ const Invoice = () => {
             {/* Totals */}
             <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                 <div style={{ marginBottom: '3px' }}><strong>Sub Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.subtotal).toFixed(0)}</span></div>
-                <div style={{ marginBottom: '3px' }}><strong>{order.items && order.items[0]?.product?.tax ? `${order.items[0].product.tax.name} (${order.items[0].product.tax.tax}%)` : 'Tax Amount'}</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
+                <div style={{ marginBottom: '3px' }}><strong>{activeTax ? `${activeTax.name} (${activeTax.tax}%)` : 'Tax Amount'}</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Shipping Charges</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.shipping).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Coupon Discount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.discount).toFixed(0)}</span></div>
                 <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '5px' }}><strong>Grand Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.total).toFixed(0)}</span></div>

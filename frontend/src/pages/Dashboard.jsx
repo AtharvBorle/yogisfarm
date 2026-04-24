@@ -23,6 +23,8 @@ const Dashboard = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [reviewModal, setReviewModal] = useState(null);
     const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+    const [orderPage, setOrderPage] = useState(1);
+    const ordersPerPage = 10;
 
     const fetchAddresses = async () => {
         try {
@@ -246,7 +248,8 @@ const Dashboard = () => {
                                             {orders.length === 0 ? (
                                                 <p>No orders yet. <Link to="/shop" style={{ color: '#046938' }}>Start shopping!</Link></p>
                                             ) : (
-                                                <div className="table-responsive">
+                                                <>
+                                                    <div className="table-responsive">
                                                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                                         <thead>
                                                             <tr style={{ borderBottom: '2px solid #dee2e6' }}>
@@ -259,7 +262,7 @@ const Dashboard = () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {orders.map(order => {
+                                                            {orders.slice((orderPage - 1) * ordersPerPage, orderPage * ordersPerPage).map(order => {
                                                                 const pb = payBadge(order.paymentStatus);
                                                                 return (
                                                                     <tr key={order.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
@@ -294,6 +297,21 @@ const Dashboard = () => {
                                                         </tbody>
                                                     </table>
                                                 </div>
+                                                {/* Pagination */}
+                                                {orders.length > ordersPerPage && (
+                                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
+                                                        <button disabled={orderPage === 1} onClick={() => setOrderPage(p => p - 1)}
+                                                            style={{ padding: '6px 16px', border: '1px solid #dee2e6', borderRadius: '5px', background: orderPage === 1 ? '#f8f9fa' : '#fff', cursor: orderPage === 1 ? 'not-allowed' : 'pointer', fontWeight: '600', fontSize: '13px', color: '#253D4E' }}>
+                                                            Previous
+                                                        </button>
+                                                        <span style={{ fontSize: '13px', color: '#555' }}>Page {orderPage} of {Math.ceil(orders.length / ordersPerPage)}</span>
+                                                        <button disabled={orderPage >= Math.ceil(orders.length / ordersPerPage)} onClick={() => setOrderPage(p => p + 1)}
+                                                            style={{ padding: '6px 16px', border: '1px solid #dee2e6', borderRadius: '5px', background: orderPage >= Math.ceil(orders.length / ordersPerPage) ? '#f8f9fa' : '#fff', cursor: orderPage >= Math.ceil(orders.length / ordersPerPage) ? 'not-allowed' : 'pointer', fontWeight: '600', fontSize: '13px', color: '#253D4E' }}>
+                                                            Next
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                </>
                                             )}
                                         </div>
                                     )}

@@ -102,20 +102,54 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       })
     ]);
 
-    // Monthly Sales Trend (Last 6 months)
+    const { period } = req.query; // week, month, year
+    
+    // Sales Trend Generation
     const salesTrend = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - i, 1);
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-      const monthSales = await prisma.order.aggregate({
-        _sum: { total: true },
-        where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
-      });
-      salesTrend.push({
-        month: d.toLocaleString('default', { month: 'short' }),
-        sales: Number(monthSales._sum.total || 0)
-      });
+    if (period === 'week') {
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const start = new Date(d.setHours(0, 0, 0, 0));
+            const end = new Date(d.setHours(23, 59, 59, 999));
+            const daySales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lte: end } }
+            });
+            salesTrend.push({
+                month: start.toLocaleDateString('default', { weekday: 'short' }),
+                sales: Number(daySales._sum.total || 0)
+            });
+        }
+    } else if (period === 'year') {
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(currentYear, currentMonth - i, 1);
+            const start = new Date(d.getFullYear(), d.getMonth(), 1);
+            const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+            const monthSales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+            });
+            salesTrend.push({
+                month: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
+                sales: Number(monthSales._sum.total || 0)
+            });
+        }
+    } else {
+        // default month (last 6 months)
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(currentYear, currentMonth - i, 1);
+            const start = new Date(d.getFullYear(), d.getMonth(), 1);
+            const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+            const monthSales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+            });
+            salesTrend.push({
+                month: d.toLocaleString('default', { month: 'short' }),
+                sales: Number(monthSales._sum.total || 0)
+            });
+        }
     }
 
     const totalSales = Number(totalSalesAgg._sum.total || 0);
@@ -509,7 +543,7 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       if (order.deliveryBoyId) {
         await prisma.deliveryBoy.update({
           where: { id: order.deliveryBoyId },
-          data: { outstandingAmount: { increment: order.total } }
+          data: { outstandingAmount: { increment: Math.round(Number(order.total)) } }
         });
       }
     }
@@ -665,13 +699,13 @@ router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
       prisma.deliveryCollection.create({
         data: {
           deliveryBoyId: deliveryBoy.id,
-          amount: collectAmount,
+          amount: Math.round(collectAmount),
           adminId: req.session.adminId
         }
       }),
       prisma.deliveryBoy.update({
         where: { id: deliveryBoy.id },
-        data: { outstandingAmount: { decrement: collectAmount } }
+        data: { outstandingAmount: { decrement: Math.round(collectAmount) } }
       })
     ]);
 
