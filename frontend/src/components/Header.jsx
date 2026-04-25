@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -17,6 +17,18 @@ const Header = () => {
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
     const [isSticky, setIsSticky] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const searchRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (searchRef.current && !searchRef.current.contains(event.target)) {
+                setCatOpen(false);
+                setIsSuggestionsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
@@ -86,7 +98,7 @@ const Header = () => {
                             <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
                         </div>
                         <div className="header-right">
-                            <div className="search-style-2">
+                            <div className="search-style-2" ref={searchRef}>
                                 <form onSubmit={handleSearch} style={{ position: 'relative' }}>
                                     <div className="main-categori-wrap d-none d-lg-block m-0" style={{ position: 'relative' }}>
                                         <div 
