@@ -201,7 +201,7 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
     if (orderStatus === 'out_for_delivery') {
       sendOutForDeliverySMS(current.user?.phone, current.orderNumber);
     } else if (orderStatus === 'delivered') {
-      const invoiceLink = `${FRONTEND_URL}/invoice/${current.orderNumber}`;
+      const invoiceLink = `${FRONTEND_URL}/invoice?order=${current.orderNumber}`;
       sendDeliveredSMS(current.user?.phone, current.orderNumber, invoiceLink);
     }
 
