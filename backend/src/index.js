@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
+const morgan = require('morgan');
 const path = require('path');
 const PrismaStore = require('./utils/sessionStore');
 const { PrismaClient } = require('@prisma/client');
@@ -11,6 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(morgan('dev'));
 app.use(cors({
   origin: [
     'http://localhost:3000', 

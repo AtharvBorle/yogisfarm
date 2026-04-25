@@ -50,7 +50,8 @@ const Checkout = () => {
         return total + ((itemTotal * globalTaxRate) / 100);
     }, 0);
     const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
-    const grandTotal = cartTotal + totalTax + shipping - discount;
+    const rawGrandTotal = cartTotal + totalTax + shipping - discount;
+    const grandTotal = Math.round(rawGrandTotal);
 
     useEffect(() => {
         // Fetch global tax rate and shipping rules
@@ -194,21 +195,21 @@ const Checkout = () => {
                                             <div style={{ color: '#FDC040', fontSize: '12px' }}>★★★★★ <span style={{ color: '#999' }}>(0)</span></div>
                                         </div>
                                         <span style={{ color: '#7E7E7E', fontSize: '14px', marginRight: '20px' }}>x {item.quantity}</span>
-                                        <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{(price * item.quantity).toFixed(0)}</span>
+                                        <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{(price * item.quantity).toFixed(2)}</span>
                                     </div>
                                 );
                             })}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', padding: '10px 0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{cartTotal.toFixed(0)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{cartTotal.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>{activeTax ? `${activeTax.name} (${activeTax.tax}%)` : 'Tax'} :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(0)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0 0 0', marginTop: '5px' }}>
                                 <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>

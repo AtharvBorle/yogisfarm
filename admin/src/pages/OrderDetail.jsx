@@ -168,10 +168,10 @@ const OrderDetail = () => {
 
     if (!order) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading order...</div>;
 
-    const cardStyle = { border: '1px solid #e8e8e8', borderRadius: '10px', padding: '25px', background: '#fff', height: '100%' };
-    const iconCircle = { width: '40px', height: '40px', borderRadius: '50%', background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#555', flexShrink: 0 };
+    const cardStyle = { border: '1px solid var(--border)', borderRadius: '10px', padding: '25px', background: 'var(--card-bg)', height: '100%' };
+    const iconCircle = { width: '40px', height: '40px', borderRadius: '50%', background: 'var(--sidebar-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: 'var(--text)', flexShrink: 0 };
     const labelStyle = { fontSize: '12px', color: '#999', marginBottom: '2px' };
-    const valueStyle = { fontSize: '14px', fontWeight: '600', color: '#253D4E' };
+    const valueStyle = { fontSize: '14px', fontWeight: '600', color: 'var(--text)' };
     const inputStyle = { width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' };
     const radioLabelStyle = { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', transition: 'all 0.2s' };
 
@@ -180,7 +180,7 @@ const OrderDetail = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
                 <div>
-                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: '#253D4E' }}>{order.orderNumber}</h2>
+                    <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: 'var(--text)' }}>{order.orderNumber}</h2>
                     <div style={{ fontSize: '13px', color: '#999', marginTop: '3px' }}>
                         Dashboard / Order / {order.orderNumber}
                     </div>
@@ -194,7 +194,7 @@ const OrderDetail = () => {
                         style={{ padding: '8px 18px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Settings size={16} /> Manage
                     </button>
-                    <button onClick={() => navigate(`/orders/invoice/${order.orderNumber}`)}
+                    <button onClick={() => window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank')}
                         style={{ padding: '8px 18px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={16} /> Print
                     </button>
@@ -259,7 +259,7 @@ const OrderDetail = () => {
                 {/* Order Details */}
                 <div style={cardStyle}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
-                        <h5 style={{ fontWeight: '700', fontSize: '16px', color: '#253D4E', margin: 0 }}>Order Details</h5>
+                        <h5 style={{ fontWeight: '700', fontSize: '16px', color: 'var(--text)', margin: 0 }}>Order Details</h5>
                         <div style={{ display: 'flex', gap: '6px' }}>
                             <button onClick={() => { setPaymentForm({ paymentStatus: order.paymentStatus, paymentDescription: order.paymentDescription || '' }); setPaymentOpen(true); }}
                                 style={{ padding: '4px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
@@ -356,19 +356,19 @@ const OrderDetail = () => {
             </div>
 
             {/* Products */}
-            <h4 style={{ fontWeight: '700', marginBottom: '15px', color: '#253D4E' }}>Products</h4>
+            <h4 style={{ fontWeight: '700', marginBottom: '15px', color: 'var(--text)' }}>Products</h4>
             <div style={{ ...cardStyle, marginBottom: '25px', padding: '0', overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr style={{ background: '#f8f9fa' }}>
+                    <thead style={{ color: 'var(--text)' }}>
+                        <tr style={{ background: 'var(--sidebar-hover)' }}>
                             {['#', 'PRODUCT', 'BRAND', 'PRICE', 'DISCOUNT', 'SUB TOTAL', 'GST', 'TOTAL', 'QUANTITY', 'GRAND TOTAL'].map(h => (
-                                <th key={h} style={{ padding: '12px 10px', fontSize: '11px', fontWeight: '700', color: '#555', textTransform: 'uppercase', borderBottom: '2px solid #dee2e6', textAlign: 'left' }}>{h}</th>
+                                <th key={h} style={{ padding: '12px 10px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', borderBottom: '2px solid var(--border)', textAlign: 'left' }}>{h}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {(order.items || []).map((item, i) => (
-                            <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
+                            <tr key={item.id} style={{ borderBottom: '1px solid var(--border)', color: 'var(--text)' }}>
                                 <td style={{ padding: '12px 10px' }}>{i + 1}</td>
                                 <td style={{ padding: '12px 10px', fontWeight: '500' }}>{item.name}</td>
                                 <td style={{ padding: '12px 10px' }}>{item.brand || item.product?.brand?.name || '—'}</td>
@@ -385,13 +385,13 @@ const OrderDetail = () => {
                 </table>
 
                 {/* Totals */}
-                <div style={{ borderTop: '2px solid #dee2e6' }}>
+                <div style={{ borderTop: '2px solid var(--border)', color: 'var(--text)' }}>
                     {[
                         { label: 'Sub Total', value: `₹${Number(order.subtotal).toFixed(0)}` },
                         { label: 'Shipping Charges', value: `₹${Number(order.shipping).toFixed(0)}` },
                         { label: 'Coupon Discount', value: `₹${Number(order.discount).toFixed(0)}` },
                     ].map(row => (
-                        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid #eee' }}>
+                        <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)' }}>
                             <span style={{ fontWeight: '600' }}>{row.label}</span>
                             <span>{row.value}</span>
                         </div>
@@ -407,10 +407,10 @@ const OrderDetail = () => {
             <GenericModal isOpen={isStatusOpen} title="Update Order Status" onClose={() => setStatusOpen(false)}>
                 <form onSubmit={updateStatus} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
-                        <div style={{ marginBottom: '10px', padding: '10px 15px', background: '#f8f9fa', borderRadius: '6px', fontSize: '13px' }}>
+                        <div style={{ marginBottom: '10px', padding: '10px 15px', background: 'var(--sidebar-hover)', borderRadius: '6px', fontSize: '13px', color: 'var(--text)' }}>
                             Current Status: <strong style={{ color: statusColors[order.orderStatus], textTransform: 'capitalize' }}>{order.orderStatus}</strong>
                         </div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>New Status *</label>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>New Status *</label>
                         <select value={statusForm} onChange={e => setStatusForm(e.target.value)} style={inputStyle}>
                             <option value="">Select Next Status</option>
                             {order.orderStatus === 'placed' && <option value="confirmed">Confirmed</option>}
@@ -432,12 +432,12 @@ const OrderDetail = () => {
             <GenericModal isOpen={isPaymentOpen} title="Update Payment Status" onClose={() => setPaymentOpen(false)}>
                 <form onSubmit={updatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     {order.paymentMethod === 'online' && order.paymentDescription && (
-                        <div style={{ padding: '10px 15px', background: '#e3f2fd', borderRadius: '6px', fontSize: '13px' }}>
+                        <div style={{ padding: '10px 15px', background: 'var(--sidebar-hover)', borderRadius: '6px', fontSize: '13px', color: 'var(--text)' }}>
                             <CreditCard size={16} /> Razorpay Payment ID: <strong style={{ color: '#007bff' }}>{order.paymentDescription}</strong>
                         </div>
                     )}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Payment Status</label>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Payment Status</label>
                         <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} style={inputStyle}>
                             <option value="pending">Pending</option>
                             <option value="completed">Completed</option>
@@ -564,7 +564,7 @@ const OrderDetail = () => {
                                                             <input value={editForm.pin || ''} onChange={e => setEditForm({ ...editForm, pin: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} placeholder="New PIN (optional)" />
                                                         </td>
                                                         <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{db.outstandingAmount || 0}</td>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{(Math.abs(Number(db.outstandingAmount)) < 0.01 ? 0 : Number(db.outstandingAmount)).toFixed(0)}</td>
                                                         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
@@ -577,7 +577,7 @@ const OrderDetail = () => {
                                                         <td style={{ padding: '8px 10px', fontWeight: '500' }}>{db.name}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.phone}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.city || '—'}</td>
-                                                        <td style={{ padding: '8px 10px', fontWeight: 'bold' }}>₹{db.outstandingAmount || 0}</td>
+                                                        <td style={{ padding: '8px 10px', fontWeight: 'bold' }}>₹{(Math.abs(Number(db.outstandingAmount)) < 0.01 ? 0 : Number(db.outstandingAmount)).toFixed(0)}</td>
                                                         <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, pin: '', city: db.city || '', pincode: db.pincode || '' }); }}

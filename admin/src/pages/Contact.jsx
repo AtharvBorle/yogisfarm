@@ -70,20 +70,20 @@ const Contact = () => {
             <GenericModal isOpen={isViewOpen} title="Contact Message Details" onClose={() => setViewOpen(false)}>
                 {viewContact && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div style={{ padding: '15px', background: '#f8f9fa', borderRadius: '6px' }}>
+                        <div style={{ padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
                             <div style={{ marginBottom: '8px' }}><strong>Name:</strong> {viewContact.name}</div>
                             <div style={{ marginBottom: '8px' }}><strong>Email:</strong> {viewContact.email}</div>
                             <div><strong>Phone:</strong> {viewContact.phone || '—'}</div>
                         </div>
-                        <div>
+                        <div style={{ color: 'var(--text)' }}>
                             <h4 style={{ fontSize: '15px', marginBottom: '10px' }}>Subject:</h4>
-                            <div style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', background: '#fff' }}>
+                            <div style={{ padding: '10px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)' }}>
                                 {viewContact.subject || 'N/A'}
                             </div>
                         </div>
-                        <div>
+                        <div style={{ color: 'var(--text)' }}>
                             <h4 style={{ fontSize: '15px', marginBottom: '10px' }}>Message:</h4>
-                            <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '4px', background: '#fff', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                            <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
                                 {viewContact.message}
                             </div>
                         </div>

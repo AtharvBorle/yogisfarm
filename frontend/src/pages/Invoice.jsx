@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import html2pdf from 'html2pdf.js';
 
@@ -8,6 +8,8 @@ const Invoice = () => {
     const [order, setOrder] = useState(null);
     const [gstNumber, setGstNumber] = useState('');
     const [activeTax, setActiveTax] = useState(null);
+    const [searchParams] = useSearchParams();
+    const autoDownload = searchParams.get('download') === 'true';
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -31,7 +33,7 @@ const Invoice = () => {
     }, [orderNumber]);
 
     useEffect(() => {
-        if (order) {
+        if (order && autoDownload) {
             setTimeout(() => {
                 const element = document.getElementById('invoice-content');
                 const opt = {
@@ -48,9 +50,9 @@ const Invoice = () => {
                 });
             }, 500);
         }
-    }, [order]);
+    }, [order, autoDownload]);
 
-    if (!order) return <div style={{ padding: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}><i className="fi-rs-spinner" style={{ animation: 'spin 1s linear infinite' }}></i> Preparing PDF Download...</div>;
+    if (!order) return <div style={{ padding: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}><i className="fi-rs-spinner" style={{ animation: 'spin 1s linear infinite' }}></i> {autoDownload ? 'Preparing PDF Download...' : 'Loading Invoice...'}</div>;
 
     const invoiceNumber = order.orderNumber.replace('YF-O', 'YFT-');
     const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -121,7 +123,7 @@ const Invoice = () => {
                                 ) : '—'}
                             </td>
                             <td style={tdStyle}>₹{Number(item.total).toFixed(2)}</td>
-                            <td style={tdStyle}>₹{Number(item.gst).toFixed(0)}{activeTax ? <><br /><small>({activeTax.name} {activeTax.tax}%)</small></> : ''}</td>
+                            <td style={tdStyle}>₹{Number(item.gst).toFixed(2)}<br /><small>({order.taxName || (activeTax ? activeTax.name : 'Tax')} {order.taxRate || (activeTax ? activeTax.tax : '')}%)</small></td>
                             <td style={tdStyle}>{Number(item.total).toFixed(0)}</td>
                             <td style={tdStyle}>{item.quantity}</td>
                             <td style={{ ...tdStyle, fontWeight: '700' }}>₹{Number(item.total).toFixed(0)}</td>
@@ -133,7 +135,7 @@ const Invoice = () => {
             {/* Totals */}
             <div style={{ textAlign: 'right', marginBottom: '30px' }}>
                 <div style={{ marginBottom: '3px' }}><strong>Sub Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.subtotal).toFixed(0)}</span></div>
-                <div style={{ marginBottom: '3px' }}><strong>{activeTax ? `${activeTax.name} (${activeTax.tax}%)` : 'Tax Amount'}</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(0)}</span></div>
+                <div style={{ marginBottom: '3px' }}><strong>{order.taxName || (activeTax ? activeTax.name : 'Tax')} ({order.taxRate || (activeTax ? activeTax.tax : '')}%)</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(2)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Shipping Charges</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.shipping).toFixed(0)}</span></div>
                 <div style={{ marginBottom: '3px' }}><strong>Coupon Discount</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.discount).toFixed(0)}</span></div>
                 <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '5px' }}><strong>Grand Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.total).toFixed(0)}</span></div>

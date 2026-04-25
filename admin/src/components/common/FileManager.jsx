@@ -138,14 +138,14 @@ const FileManager = ({ onSelect, onClose }) => {
                 {loading ? <div style={{ width: '100%', textAlign: 'center' }}>Loading...</div> : (
                     <>
                         {currentPath && (
-                            <div onClick={navigateUp} style={{ width: '100px', cursor: 'pointer', textAlign: 'center' }}>
+                            <div onClick={navigateUp} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', color: 'var(--text)' }}>
                                 <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px' }}>.. (Up)</div>
                             </div>
                         )}
                         
                         {folders.map(folder => (
-                            <div key={folder} onClick={() => loadFiles(currentPath ? `${currentPath}/${folder}` : folder)} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', position: 'relative' }}>
+                            <div key={folder} onClick={() => loadFiles(currentPath ? `${currentPath}/${folder}` : folder)} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', position: 'relative', color: 'var(--text)' }}>
                                 <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px', wordBreak: 'break-all' }}>{folder}</div>
                                 <button 
@@ -168,12 +168,12 @@ const FileManager = ({ onSelect, onClose }) => {
                                     style={{ 
                                         height: '80px', 
                                         background: `url(${getAssetUrl(file.path)}) center/cover`, 
-                                        border: '1px solid #ddd',
+                                        border: '1px solid var(--border)',
                                         borderRadius: '4px',
                                         marginBottom: '5px'
                                     }} 
                                 />
-                                <div style={{ fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</div>
+                                <div style={{ fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text)' }}>{file.name}</div>
                                 <button 
                                     onClick={(e) => deleteFile(file.path, e)} 
                                     style={btnStyle}>

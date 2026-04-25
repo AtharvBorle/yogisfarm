@@ -132,16 +132,20 @@ const OrderSuccess = () => {
                     {/* Totals */}
                     <div style={{ borderTop: borderStyle }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                            <span style={{ fontWeight: '600', color: '#253D4E' }}>{order.items && order.items[0]?.product?.tax ? `${order.items[0].product.tax.name} (${order.items[0].product.tax.tax}%)` : 'Tax Amount'}:</span>
-                            <span>₹{Number(order.tax || 0).toFixed(0)}</span>
+                            <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal:</span>
+                            <span>₹{Number(order.subtotal).toFixed(2)}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                            <span style={{ fontWeight: '600', color: '#253D4E' }}>{order.taxName ? `${order.taxName} (${order.taxRate}%)` : 'Tax Amount'}:</span>
+                            <span>₹{Number(order.tax || 0).toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
                             <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges:</span>
-                            <span>₹{Number(order.shipping).toFixed(0)}</span>
+                            <span>₹{Number(order.shipping).toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
                             <span style={{ fontWeight: '600', color: '#253D4E' }}>Discount Amount:</span>
-                            <span>₹{Number(order.discount).toFixed(0)}</span>
+                            <span>₹{Number(order.discount).toFixed(2)}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
                             <span style={{ color: '#046938' }}>Total:</span>

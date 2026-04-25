@@ -424,16 +424,20 @@ const Dashboard = () => {
                                                 <h5 style={{ padding: '12px 15px', margin: 0, fontWeight: '700', background: '#f8f9fa', borderBottom: borderStyle }}>Order Amount</h5>
                                                 <div style={{ padding: '0' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Total</span>
-                                                        <span>₹{Number(selectedOrder.subtotal).toFixed(0)}</span>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal</span>
+                                                        <span>₹{Number(selectedOrder.subtotal).toFixed(2)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>{selectedOrder.taxName ? `${selectedOrder.taxName} (${selectedOrder.taxRate}%)` : 'Tax Amount'}</span>
+                                                        <span>₹{Number(selectedOrder.tax || 0).toFixed(2)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
                                                         <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges</span>
-                                                        <span>₹{Number(selectedOrder.shipping).toFixed(0)}</span>
+                                                        <span>₹{Number(selectedOrder.shipping).toFixed(2)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
                                                         <span style={{ fontWeight: '600', color: '#253D4E' }}>Discount Amount</span>
-                                                        <span>₹{Number(selectedOrder.discount).toFixed(0)}</span>
+                                                        <span>₹{Number(selectedOrder.discount).toFixed(2)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
                                                         <span style={{ color: '#046938' }}>Total</span>

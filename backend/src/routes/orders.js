@@ -97,7 +97,8 @@ router.post('/place', requireLogin, async (req, res) => {
     if (shippingRule) {
       shipping = subtotal >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
     }
-    const total = subtotal - discountAmount + shipping + totalTax;
+    const rawTotal = subtotal - discountAmount + shipping + totalTax;
+    const total = Math.round(rawTotal); // Strictly round off ONLY final amount
 
     // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
     if (paymentMethod.toLowerCase() === 'online') {
@@ -119,8 +120,9 @@ router.post('/place', requireLogin, async (req, res) => {
         addressText: address.address, addressCity: address.city,
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
-        subtotal, shipping, discount: discountAmount, tax: totalTax, total,
-        couponCode: couponCode || null, orderNote: orderNote || null,
+        subtotal, shipping, discount: discountAmount, tax: totalTax,
+        taxName: globalTax ? globalTax.name : null, taxRate: globalTaxRate,
+        total, couponCode: couponCode || null, orderNote: orderNote || null,
         appliedCouponId,
         orderItems,
         cartItemIds: cartItems.map(c => ({ id: c.id, productId: c.productId, variantId: c.variantId, quantity: c.quantity }))
@@ -150,8 +152,9 @@ router.post('/place', requireLogin, async (req, res) => {
         addressText: address.address, addressCity: address.city,
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
-        subtotal, shipping, discount: discountAmount, tax: totalTax, total,
-        couponCode: couponCode || null, orderNote: orderNote || null,
+        subtotal, shipping, discount: discountAmount, tax: totalTax, 
+        taxName: globalTax ? globalTax.name : null, taxRate: globalTaxRate,
+        total, couponCode: couponCode || null, orderNote: orderNote || null,
         paymentMethod: 'cod',
         orderStatus: 'placed',
         paymentStatus: 'pending',
@@ -227,7 +230,9 @@ router.post('/verify-payment', requireLogin, async (req, res) => {
         addressState: pendingOrder.addressState, addressPincode: pendingOrder.addressPincode,
         addressType: pendingOrder.addressType,
         subtotal: pendingOrder.subtotal, shipping: pendingOrder.shipping,
-        discount: pendingOrder.discount, tax: pendingOrder.tax, total: pendingOrder.total,
+        discount: pendingOrder.discount, tax: pendingOrder.tax,
+        taxName: pendingOrder.taxName, taxRate: pendingOrder.taxRate,
+        total: pendingOrder.total,
         couponCode: pendingOrder.couponCode, orderNote: pendingOrder.orderNote,
         paymentMethod: 'online',
         orderStatus: 'placed',

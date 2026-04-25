@@ -70,7 +70,7 @@ const Collections = () => {
                     color: Number(row.outstandingAmount) > 0 ? '#dc3545' : '#28a745', 
                     fontWeight: 'bold' 
                 }}>
-                    ₹{Number(row.outstandingAmount).toFixed(0)}
+                    ₹{(Math.abs(Number(row.outstandingAmount)) < 0.01 ? 0 : Number(row.outstandingAmount)).toFixed(0)}
                 </span>
             ) 
         },
@@ -103,7 +103,7 @@ const Collections = () => {
                                 Collection from: <strong>{selectedBoy.name}</strong>
                             </p>
                             <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#dc3545' }}>
-                                Total Outstanding: <strong>₹{Number(selectedBoy.outstandingAmount).toFixed(0)}</strong>
+                                Total Outstanding: <strong>₹{(Math.abs(Number(selectedBoy.outstandingAmount)) < 0.01 ? 0 : Number(selectedBoy.outstandingAmount)).toFixed(0)}</strong>
                             </p>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '13px' }}>Amount to Collect (₹)</label>
                             <input

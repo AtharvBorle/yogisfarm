@@ -9,6 +9,23 @@ const api = axios.create({
   },
 });
 
+// Console Formatting Interceptors
+api.interceptors.request.use((config) => {
+  console.log(`%c[API REQ] ${config.method.toUpperCase()} ${config.url}`, 'color: #046938; font-weight: bold;');
+  return config;
+}, (error) => {
+  console.error(`%c[API REQ ERROR]`, 'color: #dc3545; font-weight: bold;', error);
+  return Promise.reject(error);
+});
+
+api.interceptors.response.use((response) => {
+  console.log(`%c[API RES] ${response.config.method.toUpperCase()} ${response.config.url} - ${response.status}`, 'color: #17a2b8; font-weight: bold;');
+  return response;
+}, (error) => {
+  console.error(`%c[API RES ERROR]`, 'color: #dc3545; font-weight: bold;', error);
+  return Promise.reject(error);
+});
+
 export const getAssetUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;

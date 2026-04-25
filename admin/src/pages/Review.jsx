@@ -114,14 +114,14 @@ const Review = () => {
             <GenericModal isOpen={isViewOpen} title="Review Details" onClose={() => setViewOpen(false)}>
                 {viewReview && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div style={{ padding: '15px', background: '#f8f9fa', borderRadius: '6px' }}>
+                        <div style={{ padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
                             <div style={{ marginBottom: '8px' }}><strong>User:</strong> {viewReview.user?.name || 'Unknown User'} ({viewReview.user?.phone})</div>
                             <div style={{ marginBottom: '8px' }}><strong>Product:</strong> {viewReview.product?.name || 'Unknown Product'}</div>
                             <div>
                                 <strong>Date:</strong> {new Date(viewReview.createdAt).toLocaleString()}
                             </div>
                         </div>
-                        <div>
+                        <div style={{ color: 'var(--text)' }}>
                             <div style={{ marginBottom: '10px' }}>
                                 <strong>Rating:</strong> <span style={{ color: '#ffc107', fontSize: '18px', marginLeft: '5px' }}>{'★'.repeat(viewReview.rating)}{'☆'.repeat(5 - viewReview.rating)}</span>
                             </div>
@@ -132,9 +132,9 @@ const Review = () => {
                                 </span>
                             </div>
                         </div>
-                        <div>
+                        <div style={{ color: 'var(--text)' }}>
                             <h4 style={{ fontSize: '15px', marginBottom: '10px' }}>Comment:</h4>
-                            <div style={{ padding: '15px', border: '1px solid #ddd', borderRadius: '4px', background: '#fff', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                            <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
                                 {viewReview.comment || 'No comment provided.'}
                             </div>
                         </div>
@@ -148,7 +148,7 @@ const Review = () => {
                 onClose={() => setModalOpen(false)}
             >
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '15px', padding: '15px', background: '#f8f9fa', borderRadius: '6px' }}>
+                    <div style={{ marginBottom: '15px', padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
                         <div style={{ marginBottom: '8px' }}><strong>User:</strong> {currentUser}</div>
                         <div><strong>Product:</strong> {currentProduct}</div>
                     </div>
