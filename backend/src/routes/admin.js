@@ -691,9 +691,12 @@ router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
     const deliveryBoy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(req.params.id) } });
     if (!deliveryBoy) return res.json({ status: false, message: 'Delivery boy not found' });
     
-    if (collectAmount > deliveryBoy.outstandingAmount) {
-      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${deliveryBoy.outstandingAmount})` });
+    if (collectAmount > Math.round(deliveryBoy.outstandingAmount)) {
+      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${Math.round(deliveryBoy.outstandingAmount)})` });
     }
+
+    // If collecting the full rounded amount, just set outstanding to 0 to avoid float issues like -0.29
+    const isFullCollection = Math.round(collectAmount) === Math.round(Number(deliveryBoy.outstandingAmount));
 
     await prisma.$transaction([
       prisma.deliveryCollection.create({
@@ -705,7 +708,9 @@ router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
       }),
       prisma.deliveryBoy.update({
         where: { id: deliveryBoy.id },
-        data: { outstandingAmount: { decrement: Math.round(collectAmount) } }
+        data: { 
+          outstandingAmount: isFullCollection ? 0 : Math.round(Number(deliveryBoy.outstandingAmount) - collectAmount)
+        }
       })
     ]);
 

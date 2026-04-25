@@ -191,7 +191,7 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
       if (becamePaid) {
         await tx.deliveryBoy.update({
           where: { id: boyId },
-          data: { outstandingAmount: { increment: updatedOrder.total } }
+          data: { outstandingAmount: { increment: Math.round(Number(updatedOrder.total)) } }
         });
       }
     });

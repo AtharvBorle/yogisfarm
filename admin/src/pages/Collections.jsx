@@ -35,7 +35,7 @@ const Collections = () => {
             return;
         }
         setSelectedBoy(boy);
-        setCollectAmount(boy.outstandingAmount);
+        setCollectAmount(Math.round(Number(boy.outstandingAmount)));
         setModalOpen(true);
     };
 
@@ -113,7 +113,7 @@ const Collections = () => {
                                 type="number"
                                 value={collectAmount}
                                 onChange={e => setCollectAmount(e.target.value)}
-                                max={Number(selectedBoy.outstandingAmount)}
+                                max={Math.round(Number(selectedBoy.outstandingAmount))}
                                 step="1"
                                 required
                                 style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '5px', boxSizing: 'border-box', background: 'var(--card-bg)', color: 'var(--text)' }}
