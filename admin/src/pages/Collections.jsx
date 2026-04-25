@@ -65,14 +65,18 @@ const Collections = () => {
         { header: 'Phone', accessor: 'phone' },
         { 
             header: 'Outstanding Balance', 
-            render: row => (
-                <span style={{ 
-                    color: Number(row.outstandingAmount) > 0 ? '#dc3545' : '#28a745', 
-                    fontWeight: 'bold' 
-                }}>
-                    ₹{(Math.abs(Number(row.outstandingAmount)) < 0.01 ? 0 : Number(row.outstandingAmount)).toFixed(0)}
-                </span>
-            ) 
+            render: row => {
+                let amt = Number(row.outstandingAmount);
+                if (Math.abs(amt) < 0.01) amt = 0;
+                return (
+                    <span style={{ 
+                        color: amt > 0 ? '#dc3545' : '#28a745', 
+                        fontWeight: 'bold' 
+                    }}>
+                        ₹{amt === 0 ? '0' : amt.toFixed(0)}
+                    </span>
+                );
+            } 
         },
         {
             header: 'Actions',
@@ -88,10 +92,10 @@ const Collections = () => {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600', color: '#333' }}>COD Collections</h2>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600', color: 'var(--text)' }}>COD Collections</h2>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '10px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '10px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                 <DataTable columns={columns} data={deliveryBoys} searchPlaceholder="Search delivery boy..." />
             </div>
 
@@ -103,7 +107,7 @@ const Collections = () => {
                                 Collection from: <strong>{selectedBoy.name}</strong>
                             </p>
                             <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#dc3545' }}>
-                                Total Outstanding: <strong>₹{(Math.abs(Number(selectedBoy.outstandingAmount)) < 0.01 ? 0 : Number(selectedBoy.outstandingAmount)).toFixed(0)}</strong>
+                                Total Outstanding: <strong>₹{Math.abs(Number(selectedBoy.outstandingAmount)) < 0.01 ? '0' : Number(selectedBoy.outstandingAmount).toFixed(0)}</strong>
                             </p>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '13px' }}>Amount to Collect (₹)</label>
                             <input
@@ -113,7 +117,7 @@ const Collections = () => {
                                 max={Number(selectedBoy.outstandingAmount)}
                                 step="1"
                                 required
-                                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '5px', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '10px', border: '1px solid var(--border)', borderRadius: '5px', boxSizing: 'border-box', background: 'var(--card-bg)', color: 'var(--text)' }}
                             />
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

@@ -123,19 +123,19 @@ const Order = () => {
         }
     ];
 
-    const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box', minWidth: '120px' };
+    const inputStyle = { padding: '8px', border: '1px solid var(--border)', borderRadius: '4px', boxSizing: 'border-box', minWidth: '120px', background: 'var(--card-bg)', color: 'var(--text)' };
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2>Order Management</h2>
-                <div style={{ fontSize: '14px', color: '#666' }}>Total: {orders.length} orders</div>
+                <h2 style={{ color: 'var(--text)' }}>Order Management</h2>
+                <div style={{ fontSize: '14px', color: 'var(--text)' }}>Total: {orders.length} orders</div>
             </div>
 
             {/* Filters */}
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', padding: '15px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px', flexWrap: 'wrap' }}>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Order Status</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Order Status</label>
                     <select value={filters.orderStatus} onChange={e => setFilters({ ...filters, orderStatus: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="placed">Placed</option>
@@ -148,7 +148,7 @@ const Order = () => {
                     </select>
                 </div>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Payment Method</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Payment Method</label>
                     <select value={filters.paymentMethod} onChange={e => setFilters({ ...filters, paymentMethod: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="cod">COD</option>
@@ -157,7 +157,7 @@ const Order = () => {
                     </select>
                 </div>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Payment Status</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Payment Status</label>
                     <select value={filters.paymentStatus} onChange={e => setFilters({ ...filters, paymentStatus: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="pending">Pending</option>
@@ -168,7 +168,7 @@ const Order = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', flex: 1 }}>
                     <div style={{ marginRight: 'auto', width: '100%', maxWidth: '300px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Search Order</label>
+                        <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Search Order</label>
                         <input 
                             type="text" 
                             placeholder="Order ID, Name, Email, Phone" 

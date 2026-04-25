@@ -564,7 +564,7 @@ const OrderDetail = () => {
                                                             <input value={editForm.pin || ''} onChange={e => setEditForm({ ...editForm, pin: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} placeholder="New PIN (optional)" />
                                                         </td>
                                                         <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
-                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{(Math.abs(Number(db.outstandingAmount)) < 0.01 ? 0 : Number(db.outstandingAmount)).toFixed(0)}</td>
+                                                        <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{Math.abs(Number(db.outstandingAmount)) < 0.01 ? '0' : Number(db.outstandingAmount).toFixed(0)}</td>
                                                         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
@@ -577,7 +577,7 @@ const OrderDetail = () => {
                                                         <td style={{ padding: '8px 10px', fontWeight: '500' }}>{db.name}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.phone}</td>
                                                         <td style={{ padding: '8px 10px' }}>{db.city || '—'}</td>
-                                                        <td style={{ padding: '8px 10px', fontWeight: 'bold' }}>₹{(Math.abs(Number(db.outstandingAmount)) < 0.01 ? 0 : Number(db.outstandingAmount)).toFixed(0)}</td>
+                                                        <td style={{ padding: '8px 10px', fontWeight: 'bold' }}>₹{Math.abs(Number(db.outstandingAmount)) < 0.01 ? '0' : Number(db.outstandingAmount).toFixed(0)}</td>
                                                         <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={() => { setEditingId(db.id); setEditForm({ name: db.name, phone: db.phone, pin: '', city: db.city || '', pincode: db.pincode || '' }); }}

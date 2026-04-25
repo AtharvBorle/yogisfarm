@@ -133,9 +133,9 @@ const Dashboard = () => {
                             <PieChart>
                                 <Pie
                                     data={stats.topProducts}
-                                    cx="50%"
+                                    cx="35%"
                                     cy="50%"
-                                    outerRadius={100}
+                                    outerRadius={85}
                                     dataKey="value"
                                 >
                                     {stats.topProducts.map((entry, index) => (

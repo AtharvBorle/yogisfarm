@@ -32,18 +32,18 @@ const DataTable = ({ columns, data, onEdit, onDelete, onView }) => {
     return (
         <div className="admin-card" style={{ overflowX: 'auto', border: 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '0 10px' }}>
-                <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)' }}>
                     Show 
                     <input 
                         type="number" 
                         min="1" 
                         value={itemsPerPage} 
                         onChange={handleItemsPerPageChange} 
-                        style={{ width: '60px', padding: '4px 8px', border: '1px solid #ccc', borderRadius: '4px' }} 
+                        style={{ width: '60px', padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', color: 'var(--text)' }} 
                     /> 
                     entries
                 </div>
-                <div style={{ fontSize: '13px', color: '#666' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text)' }}>
                     Showing {data.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + (itemsPerPage || 0), data.length)} of {data.length} entries
                 </div>
             </div>
