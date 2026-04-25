@@ -121,7 +121,7 @@ function sendDeliveredSMS(phone, orderId, invoiceLink = '') {
  */
 function sendAssignedSMS(phone, orderId, deliveryBoyPhone = '') {
   // Matching exact URL structure: ...your order (ID:${orderId}) is assigned... Contact: {${deliveryBoyPhone}}...
-  const message = `Dear Customer, your order (ID:${orderId}) is assigned to a delivery partner. Contact: {${deliveryBoyPhone}}. - Team YogisFarms`;
+  const message = `Dear Customer, your order ID:${orderId} is assigned to a delivery partner. Contact: ${deliveryBoyPhone}. - Team YogisFarms`;
   return sendSMS(phone, message, SMS_CONFIG.templates.ASSIGNED);
 }
 
