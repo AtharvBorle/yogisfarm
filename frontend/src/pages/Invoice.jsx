@@ -16,7 +16,7 @@ const Invoice = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const res = await api.get(`/orders/detail/${orderNumber}`);
+                const res = await api.get(`/orders/invoice/${orderNumber}`);
                 if (res.data.status) {
                     setOrder(res.data.order);
                 }
