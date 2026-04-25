@@ -138,7 +138,7 @@ const DeliveryDashboard = () => {
                     </div>
                     <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', textAlign: 'center', border: '2px solid #ffeedb' }}>
                         <div style={{ fontSize: '13px', color: '#7E7E7E', marginBottom: '5px' }}>Total COD Outstanding</div>
-                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>₹{Math.abs(Number(boy.outstandingAmount)) < 0.01 ? '0' : Number(boy.outstandingAmount).toFixed(0)}</div>
+                        <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc3545' }}>₹{Math.round(Number(boy.outstandingAmount)) === 0 ? '0' : Math.round(Number(boy.outstandingAmount))}</div>
                     </div>
                 </div>
 

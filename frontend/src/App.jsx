@@ -79,6 +79,7 @@ function App() {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
           <Route path="/invoice/:orderNumber" element={<Invoice />} />
+          <Route path="/invoice" element={<Invoice />} />
           
           {/* Delivery Portal Routes */}
           <Route path="/delivery/login" element={<DeliveryLogin />} />

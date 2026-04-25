@@ -4,12 +4,14 @@ import api from '../api';
 import html2pdf from 'html2pdf.js';
 
 const Invoice = () => {
-    const { orderNumber } = useParams();
+    const { orderNumber: paramOrderNumber } = useParams();
+    const [searchParams] = useSearchParams();
+    const orderNumber = paramOrderNumber || searchParams.get('order');
+    const autoDownload = searchParams.get('download') === 'true';
     const [order, setOrder] = useState(null);
     const [gstNumber, setGstNumber] = useState('');
     const [activeTax, setActiveTax] = useState(null);
-    const [searchParams] = useSearchParams();
-    const autoDownload = searchParams.get('download') === 'true';
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -54,6 +56,21 @@ const Invoice = () => {
 
     if (!order) return <div style={{ padding: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}><i className="fi-rs-spinner" style={{ animation: 'spin 1s linear infinite' }}></i> {autoDownload ? 'Preparing PDF Download...' : 'Loading Invoice...'}</div>;
 
+    const handleDownloadPDF = () => {
+        setDownloading(true);
+        const element = document.getElementById('invoice-content');
+        const opt = {
+            margin:       0.5,
+            filename:     `Invoice_${order.orderNumber}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+            setDownloading(false);
+        });
+    };
+
     const invoiceNumber = order.orderNumber.replace('YF-O', 'YFT-');
     const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -61,6 +78,28 @@ const Invoice = () => {
     const tdStyle = { padding: '10px 12px', fontSize: '13px', border: '1px solid #ccc', textAlign: 'center' };
 
     return (
+        <>
+            {/* Download Button Bar - hidden in PDF */}
+            <div id="download-bar" style={{ maxWidth: '1100px', margin: '20px auto 0', padding: '15px 30px', textAlign: 'right' }}>
+                <button
+                    onClick={handleDownloadPDF}
+                    disabled={downloading}
+                    style={{
+                        padding: '12px 30px',
+                        background: '#046938',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: downloading ? 'not-allowed' : 'pointer',
+                        fontSize: '16px',
+                        fontWeight: '700',
+                        boxShadow: '0 4px 12px rgba(4, 105, 56, 0.3)',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    {downloading ? '⏳ Generating PDF...' : '📥 Download Invoice PDF'}
+                </button>
+            </div>
         <div id="invoice-content" style={{ maxWidth: '1100px', margin: '0 auto', padding: '30px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#333', background: '#fff' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
@@ -148,6 +187,7 @@ const Invoice = () => {
 
             {/* Removed print styles as html2pdf renders directly */}
         </div>
+        </>
     );
 };
 

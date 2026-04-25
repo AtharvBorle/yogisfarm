@@ -112,7 +112,7 @@ function sendOutForDeliverySMS(phone, orderId) {
  * 2. NYDELINV — Delivered + invoice link
  */
 function sendDeliveredSMS(phone, orderId, invoiceLink = '') {
-  const message = `Dear Customer, Your order with ID ${orderId} has been delivered. You can download your invoice here: ${invoiceLink} Regards, Team YogisFarms`;
+  const message = `Dear Customer, Your order with ID ${orderId} has been delivered. You can download your invoice here: ${invoiceLink}. Regards, Team YogisFarms`;
   return sendSMS(phone, message, SMS_CONFIG.templates.DELIVERED_INV);
 }
 

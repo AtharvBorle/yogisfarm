@@ -66,14 +66,13 @@ const Collections = () => {
         { 
             header: 'Outstanding Balance', 
             render: row => {
-                let amt = Number(row.outstandingAmount);
-                if (Math.abs(amt) < 0.01) amt = 0;
+                let amt = Math.round(Number(row.outstandingAmount));
                 return (
                     <span style={{ 
                         color: amt > 0 ? '#dc3545' : '#28a745', 
                         fontWeight: 'bold' 
                     }}>
-                        ₹{amt === 0 ? '0' : amt.toFixed(0)}
+                        ₹{amt === 0 ? '0' : amt}
                     </span>
                 );
             } 
