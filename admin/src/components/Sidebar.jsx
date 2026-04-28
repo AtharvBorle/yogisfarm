@@ -14,7 +14,8 @@ import {
   FolderOpen, 
   TicketPercent,
   Star,
-  Wallet
+  Wallet,
+  ClipboardList
 } from 'lucide-react';
 
 const navItems = [
@@ -32,6 +33,7 @@ const navItems = [
     { name: 'Review', path: '/reviews', icon: Star },
     { name: 'Filemanager', path: '/filemanager', icon: FolderOpen },
     { name: 'Coupon Code', path: '/coupons', icon: TicketPercent },
+    { name: 'Logs', path: '/logs', icon: ClipboardList },
 ];
 
 const Sidebar = ({ isCollapsed, isDarkMode }) => {

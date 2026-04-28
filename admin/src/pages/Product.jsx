@@ -430,9 +430,9 @@ const Product = () => {
                                     ['Deal', viewProduct.deal ? 'Yes' : 'No'],
                                     ['Tags', viewProduct.tags || '—'],
                                 ].map(([label, val]) => (
-                                    <tr key={label} style={{ borderBottom: '1px solid #eee' }}>
-                                        <td style={{ padding: '8px', fontWeight: '600', color: '#555', width: '130px' }}>{label}</td>
-                                        <td style={{ padding: '8px' }}>{val}</td>
+                                    <tr key={label} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '8px', fontWeight: '600', color: 'var(--text-muted, #888)', width: '130px' }}>{label}</td>
+                                        <td style={{ padding: '8px', color: 'var(--text)' }}>{val}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -443,14 +443,14 @@ const Product = () => {
                             <div>
                                 <strong>Variants:</strong>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '5px' }}>
-                                    <thead><tr style={{ background: '#f8f9fa' }}>
+                                    <thead><tr style={{ background: 'var(--sidebar-hover)', color: 'var(--text)' }}>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Name</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Price</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Sale Price</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Stock</th>
                                     </tr></thead>
-                                    <tbody>{viewProduct.variants.map(v => (
-                                        <tr key={v.id} style={{ borderBottom: '1px solid #eee' }}>
+                                    <tbody style={{ color: 'var(--text)' }}>{viewProduct.variants.map(v => (
+                                        <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                             <td style={{ padding: '6px' }}>{v.name}</td>
                                             <td style={{ padding: '6px' }}>₹{v.price}</td>
                                             <td style={{ padding: '6px' }}>{v.salePrice ? `₹${v.salePrice}` : '—'}</td>

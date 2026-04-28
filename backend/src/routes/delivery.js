@@ -101,7 +101,7 @@ router.get('/pending-deliveries', requireDeliveryBoy, async (req, res) => {
 // ─── Delivery History ───
 router.get('/history', requireDeliveryBoy, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
     const where = {
       deliveryBoyId: req.session.deliveryBoyId,
       orderStatus: 'delivered'
@@ -110,19 +110,52 @@ router.get('/history', requireDeliveryBoy, async (req, res) => {
     if (startDate && endDate) {
       where.updatedAt = {
         gte: new Date(startDate),
-        lte: new Date(endDate)
+        lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
       };
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        user: { select: { name: true, phone: true } },
-        items: true
-      }
-    });
-    res.json({ status: true, orders });
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [orders, total] = await Promise.all([
+        prisma.order.findMany({
+            where,
+            orderBy: { updatedAt: 'desc' },
+            skip,
+            take: parseInt(limit),
+            include: {
+                user: { select: { name: true, phone: true } },
+                items: true
+            }
+        }),
+        prisma.order.count({ where })
+    ]);
+
+    res.json({ status: true, orders, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Transaction History (Admin Collections) ───
+router.get('/transactions', requireDeliveryBoy, async (req, res) => {
+  try {
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
+    const where = { deliveryBoyId: req.session.deliveryBoyId };
+    
+    if (startDate && endDate) {
+        where.createdAt = {
+            gte: new Date(startDate),
+            lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+        };
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [transactions, total] = await Promise.all([
+        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit) }),
+        prisma.deliveryCollection.count({ where })
+    ]);
+
+    res.json({ status: true, transactions, total, totalPages: Math.ceil(total / limit) });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

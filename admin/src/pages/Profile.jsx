@@ -1,15 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 import api from '../api';
 import toast from 'react-hot-toast';
 
-import { ChevronDown } from 'react-feather';
+import { ChevronDown, Camera } from 'react-feather';
 
 const Profile = () => {
-    const { admin } = useAuth();
-    const [activeTab, setActiveTab] = useState('basic');
+    const { admin, fetchAdmin } = useAuth();
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'basic');
     const [gstNumber, setGstNumber] = useState('');
     const [savingSettings, setSavingSettings] = useState(false);
+    
+    // Basic Details State
+    const [profileForm, setProfileForm] = useState({ name: '', email: '' });
+    
+    // Password State
+    const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    useEffect(() => {
+        if (location.state?.activeTab) {
+            setActiveTab(location.state.activeTab);
+        }
+    }, [location.state]);
+
+    useEffect(() => {
+        if (admin) {
+            setProfileForm({ name: admin.name || '', email: admin.email || '' });
+        }
+    }, [admin]);
 
     useEffect(() => {
         api.get('/settings').then(res => {
@@ -29,6 +49,53 @@ const Profile = () => {
         setSavingSettings(false);
     };
 
+    const handleUpdateProfile = async () => {
+        try {
+            const res = await api.put('/profile', profileForm);
+            if (res.data.status) {
+                toast.success('Profile updated');
+                fetchAdmin();
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (e) { toast.error('Failed to update profile'); }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const res = await api.post('/profile/image', formData);
+            if (res.data.status) {
+                toast.success('Profile image updated');
+                fetchAdmin();
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (err) { toast.error('Failed to upload image'); }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            return toast.error('New passwords do not match');
+        }
+        try {
+            const res = await api.post('/change-password', {
+                currentPassword: passwordForm.currentPassword,
+                newPassword: passwordForm.newPassword
+            });
+            if (res.data.status) {
+                toast.success('Password changed successfully');
+                setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                toast.error(res.data.message);
+            }
+        } catch (e) { toast.error('Failed to change password'); }
+    };
+
     return (
         <div>
             <div style={{ marginBottom: '20px' }}>
@@ -41,29 +108,41 @@ const Profile = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 1fr) 2.5fr', gap: '20px', alignItems: 'start' }}>
                 {/* LEFT PROFILE CARD */}
                 <div className="admin-card" style={{ padding: '25px', textAlign: 'center' }}>
-                    <div style={{ 
-                        width: '180px', 
-                        height: '180px', 
-                        background: '#ccc', 
-                        margin: '0 auto 15px', 
-                        borderRadius: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        overflow: 'hidden'
-                    }}>
-                        {/* Placeholder for user image */}
-                        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                    <div style={{ position: 'relative', width: '180px', height: '180px', margin: '0 auto 15px' }}>
+                        <div style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            background: '#ccc', 
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            overflow: 'hidden'
+                        }}>
+                            {admin?.image ? (
+                                <img src={`http://localhost:5000${admin.image}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            )}
+                        </div>
+                        <label style={{
+                            position: 'absolute', bottom: '10px', right: '10px', background: '#3BB77E', color: '#fff',
+                            width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                        }}>
+                            <Camera size={18} />
+                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
+                        </label>
                     </div>
                     <p style={{ fontSize: '11px', color: 'var(--text)', fontStyle: 'italic', marginBottom: '20px', lineHeight: '1.5' }}>
-                        Click On The Image To Change Best Size Is 400px X 400px
+                        Click On The Camera Icon To Change Best Size Is 400px X 400px
                     </p>
                     <div style={{ borderTop: '1px solid var(--border)', margin: '15px 0' }}></div>
-                    <button className="btn-modal-submit" style={{ width: '100%', padding: '12px', background: '#006233', borderRadius: '4px' }}>
+                    <button onClick={handleUpdateProfile} className="btn-modal-submit" style={{ width: '100%', padding: '12px', background: '#006233', borderRadius: '4px' }}>
                         Update
                     </button>
                 </div>
@@ -109,6 +188,15 @@ const Profile = () => {
                         >
                             BUSINESS SETTINGS
                         </div>
+                        <div 
+                            onClick={() => setActiveTab('password')}
+                            style={{ padding: '20px 5px', fontSize: '13px', fontWeight: '600', cursor: 'pointer',
+                                color: activeTab === 'password' ? '#006233' : 'var(--text)',
+                                borderBottom: activeTab === 'password' ? '3px solid #006233' : '3px solid transparent'
+                            }}
+                        >
+                            PASSWORD
+                        </div>
                     </div>
 
                     {/* TAB CONTENT */}
@@ -120,11 +208,11 @@ const Profile = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginBottom: '25px' }}>
                                     <div className="admin-form-group">
                                         <label className="admin-label">Username <span className="required">*</span></label>
-                                        <input type="text" className="admin-input" defaultValue="admin" readOnly style={{ background: 'transparent' }} />
+                                        <input type="text" className="admin-input" value={admin?.email?.split('@')[0] || 'admin'} readOnly style={{ background: 'transparent' }} />
                                     </div>
                                     <div className="admin-form-group">
                                         <label className="admin-label">Name <span className="required">*</span></label>
-                                        <input type="text" className="admin-input" defaultValue="Yogis Farm" />
+                                        <input type="text" className="admin-input" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} />
                                     </div>
                                     <div className="admin-form-group">
                                         <label className="admin-label">Mobile No <span className="required">*</span></label>
@@ -139,12 +227,12 @@ const Profile = () => {
                                     </div>
                                     <div className="admin-form-group">
                                         <label className="admin-label">Email Id <span className="required">*</span></label>
-                                        <input type="email" className="admin-input" defaultValue="admin@gmail.com" />
+                                        <input type="email" className="admin-input" value={profileForm.email} onChange={e => setProfileForm({ ...profileForm, email: e.target.value })} />
                                     </div>
                                 </div>
                                 <div style={{ borderTop: '1px solid var(--border)', margin: '20px 0' }}></div>
                                 <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                    <button className="btn-modal-submit" style={{ background: '#006233', padding: '10px 30px' }}>Update</button>
+                                    <button onClick={handleUpdateProfile} className="btn-modal-submit" style={{ background: '#006233', padding: '10px 30px' }}>Update</button>
                                 </div>
                             </div>
                         )}
@@ -252,6 +340,29 @@ const Profile = () => {
                         )}
 
 
+                        {/* PASSWORD TAB */}
+                        {activeTab === 'password' && (
+                            <form onSubmit={handleChangePassword}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', marginBottom: '25px', maxWidth: '500px', margin: '0 auto' }}>
+                                    <div className="admin-form-group">
+                                        <label className="admin-label">Current Password <span className="required">*</span></label>
+                                        <input type="password" required className="admin-input" value={passwordForm.currentPassword} onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
+                                    </div>
+                                    <div className="admin-form-group">
+                                        <label className="admin-label">New Password <span className="required">*</span></label>
+                                        <input type="password" required className="admin-input" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} />
+                                    </div>
+                                    <div className="admin-form-group">
+                                        <label className="admin-label">Confirm New Password <span className="required">*</span></label>
+                                        <input type="password" required className="admin-input" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div style={{ borderTop: '1px solid var(--border)', margin: '20px 0' }}></div>
+                                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                    <button type="submit" className="btn-modal-submit" style={{ background: '#006233', padding: '10px 30px' }}>Change Password</button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             </div>

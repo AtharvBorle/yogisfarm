@@ -40,8 +40,73 @@ router.post('/login', async (req, res) => {
 });
 
 router.get('/me', requireAdmin, async (req, res) => {
-  const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId }, select: { id: true, name: true, email: true, role: true } });
+  const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId }, select: { id: true, name: true, email: true, role: true, image: true } });
   res.json({ status: true, admin });
+});
+
+// ─── Admin Action Log Helper ───
+const logAdminAction = async (adminId, action, details = null) => {
+    try {
+        await prisma.adminLog.create({
+            data: {
+                adminId: parseInt(adminId),
+                action,
+                details: details ? (typeof details === 'string' ? details : JSON.stringify(details)) : null
+            }
+        });
+    } catch (err) {
+        console.error('Failed to log admin action:', err);
+    }
+};
+
+router.get('/logs', requireAdmin, async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query;
+        const where = {};
+        if (startDate && endDate) {
+            where.createdAt = {
+                gte: new Date(startDate),
+                lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            };
+        }
+        const logs = await prisma.adminLog.findMany({
+            where,
+            include: { admin: { select: { name: true, email: true } } },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ status: true, logs });
+    } catch (e) {
+        res.json({ status: false, message: e.message });
+    }
+});
+
+router.put('/profile', requireAdmin, async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        const admin = await prisma.admin.update({
+            where: { id: req.session.adminId },
+            data: { name, email }
+        });
+        await logAdminAction(req.session.adminId, 'Updated Profile', `Name: ${name}, Email: ${email}`);
+        res.json({ status: true, message: 'Profile updated' });
+    } catch (e) {
+        res.json({ status: false, message: e.message });
+    }
+});
+
+router.post('/profile/image', requireAdmin, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.json({ status: false, message: 'No image provided' });
+        const image = '/uploads/' + req.file.filename;
+        await prisma.admin.update({
+            where: { id: req.session.adminId },
+            data: { image }
+        });
+        await logAdminAction(req.session.adminId, 'Updated Profile Image');
+        res.json({ status: true, message: 'Profile image updated' });
+    } catch (e) {
+        res.json({ status: false, message: e.message });
+    }
 });
 
 router.post('/change-password', requireAdmin, async (req, res) => {
@@ -51,6 +116,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     const valid = await bcrypt.compare(currentPassword, admin.password);
     if (!valid) return res.json({ status: false, message: 'Current password incorrect' });
     await prisma.admin.update({ where: { id: admin.id }, data: { password: await bcrypt.hash(newPassword, 10) } });
+    await logAdminAction(req.session.adminId, 'Changed Password');
     res.json({ status: true, message: 'Password changed' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -564,6 +630,7 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
     });
     // SMS stub — log payment update to console
     console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
+    await logAdminAction(req.session.adminId, 'Updated Order Payment', `Order: ${order.orderNumber}, Status: ${paymentStatus}`);
     res.json({ status: true, message: 'Payment updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -623,6 +690,7 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
       }
     })().catch(err => console.error("Background SMS Error:", err));
 
+    await logAdminAction(req.session.adminId, 'Assigned Delivery', `Order: ${order.orderNumber}, Type: ${deliveryType}`);
     res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -642,6 +710,27 @@ router.get('/delivery-boys', requireAdmin, async (req, res) => {
     return safe;
   });
   res.json({ status: true, deliveryBoys: safeBoys });
+});
+
+router.get('/delivery-boys/:id/collections', requireAdmin, async (req, res) => {
+  try {
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
+    const where = { deliveryBoyId: parseInt(req.params.id) };
+    if (startDate && endDate) {
+        where.createdAt = {
+            gte: new Date(startDate),
+            lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+        };
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [collections, total] = await Promise.all([
+        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit) }),
+        prisma.deliveryCollection.count({ where })
+    ]);
+    res.json({ status: true, collections, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 router.post('/delivery-boys', requireAdmin, async (req, res) => {
@@ -715,6 +804,7 @@ router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
     ]);
 
     const updated = await prisma.deliveryBoy.findUnique({ where: { id: deliveryBoy.id } });
+    await logAdminAction(req.session.adminId, 'Collected Cash', `Amount: ₹${collectAmount}, From: ${deliveryBoy.name}`);
     res.json({ status: true, message: 'Cash collected successfully', outstandingAmount: updated.outstandingAmount });
   } catch (e) {
     res.json({ status: false, message: e.message });

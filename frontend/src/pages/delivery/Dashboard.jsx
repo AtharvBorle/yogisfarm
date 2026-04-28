@@ -13,8 +13,17 @@ const DeliveryDashboard = () => {
     
     // For History
     const [history, setHistory] = useState([]);
+    const [historyPage, setHistoryPage] = useState(1);
+    const [historyTotalPages, setHistoryTotalPages] = useState(1);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    // For Transactions
+    const [transactions, setTransactions] = useState([]);
+    const [transPage, setTransPage] = useState(1);
+    const [transTotalPages, setTransTotalPages] = useState(1);
+    const [transLoading, setTransLoading] = useState(false);
     
     const navigate = useNavigate();
 
@@ -44,18 +53,43 @@ const DeliveryDashboard = () => {
         }
     };
 
-    const fetchHistory = async () => {
+    const fetchHistory = async (page = 1) => {
+        setHistoryLoading(true);
         try {
-            let query = '';
+            let query = `?page=${page}&limit=10`;
             if (startDate && endDate) {
-                query = `?startDate=${startDate}&endDate=${endDate}`;
+                query += `&startDate=${startDate}&endDate=${endDate}`;
             }
             const res = await api.get(`/delivery/history${query}`);
             if (res.data.status) {
                 setHistory(res.data.orders);
+                setHistoryTotalPages(res.data.totalPages || 1);
+                setHistoryPage(page);
             }
         } catch (err) {
             toast.error('Failed to fetch history');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const fetchTransactions = async (page = 1) => {
+        setTransLoading(true);
+        try {
+            let query = `?page=${page}&limit=10`;
+            if (startDate && endDate) {
+                query += `&startDate=${startDate}&endDate=${endDate}`;
+            }
+            const res = await api.get(`/delivery/transactions${query}`);
+            if (res.data.status) {
+                setTransactions(res.data.transactions);
+                setTransTotalPages(res.data.totalPages);
+                setTransPage(page);
+            }
+        } catch (err) {
+            toast.error('Failed to fetch transactions');
+        } finally {
+            setTransLoading(false);
         }
     };
 
@@ -66,7 +100,9 @@ const DeliveryDashboard = () => {
 
     useEffect(() => {
         if (viewMode === 'history') {
-            fetchHistory();
+            fetchHistory(historyPage);
+        } else if (viewMode === 'transactions') {
+            fetchTransactions(transPage);
         }
     }, [viewMode, startDate, endDate]);
 
@@ -145,7 +181,8 @@ const DeliveryDashboard = () => {
                 {/* Tabs */}
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                     <button onClick={() => setViewMode('pending')} style={navStyle(viewMode === 'pending')}><Clock size={16} /> Pending</button>
-                    <button onClick={() => setViewMode('history')} style={navStyle(viewMode === 'history')}><CheckCircle size={16} color="green" /> History</button>
+                    <button onClick={() => { setStartDate(''); setEndDate(''); setViewMode('history'); }} style={navStyle(viewMode === 'history')}><CheckCircle size={16} color="green" /> Deliveries</button>
+                    <button onClick={() => { setStartDate(''); setEndDate(''); setViewMode('transactions'); }} style={navStyle(viewMode === 'transactions')}><Inbox size={16} color="#007bff" /> Cash Paid</button>
                 </div>
 
                 {/* Content */}
@@ -194,24 +231,79 @@ const DeliveryDashboard = () => {
                             </div>
                         </div>
 
-                        {history.length === 0 ? (
+                        {historyLoading ? (
+                            <div style={{ textAlign: 'center', padding: '30px', background: '#fff', borderRadius: '12px', color: '#999' }}>Loading...</div>
+                        ) : history.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '30px', background: '#fff', borderRadius: '12px', color: '#999' }}>No history found for this period</div>
                         ) : (
-                            history.map(order => (
-                                <div key={order.id} onClick={() => navigate(`/delivery/order/${order.id}`)} style={{ background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#253D4E' }}>{order.orderNumber}</span>
-                                        <span style={{ fontSize: '11px', background: '#28a745', color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Delivered</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {history.map(order => (
+                                    <div key={order.id} onClick={() => navigate(`/delivery/order/${order.id}`)} style={{ background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 'bold', fontSize: '15px', color: '#253D4E' }}>{order.orderNumber}</span>
+                                            <span style={{ fontSize: '11px', background: '#28a745', color: '#fff', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>Delivered</span>
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#777' }}>
+                                            Delivered on {new Date(order.updatedAt).toLocaleDateString()}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '8px', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '12px', color: '#555' }}>Customer: {order.user?.name}</span>
+                                            <span style={{ fontWeight: 'bold', color: '#253D4E' }}>₹{Number(order.total).toFixed(0)}</span>
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '12px', color: '#777' }}>
-                                        Delivered on {new Date(order.updatedAt).toLocaleDateString()}
+                                ))}
+
+                                {historyTotalPages > 1 && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' }}>
+                                        <button disabled={historyPage === 1} onClick={() => fetchHistory(historyPage - 1)} style={{ background: '#6c757d', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Prev</button>
+                                        <span style={{ fontSize: '13px', alignSelf: 'center', color: '#555' }}>Page {historyPage} of {historyTotalPages}</span>
+                                        <button disabled={historyPage === historyTotalPages} onClick={() => fetchHistory(historyPage + 1)} style={{ background: '#6c757d', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Next</button>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '8px', marginTop: '4px' }}>
-                                        <span style={{ fontSize: '12px', color: '#555' }}>Customer: {order.user?.name}</span>
-                                        <span style={{ fontWeight: 'bold', color: '#253D4E' }}>₹{Number(order.total).toFixed(0)}</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {viewMode === 'transactions' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ background: '#fff', padding: '15px', borderRadius: '12px', display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Start Date</label>
+                                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>End Date</label>
+                                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+                            </div>
+                        </div>
+
+                        {transLoading ? (
+                            <div style={{ textAlign: 'center', padding: '30px', background: '#fff', borderRadius: '12px', color: '#999' }}>Loading...</div>
+                        ) : transactions.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '30px', background: '#fff', borderRadius: '12px', color: '#999' }}>No cash collected by admin in this period</div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {transactions.map(t => (
+                                    <div key={t.id} style={{ background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#253D4E' }}>{new Date(t.createdAt).toLocaleDateString()}</div>
+                                            <div style={{ fontSize: '12px', color: '#777' }}>{new Date(t.createdAt).toLocaleTimeString()}</div>
+                                        </div>
+                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#28a745' }}>
+                                            - ₹{Number(t.amount).toFixed(0)}
+                                        </div>
                                     </div>
-                                </div>
-                            ))
+                                ))}
+                                
+                                {transTotalPages > 1 && (
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' }}>
+                                        <button disabled={transPage === 1} onClick={() => fetchTransactions(transPage - 1)} style={{ background: '#6c757d', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Prev</button>
+                                        <span style={{ fontSize: '13px', alignSelf: 'center', color: '#555' }}>Page {transPage} of {transTotalPages}</span>
+                                        <button disabled={transPage === transTotalPages} onClick={() => fetchTransactions(transPage + 1)} style={{ background: '#6c757d', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>Next</button>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}

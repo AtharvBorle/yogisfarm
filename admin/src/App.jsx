@@ -19,6 +19,7 @@ import OrderDetail from './pages/OrderDetail';
 import Invoice from './pages/Invoice';
 import Review from './pages/Review';
 import Collections from './pages/Collections';
+import Logs from './pages/Logs';
 
 function App() {
   const { admin, loading } = useAuth();

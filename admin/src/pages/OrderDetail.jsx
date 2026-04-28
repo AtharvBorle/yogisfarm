@@ -438,7 +438,7 @@ const OrderDetail = () => {
                     )}
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Payment Status</label>
-                        <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} style={inputStyle}>
+                        <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} className="admin-select" style={{ width: '100%' }}>
                             <option value="pending">Pending</option>
                             <option value="completed">Completed</option>
                             <option value="failed">Failed</option>
@@ -446,9 +446,9 @@ const OrderDetail = () => {
                         </select>
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Notes</label>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Notes</label>
                         <textarea value={paymentForm.paymentDescription} onChange={e => setPaymentForm({ ...paymentForm, paymentDescription: e.target.value })}
-                            style={{ ...inputStyle, minHeight: '60px' }} placeholder="Admin notes..." />
+                            className="admin-input" style={{ width: '100%', minHeight: '60px' }} placeholder="Admin notes..." />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Update</button>
@@ -460,13 +460,13 @@ const OrderDetail = () => {
             <GenericModal isOpen={isDeliveryOptionOpen} title="Assign Delivery Option" onClose={() => setDeliveryOptionOpen(false)}>
                 <form onSubmit={assignDeliveryOption} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     {/* Radio Selection */}
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: deliveryOptionType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
+                    <div style={{ display: 'flex', gap: '12px', color: 'var(--text)' }}>
+                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'delivery_boy' ? 'rgba(40, 167, 69, 0.1)' : 'var(--sidebar-hover)', border: deliveryOptionType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
                             <input type="radio" name="deliveryOptionType" value="delivery_boy" checked={deliveryOptionType === 'delivery_boy'}
                                 onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#28a745' }} />
                             <Truck size={16} /> Delivery Boy
                         </label>
-                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: deliveryOptionType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
+                        <label style={{ ...radioLabelStyle, background: deliveryOptionType === 'courier' ? 'rgba(0, 123, 255, 0.1)' : 'var(--sidebar-hover)', border: deliveryOptionType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
                             <input type="radio" name="deliveryOptionType" value="courier" checked={deliveryOptionType === 'courier'}
                                 onChange={(e) => setDeliveryOptionType(e.target.value)} style={{ accentColor: '#007bff' }} />
                             <Package size={16} /> Courier Partner
@@ -476,8 +476,8 @@ const OrderDetail = () => {
                     {/* Delivery Boy Dropdown */}
                     {deliveryOptionType === 'delivery_boy' && (
                         <div>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Select Delivery Boy</label>
-                            <select value={selectedDeliveryBoyId} onChange={e => setSelectedDeliveryBoyId(e.target.value)} style={inputStyle}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Select Delivery Boy</label>
+                            <select value={selectedDeliveryBoyId} onChange={e => setSelectedDeliveryBoyId(e.target.value)} className="admin-select" style={{ width: '100%' }}>
                                 <option value="">-- Select Delivery Boy --</option>
                                 {deliveryBoys.map(db => (
                                     <option key={db.id} value={db.id}>{db.name} ({db.phone})</option>
@@ -493,8 +493,8 @@ const OrderDetail = () => {
                     {deliveryOptionType === 'courier' && (
                         <>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Select Courier Partner</label>
-                                <select value={selectedCourierPartnerId} onChange={e => setSelectedCourierPartnerId(e.target.value)} style={inputStyle}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Select Courier Partner</label>
+                                <select value={selectedCourierPartnerId} onChange={e => setSelectedCourierPartnerId(e.target.value)} className="admin-select" style={{ width: '100%' }}>
                                     <option value="">-- Select Courier Partner --</option>
                                     {courierPartners.map(cp => (
                                         <option key={cp.id} value={cp.id}>{cp.name}</option>
@@ -505,9 +505,9 @@ const OrderDetail = () => {
                                 )}
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Tracking ID</label>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Tracking ID</label>
                                 <input type="text" value={trackingId} onChange={e => setTrackingId(e.target.value)}
-                                    placeholder="Enter tracking ID" style={inputStyle} />
+                                    placeholder="Enter tracking ID" className="admin-input" style={{ width: '100%' }} />
                             </div>
                         </>
                     )}
@@ -522,13 +522,13 @@ const OrderDetail = () => {
             <GenericModal isOpen={isManageOpen} title="Manage Delivery Boys / Courier Partners" onClose={() => { setManageOpen(false); setEditingId(null); }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     {/* Radio Selection */}
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <label style={{ ...radioLabelStyle, background: manageType === 'delivery_boy' ? '#e8f5e9' : '#f5f5f5', border: manageType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
+                    <div style={{ display: 'flex', gap: '12px', color: 'var(--text)' }}>
+                        <label style={{ ...radioLabelStyle, background: manageType === 'delivery_boy' ? 'rgba(40, 167, 69, 0.1)' : 'var(--sidebar-hover)', border: manageType === 'delivery_boy' ? '2px solid #28a745' : '2px solid transparent' }}>
                             <input type="radio" name="manageType" value="delivery_boy" checked={manageType === 'delivery_boy'}
                                 onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#28a745' }} />
                             <Truck size={16} /> Delivery Boys
                         </label>
-                        <label style={{ ...radioLabelStyle, background: manageType === 'courier' ? '#e3f2fd' : '#f5f5f5', border: manageType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
+                        <label style={{ ...radioLabelStyle, background: manageType === 'courier' ? 'rgba(0, 123, 255, 0.1)' : 'var(--sidebar-hover)', border: manageType === 'courier' ? '2px solid #007bff' : '2px solid transparent' }}>
                             <input type="radio" name="manageType" value="courier" checked={manageType === 'courier'}
                                 onChange={(e) => { setManageType(e.target.value); setEditingId(null); }} style={{ accentColor: '#007bff' }} />
                             <Package size={16} /> Courier Partners
@@ -542,7 +542,7 @@ const OrderDetail = () => {
                             <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                     <thead>
-                                        <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                                        <tr style={{ background: 'var(--sidebar-hover)', color: 'var(--text)', position: 'sticky', top: 0 }}>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Name</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Phone</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>City</th>
@@ -555,15 +555,15 @@ const OrderDetail = () => {
                                             <tr><td colSpan="5" style={{ padding: '15px', textAlign: 'center', color: '#999' }}>No delivery boys added yet</td></tr>
                                         )}
                                         {deliveryBoys.map(db => (
-                                            <tr key={db.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                            <tr key={db.id} style={{ borderBottom: '1px solid var(--border)', color: 'var(--text)' }}>
                                                 {editingId === db.id ? (
                                                     <>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', width: '100%' }} /></td>
                                                         <td style={{ padding: '6px 8px' }}>
-                                                            <input value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px', marginBottom: '4px' }} placeholder="Phone" />
-                                                            <input value={editForm.pin || ''} onChange={e => setEditForm({ ...editForm, pin: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} placeholder="New PIN (optional)" />
+                                                            <input value={editForm.phone || ''} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', marginBottom: '4px', width: '100%' }} placeholder="Phone" />
+                                                            <input value={editForm.pin || ''} onChange={e => setEditForm({ ...editForm, pin: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', width: '100%' }} placeholder="New PIN (optional)" />
                                                         </td>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.city || ''} onChange={e => setEditForm({ ...editForm, city: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', width: '100%' }} /></td>
                                                         <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>₹{Math.round(Number(db.outstandingAmount)) === 0 ? '0' : Math.round(Number(db.outstandingAmount))}</td>
                                                         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
@@ -595,33 +595,33 @@ const OrderDetail = () => {
                             </div>
 
                             {/* Add New Form */}
-                            <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
-                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}><Plus size={16} /> Add New Delivery Boy</div>
-                                <form onSubmit={handleAddDeliveryBoy} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                            <div style={{ background: 'var(--sidebar-hover)', borderRadius: '8px', padding: '15px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: 'var(--text)' }}><Plus size={16} /> Add New Delivery Boy</div>
+                                <form onSubmit={handleAddDeliveryBoy} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', color: 'var(--text)' }}>
                                     <div style={{ flex: '1', minWidth: '120px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>
                                         <input type="text" value={addDeliveryBoyForm.name} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, name: e.target.value })}
-                                            placeholder="Name" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="Name" required className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <div style={{ flex: '1', minWidth: '120px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Phone *</label>
                                         <input type="text" value={addDeliveryBoyForm.phone} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, phone: e.target.value })}
-                                            placeholder="Phone" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="Phone" required className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <div style={{ flex: '1', minWidth: '100px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Login PIN *</label>
                                         <input type="text" value={addDeliveryBoyForm.pin} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, pin: e.target.value })}
-                                            placeholder="Set PIN" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="Set PIN" required className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <div style={{ flex: '1', minWidth: '100px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>City</label>
                                         <input type="text" value={addDeliveryBoyForm.city} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, city: e.target.value })}
-                                            placeholder="City" style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="City" className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <div style={{ flex: '1', minWidth: '80px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Pincode</label>
                                         <input type="text" value={addDeliveryBoyForm.pincode} onChange={e => setAddDeliveryBoyForm({ ...addDeliveryBoyForm, pincode: e.target.value })}
-                                            placeholder="Pincode" style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="Pincode" className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <button type="submit" style={{ padding: '7px 16px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', whiteSpace: 'nowrap' }}>Add</button>
                                 </form>
@@ -636,7 +636,7 @@ const OrderDetail = () => {
                             <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                     <thead>
-                                        <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0 }}>
+                                        <tr style={{ background: 'var(--sidebar-hover)', color: 'var(--text)', position: 'sticky', top: 0 }}>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Name</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: '700' }}>Tracking Link</th>
                                             <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: '700' }}>Actions</th>
@@ -647,11 +647,11 @@ const OrderDetail = () => {
                                             <tr><td colSpan="3" style={{ padding: '15px', textAlign: 'center', color: '#999' }}>No courier partners added yet</td></tr>
                                         )}
                                         {courierPartners.map(cp => (
-                                            <tr key={cp.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                            <tr key={cp.id} style={{ borderBottom: '1px solid var(--border)', color: 'var(--text)' }}>
                                                 {editingId === cp.id ? (
                                                     <>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
-                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.trackingLink || ''} onChange={e => setEditForm({ ...editForm, trackingLink: e.target.value })} style={{ ...inputStyle, padding: '5px 8px', fontSize: '12px' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.name || ''} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', width: '100%' }} /></td>
+                                                        <td style={{ padding: '6px 8px' }}><input value={editForm.trackingLink || ''} onChange={e => setEditForm({ ...editForm, trackingLink: e.target.value })} className="admin-input" style={{ padding: '5px 8px', fontSize: '12px', width: '100%' }} /></td>
                                                         <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                                                                 <button onClick={handleEditSave} style={{ padding: '3px 10px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '3px', cursor: 'pointer', fontSize: '11px' }}>Save</button>
@@ -682,18 +682,18 @@ const OrderDetail = () => {
                             </div>
 
                             {/* Add New Form */}
-                            <div style={{ background: '#f8f9fa', borderRadius: '8px', padding: '15px' }}>
-                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: '#253D4E' }}><Plus size={16} /> Add New Courier Partner</div>
-                                <form onSubmit={handleAddCourier} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                            <div style={{ background: 'var(--sidebar-hover)', borderRadius: '8px', padding: '15px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: '700', marginBottom: '10px', color: 'var(--text)' }}><Plus size={16} /> Add New Courier Partner</div>
+                                <form onSubmit={handleAddCourier} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end', color: 'var(--text)' }}>
                                     <div style={{ flex: '1', minWidth: '150px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Name *</label>
                                         <input type="text" value={addCourierForm.name} onChange={e => setAddCourierForm({ ...addCourierForm, name: e.target.value })}
-                                            placeholder="Partner name" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="Partner name" required className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <div style={{ flex: '2', minWidth: '200px' }}>
                                         <label style={{ display: 'block', marginBottom: '3px', fontWeight: '600', fontSize: '11px' }}>Tracking Link *</label>
                                         <input type="text" value={addCourierForm.trackingLink} onChange={e => setAddCourierForm({ ...addCourierForm, trackingLink: e.target.value })}
-                                            placeholder="https://track.example.com/" required style={{ ...inputStyle, padding: '7px 10px', fontSize: '12px' }} />
+                                            placeholder="https://track.example.com/" required className="admin-input" style={{ padding: '7px 10px', fontSize: '12px', width: '100%' }} />
                                     </div>
                                     <button type="submit" style={{ padding: '7px 16px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px', whiteSpace: 'nowrap' }}>Add</button>
                                 </form>

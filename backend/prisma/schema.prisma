@@ -22,11 +22,13 @@ model Admin {
   name        String   @db.VarChar(100)
   email       String   @unique @db.VarChar(150)
   password    String   @db.VarChar(255)
+  image       String?  @db.VarChar(500)
   role        String   @default("admin") @db.VarChar(20)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   collections DeliveryCollection[]
+  logs        AdminLog[]
 
   @@map("admins")
 }
@@ -451,4 +453,17 @@ model Shipping {
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("shipping")
+}
+
+// ─── Admin Action Logs ───
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  adminId   Int      @map("admin_id")
+  action    String   @db.VarChar(255)
+  details   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin     Admin    @relation(fields: [adminId], references: [id])
+
+  @@map("admin_logs")
 }

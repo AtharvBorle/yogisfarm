@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { 
@@ -16,6 +16,17 @@ import {
 const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
     const { admin, logout } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <header style={{
@@ -47,7 +58,7 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                     {isDarkMode ? <Sun size={20} color="#ffc107" /> : <Moon size={20} color="#7E7E7E" />}
                 </div>
                 
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative' }} ref={profileRef}>
                     <div 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                         style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -92,14 +103,16 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                                     <User size={16} /> My Profile
                                 </div>
                             </Link>
-                            <Link to="/profile" style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
+                            <Link to="/profile" state={{ activeTab: 'business' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
                                 <div style={dropdownItemStyle(isDarkMode)}>
                                     <Settings size={16} /> Account Setting
                                 </div>
                             </Link>
-                            <div style={dropdownItemStyle(isDarkMode)}>
-                                <Lock size={16} /> Change Password
-                            </div>
+                            <Link to="/profile" state={{ activeTab: 'password' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
+                                <div style={dropdownItemStyle(isDarkMode)}>
+                                    <Lock size={16} /> Change Password
+                                </div>
+                            </Link>
                             <div style={{ height: '1px', background: isDarkMode ? '#444' : '#eee', margin: '8px 0' }} />
                             <div 
                                 onClick={logout}
