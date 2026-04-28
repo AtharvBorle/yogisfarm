@@ -45,6 +45,7 @@ function App() {
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/reviews" element={admin ? <AdminLayout><Review /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/logs" element={admin ? <AdminLayout><Logs /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/profile" element={admin ? <AdminLayout><Profile /></AdminLayout> : <Navigate to="/login" />} />
     </Routes>
   );

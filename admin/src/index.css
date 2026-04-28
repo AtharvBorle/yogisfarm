@@ -12,6 +12,8 @@
   --input-bg: #fff;
   --input-border: #ddd;
   --modal-overlay: rgba(0,0,0,0.5);
+  --text-muted: #6c757d;
+  --sidebar-hover: #f8f9fa;
 }
 
 body {
@@ -37,6 +39,8 @@ body.dark-mode {
   --input-bg: #242424;
   --input-border: #444;
   --modal-overlay: rgba(0,0,0,0.8);
+  --text-muted: #888;
+  --sidebar-hover: #2d2d2d;
 }
 
 /* Base Component Classes */
@@ -70,6 +74,21 @@ body.dark-mode {
 }
 .admin-table tr:hover td {
   background-color: var(--table-head-bg);
+}
+
+/* Dropdown Items */
+.dropdown-item-hover {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dropdown-item-hover:hover {
+  background: var(--sidebar-hover);
 }
 
 /* Buttons */

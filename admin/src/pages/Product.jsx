@@ -412,7 +412,7 @@ const Product = () => {
             {/* ─── VIEW Modal ─── */}
             <GenericModal isOpen={isViewOpen} title={viewProduct?.name || 'Product Details'} onClose={() => setViewOpen(false)}>
                 {viewProduct && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: 'var(--text)' }}>
                         {viewProduct.image && <img src={getAssetUrl(viewProduct.image)} style={{ maxHeight: '200px', objectFit: 'contain', borderRadius: '4px' }} />}
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <tbody>

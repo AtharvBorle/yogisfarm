@@ -15,7 +15,7 @@ const QuickViewModal = ({ product, onClose }) => {
     const inWishlist = isInWishlist(product.id);
 
     return (
-        <div className="modal fade custom-modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }} tabIndex="-1" role="dialog">
+        <div className="modal fade custom-modal show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, overflow: 'auto' }} tabIndex="-1" role="dialog">
             <div className="modal-dialog" role="document">
                 <div className="modal-content">
                     <button type="button" className="btn-close" onClick={onClose} style={{ position: 'absolute', right: '15px', top: '15px', zIndex: 9 }}></button>

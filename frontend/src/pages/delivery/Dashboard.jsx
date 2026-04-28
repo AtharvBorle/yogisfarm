@@ -154,6 +154,29 @@ const DeliveryDashboard = () => {
         document.body.removeChild(a);
     };
 
+    const downloadTransCSV = () => {
+        if (transactions.length === 0) return;
+        const headers = ['Date', 'Time', 'Amount'];
+        const csvRows = [headers.join(',')];
+        transactions.forEach(t => {
+            const date = new Date(t.createdAt);
+            csvRows.push([
+                date.toLocaleDateString(),
+                date.toLocaleTimeString(),
+                Number(t.amount).toFixed(0)
+            ].join(','));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', `cash_paid_history_${new Date().getTime()}.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
     return (
         <div style={{ background: '#f4f6f8', minHeight: '100vh', paddingBottom: '30px' }}>
             {/* Header */}
@@ -275,6 +298,9 @@ const DeliveryDashboard = () => {
                             <div style={{ flex: 1 }}>
                                 <label style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>End Date</label>
                                 <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '8px', width: '100%', borderRadius: '5px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
+                            </div>
+                            <div>
+                                <button onClick={downloadTransCSV} style={{ background: '#253D4E', color: '#fff', border: 'none', padding: '9px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}><Inbox size={16} /> CSV</button>
                             </div>
                         </div>
 

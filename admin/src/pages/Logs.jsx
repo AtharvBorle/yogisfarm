@@ -1,127 +1,99 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import { Calendar, Download } from 'react-feather';
+import { Download, Shield } from 'lucide-react';
 
 const Logs = () => {
-    const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [isDownloading, setIsDownloading] = useState(false);
 
-    const fetchLogs = async () => {
-        setLoading(true);
-        try {
-            let url = '/logs';
-            if (startDate && endDate) {
-                url += `?startDate=${startDate}&endDate=${endDate}`;
-            }
-            const res = await api.get(url);
-            if (res.data.status) {
-                setLogs(res.data.logs);
-            } else {
-                toast.error(res.data.message);
-            }
-        } catch (err) {
-            toast.error('Failed to fetch logs');
-        } finally {
-            setLoading(false);
+    const handleDownload = async () => {
+        if (!startDate || !endDate) {
+            return toast.error('Please select both start and end dates');
         }
-    };
 
-    useEffect(() => {
-        fetchLogs();
-    }, [startDate, endDate]);
-
-    const convertToCSV = (data) => {
-        const headers = ['ID', 'Date', 'Time', 'Admin Name', 'Admin Email', 'Action', 'Details'];
-        const csvRows = [headers.join(',')];
-        data.forEach(log => {
-            const date = new Date(log.createdAt);
-            csvRows.push([
-                log.id,
-                date.toLocaleDateString(),
-                date.toLocaleTimeString(),
-                `"${log.admin?.name || ''}"`,
-                `"${log.admin?.email || ''}"`,
-                `"${log.action || ''}"`,
-                `"${(log.details || '').replace(/"/g, '""')}"`
-            ].join(','));
-        });
-        return csvRows.join('\n');
-    };
-
-    const downloadCSV = () => {
-        if (logs.length === 0) return toast.error('No logs to download');
-        const csvData = convertToCSV(logs);
-        const blob = new Blob([csvData], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', `admin_logs_${new Date().getTime()}.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        setIsDownloading(true);
+        try {
+            const res = await api.get(`/logs/download?startDate=${startDate}&endDate=${endDate}`, {
+                responseType: 'blob'
+            });
+            
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `admin_logs_${startDate}_to_${endDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            toast.success('Logs downloaded successfully');
+        } catch (error) {
+            toast.error('Failed to download logs');
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
-                <div>
-                    <h2 style={{ marginBottom: '5px' }}>Admin Action Logs</h2>
-                    <div style={{ fontSize: '13px', color: 'var(--text)' }}>
-                        <span>Dashboard</span> <span style={{ color: '#ccc' }}>/</span> <span style={{ color: '#3BB77E' }}>Logs</span>
-                    </div>
-                </div>
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600' }}>Start Date</label>
-                        <input type="date" className="admin-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600' }}>End Date</label>
-                        <input type="date" className="admin-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
-                    </div>
-                    <button onClick={downloadCSV} className="btn-modal-submit" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#253D4E', padding: '10px 20px', borderRadius: '5px' }}>
-                        <Download size={16} /> Download CSV
-                    </button>
-                </div>
+            <div style={{ marginBottom: '20px' }}>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600', color: 'var(--text)' }}>Admin Action Logs</h2>
+                <p style={{ margin: '5px 0 0 0', color: 'var(--text-muted, #888)', fontSize: '14px' }}>Download system logs for security and auditing purposes.</p>
             </div>
 
-            <div className="admin-card">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Date & Time</th>
-                            <th>Admin</th>
-                            <th>Action</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr>
-                        ) : logs.length === 0 ? (
-                            <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No logs found for this period.</td></tr>
-                        ) : (
-                            logs.map(log => (
-                                <tr key={log.id}>
-                                    <td>
-                                        <div style={{ fontWeight: '600' }}>{new Date(log.createdAt).toLocaleDateString()}</div>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #777)' }}>{new Date(log.createdAt).toLocaleTimeString()}</div>
-                                    </td>
-                                    <td>
-                                        <div style={{ fontWeight: '600' }}>{log.admin?.name}</div>
-                                        <div style={{ fontSize: '11px', color: 'var(--text-muted, #777)' }}>{log.admin?.email}</div>
-                                    </td>
-                                    <td><span style={{ background: 'var(--sidebar-hover)', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>{log.action}</span></td>
-                                    <td style={{ fontSize: '13px' }}>{log.details || '-'}</td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+            <div className="admin-card" style={{ padding: '30px', maxWidth: '600px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px', padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '8px', color: 'var(--text)' }}>
+                    <Shield size={24} color="#3BB77E" />
+                    <div>
+                        <strong style={{ display: 'block', fontSize: '14px' }}>Security Audit Log</strong>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted, #888)' }}>Logs are only available via CSV download to optimize system performance.</span>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '20px', marginBottom: '25px' }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text)', fontSize: '13px' }}>Start Date</label>
+                        <input 
+                            type="date" 
+                            className="admin-input" 
+                            value={startDate} 
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text)', fontSize: '13px' }}>End Date</label>
+                        <input 
+                            type="date" 
+                            className="admin-input" 
+                            value={endDate} 
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <button 
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                    style={{ 
+                        width: '100%', 
+                        padding: '12px', 
+                        background: '#3BB77E', 
+                        color: '#fff', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        cursor: isDownloading ? 'not-allowed' : 'pointer',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        opacity: isDownloading ? 0.7 : 1
+                    }}
+                >
+                    <Download size={18} />
+                    {isDownloading ? 'Generating CSV...' : 'Download Logs CSV'}
+                </button>
             </div>
         </div>
     );

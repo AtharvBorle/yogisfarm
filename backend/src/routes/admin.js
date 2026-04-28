@@ -59,24 +59,45 @@ const logAdminAction = async (adminId, action, details = null) => {
     }
 };
 
-router.get('/logs', requireAdmin, async (req, res) => {
+router.get('/logs/download', requireAdmin, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
-        const where = {};
-        if (startDate && endDate) {
-            where.createdAt = {
+        if (!startDate || !endDate) return res.status(400).send('Missing dates');
+
+        const where = {
+            createdAt: {
                 gte: new Date(startDate),
                 lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
-            };
-        }
+            }
+        };
+
         const logs = await prisma.adminLog.findMany({
             where,
             include: { admin: { select: { name: true, email: true } } },
             orderBy: { createdAt: 'desc' }
         });
-        res.json({ status: true, logs });
+
+        const headers = ['Date', 'Time', 'Admin Name', 'Email', 'Action', 'Details'];
+        const csvRows = [headers.join(',')];
+        
+        logs.forEach(log => {
+            const date = new Date(log.createdAt);
+            const details = log.details ? `"${log.details.replace(/"/g, '""')}"` : '';
+            csvRows.push([
+                date.toLocaleDateString(),
+                date.toLocaleTimeString(),
+                `"${log.admin?.name || 'Unknown'}"`,
+                `"${log.admin?.email || 'Unknown'}"`,
+                `"${log.action}"`,
+                details
+            ].join(','));
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=admin_logs_${startDate}_to_${endDate}.csv`);
+        res.send(csvRows.join('\n'));
     } catch (e) {
-        res.json({ status: false, message: e.message });
+        res.status(500).send('Error generating CSV');
     }
 });
 
@@ -614,6 +635,7 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       }
     }
 
+    await logAdminAction(req.session.adminId, 'Updated Order Status', `Order: ${order.orderNumber}, Status: ${orderStatus}`);
     res.json({ status: true, message: 'Order status updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });

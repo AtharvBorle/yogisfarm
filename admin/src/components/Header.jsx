@@ -99,24 +99,25 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                             zIndex: 100
                         }}>
                             <Link to="/profile" style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
-                                <div style={dropdownItemStyle(isDarkMode)}>
+                                <div className="dropdown-item-hover">
                                     <User size={16} /> My Profile
                                 </div>
                             </Link>
                             <Link to="/profile" state={{ activeTab: 'business' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
-                                <div style={dropdownItemStyle(isDarkMode)}>
+                                <div className="dropdown-item-hover">
                                     <Settings size={16} /> Account Setting
                                 </div>
                             </Link>
                             <Link to="/profile" state={{ activeTab: 'password' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
-                                <div style={dropdownItemStyle(isDarkMode)}>
+                                <div className="dropdown-item-hover">
                                     <Lock size={16} /> Change Password
                                 </div>
                             </Link>
                             <div style={{ height: '1px', background: isDarkMode ? '#444' : '#eee', margin: '8px 0' }} />
                             <div 
                                 onClick={logout}
-                                style={{ ...dropdownItemStyle(isDarkMode), color: '#ff4d4f' }}
+                                className="dropdown-item-hover"
+                                style={{ color: '#ff4d4f' }}
                             >
                                 <LogOut size={16} /> Sign Out
                             </div>
@@ -127,19 +128,5 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
         </header>
     );
 };
-
-const dropdownItemStyle = (isDark) => ({
-    padding: '10px 20px',
-    fontSize: '14px',
-    color: isDark ? '#ccc' : '#555',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    cursor: 'pointer',
-    transition: 'background 0.2s',
-    ':hover': {
-        background: isDark ? '#333' : '#f8f9fa'
-    }
-});
 
 export default Header;

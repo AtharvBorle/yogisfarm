@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import toast from 'react-hot-toast';
 
 import { ChevronDown, Camera } from 'react-feather';
@@ -67,7 +67,9 @@ const Profile = () => {
         const formData = new FormData();
         formData.append('image', file);
         try {
-            const res = await api.post('/profile/image', formData);
+            const res = await api.post('/profile/image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             if (res.data.status) {
                 toast.success('Profile image updated');
                 fetchAdmin();
@@ -121,7 +123,7 @@ const Profile = () => {
                             overflow: 'hidden'
                         }}>
                             {admin?.image ? (
-                                <img src={`http://localhost:5000${admin.image}`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={getAssetUrl(admin.image)} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                                 <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
