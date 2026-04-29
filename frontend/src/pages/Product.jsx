@@ -25,8 +25,10 @@ const Product = () => {
                 setProduct(res.data.product);
                 setMainImage(res.data.product.image);
                 setRelated(res.data.related || []);
-                if(res.data.product.variants && res.data.product.variants.length > 0) {
-                    setSelectedVariant(res.data.product.variants[0]);
+                const variants = res.data.product.variants || [];
+                if(variants.length > 0) {
+                    const firstStocked = variants.find(v => v.stock > 0) || variants[0];
+                    setSelectedVariant(firstStocked);
                 } else {
                     setSelectedVariant(null);
                 }
@@ -37,12 +39,11 @@ const Product = () => {
     if(loading) return <div className="container mt-5 text-center">Loading...</div>;
     if(!product) return <div className="container mt-5 text-center">Product not found.</div>;
 
-    const price = selectedVariant 
-        ? (selectedVariant.salePrice || selectedVariant.price) 
-        : (product.salePrice || product.price);
-    const oldPrice = selectedVariant 
-        ? (selectedVariant.salePrice ? selectedVariant.price : null) 
-        : (product.salePrice ? product.price : null);
+    const variants = product.variants || [];
+    const isOutOfStock = variants.length === 0 || (selectedVariant && selectedVariant.stock <= 0) || variants.every(v => v.stock <= 0);
+
+    const price = selectedVariant ? (selectedVariant.salePrice || selectedVariant.price) : null;
+    const oldPrice = selectedVariant?.salePrice ? selectedVariant.price : null;
 
     let badge = null;
     if(oldPrice) {
@@ -134,12 +135,18 @@ const Product = () => {
                                         </div>
                                         <div className="clearfix product-price-cover">
                                             <div className="product-price primary-color float-left">
-                                                <span className="current-price text-brand">₹{parseFloat(price).toFixed(2)}</span>
-                                                {oldPrice && (
-                                                    <span className="save-price font-md color3 ml-15">
-                                                        <span className="old-price font-md ml-15">₹{parseFloat(oldPrice).toFixed(2)}</span>
-                                                    </span>
-                                                )}
+                                                {isOutOfStock ? (
+                                                    <span className="current-price text-brand" style={{ color: '#ea4335' }}>Out of Stock</span>
+                                                ) : price !== null ? (
+                                                    <>
+                                                        <span className="current-price text-brand">₹{parseFloat(price).toFixed(2)}</span>
+                                                        {oldPrice && (
+                                                            <span className="save-price font-md color3 ml-15">
+                                                                <span className="old-price font-md ml-15">₹{parseFloat(oldPrice).toFixed(2)}</span>
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                ) : null}
                                             </div>
                                         </div>
                                         <div className="short-desc mb-30">
@@ -152,30 +159,23 @@ const Product = () => {
                                                 <ul className="list-filter size-filter font-small">
                                                     {product.variants.map(v => (
                                                         <li key={v.id} className={selectedVariant?.id === v.id ? 'active' : ''}>
-                                                            <a href="#!" onClick={() => setSelectedVariant(v)}>{v.name} {v.unit ? `(${v.unit})` : ''}</a>
+                                                            <a href="#!" onClick={(e) => { e.preventDefault(); setSelectedVariant(v); setQuantity(1); }}>{v.name}</a>
                                                         </li>
                                                     ))}
                                                 </ul>
                                             </div>
                                         )}
 
-                                        {(selectedVariant || product.unit) && (
-                                            <div className="font-xs mb-20">
-                                                <span className="text-muted">Unit: </span><strong>{selectedVariant ? selectedVariant.name : product.unit}</strong>
-                                            </div>
-                                        )}
-
                                         {(() => {
-                                            const currentStock = selectedVariant ? selectedVariant.stock : product.stock;
-                                            const isOutOfStock = currentStock <= 0;
-                                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === (selectedVariant?.id || null));
+                                            const currentStock = selectedVariant ? selectedVariant.stock : 0;
+                                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === selectedVariant?.id);
                                             
                                             return (
                                                 <div className="detail-extralink mb-50">
                                                     <div className="detail-qty border radius">
-                                                        <a href="#!" className="qty-down" onClick={() => !isOutOfStock && setQuantity(q => Math.max(1, q - 1))}><i className="fi-rs-angle-small-down"></i></a>
+                                                        <a href="#!" className="qty-down" onClick={(e) => { e.preventDefault(); !isOutOfStock && setQuantity(q => Math.max(1, q - 1)); }}><i className="fi-rs-angle-small-down"></i></a>
                                                         <input type="text" className="qty-val" value={isOutOfStock ? 0 : quantity} readOnly />
-                                                        <a href="#!" className="qty-up" onClick={() => !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1))}><i className="fi-rs-angle-small-up"></i></a>
+                                                        <a href="#!" className="qty-up" onClick={(e) => { e.preventDefault(); !isOutOfStock && setQuantity(q => Math.min(currentStock, q + 1)); }}><i className="fi-rs-angle-small-up"></i></a>
                                                     </div>
                                                     <div className="product-extra-link2" style={{ display: 'inline-flex', gap: '10px', alignItems: 'center' }}>
                                                         {isOutOfStock ? (

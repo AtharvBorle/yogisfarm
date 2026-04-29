@@ -22,8 +22,6 @@ router.get('/', async (req, res) => {
     if (deal === 'true') where.deal = true;
 
     let orderBy = { createdAt: 'desc' };
-    if (sort === 'price_asc') orderBy = { price: 'asc' };
-    if (sort === 'price_desc') orderBy = { price: 'desc' };
     if (sort === 'name_asc') orderBy = { name: 'asc' };
     if (sort === 'name_desc') orderBy = { name: 'desc' };
     if (sort === 'oldest') orderBy = { createdAt: 'asc' };

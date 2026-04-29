@@ -71,7 +71,16 @@ const Deals = () => {
                         </div>
                         
                         <div className="row product-grid">
-                            {loading ? <p>Loading deals...</p> : dealProducts.map(product => (
+                            {loading ? <p>Loading deals...</p> : dealProducts.map(product => {
+                                const variants = product.variants || [];
+                                const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+                                const hasVariants = variants.length > 0;
+                                const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+
+                                const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+                                const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
+
+                                return (
                                 <div className="col-12 mb-20" key={product.id}>
                                     <div className="product-cart-wrap" style={{ display: 'flex', borderRadius: '15px', border: '1px solid #eee', overflow: 'hidden' }}>
                                         <div className="product-img-action-wrap" style={{ width: '250px', flexShrink: 0, padding: '20px', background: '#f8f9fa' }}>
@@ -81,9 +90,9 @@ const Deals = () => {
                                                 </Link>
                                             </div>
                                             {/* Top badges if needed could go here */}
-                                            {product.salePrice && product.price > product.salePrice && (
+                                            {oldPrice && parseFloat(oldPrice) > parseFloat(price) && (
                                                 <div className="product-badges product-badges-position product-badges-mrg">
-                                                    <span className="hot" style={{ background: '#046938' }}>{Math.round(((product.price - product.salePrice) / product.price) * 100)}% Off</span>
+                                                    <span className="hot" style={{ background: '#046938' }}>{Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off</span>
                                                 </div>
                                             )}
                                         </div>
@@ -102,17 +111,26 @@ const Deals = () => {
                                             
                                             <div className="product-card-bottom" style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '20px' }}>
                                                 <div className="product-price">
-                                                    <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#046938' }}>₹{product.salePrice || product.price}</span>
-                                                    {product.salePrice && <span className="old-price" style={{ fontSize: '16px', textDecoration: 'line-through', color: '#7E7E7E', marginLeft: '10px' }}>₹{product.price}</span>}
+                                                    {isOutOfStock ? (
+                                                        <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ea4335' }}>Out of Stock</span>
+                                                    ) : price !== null ? (
+                                                        <>
+                                                            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#046938' }}>₹{parseFloat(price).toFixed(2)}</span>
+                                                            {oldPrice && <span className="old-price" style={{ fontSize: '16px', textDecoration: 'line-through', color: '#7E7E7E', marginLeft: '10px' }}>₹{parseFloat(oldPrice).toFixed(2)}</span>}
+                                                        </>
+                                                    ) : null}
                                                 </div>
                                                 <div className="add-cart">
-                                                    <a className="add" href="#" onClick={(e) => handleAddToCart(e, product)} style={{ background: '#046938', color: '#fff', padding: '10px 20px', borderRadius: '5px' }}><i className="fi-rs-shopping-cart mr-5"></i>Add </a>
+                                                    {!isOutOfStock && firstStockedVariant && (
+                                                        <a className="add" href="#!" onClick={(e) => { e.preventDefault(); addToCart(product.id, 1, firstStockedVariant.id); }} style={{ background: '#046938', color: '#fff', padding: '10px 20px', borderRadius: '5px' }}><i className="fi-rs-shopping-cart mr-5"></i>Add </a>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                             {!loading && dealProducts.length === 0 && (
                                 <div className="col-12"><p>No deals found at the moment.</p></div>
                             )}
@@ -137,20 +155,31 @@ const Deals = () => {
 
                         <div className="sidebar-widget product-sidebar mb-30 p-30 bg-grey border-radius-10" style={{ border: '1px solid #ececec', padding: '30px', borderRadius: '15px' }}>
                             <h5 className="section-title style-1 mb-30" style={{ fontSize: '20px', fontWeight: 'bold' }}>New products</h5>
-                            {newProducts.map(nProduct => (
+                            {newProducts.map(nProduct => {
+                                const variants = nProduct.variants || [];
+                                const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+                                const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+                                const isOutOfStock = variants.length === 0 || variants.every(v => v.stock <= 0);
+
+                                return (
                                 <div className="single-post clearfix" key={nProduct.id} style={{ display: 'flex', marginBottom: '20px', alignItems: 'center' }}>
                                     <div className="image" style={{ width: '80px', flexShrink: 0 }}>
                                         <img src={getAssetUrl(nProduct.image)} alt={nProduct.name} style={{ borderRadius: '5px' }} />
                                     </div>
                                     <div className="content pt-10" style={{ paddingLeft: '15px' }}>
                                         <h6 style={{ fontSize: '14px', fontWeight: 'bold' }}><Link to={`/product/${nProduct.slug}`}>{nProduct.name}</Link></h6>
-                                        <p className="price mb-0 mt-5" style={{ color: '#046938', fontWeight: 'bold' }}>₹{nProduct.salePrice || nProduct.price}</p>
+                                        {isOutOfStock ? (
+                                            <p className="price mb-0 mt-5" style={{ color: '#ea4335', fontWeight: 'bold' }}>Out of Stock</p>
+                                        ) : price !== null ? (
+                                            <p className="price mb-0 mt-5" style={{ color: '#046938', fontWeight: 'bold' }}>₹{parseFloat(price).toFixed(2)}</p>
+                                        ) : null}
                                         <div className="product-rate" style={{ marginTop: '5px' }}>
                                             <div className="product-rating" style={{ width: `${(nProduct.rating || 0) * 20}%` }}></div>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

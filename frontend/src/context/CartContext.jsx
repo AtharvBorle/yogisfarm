@@ -75,7 +75,7 @@ export const CartProvider = ({ children }) => {
 
   // derived state for cart total
   const cartTotal = cartItems.reduce((total, item) => {
-    const price = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
+    const price = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : 0;
     return total + (price * item.quantity);
   }, 0);
 

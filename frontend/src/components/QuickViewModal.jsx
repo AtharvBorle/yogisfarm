@@ -11,8 +11,13 @@ const QuickViewModal = ({ product, onClose }) => {
 
     if (!product) return null;
 
-    const price = product.salePrice || product.price;
-    const oldPrice = product.salePrice ? product.price : null;
+    const variants = product.variants || [];
+    const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+    const hasVariants = variants.length > 0;
+    const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+
+    const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+    const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
     const inWishlist = isInWishlist(product.id);
 
     return ReactDOM.createPortal(
@@ -33,27 +38,32 @@ const QuickViewModal = ({ product, onClose }) => {
                             </div>
                             <div className="col-md-6 col-sm-12 col-xs-12">
                                 <div className="detail-info pr-30 pl-30">
-                                    {product.salePrice && <span className="stock-status out-stock"> Sale </span>}
+                                    {oldPrice && parseFloat(oldPrice) > parseFloat(price) && <span className="stock-status out-stock" style={{ background: '#046938' }}> {Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off </span>}
                                     <h3 className="title-detail"><a href={`/product/${product.slug}`} className="text-heading">{product.name}</a></h3>
                                     
                                     <div className="clearfix product-price-cover">
                                         <div className="product-price primary-color float-left">
-                                            <span className="current-price text-brand">₹{parseFloat(price).toFixed(2)}</span>
-                                            {oldPrice && (
-                                                <span>
-                                                    <span className="save-price font-md color3 ml-15">{Math.round(((product.price - product.salePrice) / product.price) * 100)}% Off</span>
-                                                    <span className="old-price font-md ml-15">₹{parseFloat(oldPrice).toFixed(2)}</span>
-                                                </span>
-                                            )}
+                                            {isOutOfStock ? (
+                                                <span className="current-price text-brand" style={{ color: '#ea4335' }}>Out of Stock</span>
+                                            ) : price !== null ? (
+                                                <>
+                                                    <span className="current-price text-brand">₹{parseFloat(price).toFixed(2)}</span>
+                                                    {oldPrice && (
+                                                        <span>
+                                                            <span className="old-price font-md ml-15">₹{parseFloat(oldPrice).toFixed(2)}</span>
+                                                        </span>
+                                                    )}
+                                                </>
+                                            ) : null}
                                         </div>
                                     </div>
                                     <div className="detail-extralink mb-30" style={{marginTop:'20px'}}>
                                         <div className="product-extra-link2">
-                                            {product.stock <= 0 ? (
+                                            {isOutOfStock ? (
                                                 <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
-                                            ) : (
-                                                <button type="button" className="button button-add-to-cart" onClick={() => { addToCart(product.id); onClose(); }}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
-                                            )}
+                                            ) : firstStockedVariant ? (
+                                                <button type="button" className="button button-add-to-cart" onClick={() => { addToCart(product.id, 1, firstStockedVariant.id); onClose(); }}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
+                                            ) : null}
                                             <a aria-label="Add To Wishlist" className="action-btn hover-up" onClick={() => toggleWishlist(product.id)} href="#!" style={{ color: inWishlist ? 'red' : 'inherit' }}><i className="fi-rs-heart"></i></a>
                                         </div>
                                     </div>

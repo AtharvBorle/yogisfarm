@@ -7,32 +7,48 @@ import FeatureBanners from '../components/FeatureBanners';
 
 import { ArrowRight } from 'react-feather';
 
-const ProductSmallCard = ({ product }) => (
-    <article className="row align-items-center mb-10">
-        <figure className="col-md-4 mb-0">
-            <Link to={`/product/${product.slug}`}>
-                <img src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '5px', width: '100%', objectFit: 'cover' }} />
-            </Link>
-        </figure>
-        <div className="col-md-8 mb-0">
-            <h6 className="mb-0" style={{ lineHeight: '1.2' }}>
-                <Link to={`/product/${product.slug}`} style={{ color: '#253D4E', fontSize: '13px', fontWeight: 'bold' }}>{product.name}</Link>
-            </h6>
-            <div className="product-rate-cover" style={{ marginTop: '5px' }}>
-                <div className="product-rate d-inline-block">
-                    <div className="product-rating" style={{ width: '90%' }}></div>
+const ProductSmallCard = ({ product }) => {
+    const variants = product.variants || [];
+    const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+    const hasVariants = variants.length > 0;
+    const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+
+    const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+    const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
+
+    return (
+        <article className="row align-items-center mb-10">
+            <figure className="col-md-4 mb-0">
+                <Link to={`/product/${product.slug}`}>
+                    <img src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '5px', width: '100%', objectFit: 'cover' }} />
+                </Link>
+            </figure>
+            <div className="col-md-8 mb-0">
+                <h6 className="mb-0" style={{ lineHeight: '1.2' }}>
+                    <Link to={`/product/${product.slug}`} style={{ color: '#253D4E', fontSize: '13px', fontWeight: 'bold' }}>{product.name}</Link>
+                </h6>
+                <div className="product-rate-cover" style={{ marginTop: '5px' }}>
+                    <div className="product-rate d-inline-block">
+                        <div className="product-rating" style={{ width: '90%' }}></div>
+                    </div>
+                    <span className="font-small ml-5 text-muted" style={{ fontSize: '12px' }}> (0)</span>
                 </div>
-                <span className="font-small ml-5 text-muted" style={{ fontSize: '12px' }}> (0)</span>
+                <div className="product-price" style={{ marginTop: '5px' }}>
+                    {isOutOfStock ? (
+                        <span className="fs-6" style={{ color: '#ea4335', fontWeight: 'bold', fontSize: '12px' }}>Out of Stock</span>
+                    ) : price !== null ? (
+                        <>
+                            <span className="fs-6" style={{ color: '#046938', fontWeight: 'bold' }}>₹{parseFloat(price).toFixed(2)}</span>
+                            {oldPrice && (
+                                <span className="old-price font-md ml-5 text-muted" style={{ textDecoration: 'line-through', fontSize: '12px' }}>₹{parseFloat(oldPrice).toFixed(2)}</span>
+                            )}
+                        </>
+                    ) : null}
+                </div>
             </div>
-            <div className="product-price" style={{ marginTop: '5px' }}>
-                <span className="fs-6" style={{ color: '#046938', fontWeight: 'bold' }}>₹{product.salePrice || product.price}</span>
-                {product.salePrice && product.salePrice < product.price && (
-                    <span className="old-price font-md ml-5 text-muted" style={{ textDecoration: 'line-through', fontSize: '12px' }}>₹{product.price}</span>
-                )}
-            </div>
-        </div>
-    </article>
-);
+        </article>
+    );
+};
 
 const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 

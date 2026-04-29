@@ -185,7 +185,7 @@ const Checkout = () => {
                         <div style={{ border: '1px solid #e6e6e6', borderRadius: '10px', padding: '25px', marginBottom: '30px' }}>
                             <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#253D4E', marginBottom: '20px' }}>Your Order</h4>
                             {cartItems.map(item => {
-                                const price = item.variant ? (item.variant.salePrice || item.variant.price) : (item.product.salePrice || item.product.price);
+                                const price = item.variant ? (item.variant.salePrice || item.variant.price) : 0;
                                 const imgSrc = item.product.image ? getAssetUrl(item.product.image) : '/assets/imgs/theme/placeholder.png';
                                 return (
                                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid #f0f0f0' }}>

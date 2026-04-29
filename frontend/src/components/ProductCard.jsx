@@ -10,14 +10,18 @@ const ProductCard = ({ product }) => {
     const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
 
-    const price = product.salePrice || product.price;
-    const oldPrice = product.salePrice ? product.price : null;
+    const variants = product.variants || [];
+    const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+    const hasVariants = variants.length > 0;
+    const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+
+    const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+    const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
 
     let badgeText = null;
-    const numPrice = parseFloat(product.price);
-    const numSalePrice = parseFloat(product.salePrice);
-    
-    if (product.salePrice && numPrice > numSalePrice) {
+    if (firstStockedVariant?.salePrice && parseFloat(firstStockedVariant.price) > parseFloat(firstStockedVariant.salePrice)) {
+        const numPrice = parseFloat(firstStockedVariant.price);
+        const numSalePrice = parseFloat(firstStockedVariant.salePrice);
         const discountAmt = numPrice - numSalePrice;
         const discountPct = Math.round((discountAmt / numPrice) * 100);
         badgeText = `${discountPct}% OFF`;
@@ -26,7 +30,9 @@ const ProductCard = ({ product }) => {
     const inWishlist = isInWishlist(product.id);
 
     const handleAddToCart = () => {
-        addToCart(product.id);
+        if (!isOutOfStock && firstStockedVariant) {
+            addToCart(product.id, 1, firstStockedVariant.id);
+        }
     };
 
     const renderStars = (rating = 5) => {
@@ -79,16 +85,20 @@ const ProductCard = ({ product }) => {
                 </div>
                 <div className="product-card-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="product-price">
-                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#046938', lineHeight: '1' }}>₹{parseFloat(price).toFixed(2)}</div>
-                        {oldPrice && (
-                            <div className="old-price" style={{ fontSize: '14px', color: '#adadad', textDecoration: 'line-through', marginTop: '4px', display: 'block' }}>
-                                ₹{parseFloat(oldPrice).toFixed(2)}
-                            </div>
-                        )}
+                        {price !== null ? (
+                            <>
+                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#046938', lineHeight: '1' }}>₹{parseFloat(price).toFixed(2)}</div>
+                                {oldPrice && (
+                                    <div className="old-price" style={{ fontSize: '14px', color: '#adadad', textDecoration: 'line-through', marginTop: '4px', display: 'block' }}>
+                                        ₹{parseFloat(oldPrice).toFixed(2)}
+                                    </div>
+                                )}
+                            </>
+                        ) : null}
                     </div>
                     <div className="add-cart">
                         {(() => {
-                            if (product.stock <= 0) {
+                            if (isOutOfStock) {
                                 return (
                                     <button className="add" disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'not-allowed', width: '100%', fontSize: '13px' }}>
                                         Out of stock
@@ -96,16 +106,17 @@ const ProductCard = ({ product }) => {
                                 );
                             }
 
-                            const cartItem = cartItems?.find(item => item.product?.id === product.id && !item.variantId);
+                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === firstStockedVariant?.id);
                             if (cartItem) {
                                 return (
                                     <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
                                         <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
                                         <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                        <a onClick={() => cartItem.quantity < product.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '6px 10px', color: cartItem.quantity >= product.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer' }}>+</a>
+                                        <a onClick={() => cartItem.quantity < firstStockedVariant.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '6px 10px', color: cartItem.quantity >= firstStockedVariant.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= firstStockedVariant.stock ? 'not-allowed' : 'pointer' }}>+</a>
                                     </div>
                                 );
                             }
+
                             return (
                                 <a className="add btn-add-to-cart" onClick={handleAddToCart} href="#!" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
                                     <i className="fi-rs-shopping-cart"></i> Add

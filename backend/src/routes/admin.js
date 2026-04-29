@@ -434,8 +434,8 @@ router.get('/products', requireAdmin, async (req, res) => {
 
 router.post('/products', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
+    const { name, shortDescription, description, categoryId, brandId, taxId,
+      video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const slug = slugify(name, { lower: true, strict: true }) + '-' + Date.now();
     const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
@@ -446,8 +446,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
-        price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
-        stock: Math.max(0, parseInt(stock || 0)), unit, status: status || 'active',
+        status: status || 'active',
         featured: featured === 'true', popular: popular === 'true', deal: deal === 'true',
         ...(variants ? { variants: { create: JSON.parse(variants) } } : {}),
         ...(benefits ? { benefits: { create: JSON.parse(benefits) } } : {}),
@@ -464,16 +463,15 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 router.put('/products/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
+    const { name, shortDescription, description, categoryId, brandId, taxId,
+      video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
       name, shortDescription, description, video, tags,
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
-      price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
-      stock: Math.max(0, parseInt(stock || 0)), unit, status,
+      status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
     if (req.file) data.image = '/uploads/' + req.file.filename;

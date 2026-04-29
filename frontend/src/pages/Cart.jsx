@@ -56,7 +56,7 @@ const Cart = () => {
                                             {cartItems.map((item) => {
                                                 const price = item.variant 
                                                     ? (item.variant.salePrice || item.variant.price) 
-                                                    : (item.product.salePrice || item.product.price);
+                                                    : 0;
                                                 const subtotal = price * item.quantity;
                                                 return (
                                                     <tr key={item.id} className="pt-30">

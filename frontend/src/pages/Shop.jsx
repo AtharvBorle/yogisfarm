@@ -7,8 +7,6 @@ import Breadcrumb from '../components/Breadcrumb';
 const sortLabels = {
     '': 'Relevance',
     'newest': 'Newest',
-    'price_low': 'Price: Low to High',
-    'price_high': 'Price: High to Low',
     'name_asc': 'Name: A-Z'
 };
 
@@ -35,8 +33,6 @@ const Shop = () => {
         if(category) url += `&category=${category}`;
         if(keyword) url += `&search=${keyword}`;
         if(sort === 'newest') url += `&sort=oldest`; // API default logic might differ, assuming new is default
-        if(sort === 'price_low') url += `&sort=price_asc`;
-        if(sort === 'price_high') url += `&sort=price_desc`;
         if(sort === 'name_asc') url += `&sort=name_asc`;
 
         api.get(url).then(res => {

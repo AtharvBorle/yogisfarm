@@ -21,7 +21,7 @@ const Product = () => {
 
     const defaultForm = {
         name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '',
-        price: '', salePrice: '', image: '', video: '', tags: '', stock: '0', unit: '',
+        image: '', video: '', tags: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
     };
@@ -60,8 +60,7 @@ const Product = () => {
         setFormData({
             name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
             parentCategoryId: parentCatId, categoryId: row.categoryId || '', brandId: row.brandId || '',
-            price: row.price || '', salePrice: row.salePrice || '', image: row.image || '',
-            video: row.video || '', tags: row.tags || '', stock: row.stock || 0, unit: row.unit || '',
+            image: row.image || '', video: row.video || '', tags: row.tags || '',
             status: row.status, featured: row.featured, popular: row.popular, deal: row.deal,
             variants: row.variants || [], benefits: row.benefits || [], features: row.features || [],
             galleryImages: (row.images || []).map(img => img.image)
@@ -97,8 +96,7 @@ const Product = () => {
                 name: formData.name, shortDescription: formData.shortDescription,
                 description: formData.description, image: formData.image,
                 categoryId: formData.categoryId || null, brandId: formData.brandId || null,
-                price: formData.price, salePrice: formData.salePrice || null,
-                video: formData.video, tags: formData.tags, stock: formData.stock, unit: formData.unit,
+                video: formData.video, tags: formData.tags,
                 status: formData.status, featured: formData.featured.toString(),
                 popular: formData.popular.toString(), deal: formData.deal.toString()
             };
@@ -183,8 +181,6 @@ const Product = () => {
         },
         { header: 'Name', render: (row) => <span style={{ fontWeight: '500' }}>{row.name}</span> },
         { header: 'Category', render: (row) => row.category?.name || '—' },
-        { header: 'Price', render: (row) => `₹${row.price}` },
-        { header: 'Stock', render: (row) => row.stock },
         {
             header: 'Flags',
             render: (row) => (
@@ -315,25 +311,6 @@ const Product = () => {
                                 </div>
                             </div>
 
-                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Price <span className="required">*</span></label>
-                                    <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Sale Price</label>
-                                    <input type="number" step="0.01" min="0" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Stock</label>
-                                    <input type="number" min="0" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Unit</label>
-                                    <input type="text" value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} className="admin-input" placeholder="e.g. 1kg" />
-                                </div>
-                            </div>
-
                             <div className="modal-row-2">
                                 <div className="admin-form-group">
                                     <label className="admin-label">Tags</label>
@@ -420,10 +397,7 @@ const Product = () => {
                                     ['Name', viewProduct.name],
                                     ['Category', viewProduct.category?.name || '—'],
                                     ['Brand', viewProduct.brand?.name || '—'],
-                                    ['Price', `₹${viewProduct.price}`],
-                                    ['Sale Price', viewProduct.salePrice ? `₹${viewProduct.salePrice}` : '—'],
-                                    ['Stock', viewProduct.stock],
-                                    ['Unit', viewProduct.unit || '—'],
+
                                     ['Status', viewProduct.status],
                                     ['Featured', viewProduct.featured ? 'Yes' : 'No'],
                                     ['Popular', viewProduct.popular ? 'Yes' : 'No'],
