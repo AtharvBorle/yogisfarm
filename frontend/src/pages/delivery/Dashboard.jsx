@@ -156,14 +156,16 @@ const DeliveryDashboard = () => {
 
     const downloadTransCSV = () => {
         if (transactions.length === 0) return;
-        const headers = ['Date', 'Time', 'Amount'];
+        const headers = ['Date', 'Time', 'Type', 'Amount', 'Description'];
         const csvRows = [headers.join(',')];
         transactions.forEach(t => {
-            const date = new Date(t.createdAt);
+            const date = new Date(t.date);
             csvRows.push([
                 date.toLocaleDateString(),
                 date.toLocaleTimeString(),
-                Number(t.amount).toFixed(0)
+                t.type === 'addition' ? 'Credit (+)' : 'Debit (-)',
+                t.amount,
+                `"${t.description}"`
             ].join(','));
         });
         const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
@@ -171,7 +173,7 @@ const DeliveryDashboard = () => {
         const a = document.createElement('a');
         a.setAttribute('hidden', '');
         a.setAttribute('href', url);
-        a.setAttribute('download', `cash_paid_history_${new Date().getTime()}.csv`);
+        a.setAttribute('download', `cash_ledger_${new Date().getTime()}.csv`);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -205,7 +207,7 @@ const DeliveryDashboard = () => {
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                     <button onClick={() => setViewMode('pending')} style={navStyle(viewMode === 'pending')}><Clock size={16} /> Pending</button>
                     <button onClick={() => { setStartDate(''); setEndDate(''); setViewMode('history'); }} style={navStyle(viewMode === 'history')}><CheckCircle size={16} color="green" /> Deliveries</button>
-                    <button onClick={() => { setStartDate(''); setEndDate(''); setViewMode('transactions'); }} style={navStyle(viewMode === 'transactions')}><Inbox size={16} color="#007bff" /> Cash Paid</button>
+                    <button onClick={() => { setStartDate(''); setEndDate(''); setViewMode('transactions'); }} style={navStyle(viewMode === 'transactions')}><Inbox size={16} color="#007bff" /> Cash</button>
                 </div>
 
                 {/* Content */}
@@ -311,13 +313,14 @@ const DeliveryDashboard = () => {
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 {transactions.map(t => (
-                                    <div key={t.id} style={{ background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div key={t.id} style={{ background: '#fff', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: `4px solid ${t.type === 'addition' ? '#28a745' : '#dc3545'}` }}>
                                         <div>
-                                            <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#253D4E' }}>{new Date(t.createdAt).toLocaleDateString()}</div>
-                                            <div style={{ fontSize: '12px', color: '#777' }}>{new Date(t.createdAt).toLocaleTimeString()}</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#253D4E' }}>{new Date(t.date).toLocaleDateString()}</div>
+                                            <div style={{ fontSize: '12px', color: '#777' }}>{new Date(t.date).toLocaleTimeString()}</div>
+                                            <div style={{ fontSize: '11px', color: '#999', marginTop: '3px' }}>{t.description}</div>
                                         </div>
-                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#28a745' }}>
-                                            - ₹{Number(t.amount).toFixed(0)}
+                                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: t.type === 'addition' ? '#28a745' : '#dc3545' }}>
+                                            {t.type === 'addition' ? '+' : '-'} ₹{t.amount}
                                         </div>
                                     </div>
                                 ))}

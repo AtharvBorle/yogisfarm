@@ -136,26 +136,68 @@ router.get('/history', requireDeliveryBoy, async (req, res) => {
   }
 });
 
-// ─── Transaction History (Admin Collections) ───
+// ─── Cash Ledger (COD additions + Admin collections) ───
 router.get('/transactions', requireDeliveryBoy, async (req, res) => {
   try {
-    const { startDate, endDate, page = 1, limit = 10 } = req.query;
-    const where = { deliveryBoyId: req.session.deliveryBoyId };
-    
+    const { startDate, endDate, page = 1, limit = 15 } = req.query;
+    const boyId = req.session.deliveryBoyId;
+
+    const dateFilter = {};
     if (startDate && endDate) {
-        where.createdAt = {
+        dateFilter.createdAt = {
             gte: new Date(startDate),
             lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
         };
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const [transactions, total] = await Promise.all([
-        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit) }),
-        prisma.deliveryCollection.count({ where })
-    ]);
+    // Fetch COD deliveries (additions) - orders that were delivered with COD
+    const codOrders = await prisma.order.findMany({
+        where: {
+            deliveryBoyId: boyId,
+            orderStatus: 'delivered',
+            paymentMethod: 'cod',
+            ...( dateFilter.createdAt ? { updatedAt: dateFilter.createdAt } : {} )
+        },
+        select: { id: true, orderNumber: true, total: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' }
+    });
 
-    res.json({ status: true, transactions, total, totalPages: Math.ceil(total / limit) });
+    // Fetch admin collections (subtractions)
+    const collections = await prisma.deliveryCollection.findMany({
+        where: { deliveryBoyId: boyId, ...dateFilter },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    // Merge into a unified ledger
+    const ledger = [];
+    codOrders.forEach(o => {
+        ledger.push({
+            id: `order-${o.id}`,
+            type: 'addition',
+            amount: Math.round(Number(o.total)),
+            description: `COD - Order #${o.orderNumber}`,
+            date: o.updatedAt
+        });
+    });
+    collections.forEach(c => {
+        ledger.push({
+            id: `col-${c.id}`,
+            type: 'subtraction',
+            amount: Math.round(Number(c.amount)),
+            description: 'Cash Collected by Admin',
+            date: c.createdAt
+        });
+    });
+
+    // Sort by date descending
+    ledger.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Paginate
+    const total = ledger.length;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const paged = ledger.slice(skip, skip + parseInt(limit));
+
+    res.json({ status: true, transactions: paged, total, totalPages: Math.ceil(total / parseInt(limit)) });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

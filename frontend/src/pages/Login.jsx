@@ -93,7 +93,7 @@ const Login = () => {
                 <div className="row align-items-center">
                     {/* Left side illustration */}
                     <div className="col-lg-6 pr-30 d-none d-lg-block text-center">
-                        <img className="border-radius-15" src="/assets/imgs/page/login-1.png" alt="Yogi's Farm Login" style={{ maxWidth: '80%' }} onError={(e) => { e.target.src='/assets/imgs/theme/login-image.webp'; e.target.onerror=null; }} />
+                        <img className="border-radius-15" src="https://yogisfarm.in/writable/uploads/login.png?v=1.0.6" alt="Yogi's Farm Login" style={{ maxWidth: '80%' }} />
                     </div>
                     
                     {/* Right side Form */}

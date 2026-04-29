@@ -61,7 +61,7 @@ const logAdminAction = async (adminId, action, details = null) => {
 
 router.get('/logs/download', requireAdmin, async (req, res) => {
     try {
-        const { startDate, endDate } = req.query;
+        const { startDate, endDate, filter } = req.query;
         if (!startDate || !endDate) return res.status(400).send('Missing dates');
 
         const where = {
@@ -70,6 +70,25 @@ router.get('/logs/download', requireAdmin, async (req, res) => {
                 lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
             }
         };
+
+        // Apply category filter
+        if (filter) {
+            const filterMap = {
+                tax: ['Tax'],
+                shipping: ['Shipping'],
+                account: ['Updated Profile', 'Updated Profile Image', 'Changed Password', 'Settings'],
+                collection: ['Collected Cash', 'Collection'],
+                coupon: ['Coupon'],
+                order: ['Order', 'Updated Order', 'Assigned Delivery', 'Updated Order Payment', 'Updated Order Status'],
+                product: ['Product'],
+            };
+            const keywords = filterMap[filter] || [filter];
+            where.action = { contains: keywords[0] };
+            if (keywords.length > 1) {
+                where.OR = keywords.map(k => ({ action: { contains: k } }));
+                delete where.action;
+            }
+        }
 
         const logs = await prisma.adminLog.findMany({
             where,
@@ -746,7 +765,7 @@ router.get('/delivery-boys/:id/collections', requireAdmin, async (req, res) => {
     }
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [collections, total] = await Promise.all([
-        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit) }),
+        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit), include: { admin: { select: { name: true } } } }),
         prisma.deliveryCollection.count({ where })
     ]);
     res.json({ status: true, collections, total, totalPages: Math.ceil(total / limit) });

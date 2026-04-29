@@ -189,7 +189,9 @@ const Product = () => {
                                                         ) : (
                                                             <button type="button" className="button button-add-to-cart" onClick={handleAddToCart}><i className="fi-rs-shopping-cart"></i> Add to cart</button>
                                                         )}
-                                                        <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
+                                                        {!isOutOfStock && (
+                                                            <button type="button" className="button button-buy-now" onClick={handleBuyNow} style={{ background: '#fdc040', border: '1px solid #fdc040', color: '#fff' }}><i className="fi-rs-shopping-bag mr-5"></i>Buy Now</button>
+                                                        )}
                                                         <button 
                                                             aria-label="Add To Wishlist" 
                                                             className="action-btn hover-up" 

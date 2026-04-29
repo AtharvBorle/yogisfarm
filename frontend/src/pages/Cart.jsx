@@ -14,7 +14,7 @@ const Cart = () => {
         if (user) {
             navigate('/checkout');
         } else {
-            navigate('/login?redirect=checkout');
+            navigate('/login?redirect=/checkout');
         }
     };
 

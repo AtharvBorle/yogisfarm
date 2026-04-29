@@ -81,7 +81,7 @@ const Payment = () => {
 
     useEffect(() => {
         if (authLoading) return;
-        if (!user) { navigate('/login?redirect=checkout'); return; }
+        if (!user) { navigate('/login?redirect=/checkout'); return; }
         if (cartItems.length === 0) { navigate('/cart'); return; }
         const fetchAddresses = async () => {
             try {

@@ -4,7 +4,7 @@ import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
-import { DollarSign, Clock, Edit, Plus, Download } from 'react-feather';
+import { DollarSign, Clock, Edit, Plus, Download, Search } from 'react-feather';
 
 const Collections = () => {
     const [deliveryBoys, setDeliveryBoys] = useState([]);
@@ -24,6 +24,9 @@ const Collections = () => {
     // Add/Edit State
     const [isAddEditOpen, setAddEditOpen] = useState(false);
     const [editForm, setEditForm] = useState({ id: null, name: '', phone: '', pin: '', city: '', pincode: '' });
+
+    // Search State
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchDeliveryBoys = async () => {
         try {
@@ -100,14 +103,17 @@ const Collections = () => {
 
     const downloadHistoryCSV = () => {
         if (history.length === 0) return toast.error('No history to download');
-        const headers = ['Date', 'Time', 'Amount'];
+        const headers = ['Date', 'Time', 'Delivery Boy Name', 'Delivery Boy Phone', 'Amount', 'Collected By'];
         const csvRows = [headers.join(',')];
         history.forEach(h => {
             const date = new Date(h.createdAt);
             csvRows.push([
                 date.toLocaleDateString(),
                 date.toLocaleTimeString(),
-                h.amount
+                `"${selectedBoy?.name || ''}"`,
+                `"${selectedBoy?.phone || ''}"`,
+                h.amount,
+                `"${h.admin?.name || ''}"`
             ].join(','));
         });
         const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
@@ -188,7 +194,24 @@ const Collections = () => {
             </div>
 
             <div style={{ background: 'var(--card-bg)', borderRadius: '10px', padding: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-                <DataTable columns={columns} data={deliveryBoys} searchPlaceholder="Search delivery boy..." />
+                <div style={{ marginBottom: '15px' }}>
+                    <div style={{ position: 'relative', maxWidth: '320px' }}>
+                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted, #888)' }} />
+                        <input 
+                            type="text" 
+                            className="admin-input" 
+                            placeholder="Search by ID, name or phone..." 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{ paddingLeft: '36px', width: '100%' }}
+                        />
+                    </div>
+                </div>
+                <DataTable columns={columns} data={deliveryBoys.filter(b => {
+                    if (!searchTerm) return true;
+                    const q = searchTerm.toLowerCase();
+                    return String(b.id).includes(q) || b.name?.toLowerCase().includes(q) || b.phone?.toLowerCase().includes(q);
+                })} />
             </div>
 
             <GenericModal isOpen={isModalOpen} title="Collect Cash" onClose={() => setModalOpen(false)}>

@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import { Download, Shield } from 'lucide-react';
+import { Download, Shield, Filter } from 'lucide-react';
+
+const FILTER_OPTIONS = [
+    { value: '', label: 'All Actions' },
+    { value: 'tax', label: 'Tax' },
+    { value: 'shipping', label: 'Shipping' },
+    { value: 'account', label: 'Account Settings' },
+    { value: 'collection', label: 'Collections' },
+    { value: 'coupon', label: 'Coupon Code' },
+    { value: 'order', label: 'Order' },
+    { value: 'product', label: 'Product' },
+];
 
 const Logs = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [filter, setFilter] = useState('');
     const [isDownloading, setIsDownloading] = useState(false);
 
     const handleDownload = async () => {
@@ -15,13 +27,13 @@ const Logs = () => {
 
         setIsDownloading(true);
         try {
-            const res = await api.get(`/logs/download?startDate=${startDate}&endDate=${endDate}`, {
-                responseType: 'blob'
-            });
+            let url = `/logs/download?startDate=${startDate}&endDate=${endDate}`;
+            if (filter) url += `&filter=${filter}`;
+            const res = await api.get(url, { responseType: 'blob' });
             
-            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
             const link = document.createElement('a');
-            link.href = url;
+            link.href = blobUrl;
             link.setAttribute('download', `admin_logs_${startDate}_to_${endDate}.csv`);
             document.body.appendChild(link);
             link.click();
@@ -50,7 +62,7 @@ const Logs = () => {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '25px' }}>
+                <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
                     <div style={{ flex: 1 }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text)', fontSize: '13px' }}>Start Date</label>
                         <input 
@@ -69,6 +81,23 @@ const Logs = () => {
                             onChange={(e) => setEndDate(e.target.value)}
                         />
                     </div>
+                </div>
+
+                <div style={{ marginBottom: '25px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: 'var(--text)', fontSize: '13px' }}>
+                        <Filter size={14} style={{ marginRight: '5px', verticalAlign: 'middle' }} />
+                        Filter by Category
+                    </label>
+                    <select 
+                        className="admin-select" 
+                        value={filter} 
+                        onChange={(e) => setFilter(e.target.value)}
+                        style={{ width: '100%' }}
+                    >
+                        {FILTER_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <button 
