@@ -982,7 +982,7 @@ router.post('/shipping', requireAdmin, async (req, res) => {
     const shipping = await prisma.shipping.create({
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status: status || 'active' }
     });
-    await logAdminAction(req.session.adminId, 'Created Shipping', `Name: ${name}, Charge: ${charge}`);
+    await logAdminAction(req.session.adminId, 'Created Shipping', `Name: ${name}, Charge: ₹${charge}, Min Cart Value: ₹${minCartValue}, Status: ${status || 'active'}`);
     res.json({ status: true, message: 'Shipping rule created', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -996,7 +996,7 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status }
     });
-    await logAdminAction(req.session.adminId, 'Updated Shipping', `Name: ${shipping.name}, Charge: ${shipping.charge}`);
+    await logAdminAction(req.session.adminId, 'Updated Shipping', `Name: ${shipping.name}, Charge: ₹${shipping.charge}, Min Cart Value: ₹${shipping.minCartValue}, Status: ${shipping.status}`);
     res.json({ status: true, message: 'Shipping rule updated', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1004,8 +1004,11 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
 });
 
 router.delete('/shipping/:id', requireAdmin, async (req, res) => {
-  await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
-  await logAdminAction(req.session.adminId, 'Deleted Shipping', `ID: ${req.params.id}`);
+  const shipping = await prisma.shipping.findUnique({ where: { id: parseInt(req.params.id) } });
+  if (shipping) {
+    await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+    await logAdminAction(req.session.adminId, 'Deleted Shipping', `Name: ${shipping.name}, Charge: ₹${shipping.charge}`);
+  }
   res.json({ status: true, message: 'Shipping rule deleted' });
 });
 
@@ -1066,7 +1069,9 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
         amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
         description, expireOn: expireOn ? new Date(expireOn) : null }
     });
-    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}`);
+    const expiryStr = expireOn ? new Date(expireOn).toLocaleDateString() : 'Never';
+    const amountStr = amountType === 'percent' ? `${amount}%` : `₹${amount}`;
+    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}, Type: ${amountType}, Value: ${amountStr}, Min Order: ₹${minOrderAmount || 0}, Expiry: ${expiryStr}, Status: ${status || 'active'}`);
     res.json({ status: true, message: 'Coupon created', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1080,7 +1085,9 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
       minOrderAmount: parseFloat(minOrderAmount || 0), description, expireOn: expireOn ? new Date(expireOn) : null };
     if (req.file) data.image = '/uploads/' + req.file.filename;
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
-    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}`);
+    const expiryStr = coupon.expireOn ? new Date(coupon.expireOn).toLocaleDateString() : 'Never';
+    const amountStr = coupon.amountType === 'percent' ? `${coupon.amount}%` : `₹${coupon.amount}`;
+    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}, Type: ${coupon.amountType}, Value: ${amountStr}, Min Order: ₹${coupon.minOrderAmount}, Expiry: ${expiryStr}, Status: ${coupon.status}`);
     res.json({ status: true, message: 'Coupon updated', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1088,8 +1095,11 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
 });
 
 router.delete('/coupons/:id', requireAdmin, async (req, res) => {
-  await prisma.coupon.delete({ where: { id: parseInt(req.params.id) } });
-  await logAdminAction(req.session.adminId, 'Deleted Coupon', `ID: ${req.params.id}`);
+  const coupon = await prisma.coupon.findUnique({ where: { id: parseInt(req.params.id) } });
+  if (coupon) {
+    await prisma.coupon.delete({ where: { id: parseInt(req.params.id) } });
+    await logAdminAction(req.session.adminId, 'Deleted Coupon', `Code: ${coupon.code}`);
+  }
   res.json({ status: true, message: 'Coupon deleted' });
 });
 
