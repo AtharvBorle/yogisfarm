@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
-const { requireAdmin } = require('../middleware/auth');
+const { logAdminAction } = require('../utils/logger');
 const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
 
 // Multer config — supports subfolder uploads via uploadPath field
@@ -349,6 +349,7 @@ router.post('/categories', requireAdmin, upload.single('image'), async (req, res
     const category = await prisma.category.create({
       data: { name, slug, image, status: status || 'active', parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' }
     });
+    await logAdminAction(req.session.adminId, 'Created Category', `Name: ${name}`);
     res.json({ status: true, message: 'Category created', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -363,6 +364,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
     if (req.file) data.image = '/uploads/' + req.file.filename;
     else if (bodyImage) data.image = bodyImage;
     const category = await prisma.category.update({ where: { id: parseInt(req.params.id) }, data });
+    await logAdminAction(req.session.adminId, 'Updated Category', `Name: ${category.name}`);
     res.json({ status: true, message: 'Category updated', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -371,6 +373,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
 
 router.delete('/categories/:id', requireAdmin, async (req, res) => {
   await prisma.category.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Category', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Category deleted' });
 });
 
@@ -386,6 +389,7 @@ router.post('/brands', requireAdmin, upload.single('image'), async (req, res) =>
     const slug = slugify(name, { lower: true, strict: true });
     const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
     const brand = await prisma.brand.create({ data: { name, slug, image, status: status || 'active' } });
+    await logAdminAction(req.session.adminId, 'Created Brand', `Name: ${name}`);
     res.json({ status: true, message: 'Brand created', brand });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -400,6 +404,7 @@ router.put('/brands/:id', requireAdmin, upload.single('image'), async (req, res)
     if (req.file) data.image = '/uploads/' + req.file.filename;
     else if (bodyImage) data.image = bodyImage;
     const brand = await prisma.brand.update({ where: { id: parseInt(req.params.id) }, data });
+    await logAdminAction(req.session.adminId, 'Updated Brand', `Name: ${brand.name}`);
     res.json({ status: true, message: 'Brand updated', brand });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -408,6 +413,7 @@ router.put('/brands/:id', requireAdmin, upload.single('image'), async (req, res)
 
 router.delete('/brands/:id', requireAdmin, async (req, res) => {
   await prisma.brand.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Brand', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Brand deleted' });
 });
 
@@ -454,6 +460,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
       },
       include: { category: true, brand: true, variants: true, images: true }
     });
+    await logAdminAction(req.session.adminId, 'Created Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product created', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -482,6 +489,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
     if (features) data.features = { deleteMany: {}, create: JSON.parse(features) };
 
     const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true } });
+    await logAdminAction(req.session.adminId, 'Updated Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product updated', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -494,6 +502,7 @@ router.patch('/products/:id/toggle', requireAdmin, async (req, res) => {
     if (!['featured', 'popular', 'deal'].includes(field)) return res.json({ status: false, message: 'Invalid field' });
     const product = await prisma.product.findUnique({ where: { id: parseInt(req.params.id) } });
     await prisma.product.update({ where: { id: product.id }, data: { [field]: !product[field] } });
+    await logAdminAction(req.session.adminId, 'Updated Product', `Toggled ${field} for Product ID: ${product.id}`);
     res.json({ status: true, message: `${field} toggled` });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -897,6 +906,7 @@ router.post('/sections', requireAdmin, async (req, res) => {
     const section = await prisma.section.create({
       data: { name, status: status || 'active', categoryId: categoryId ? parseInt(categoryId) : null }
     });
+    await logAdminAction(req.session.adminId, 'Created Section', `Name: ${name}`);
     res.json({ status: true, message: 'Section created', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -910,6 +920,7 @@ router.put('/sections/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, status, categoryId: categoryId ? parseInt(categoryId) : null }
     });
+    await logAdminAction(req.session.adminId, 'Updated Section', `Name: ${section.name}`);
     res.json({ status: true, message: 'Section updated', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -918,6 +929,7 @@ router.put('/sections/:id', requireAdmin, async (req, res) => {
 
 router.delete('/sections/:id', requireAdmin, async (req, res) => {
   await prisma.section.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Section', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Section deleted' });
 });
 
@@ -943,6 +955,7 @@ router.post('/taxes', requireAdmin, async (req, res) => {
   try {
     const { name, tax: taxRate, status } = req.body;
     const tax = await prisma.tax.create({ data: { name, tax: parseFloat(taxRate), status: status || 'active' } });
+    await logAdminAction(req.session.adminId, 'Created Tax', `Name: ${name}, Rate: ${taxRate}%`);
     res.json({ status: true, message: 'Tax created', tax });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -956,6 +969,7 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, tax: parseFloat(taxRate), status }
     });
+    await logAdminAction(req.session.adminId, 'Updated Tax', `Name: ${tax.name}, Rate: ${tax.tax}%`);
     res.json({ status: true, message: 'Tax updated', tax });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -964,6 +978,7 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
 
 router.delete('/taxes/:id', requireAdmin, async (req, res) => {
   await prisma.tax.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Tax', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Tax deleted' });
 });
 
@@ -979,6 +994,7 @@ router.post('/shipping', requireAdmin, async (req, res) => {
     const shipping = await prisma.shipping.create({
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status: status || 'active' }
     });
+    await logAdminAction(req.session.adminId, 'Created Shipping', `Name: ${name}, Charge: ${charge}`);
     res.json({ status: true, message: 'Shipping rule created', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -992,6 +1008,7 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status }
     });
+    await logAdminAction(req.session.adminId, 'Updated Shipping', `Name: ${shipping.name}, Charge: ${shipping.charge}`);
     res.json({ status: true, message: 'Shipping rule updated', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1000,6 +1017,7 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
 
 router.delete('/shipping/:id', requireAdmin, async (req, res) => {
   await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Shipping', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Shipping rule deleted' });
 });
 
@@ -1060,6 +1078,7 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
         amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
         description, expireOn: expireOn ? new Date(expireOn) : null }
     });
+    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}`);
     res.json({ status: true, message: 'Coupon created', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1073,6 +1092,7 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
       minOrderAmount: parseFloat(minOrderAmount || 0), description, expireOn: expireOn ? new Date(expireOn) : null };
     if (req.file) data.image = '/uploads/' + req.file.filename;
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
+    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}`);
     res.json({ status: true, message: 'Coupon updated', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1081,6 +1101,7 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
 
 router.delete('/coupons/:id', requireAdmin, async (req, res) => {
   await prisma.coupon.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Coupon', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Coupon deleted' });
 });
 
