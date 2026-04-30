@@ -208,7 +208,7 @@ const Product = () => {
                                         <div className="font-xs">
                                             <ul className="mr-50 float-start">
                                                 {product.category && <li className="mb-5">Category: <Link to={`/shop?category=${product.category.slug}`}>{product.category.name}</Link></li>}
-                                                <li className="mb-5">Availability: <span className={product.stock > 0 ? "in-stock text-success" : "text-danger"}>{product.stock > 0 ? "In Stock" : "Out of Stock"}</span></li>
+                                                <li className="mb-5">Availability: <span className={!isOutOfStock ? "in-stock text-success" : "text-danger"}>{!isOutOfStock ? "In Stock" : "Out of Stock"}</span></li>
                                                 {product.tags && <li className="mb-5">Tags: {product.tags.split(',').map(t => <span key={t} style={{ background: '#eee', padding: '2px 8px', borderRadius: '10px', marginRight: '5px' }}>{t.trim()}</span>)}</li>}
                                             </ul>
                                         </div>
