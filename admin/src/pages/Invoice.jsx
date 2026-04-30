@@ -62,7 +62,35 @@ const Invoice = () => {
 
     if (!order) return <div style={{ padding: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}><i className="fi-rs-spinner" style={{ animation: 'spin 1s linear infinite' }}></i> {autoDownload ? 'Preparing PDF Download...' : 'Loading Invoice...'}</div>;
 
-    const invoiceNumber = order.orderNumber.replace('YF-O', 'YFT-');
+    let invoiceNumber = order.orderNumber;
+    if (order.orderNumber.startsWith('YF') && order.orderNumber.length >= 15 && !order.orderNumber.includes('-')) {
+        const oNum = order.orderNumber;
+        const len = oNum.length;
+        const series = oNum.substring(8, len - 6);
+        const seq = oNum.substring(len - 6, len - 2);
+        const random = oNum.substring(len - 2);
+        
+        const date = new Date(order.createdAt);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        
+        let fyStart, fyEnd;
+        if (month >= 4) {
+            fyStart = String(year).slice(2);
+            fyEnd = String(year + 1).slice(2);
+        } else {
+            fyStart = String(year - 1).slice(2);
+            fyEnd = String(year).slice(2);
+        }
+        const fy = fyStart + fyEnd;
+        const mm = String(month).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        
+        invoiceNumber = `INV${fy}${mm}${dd}${series}${seq}${random}`;
+    } else {
+        invoiceNumber = order.orderNumber.replace('YF-O', 'YFT-');
+    }
     const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     const thStyle = { padding: '10px 12px', fontSize: '13px', fontWeight: '700', background: '#e0e0e0', border: '1px solid #ccc', textAlign: 'center' };

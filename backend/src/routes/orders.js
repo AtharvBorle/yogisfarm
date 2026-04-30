@@ -6,25 +6,54 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { sendOrderConfirmSMS } = require('../utils/sms');
 
-// Generate order number matching reference format: YF-O26-27-0005
+// Generate order number matching reference format: YF260430A0001AZ
 const generateOrderNumber = async () => {
   const now = new Date();
   const yy = String(now.getFullYear()).slice(2);
   const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const prefix = `YF-O${yy}-${mm}`;
+  const dd = String(now.getDate()).padStart(2, '0');
+  const prefix = `YF${yy}${mm}${dd}`;
 
-  // Find last order with this prefix
+  // Find last order for today
   const lastOrder = await prisma.order.findFirst({
     where: { orderNumber: { startsWith: prefix } },
     orderBy: { createdAt: 'desc' }
   });
 
-  let seq = 1;
+  let nextSeq = 1;
+  let nextSeries = 'A';
+
   if (lastOrder) {
-    const parts = lastOrder.orderNumber.split('-');
-    seq = parseInt(parts[parts.length - 1]) + 1;
+    const oNum = lastOrder.orderNumber;
+    const len = oNum.length;
+    // Validate it's the new pattern (length >= 15 and no hyphens)
+    if (len >= 15 && !oNum.includes('-')) {
+      const lastSeq = parseInt(oNum.substring(len - 6, len - 2), 10);
+      const lastSeries = oNum.substring(8, len - 6);
+
+      nextSeq = lastSeq + 1;
+      nextSeries = lastSeries;
+
+      if (nextSeq > 9999) {
+        nextSeq = 1;
+        // Increment series string (A -> B, Z -> AA)
+        let carry = 1;
+        let res = '';
+        for (let i = lastSeries.length - 1; i >= 0; i--) {
+          let val = lastSeries.charCodeAt(i) - 65 + carry;
+          res = String.fromCharCode((val % 26) + 65) + res;
+          carry = Math.floor(val / 26);
+        }
+        if (carry > 0) res = 'A' + res;
+        nextSeries = res;
+      }
+    }
   }
-  return `${prefix}-${String(seq).padStart(4, '0')}`;
+
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const randomChars = chars.charAt(Math.floor(Math.random() * 26)) + chars.charAt(Math.floor(Math.random() * 26));
+
+  return `${prefix}${nextSeries}${String(nextSeq).padStart(4, '0')}${randomChars}`;
 };
 
 // Place order
