@@ -141,42 +141,72 @@ const DeliveryDashboard = () => {
         return csvRows.join('\n');
     };
 
-    const downloadCSV = () => {
-        const csvData = convertToCSV(history);
-        const blob = new Blob([csvData], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', `delivery_history_${new Date().getTime()}.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    const downloadCSV = async () => {
+        try {
+            let query = `?page=1&limit=99999`;
+            if (startDate && endDate) query += `&startDate=${startDate}&endDate=${endDate}`;
+            const res = await api.get(`/delivery/history${query}`);
+            if (!res.data.status) { toast.error('Failed to fetch all records'); return; }
+            const allHistory = res.data.orders;
+            const headers = ['Order Number', 'Date', 'Customer Name', 'Customer Phone', 'Total Amount', 'Payment Method'];
+            const csvRows = [headers.join(',')];
+            allHistory.forEach(row => {
+                csvRows.push([
+                    row.orderNumber,
+                    new Date(row.updatedAt).toLocaleDateString(),
+                    `"${row.user?.name || ''}"`,
+                    `"${row.user?.phone || ''}"`,
+                    row.total,
+                    row.paymentMethod
+                ].join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `delivery_history_${new Date().getTime()}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            toast.success(`Downloaded ${allHistory.length} records`);
+        } catch (err) {
+            toast.error('Failed to download CSV');
+        }
     };
 
-    const downloadTransCSV = () => {
-        if (transactions.length === 0) return;
-        const headers = ['Date', 'Time', 'Type', 'Amount', 'Description'];
-        const csvRows = [headers.join(',')];
-        transactions.forEach(t => {
-            const date = new Date(t.date);
-            csvRows.push([
-                date.toLocaleDateString(),
-                date.toLocaleTimeString(),
-                t.type === 'addition' ? 'Credit (+)' : 'Debit (-)',
-                t.amount,
-                `"${t.description}"`
-            ].join(','));
-        });
-        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('hidden', '');
-        a.setAttribute('href', url);
-        a.setAttribute('download', `cash_ledger_${new Date().getTime()}.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    const downloadTransCSV = async () => {
+        try {
+            let query = `?page=1&limit=99999`;
+            if (startDate && endDate) query += `&startDate=${startDate}&endDate=${endDate}`;
+            const res = await api.get(`/delivery/transactions${query}`);
+            if (!res.data.status) { toast.error('Failed to fetch all transactions'); return; }
+            const allTrans = res.data.transactions;
+            const headers = ['Date', 'Time', 'Type', 'Amount', 'Description'];
+            const csvRows = [headers.join(',')];
+            allTrans.forEach(t => {
+                const date = new Date(t.date);
+                csvRows.push([
+                    date.toLocaleDateString(),
+                    date.toLocaleTimeString(),
+                    t.type === 'addition' ? 'Credit (+)' : 'Debit (-)',
+                    t.amount,
+                    `"${t.description}"`
+                ].join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `cash_ledger_${new Date().getTime()}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            toast.success(`Downloaded ${allTrans.length} records`);
+        } catch (err) {
+            toast.error('Failed to download CSV');
+        }
     };
 
     return (
