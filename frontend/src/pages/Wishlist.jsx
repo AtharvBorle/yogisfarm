@@ -38,9 +38,6 @@ const Wishlist = () => {
         fetchWishlist();
     };
 
-    const handleAddToCart = (product) => {
-        addToCart(product.id, null, 1);
-    };
 
     if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
 
@@ -116,7 +113,7 @@ const Wishlist = () => {
                                                 </td>
                                                 <td className="text-right" data-title="Cart" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
                                                     {!isOutOfStock && firstStockedVariant && (
-                                                        <button onClick={() => addToCart(item.product.id, 1, firstStockedVariant.id)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
+                                                        <button onClick={() => addToCart(item.product.id, firstStockedVariant.id, 1)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
                                                     )}
                                                 </td>
                                                 <td className="action" data-title="Remove" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>

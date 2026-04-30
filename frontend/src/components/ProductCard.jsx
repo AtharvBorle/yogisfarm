@@ -31,7 +31,7 @@ const ProductCard = ({ product }) => {
 
     const handleAddToCart = () => {
         if (!isOutOfStock && firstStockedVariant) {
-            addToCart(product.id, 1, firstStockedVariant.id);
+            addToCart(product.id, firstStockedVariant.id, 1);
         }
     };
 

@@ -29,10 +29,7 @@ const Deals = () => {
         });
     }, []);
 
-    const handleAddToCart = (e, product) => {
-        e.preventDefault();
-        addToCart(product.id, null, 1);
-    };
+
 
     return (
         <main className="main">
@@ -122,7 +119,7 @@ const Deals = () => {
                                                 </div>
                                                 <div className="add-cart">
                                                     {!isOutOfStock && firstStockedVariant && (
-                                                        <a className="add" href="#!" onClick={(e) => { e.preventDefault(); addToCart(product.id, 1, firstStockedVariant.id); }} style={{ background: '#046938', color: '#fff', padding: '10px 20px', borderRadius: '5px' }}><i className="fi-rs-shopping-cart mr-5"></i>Add </a>
+                                                        <a className="add" href="#!" onClick={(e) => { e.preventDefault(); addToCart(product.id, firstStockedVariant.id, 1); }} style={{ background: '#046938', color: '#fff', padding: '10px 20px', borderRadius: '5px' }}><i className="fi-rs-shopping-cart mr-5"></i>Add </a>
                                                     )}
                                                 </div>
                                             </div>

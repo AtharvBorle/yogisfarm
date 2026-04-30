@@ -62,7 +62,7 @@ const QuickViewModal = ({ product, onClose }) => {
                                             {isOutOfStock ? (
                                                 <button type="button" className="button" style={{ background: '#e0e0e0', color: '#666', border: '1px solid #ccc', cursor: 'not-allowed' }} disabled>Out of Stock</button>
                                             ) : firstStockedVariant ? (
-                                                <button type="button" className="button button-add-to-cart" onClick={() => { addToCart(product.id, 1, firstStockedVariant.id); onClose(); }}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
+                                                <button type="button" className="button button-add-to-cart" onClick={() => { addToCart(product.id, firstStockedVariant.id, 1); onClose(); }}><i className="fi-rs-shopping-cart"></i>Add to cart</button>
                                             ) : null}
                                             <a aria-label="Add To Wishlist" className="action-btn hover-up" onClick={() => toggleWishlist(product.id)} href="#!" style={{ color: inWishlist ? 'red' : 'inherit' }}><i className="fi-rs-heart"></i></a>
                                         </div>
