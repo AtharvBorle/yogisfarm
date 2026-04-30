@@ -78,38 +78,59 @@ const Shop = () => {
                                         All Products
                                     </Link>
                                 </li>
-                                {categories.filter(c => !c.parentId).map(parent => {
-                                    const childCategories = categories.filter(c => c.parentId === parent.id);
-                                    const isExpanded = category === parent.slug || childCategories.some(c => c.slug === category);
-
-                                    return (
-                                        <React.Fragment key={parent.id}>
-                                            <li>
-                                                <Link className={category === parent.slug ? 'active' : ''} to={`/shop?category=${parent.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                                    <img src={getAssetUrl(parent.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
-                                                    {parent.name}
-                                                    <span className="count" style={{ marginLeft: 'auto' }}>{parent._count?.products || 0}</span>
-                                                </Link>
-                                            </li>
-                                            
-                                            {isExpanded && childCategories.length > 0 && childCategories.map(child => (
-                                                <li key={child.id} style={{ paddingLeft: '30px', marginTop: '-5px' }}>
-                                                    <Link className={category === child.slug ? 'active' : ''} to={`/shop?category=${child.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%', fontSize: '14px', color: category === child.slug ? 'var(--primary)' : '#666' }}>
-                                                        <img src={getAssetUrl(child.image)} alt="" style={{width:'22px', height:'22px', marginRight:'8px', borderRadius: '4px'}} />
-                                                        {child.name}
-                                                        <span className="count" style={{ marginLeft: 'auto', fontSize: '12px' }}>{child._count?.products || 0}</span>
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                        </React.Fragment>
-                                    );
-                                })}
+                                {categories.filter(c => !c.parentId).map(cat => (
+                                    <li key={cat.id}>
+                                        <Link className={category === cat.slug ? 'active' : ''} to={`/shop?category=${cat.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                            <img src={getAssetUrl(cat.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
+                                            {cat.name}
+                                            <span className="count" style={{ marginLeft: 'auto' }}>{cat._count?.products || 0}</span>
+                                        </Link>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     </div>
 
                     {/* Product Grid */}
                     <div className="col-lg-4-5">
+                        {(() => {
+                            const currentCategoryObj = categories.find(c => c.slug === category);
+                            let childCategoriesToDisplay = [];
+                            if (currentCategoryObj) {
+                                if (!currentCategoryObj.parentId) {
+                                    childCategoriesToDisplay = categories.filter(c => c.parentId === currentCategoryObj.id);
+                                } else {
+                                    childCategoriesToDisplay = categories.filter(c => c.parentId === currentCategoryObj.parentId);
+                                }
+                            }
+                            
+                            if (childCategoriesToDisplay.length > 0) {
+                                return (
+                                    <div className="mb-40">
+                                        <h4 className="mb-20">{!currentCategoryObj?.parentId ? 'Subcategories' : 'Related Categories'}</h4>
+                                        <div className="row">
+                                            {childCategoriesToDisplay.map(child => (
+                                                <div key={child.id} className="col-lg-3 col-md-4 col-6 col-sm-6 mb-20">
+                                                    <Link to={`/shop?category=${child.slug}`} style={{
+                                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                                        padding: '15px', borderRadius: '10px', background: category === child.slug ? '#e8f5e9' : '#fff',
+                                                        border: `1px solid ${category === child.slug ? '#046938' : '#e6e6e6'}`,
+                                                        transition: 'all 0.3s',
+                                                        textAlign: 'center', height: '100%',
+                                                        textDecoration: 'none'
+                                                    }} className="hover-up category-card-feed">
+                                                        <img src={getAssetUrl(child.image)} alt={child.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', marginBottom: '10px' }} />
+                                                        <h6 style={{ color: category === child.slug ? '#046938' : '#253D4E', margin: 0, fontSize: '15px' }}>{child.name}</h6>
+                                                        <span style={{ fontSize: '12px', color: '#7E7E7E', marginTop: '5px' }}>{child._count?.products || 0} items</span>
+                                                    </Link>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                         <div className="shop-product-fillter">
                             <div className="totall-product">
                                 <p>We found <strong className="text-brand">{totalProducts}</strong> items for you!</p>
