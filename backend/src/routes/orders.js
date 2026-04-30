@@ -297,7 +297,7 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       include: {
-        items: { include: { product: { select: { slug: true, image: true, name: true, price: true, salePrice: true, id: true, tax: true, categoryId: true, featured: true, status: true, hoverImage: true, brand: true, images: true } } } },
+        items: { include: { product: { select: { slug: true, image: true, name: true, id: true, tax: true, categoryId: true, featured: true, status: true, hoverImage: true, brand: true, images: true } } } },
         user: { select: { name: true, phone: true, email: true } },
         deliveryBoy: true
       }
