@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
+const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
 const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
 
@@ -44,20 +45,7 @@ router.get('/me', requireAdmin, async (req, res) => {
   res.json({ status: true, admin });
 });
 
-// ─── Admin Action Log Helper ───
-const logAdminAction = async (adminId, action, details = null) => {
-    try {
-        await prisma.adminLog.create({
-            data: {
-                adminId: parseInt(adminId),
-                action,
-                details: details ? (typeof details === 'string' ? details : JSON.stringify(details)) : null
-            }
-        });
-    } catch (err) {
-        console.error('Failed to log admin action:', err);
-    }
-};
+
 
 router.get('/logs/download', requireAdmin, async (req, res) => {
     try {
