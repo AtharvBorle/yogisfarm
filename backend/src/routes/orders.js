@@ -319,7 +319,7 @@ router.get('/invoice/:orderNumber', async (req, res) => {
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       include: {
-        items: { include: { product: { select: { slug: true, image: true, name: true, price: true, salePrice: true } } } },
+        items: { include: { product: { select: { slug: true, image: true, name: true } } } },
         user: { select: { name: true, phone: true, email: true } }
       }
     });
