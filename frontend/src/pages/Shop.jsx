@@ -78,15 +78,34 @@ const Shop = () => {
                                         All Products
                                     </Link>
                                 </li>
-                                {categories.map(cat => (
-                                    <li key={cat.id}>
-                                        <Link className={category === cat.slug ? 'active' : ''} to={`/shop?category=${cat.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                            <img src={getAssetUrl(cat.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
-                                            {cat.name}
-                                            <span className="count" style={{ marginLeft: 'auto' }}>{cat._count?.products || 0}</span>
-                                        </Link>
-                                    </li>
-                                ))}
+                                {categories.filter(c => !c.parentId).map(parent => {
+                                    const childCategories = categories.filter(c => c.parentId === parent.id);
+                                    const isExpanded = category === parent.slug || childCategories.some(c => c.slug === category);
+
+                                    return (
+                                        <li key={parent.id} style={{ marginBottom: isExpanded ? '15px' : '0' }}>
+                                            <Link className={category === parent.slug ? 'active' : ''} to={`/shop?category=${parent.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                                <img src={getAssetUrl(parent.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
+                                                {parent.name}
+                                                <span className="count" style={{ marginLeft: 'auto' }}>{parent._count?.products || 0}</span>
+                                            </Link>
+                                            
+                                            {isExpanded && childCategories.length > 0 && (
+                                                <ul style={{ paddingLeft: '35px', marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    {childCategories.map(child => (
+                                                        <li key={child.id}>
+                                                            <Link className={category === child.slug ? 'active' : ''} to={`/shop?category=${child.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%', fontSize: '14px', color: category === child.slug ? 'var(--primary)' : '#666' }}>
+                                                                <img src={getAssetUrl(child.image)} alt="" style={{width:'22px', height:'22px', marginRight:'8px', borderRadius: '4px'}} />
+                                                                {child.name}
+                                                                <span className="count" style={{ marginLeft: 'auto', fontSize: '12px' }}>{child._count?.products || 0}</span>
+                                                            </Link>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     </div>
