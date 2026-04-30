@@ -18,6 +18,7 @@ const Shop = () => {
     const [totalPages, setTotalPages] = useState(1);
     
     const category = searchParams.get('category') || '';
+    const brand = searchParams.get('brand') || '';
     const keyword = searchParams.get('keyword') || '';
     const sort = searchParams.get('sort') || '';
     const page = parseInt(searchParams.get('page') || '1');
@@ -31,6 +32,7 @@ const Shop = () => {
     useEffect(() => {
         let url = `/products?page=${page}`;
         if(category) url += `&category=${category}`;
+        if(brand) url += `&brand=${brand}`;
         if(keyword) url += `&search=${keyword}`;
         if(sort === 'newest') url += `&sort=oldest`; // API default logic might differ, assuming new is default
         if(sort === 'name_asc') url += `&sort=name_asc`;
@@ -42,7 +44,7 @@ const Shop = () => {
                 setTotalPages(res.data.totalPages);
             }
         });
-    }, [category, keyword, sort, page]);
+    }, [category, brand, keyword, sort, page]);
 
     const handleSortChange = (newSort) => {
         searchParams.set('sort', newSort);
