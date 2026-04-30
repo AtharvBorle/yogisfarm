@@ -12,15 +12,25 @@ const Invoice = () => {
     const [gstNumber, setGstNumber] = useState('');
     const [activeTax, setActiveTax] = useState(null);
     const [downloading, setDownloading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
+            if (!orderNumber) {
+                setError('Order number missing in URL');
+                return;
+            }
             try {
                 const res = await api.get(`/orders/invoice/${orderNumber}`);
                 if (res.data.status) {
                     setOrder(res.data.order);
+                } else {
+                    setError(res.data.message || 'Order not found');
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err);
+                setError('Failed to connect to server. Please try again later.');
+            }
         };
         fetchOrder();
         api.get('/settings').then(res => {
@@ -53,6 +63,14 @@ const Invoice = () => {
             }, 500);
         }
     }, [order, autoDownload]);
+
+    if (error) return (
+        <div style={{ padding: '100px 20px', textAlign: 'center' }}>
+            <div style={{ color: '#dc3545', fontSize: '24px', fontWeight: 'bold', marginBottom: '20px' }}>⚠️ {error}</div>
+            <p>Please check the order number in your link or contact support.</p>
+            <button onClick={() => window.location.reload()} style={{ marginTop: '20px', padding: '10px 25px', background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Retry</button>
+        </div>
+    );
 
     if (!order) return <div style={{ padding: '80px', textAlign: 'center', fontSize: '20px', fontWeight: 'bold' }}><i className="fi-rs-spinner" style={{ animation: 'spin 1s linear infinite' }}></i> {autoDownload ? 'Preparing PDF Download...' : 'Loading Invoice...'}</div>;
 

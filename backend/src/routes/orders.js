@@ -291,8 +291,11 @@ router.get('/', requireLogin, async (req, res) => {
 // Get single order detail (for user)
 router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
   try {
+    let orderNumber = req.params.orderNumber.toUpperCase();
+    if (orderNumber.startsWith('YF-0')) orderNumber = 'YF-O' + orderNumber.substring(4);
+
     const order = await prisma.order.findUnique({
-      where: { orderNumber: req.params.orderNumber },
+      where: { orderNumber },
       include: {
         items: { include: { product: { select: { slug: true, image: true, name: true, price: true, salePrice: true, id: true, tax: true, categoryId: true, featured: true, status: true, hoverImage: true, brand: true, images: true } } } },
         user: { select: { name: true, phone: true, email: true } },
@@ -310,8 +313,11 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
 // Public invoice endpoint (no login required - for SMS links)
 router.get('/invoice/:orderNumber', async (req, res) => {
   try {
+    let orderNumber = req.params.orderNumber.toUpperCase();
+    if (orderNumber.startsWith('YF-0')) orderNumber = 'YF-O' + orderNumber.substring(4);
+
     const order = await prisma.order.findUnique({
-      where: { orderNumber: req.params.orderNumber },
+      where: { orderNumber },
       include: {
         items: { include: { product: { select: { slug: true, image: true, name: true, price: true, salePrice: true } } } },
         user: { select: { name: true, phone: true, email: true } }
@@ -327,8 +333,11 @@ router.get('/invoice/:orderNumber', async (req, res) => {
 // Track order (public)
 router.get('/track/:orderNumber', async (req, res) => {
   try {
+    let orderNumber = req.params.orderNumber.toUpperCase();
+    if (orderNumber.startsWith('YF-0')) orderNumber = 'YF-O' + orderNumber.substring(4);
+
     const order = await prisma.order.findUnique({
-      where: { orderNumber: req.params.orderNumber },
+      where: { orderNumber },
       include: { items: true }
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
