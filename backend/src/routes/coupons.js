@@ -18,7 +18,8 @@ router.post('/apply', async (req, res) => {
     // This matches the order placement logic in orders.js
     const globalTax = await prisma.tax.findFirst({ where: { status: 'active' } });
     const globalTaxRate = globalTax ? parseFloat(globalTax.tax) : 0;
-    const baseAmount = (parseFloat(subtotal) * (100 - globalTaxRate)) / 100;
+    const totalTaxPortion = (parseFloat(subtotal) * globalTaxRate) / 100;
+    const baseAmount = parseFloat(subtotal) - totalTaxPortion;
 
     let discount = coupon.amountType === 'percent'
       ? (baseAmount * parseFloat(coupon.amount)) / 100

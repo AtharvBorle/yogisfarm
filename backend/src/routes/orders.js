@@ -106,8 +106,10 @@ router.post('/place', requireLogin, async (req, res) => {
     });
 
     // Extract GST from inclusive offer price sum
-    // subtotal = base (excl. GST) = offerPriceSum * (100 - taxRate) / 100
-    let subtotal = (offerPriceSum * (100 - globalTaxRate)) / 100;
+    // GST portion = offerPriceSum * taxRate / 100
+    // subtotal (base) = offerPriceSum - GST portion
+    const totalTaxOriginal = (offerPriceSum * globalTaxRate) / 100;
+    let subtotal = offerPriceSum - totalTaxOriginal;
 
     let discountAmount = 0;
     let appliedCouponId = null;
@@ -124,9 +126,8 @@ router.post('/place', requireLogin, async (req, res) => {
       }
     }
 
-    // After coupon: recalculate GST on discounted base
-    const afterDiscount = subtotal - discountAmount;
-    const totalTax = (afterDiscount * globalTaxRate) / 100;
+    // GST stays as extracted from the inclusive price; discount is a separate line item
+    const totalTax = totalTaxOriginal;
 
     // Fetch dynamic shipping from admin settings (use offerPriceSum for threshold check)
     const shippingRule = await prisma.shipping.findFirst({ where: { status: 'active' }, orderBy: { minCartValue: 'asc' } });
@@ -134,7 +135,7 @@ router.post('/place', requireLogin, async (req, res) => {
     if (shippingRule) {
       shipping = offerPriceSum >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
     }
-    const rawTotal = afterDiscount + totalTax + shipping;
+    const rawTotal = subtotal - discountAmount + totalTax + shipping;
     const total = Math.round(rawTotal); // Strictly round off ONLY final amount
 
     // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
