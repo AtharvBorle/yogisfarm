@@ -44,7 +44,7 @@ const Order = () => {
 
     const statusColors = {
         placed: '#ffc107', pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
-        shipped: '#007bff', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
+        shipped: '#007bff', out_for_delivery: '#fd7e14', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
     };
 
     const paymentColors = { pending: '#ffc107', verified: '#28a745', completed: '#28a745', failed: '#dc3545', refunded: '#6c757d' };
@@ -89,7 +89,7 @@ const Order = () => {
                     padding: '4px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: '600',
                     background: statusColors[row.orderStatus] || '#6c757d', color: '#fff'
                 }}>
-                    {row.orderStatus === 'placed' ? 'Order Placed' : row.orderStatus.charAt(0).toUpperCase() + row.orderStatus.slice(1)}
+                    {row.orderStatus === 'placed' ? 'Order Placed' : row.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
             )
         },
@@ -219,7 +219,7 @@ const Order = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '5px 15px', fontSize: '13px' }}>
                                     <span style={{ fontWeight: '600' }}>Order #</span><span style={{ color: '#046938' }}>{selectedOrder.orderNumber}</span>
                                     <span style={{ fontWeight: '600' }}>Order Status</span>
-                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: statusColors[selectedOrder.orderStatus] || '#6c757d', color: '#fff' }}>{selectedOrder.orderStatus === 'placed' ? 'Order Placed' : selectedOrder.orderStatus}</span></span>
+                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: statusColors[selectedOrder.orderStatus] || '#6c757d', color: '#fff' }}>{selectedOrder.orderStatus === 'placed' ? 'Order Placed' : selectedOrder.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span></span>
                                     <span style={{ fontWeight: '600' }}>Order Date</span><span>{formatDateTime(selectedOrder.createdAt)}</span>
                                     <span style={{ fontWeight: '600' }}>Total Amount</span><span>₹{Number(selectedOrder.total).toFixed(0)}</span>
                                     <span style={{ fontWeight: '600' }}>Payment Method</span><span>{selectedOrder.paymentMethod === 'cod' ? 'Cash On Delivery' : selectedOrder.paymentMethod?.toUpperCase()}</span>

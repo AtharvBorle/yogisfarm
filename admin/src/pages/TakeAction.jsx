@@ -261,6 +261,11 @@ const TakeAction = () => {
         { header: 'AMOUNT', render: (row) => <strong>₹{Number(row.total).toFixed(0)}</strong> }
     ];
 
+    const statusColors = {
+        placed: '#ffc107', pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
+        shipped: '#007bff', out_for_delivery: '#fd7e14', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
+    };
+
     if (activeTab === 'status') {
         columns.push({
             header: 'ASSIGNED TO',
@@ -273,8 +278,8 @@ const TakeAction = () => {
         columns.push({
             header: 'STATUS',
             render: (row) => (
-                <span style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: '#17a2b8', color: '#fff' }}>
-                    {row.orderStatus}
+                <span style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: '600', background: statusColors[row.orderStatus] || '#6c757d', color: '#fff' }}>
+                    {row.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
             )
         });

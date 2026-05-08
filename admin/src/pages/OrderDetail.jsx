@@ -295,7 +295,7 @@ const OrderDetail = () => {
                                     padding: '4px 20px', borderRadius: '4px', fontSize: '12px', fontWeight: '600',
                                     background: statusColors[order.orderStatus] || '#6c757d', color: '#fff'
                                 }}>
-                                    {order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+                                    {order.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                 </span>
                             </div>
                         </div>
@@ -414,7 +414,7 @@ const OrderDetail = () => {
                 <form onSubmit={updateStatus} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
                         <div style={{ marginBottom: '10px', padding: '10px 15px', background: 'var(--sidebar-hover)', borderRadius: '6px', fontSize: '13px', color: 'var(--text)' }}>
-                            Current Status: <strong style={{ color: statusColors[order.orderStatus], textTransform: 'capitalize' }}>{order.orderStatus}</strong>
+                            Current Status: <strong style={{ color: statusColors[order.orderStatus], textTransform: 'capitalize' }}>{order.orderStatus.replace(/_/g, ' ')}</strong>
                         </div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>New Status *</label>
                         <select value={statusForm} onChange={e => setStatusForm(e.target.value)} style={inputStyle}>
