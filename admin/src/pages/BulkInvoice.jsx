@@ -22,7 +22,22 @@ const BulkInvoice = () => {
             const orderNumbers = orderNumbersParam.split(',').map(n => n.trim()).filter(Boolean);
             
             try {
-                const promises = orderNumbers.map(num => api.get(`/orders/invoice/${num}`));
+                // First get all orders to find their internal IDs
+                const listRes = await api.get('/orders');
+                if (!listRes.data.status) throw new Error('Failed to fetch order list');
+                const allOrders = listRes.data.orders;
+                
+                // Map order numbers to internal IDs
+                const idsToFetch = orderNumbers.map(num => allOrders.find(o => o.orderNumber === num)?.id).filter(Boolean);
+                
+                if (idsToFetch.length === 0) {
+                    setError('No matching orders found.');
+                    setLoading(false);
+                    return;
+                }
+
+                // Fetch full details for each order using the admin endpoint
+                const promises = idsToFetch.map(id => api.get(`/orders/${id}`));
                 const results = await Promise.all(promises);
                 
                 const fetchedOrders = results
@@ -35,6 +50,7 @@ const BulkInvoice = () => {
                     setOrders(fetchedOrders);
                 }
             } catch (err) {
+                console.error("BulkInvoice Fetch Error:", err);
                 setError('Error fetching invoices.');
             } finally {
                 setLoading(false);
