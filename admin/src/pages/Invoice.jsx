@@ -19,7 +19,13 @@ const Invoice = () => {
                     const found = res.data.orders.find(o => o.orderNumber === orderNumber);
                     if (found) {
                         const detail = await api.get(`/orders/${found.id}`);
-                        if (detail.data.status) setOrder(detail.data.order);
+                        if (detail.data.status) {
+                            const orderData = detail.data.order;
+                            if (detail.data.coupon) {
+                                orderData.coupon = detail.data.coupon;
+                            }
+                            setOrder(orderData);
+                        }
                     }
                 }
             } catch (err) { console.error(err); }

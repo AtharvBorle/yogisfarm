@@ -23,7 +23,11 @@ const Invoice = () => {
             try {
                 const res = await api.get(`/orders/invoice/${orderNumber}`);
                 if (res.data.status) {
-                    setOrder(res.data.order);
+                    const orderData = res.data.order;
+                    if (res.data.coupon) {
+                        orderData.coupon = res.data.coupon;
+                    }
+                    setOrder(orderData);
                 } else {
                     setError(res.data.message || 'Order not found');
                 }

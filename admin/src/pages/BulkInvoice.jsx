@@ -8,7 +8,7 @@ const BulkInvoice = () => {
     const [searchParams] = useSearchParams();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [gstNumber, setGstNumber] = useState('');
 
     useEffect(() => {
         const fetchInvoices = async () => {
@@ -22,6 +22,15 @@ const BulkInvoice = () => {
             const orderNumbers = orderNumbersParam.split(',').map(n => n.trim()).filter(Boolean);
             
             try {
+                // Fetch settings for GST
+                try {
+                    const settingsRes = await api.get('/settings');
+                    if (settingsRes.data.status && settingsRes.data.settings) {
+                        const gstObj = settingsRes.data.settings.find(s => s.key === 'gst_number');
+                        if (gstObj) setGstNumber(gstObj.value);
+                    }
+                } catch (e) {}
+
                 // First get all orders to find their internal IDs
                 const listRes = await api.get('/orders');
                 if (!listRes.data.status) throw new Error('Failed to fetch order list');
@@ -42,7 +51,13 @@ const BulkInvoice = () => {
                 
                 const fetchedOrders = results
                     .filter(res => res.data.status && res.data.order)
-                    .map(res => res.data.order);
+                    .map(res => {
+                        const orderData = res.data.order;
+                        if (res.data.coupon) {
+                            orderData.coupon = res.data.coupon;
+                        }
+                        return orderData;
+                    });
                 
                 if (fetchedOrders.length === 0) {
                     setError('Failed to fetch invoice data.');
@@ -154,6 +169,11 @@ const BulkInvoice = () => {
                 // Barcode/Tracking ID (Use trackingId if exists, otherwise orderNumber)
                 const awbNo = order.trackingId || order.orderNumber;
                 const courierDisplay = order.courierPartner?.name ? `Courier: ${order.courierPartner.name} ` : '';
+                
+                // Payment Status
+                const isPrepaid = order.paymentMethod !== 'cod';
+                const paymentStatusText = isPrepaid ? 'PREPAID' : 'COD';
+                const paymentStatusShort = isPrepaid ? 'PRE' : 'COD';
 
                 // Coupon data mapping for Invoice calculation
                 const isPercentCoupon = order.coupon && order.coupon.amountType === 'percent';
@@ -175,12 +195,12 @@ const BulkInvoice = () => {
                                     <span className="text-xl">STD</span>
                                 </div>
                                 <div className="border-right p-1" style={{ width: '60%' }}>
-                                    <div className="text-xs">{courierDisplay}PREPAID</div>
+                                    <div className="text-xs">{courierDisplay}{paymentStatusText}</div>
                                     <div className="text-lg">{awbNo}</div>
                                 </div>
                                 <div className="border-right p-1 flex items-center" style={{ width: '15%', justifyContent: 'center', flexDirection: 'column' }}>
                                     <div className="text-xs bold">SURFACE</div>
-                                    <div className="text-md bold">PRE</div>
+                                    <div className="text-md bold">{paymentStatusShort}</div>
                                 </div>
                                 <div className="flex items-center" style={{ width: '10%', justifyContent: 'center' }}>
                                     <span className="text-xl">E</span>
@@ -217,7 +237,7 @@ const BulkInvoice = () => {
                             {/* Sold By Footer */}
                             <div className="flex justify-between p-1 border-bottom text-xs bg-gray">
                                 <div>Sold By: Yogi's Farms, Pune - 411058</div>
-                                <div>GSTIN: 27AAXFN9221D1ZX</div>
+                                <div>GSTIN: {gstNumber || '27AAXFN9221D1ZX'}</div>
                             </div>
 
                             {/* SKU Table */}
@@ -265,7 +285,7 @@ const BulkInvoice = () => {
                                     <div>
                                         <div className="text-md bold" style={{ marginBottom: '4px' }}>Invoice No: {invoiceNumber}</div>
                                         <div className="text-md bold" style={{ marginBottom: '10px' }}>Invoice Date: {formatDate(order.labelPrintedAt || order.createdAt)}</div>
-                                        <div className="text-sm bold">GSTIN: 27AAXFN9221D1ZX</div>
+                                        <div className="text-sm bold">GSTIN: {gstNumber || '27AAXFN9221D1ZX'}</div>
                                     </div>
                                     <div>
                                         {/* QR Code */}
@@ -284,7 +304,7 @@ const BulkInvoice = () => {
                                     <div className="text-xs" style={{ lineHeight: '1.4' }}>
                                         S.No 18, Saikrupa Bunglow, Sudarshan Park Society,<br/>
                                         Ingale Nagar, Warje, Pune, Maharashtra - 411058<br/>
-                                        GST: 27AAXFN9221D1ZX
+                                        GST: {gstNumber || '27AAXFN9221D1ZX'}
                                     </div>
                                 </div>
                                 <div style={{ width: '33%', paddingRight: '10px' }}>
