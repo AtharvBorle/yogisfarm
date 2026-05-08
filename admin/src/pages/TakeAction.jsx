@@ -134,7 +134,7 @@ const TakeAction = () => {
             };
 
             // Using existing route one by one since we don't have bulk assign API yet
-            const promises = selectedOrderIds.map(id => api.put(`/orders/${id}/assign`, {
+            const promises = selectedOrderIds.map(id => api.put(`/orders/${id}/delivery-option`, {
                 deliveryType: deliveryOptionType,
                 deliveryBoyId: deliveryOptionType === 'delivery_boy' ? parseInt(selectedDeliveryBoyId) : null,
                 courierPartnerId: deliveryOptionType === 'courier' ? parseInt(selectedCourierPartnerId) : null,

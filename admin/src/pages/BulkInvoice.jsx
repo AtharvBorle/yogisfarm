@@ -8,6 +8,7 @@ const BulkInvoice = () => {
     const [searchParams] = useSearchParams();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const [gstNumber, setGstNumber] = useState('');
 
     useEffect(() => {
