@@ -117,9 +117,8 @@ const DeliveryOrderDetails = () => {
                     <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' }}>Items to Deliver</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {order.items?.map(item => (
-                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#444' }}>
-                                <span>{item.quantity}x {item.name}</span>
-                                <span style={{ fontWeight: '500' }}>₹{Number(item.total).toFixed(0)}</span>
+                            <div key={item.id} style={{ fontSize: '14px', color: '#444' }}>
+                                {item.quantity}x {item.name} {item.variant ? `(${item.variant})` : ''}
                             </div>
                         ))}
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', borderTop: '1px solid #f0f0f0', paddingTop: '10px', marginTop: '5px' }}>
