@@ -44,12 +44,11 @@ const Checkout = () => {
     const [shippingCharge, setShippingCharge] = useState(0);
     const [shippingThreshold, setShippingThreshold] = useState(0);
 
-    // GST-INCLUSIVE: prices already include GST, extract it
-    const subtotalBase = (cartTotal * (100 - globalTaxRate)) / 100;
-    const totalTax = (subtotalBase * globalTaxRate) / 100;
+    // GST-INCLUSIVE: prices already include GST, extract the GST portion
+    const totalTax = (cartTotal * globalTaxRate) / 100;
+    const subtotalBase = cartTotal - totalTax;
     const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
-    const rawGrandTotal = subtotalBase + totalTax + shipping;
-    const grandTotal = Math.round(rawGrandTotal);
+    const grandTotal = Math.round(subtotalBase + totalTax + shipping);
 
     useEffect(() => {
         // Fetch global tax rate and shipping rules
