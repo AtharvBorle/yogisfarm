@@ -215,11 +215,12 @@ const TakeAction = () => {
         },
         {
             header: 'ORDER ID',
-            render: (row) => <span style={{ color: '#046938', fontWeight: '600', cursor: 'pointer' }} onClick={() => navigate(`/orders/detail/${row.orderNumber}`)}>{row.orderNumber}</span>
-        },
-        {
-            header: 'DATE',
-            render: (row) => <span style={{ fontSize: '12px', color: '#555' }}>{formatDateTime(row.createdAt)}</span>
+            render: (row) => (
+                <div>
+                    <span style={{ color: '#046938', fontWeight: '600', cursor: 'pointer', display: 'block' }} onClick={() => navigate(`/orders/detail/${row.orderNumber}`)}>{row.orderNumber}</span>
+                    <span style={{ fontSize: '11px', color: '#888', marginTop: '2px', display: 'block' }}>{formatDateTime(row.createdAt)}</span>
+                </div>
+            )
         },
         {
             header: 'CUSTOMER',
@@ -232,13 +233,30 @@ const TakeAction = () => {
         },
         {
             header: 'PRODUCTS',
-            render: (row) => (
-                <button 
-                    onClick={() => setViewProductsModal({ open: true, items: row.items || [] })}
-                    style={{ padding: '4px 10px', background: '#e8f5e9', color: '#046938', border: '1px solid #c8e6c9', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>
-                    View Products ({row.items?.length || 0})
-                </button>
-            )
+            render: (row) => {
+                const items = row.items || [];
+                const maxInline = 2;
+                const visible = items.slice(0, maxInline);
+                const remaining = items.length - maxInline;
+                return (
+                    <div style={{ fontSize: '12px', lineHeight: '1.6' }}>
+                        {visible.map((item, i) => (
+                            <div key={i} style={{ whiteSpace: 'nowrap' }}>
+                                <span style={{ fontWeight: '500' }}>{item.name}</span>
+                                {item.variant ? <span style={{ color: '#888', marginLeft: '4px' }}>({item.variant})</span> : null}
+                                <span style={{ color: '#046938', marginLeft: '4px' }}>×{item.quantity}</span>
+                            </div>
+                        ))}
+                        {remaining > 0 && (
+                            <button
+                                onClick={() => setViewProductsModal({ open: true, items })}
+                                style={{ padding: '2px 8px', background: '#e8f5e9', color: '#046938', border: '1px solid #c8e6c9', borderRadius: '4px', fontSize: '10px', fontWeight: '600', cursor: 'pointer', marginTop: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                +{remaining} more
+                            </button>
+                        )}
+                    </div>
+                );
+            }
         },
         { header: 'AMOUNT', render: (row) => <strong>₹{Number(row.total).toFixed(0)}</strong> }
     ];
