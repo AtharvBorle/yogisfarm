@@ -58,7 +58,7 @@ router.get('/me', requireDeliveryBoy, async (req, res) => {
     const pendingCount = await prisma.order.count({
       where: {
         deliveryBoyId: boy.id,
-        orderStatus: { in: ['shipped', 'out_for_delivery'] }
+        orderStatus: { notIn: ['delivered', 'cancelled', 'returned'] }
       }
     });
 
@@ -85,7 +85,7 @@ router.get('/pending-deliveries', requireDeliveryBoy, async (req, res) => {
     const orders = await prisma.order.findMany({
       where: {
         deliveryBoyId: req.session.deliveryBoyId,
-        orderStatus: { in: ['shipped', 'out_for_delivery'] }
+        orderStatus: { notIn: ['delivered', 'cancelled', 'returned'] }
       },
       orderBy: { updatedAt: 'desc' },
       include: {
