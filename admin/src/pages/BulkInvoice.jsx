@@ -121,11 +121,11 @@ const BulkInvoice = () => {
 
             {orders.map((order, index) => {
                 // Calculate Invoice Number based on labelPrintedAt
-                let invoiceNumber = '';
-                if (order.orderNumber.startsWith('YF-O')) {
+                let invoiceNumber = order.orderNumber;
+                if (order.orderNumber.startsWith('YF') && order.orderNumber.length >= 15 && !order.orderNumber.includes('-')) {
                     const oNum = order.orderNumber;
                     const len = oNum.length;
-                    const series = oNum.substring(6, len - 6);
+                    const series = oNum.substring(8, len - 6);
                     const seq = oNum.substring(len - 6, len - 2);
                     const random = oNum.substring(len - 2);
                     
@@ -261,8 +261,7 @@ const BulkInvoice = () => {
                                     <div>
                                         <div className="text-md bold" style={{ marginBottom: '4px' }}>Invoice No: {invoiceNumber}</div>
                                         <div className="text-md bold" style={{ marginBottom: '10px' }}>Invoice Date: {formatDate(order.labelPrintedAt || order.createdAt)}</div>
-                                        <div className="text-sm bold" style={{ marginBottom: '2px' }}>GSTIN: 27AAXFN9221D1ZX</div>
-                                        <div className="text-sm bold">PAN: AAXFN9221D</div>
+                                        <div className="text-sm bold">GSTIN: 27AAXFN9221D1ZX</div>
                                     </div>
                                     <div>
                                         {/* QR Code */}
