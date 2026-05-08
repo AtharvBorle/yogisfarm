@@ -72,7 +72,9 @@ const DeliveryOrderDetails = () => {
                     <div>
                         <div style={{ fontSize: '12px', color: '#7E7E7E', marginBottom: '4px' }}>Current Status</div>
                         <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.orderStatus === 'delivered' ? '#28a745' : order.orderStatus === 'out_for_delivery' ? '#fd7e14' : '#007bff' }}>
-                            {order.orderStatus.replace(/_/g, ' ').toUpperCase()}
+                            {['placed', 'confirmed', 'pending', 'processing', 'shipped'].includes(order.orderStatus) 
+                                ? 'SHIPPED' 
+                                : order.orderStatus.replace(/_/g, ' ').toUpperCase()}
                         </div>
                     </div>
                     {isCod && order.paymentStatus === 'pending' && (
@@ -128,7 +130,7 @@ const DeliveryOrderDetails = () => {
                 </div>
 
                 {/* Action Buttons */}
-                {order.orderStatus === 'shipped' && (
+                {order.orderStatus !== 'out_for_delivery' && order.orderStatus !== 'delivered' && order.orderStatus !== 'cancelled' && (
                     <button 
                         onClick={() => handleStatusUpdate('out_for_delivery')}
                         disabled={loading}
