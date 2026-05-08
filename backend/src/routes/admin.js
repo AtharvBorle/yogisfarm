@@ -561,6 +561,25 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Bulk print labels
+router.post('/orders/print-labels', requireAdmin, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.json({ status: false, message: 'No orders provided' });
+    }
+
+    await prisma.order.updateMany({
+      where: { id: { in: orderIds }, labelPrintedAt: null },
+      data: { labelPrintedAt: new Date(), orderStatus: 'processing' } // Optional: also update status
+    });
+
+    res.json({ status: true, message: 'Labels generated successfully' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 router.put('/orders/:id/status', requireAdmin, async (req, res) => {
   try {
     const { orderStatus } = req.body;

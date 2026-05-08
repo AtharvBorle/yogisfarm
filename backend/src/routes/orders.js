@@ -400,23 +400,5 @@ router.post('/review', requireLogin, async (req, res) => {
     res.json({ status: false, message: e.message });
   }
 });
-// Bulk print labels (Admin)
-router.post('/print-labels', async (req, res) => {
-  try {
-    const { orderIds } = req.body;
-    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
-      return res.json({ status: false, message: 'No orders provided' });
-    }
-
-    await prisma.order.updateMany({
-      where: { id: { in: orderIds }, labelPrintedAt: null },
-      data: { labelPrintedAt: new Date(), orderStatus: 'processing' } // Optional: also update status
-    });
-
-    res.json({ status: true, message: 'Labels generated successfully' });
-  } catch (e) {
-    res.json({ status: false, message: e.message });
-  }
-});
 
 module.exports = router;
