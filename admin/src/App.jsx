@@ -17,6 +17,8 @@ import Coupon from './pages/Coupon';
 import Profile from './pages/Profile';
 import OrderDetail from './pages/OrderDetail';
 import Invoice from './pages/Invoice';
+import BulkInvoice from './pages/BulkInvoice';
+import TakeAction from './pages/TakeAction';
 import Review from './pages/Review';
 import Collections from './pages/Collections';
 import Logs from './pages/Logs';
@@ -37,6 +39,8 @@ function App() {
       <Route path="/orders" element={admin ? <AdminLayout><Order /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/orders/detail/:orderNumber" element={admin ? <AdminLayout><OrderDetail /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/orders/invoice/:orderNumber" element={admin ? <Invoice /> : <Navigate to="/login" />} />
+      <Route path="/orders/bulk-invoice" element={admin ? <BulkInvoice /> : <Navigate to="/login" />} />
+      <Route path="/take-action" element={admin ? <AdminLayout><TakeAction /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/sections" element={admin ? <AdminLayout><Section /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/taxes" element={admin ? <AdminLayout><Tax /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/shipping" element={admin ? <AdminLayout><Shipping /></AdminLayout> : <Navigate to="/login" />} />

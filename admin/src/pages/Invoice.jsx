@@ -70,7 +70,7 @@ const Invoice = () => {
         const seq = oNum.substring(len - 6, len - 2);
         const random = oNum.substring(len - 2);
         
-        const date = new Date(order.createdAt);
+        const date = order.labelPrintedAt ? new Date(order.labelPrintedAt) : new Date(order.createdAt);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const day = date.getDate();
@@ -121,6 +121,7 @@ const Invoice = () => {
                 <div style={{ textAlign: 'right' }}>
                     Invoice Number: <strong>{invoiceNumber}</strong><br />
                     Order Id: <strong>{order.orderNumber}</strong><br />
+                    Invoice Date: <strong>{formatDate(order.labelPrintedAt || order.createdAt)}</strong><br />
                     Order Date: <strong>{formatDate(order.createdAt)}</strong>
                 </div>
             </div>

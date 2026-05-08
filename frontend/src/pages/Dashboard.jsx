@@ -287,7 +287,14 @@ const Dashboard = () => {
                                                                             <Link to={`?tab=orders&order=${order.orderNumber}`} title="View" style={{ color: '#046938', fontSize: '16px' }}>
                                                                                 <i className="fi-rs-eye"></i>
                                                                             </Link>
-                                                                            <a href="#" onClick={(e) => { e.preventDefault(); window.open(`/invoice/${order.orderNumber}`, '_blank'); }} title="Download Invoice" style={{ color: '#555', fontSize: '16px' }}>
+                                                                            <a href="#" onClick={(e) => { 
+                                                                                e.preventDefault(); 
+                                                                                if (!order.labelPrintedAt) {
+                                                                                    toast.error("Not shipped yet");
+                                                                                    return;
+                                                                                }
+                                                                                window.open(`/invoice/${order.orderNumber}`, '_blank'); 
+                                                                            }} title="Download Invoice" style={{ color: order.labelPrintedAt ? '#555' : '#ccc', fontSize: '16px', cursor: order.labelPrintedAt ? 'pointer' : 'not-allowed' }}>
                                                                                 <i className="fi-rs-download"></i>
                                                                             </a>
                                                                         </td>

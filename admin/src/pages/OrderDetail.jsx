@@ -194,8 +194,14 @@ const OrderDetail = () => {
                         style={{ padding: '8px 18px', background: '#6f42c1', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Settings size={16} /> Manage
                     </button>
-                    <button onClick={() => window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank')}
-                        style={{ padding: '8px 18px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button onClick={() => {
+                        if (!order.labelPrintedAt) {
+                            toast.error("Not shipped yet");
+                            return;
+                        }
+                        window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank');
+                    }}
+                        style={{ padding: '8px 18px', background: order.labelPrintedAt ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: order.labelPrintedAt ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={16} /> Print
                     </button>
                     <button onClick={() => navigate('/orders')}

@@ -15,7 +15,8 @@ import {
   TicketPercent,
   Star,
   Wallet,
-  ClipboardList
+  ClipboardList,
+  Zap
 } from 'lucide-react';
 
 const navItems = [
@@ -25,6 +26,7 @@ const navItems = [
     { name: 'Brand', path: '/brands', icon: Tag },
     { name: 'Product', path: '/products', icon: ShoppingBag },
     { name: 'Order', path: '/orders', icon: ShoppingCart },
+    { name: 'Take Action', path: '/take-action', icon: Zap },
     { name: 'Collections', path: '/collections', icon: Wallet },
     { name: 'Section', path: '/sections', icon: LayoutGrid },
     { name: 'Tax', path: '/taxes', icon: Percent },

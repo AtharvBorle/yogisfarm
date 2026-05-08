@@ -257,6 +257,7 @@ model Order {
   courierPartnerId   Int?     @map("courier_partner_id")
   trackingId         String?  @map("tracking_id") @db.VarChar(100)
   createdAt          DateTime @default(now()) @map("created_at")
+  labelPrintedAt     DateTime? @map("label_printed_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   user           User            @relation(fields: [userId], references: [id])
