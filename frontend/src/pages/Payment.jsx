@@ -35,13 +35,12 @@ const Payment = () => {
     const [shippingCharge, setShippingCharge] = useState(0);
     const [shippingThreshold, setShippingThreshold] = useState(0);
 
-    const totalTax = cartItems.reduce((total, item) => {
-        const price = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
-        const itemTotal = price * item.quantity;
-        return total + ((itemTotal * globalTaxRate) / 100);
-    }, 0);
+    // GST-INCLUSIVE: prices already include GST, extract it
+    const subtotalBase = (cartTotal * (100 - globalTaxRate)) / 100;
+    const afterDiscount = subtotalBase - discount;
+    const totalTax = (afterDiscount * globalTaxRate) / 100;
     const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
-    const grandTotal = cartTotal + totalTax + shipping - discount;
+    const grandTotal = afterDiscount + totalTax + shipping;
 
     useEffect(() => {
         // Fetch global tax rate and shipping rules
@@ -241,7 +240,7 @@ const Payment = () => {
                             })}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', padding: '10px 0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{cartTotal.toFixed(0)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{subtotalBase.toFixed(0)}</span>
                             </div>
                             {discount > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>

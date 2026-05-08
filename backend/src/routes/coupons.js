@@ -14,8 +14,14 @@ router.post('/apply', async (req, res) => {
       return res.json({ status: false, message: `Minimum order ₹${coupon.minOrderAmount} required` });
     }
 
+    // GST-INCLUSIVE: extract base amount before calculating percent discount
+    // This matches the order placement logic in orders.js
+    const globalTax = await prisma.tax.findFirst({ where: { status: 'active' } });
+    const globalTaxRate = globalTax ? parseFloat(globalTax.tax) : 0;
+    const baseAmount = (parseFloat(subtotal) * (100 - globalTaxRate)) / 100;
+
     let discount = coupon.amountType === 'percent'
-      ? (parseFloat(subtotal) * parseFloat(coupon.amount)) / 100
+      ? (baseAmount * parseFloat(coupon.amount)) / 100
       : parseFloat(coupon.amount);
     if (coupon.maxDiscount) discount = Math.min(discount, parseFloat(coupon.maxDiscount));
 
@@ -26,3 +32,4 @@ router.post('/apply', async (req, res) => {
 });
 
 module.exports = router;
+

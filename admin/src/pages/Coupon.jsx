@@ -10,7 +10,7 @@ const Coupon = () => {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ 
         name: '', code: '', status: 'active', amountType: 'percent', 
-        amount: 0, minOrderAmount: 0, description: '', expireOn: '' 
+        amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', expireOn: '' 
     });
 
     const fetchCoupons = async () => {
@@ -38,7 +38,7 @@ const Coupon = () => {
     const openAddModal = () => {
         setFormData({ 
             name: '', code: '', status: 'active', amountType: 'percent', 
-            amount: 0, minOrderAmount: 0, description: '', expireOn: '' 
+            amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', expireOn: '' 
         });
         setEditingId(null);
         setModalOpen(true);
@@ -48,7 +48,9 @@ const Coupon = () => {
         setFormData({ 
             name: row.name, code: row.code, status: row.status, 
             amountType: row.amountType, amount: row.amount, 
-            minOrderAmount: row.minOrderAmount, description: row.description || '', 
+            minOrderAmount: row.minOrderAmount, 
+            maxDiscount: row.maxDiscount || '', usageLimit: row.usageLimit || '',
+            description: row.description || '', 
             expireOn: row.expireOn ? new Date(row.expireOn).toISOString().split('T')[0] : '' 
         });
         setEditingId(row.id);
@@ -96,9 +98,23 @@ const Coupon = () => {
         { header: 'ID', accessor: 'id' },
         { header: 'Name', accessor: 'name' },
         { header: 'Code', render: (row) => <strong>{row.code}</strong> },
-        { header: 'Type', accessor: 'amountType' },
-        { header: 'Amount', accessor: 'amount' },
-        { header: 'Min Order', accessor: 'minOrderAmount' },
+        { header: 'Type', render: (row) => (
+            <span style={{ padding: '3px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: '600',
+                background: row.amountType === 'percent' ? '#e8f0fe' : '#fef7e0',
+                color: row.amountType === 'percent' ? '#1967d2' : '#e37400' }}>
+                {row.amountType === 'percent' ? 'Percent' : 'Flat'}
+            </span>
+        )},
+        { header: 'Value', render: (row) => (
+            <span style={{ fontWeight: '600' }}>
+                {row.amountType === 'percent' ? `${row.amount}%` : `₹${row.amount}`}
+                {row.amountType === 'percent' && row.maxDiscount ? <span style={{ display: 'block', fontSize: '11px', color: '#888' }}>Max ₹{row.maxDiscount}</span> : null}
+            </span>
+        )},
+        { header: 'Min Order', render: (row) => `₹${row.minOrderAmount}` },
+        { header: 'Usage', render: (row) => (
+            <span>{row.usedCount || 0}{row.usageLimit ? ` / ${row.usageLimit}` : ' / ∞'}</span>
+        )},
         { header: 'Expiry', render: (row) => row.expireOn ? new Date(row.expireOn).toLocaleDateString() : 'Never' },
         { 
             header: 'Status', 
@@ -159,21 +175,34 @@ const Coupon = () => {
                     <div className="admin-form-row">
                         <div className="admin-form-group">
                             <label className="admin-label">Discount Type *</label>
-                            <select value={formData.amountType} onChange={e => setFormData({...formData, amountType: e.target.value})} className="admin-select">
+                            <select value={formData.amountType} onChange={e => setFormData({...formData, amountType: e.target.value, maxDiscount: e.target.value === 'amount' ? '' : formData.maxDiscount})} className="admin-select">
                                 <option value="percent">Percent (%)</option>
-                                <option value="amount">Amount (₹)</option>
+                                <option value="amount">Flat Amount (₹)</option>
                             </select>
                         </div>
                         <div className="admin-form-group">
-                            <label className="admin-label">Amount *</label>
+                            <label className="admin-label">{formData.amountType === 'percent' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}</label>
                             <input type="number" step="0.01" value={formData.amount} onChange={e => setFormData({...formData, amount: parseFloat(e.target.value)})} required className="admin-input" />
                         </div>
                     </div>
 
                     <div className="admin-form-row">
+                        {formData.amountType === 'percent' && (
+                            <div className="admin-form-group">
+                                <label className="admin-label">Max Discount Cap (₹) <span style={{ fontSize: '11px', color: '#888' }}>— limits percent discount</span></label>
+                                <input type="number" step="0.01" min="0" placeholder="e.g. 100" value={formData.maxDiscount} onChange={e => setFormData({...formData, maxDiscount: e.target.value})} className="admin-input" />
+                            </div>
+                        )}
                         <div className="admin-form-group">
                             <label className="admin-label">Min Order Amount (₹)</label>
                             <input type="number" step="0.01" value={formData.minOrderAmount} onChange={e => setFormData({...formData, minOrderAmount: parseFloat(e.target.value)})} className="admin-input" />
+                        </div>
+                    </div>
+
+                    <div className="admin-form-row">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Usage Limit <span style={{ fontSize: '11px', color: '#888' }}>— leave empty for unlimited</span></label>
+                            <input type="number" min="1" placeholder="Unlimited" value={formData.usageLimit} onChange={e => setFormData({...formData, usageLimit: e.target.value})} className="admin-input" />
                         </div>
                         <div className="admin-form-group">
                             <label className="admin-label">Expire On</label>

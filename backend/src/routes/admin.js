@@ -1081,11 +1081,13 @@ router.get('/coupons', requireAdmin, async (req, res) => {
 
 router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, description, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, expireOn } = req.body;
     const image = req.file ? '/uploads/' + req.file.filename : null;
     const coupon = await prisma.coupon.create({
       data: { name, code, image, status: status || 'active', amountType: amountType || 'percent',
         amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
+        maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
+        usageLimit: usageLimit ? parseInt(usageLimit) : null,
         description, expireOn: expireOn ? new Date(expireOn) : null }
     });
     const expiryStr = expireOn ? new Date(expireOn).toLocaleDateString() : 'Never';
@@ -1099,9 +1101,12 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, description, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, expireOn } = req.body;
     const data = { name, code, status, amountType, amount: parseFloat(amount),
-      minOrderAmount: parseFloat(minOrderAmount || 0), description, expireOn: expireOn ? new Date(expireOn) : null };
+      minOrderAmount: parseFloat(minOrderAmount || 0),
+      maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
+      usageLimit: usageLimit ? parseInt(usageLimit) : null,
+      description, expireOn: expireOn ? new Date(expireOn) : null };
     if (req.file) data.image = '/uploads/' + req.file.filename;
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
     const expiryStr = coupon.expireOn ? new Date(coupon.expireOn).toLocaleDateString() : 'Never';

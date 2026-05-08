@@ -344,12 +344,20 @@ const Product = () => {
                             {/* Lists Area (Variants, Benefits, Features) */}
                             <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
                                 <div style={sectionTitle}>Variants</div>
+                                {formData.variants.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', paddingRight: '42px' }}>
+                                        <span style={{ flex: 2, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Variant Name</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Price (MRP)</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Selling Price</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Stock</span>
+                                    </div>
+                                )}
                                 {formData.variants.map((v, idx) => (
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                        <input placeholder="Name" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <input placeholder="Price" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Sale Price" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Stock" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="e.g. 500g" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
+                                        <input placeholder="₹ MRP" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="₹ Sell" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Qty" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}

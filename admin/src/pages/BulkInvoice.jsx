@@ -310,7 +310,7 @@ const BulkInvoice = () => {
                                         <th>Product</th>
                                         <th className="center" style={{ width: '40px' }}>Qty</th>
                                         <th className="right" style={{ width: '80px' }}>Selling Price</th>
-                                        <th className="right" style={{ width: '70px' }}>Discount</th>
+                                        <th className="right" style={{ width: '90px' }}>Discount</th>
                                         <th className="right" style={{ width: '80px' }}>Taxable Val</th>
                                         <th className="center" style={{ width: '50px' }}>GST %</th>
                                         <th className="right" style={{ width: '70px' }}>GST Amt</th>
@@ -319,11 +319,21 @@ const BulkInvoice = () => {
                                 </thead>
                                 <tbody>
                                     {(order.items || []).map((item, i) => {
-                                        const sellingPrice = Number(item.price);
-                                        const discount = Number(item.discount || 0);
-                                        const taxableVal = sellingPrice - discount;
+                                        const mrp = Number(item.price); // MRP
+                                        const offerPrice = Number(item.total) / item.quantity; // offer price per unit
                                         const gstPercent = Number(order.taxRate) || 0;
-                                        const gstAmt = Number(item.gst || 0);
+                                        const itemCount = order.items.length;
+
+                                        // PD = product discount per unit (MRP - offerPrice)
+                                        const pdPerUnit = mrp - offerPrice;
+                                        // OD = order discount split equally per item
+                                        const orderDiscount = Number(order.discount) || 0;
+                                        const odPerItem = itemCount > 0 ? orderDiscount / itemCount : 0;
+
+                                        // Taxable value = (offerPrice * qty - odPerItem) * (100 - gst%) / 100
+                                        const effectiveAmount = (offerPrice * item.quantity) - odPerItem;
+                                        const taxableVal = (effectiveAmount * (100 - gstPercent)) / 100;
+                                        const gstAmt = (taxableVal * gstPercent) / 100;
                                         const total = taxableVal + gstAmt;
 
                                         return (
@@ -331,12 +341,15 @@ const BulkInvoice = () => {
                                                 <td>
                                                     <div className="bold" style={{ fontSize: '11px', marginBottom: '2px' }}>{item.name}</div>
                                                     <div style={{ color: '#666', fontSize: '8px' }}>Variant: {item.variant || 'Default'}</div>
-                                                    {/* MRP approximation for display */}
-                                                    <div style={{ color: '#888', fontSize: '8px' }}>MRP: ₹{(sellingPrice + 100).toFixed(2)}</div>
+                                                    <div style={{ color: '#888', fontSize: '8px' }}>MRP: ₹{mrp.toFixed(2)}</div>
                                                 </td>
                                                 <td className="center bold">{item.quantity}</td>
-                                                <td className="right">₹{sellingPrice.toFixed(2)}</td>
-                                                <td className="right">₹{discount.toFixed(2)}</td>
+                                                <td className="right">₹{offerPrice.toFixed(2)}</td>
+                                                <td className="right" style={{ fontSize: '9px' }}>
+                                                    {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(2)}</div>}
+                                                    {odPerItem > 0 && <div>OD: ₹{odPerItem.toFixed(2)}</div>}
+                                                    {pdPerUnit === 0 && odPerItem === 0 && '₹0.00'}
+                                                </td>
                                                 <td className="right">₹{taxableVal.toFixed(2)}</td>
                                                 <td className="center">{gstPercent}%</td>
                                                 <td className="right">₹{gstAmt.toFixed(2)}</td>
