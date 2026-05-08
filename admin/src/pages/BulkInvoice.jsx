@@ -153,10 +153,14 @@ const BulkInvoice = () => {
 
                 // Barcode/Tracking ID (Use trackingId if exists, otherwise orderNumber)
                 const awbNo = order.trackingId || order.orderNumber;
-                const courierName = order.courierPartner?.name || 'Local Delivery Boy';
+                const courierDisplay = order.courierPartner?.name ? `Courier: ${order.courierPartner.name} ` : '';
+
+                // Coupon data mapping for Invoice calculation
+                const isPercentCoupon = order.coupon && order.coupon.amountType === 'percent';
 
                 // GST calculations for Invoice Table
                 const totalQty = order.items.reduce((acc, item) => acc + item.quantity, 0);
+                const totalOfferPrice = (order.items || []).reduce((sum, it) => sum + Number(it.total), 0);
 
                 return (
                     <div key={order.id} className={`label-container ${index < orders.length - 1 ? 'page-break' : ''}`} style={{ paddingBottom: '20px' }}>
@@ -171,7 +175,7 @@ const BulkInvoice = () => {
                                     <span className="text-xl">STD</span>
                                 </div>
                                 <div className="border-right p-1" style={{ width: '60%' }}>
-                                    <div className="text-xs">Courier: {courierName} PREPAID</div>
+                                    <div className="text-xs">{courierDisplay}PREPAID</div>
                                     <div className="text-lg">{awbNo}</div>
                                 </div>
                                 <div className="border-right p-1 flex items-center" style={{ width: '15%', justifyContent: 'center', flexDirection: 'column' }}>
@@ -326,29 +330,36 @@ const BulkInvoice = () => {
 
                                         // PD = product discount per unit (MRP - offerPrice)
                                         const pdPerUnit = mrp - offerPrice;
-                                        // OD = order discount split equally per item
+                                        // OD = order discount split (proportional if percentage, equal if flat)
                                         const orderDiscount = Number(order.discount) || 0;
-                                        const odPerItem = itemCount > 0 ? orderDiscount / itemCount : 0;
+                                        let odForLine = 0;
+                                        if (orderDiscount > 0) {
+                                            if (isPercentCoupon && totalOfferPrice > 0) {
+                                                odForLine = (Number(item.total) / totalOfferPrice) * orderDiscount;
+                                            } else {
+                                                odForLine = orderDiscount / itemCount;
+                                            }
+                                        }
 
-                                        // Taxable value = (offerPrice * qty - odPerItem) * (100 - gst%) / 100
-                                        const effectiveAmount = (offerPrice * item.quantity) - odPerItem;
-                                        const taxableVal = (effectiveAmount * (100 - gstPercent)) / 100;
-                                        const gstAmt = (taxableVal * gstPercent) / 100;
-                                        const total = taxableVal + gstAmt;
+                                        // User's math logic: calculate tax explicitly from the offer price
+                                        const gstAmt = (Number(item.total) * gstPercent) / 100;
+                                        const taxableVal = Number(item.total) - gstAmt;
+                                        const total = Number(item.total) - odForLine;
 
                                         return (
                                             <tr key={i}>
                                                 <td>
                                                     <div className="bold" style={{ fontSize: '11px', marginBottom: '2px' }}>{item.name}</div>
                                                     <div style={{ color: '#666', fontSize: '8px' }}>Variant: {item.variant || 'Default'}</div>
+                                                    <div style={{ color: '#666', fontSize: '8px' }}>SKU: {item.productId}</div>
                                                     <div style={{ color: '#888', fontSize: '8px' }}>MRP: ₹{mrp.toFixed(2)}</div>
                                                 </td>
                                                 <td className="center bold">{item.quantity}</td>
                                                 <td className="right">₹{offerPrice.toFixed(2)}</td>
                                                 <td className="right" style={{ fontSize: '9px' }}>
                                                     {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(2)}</div>}
-                                                    {odPerItem > 0 && <div>OD: ₹{odPerItem.toFixed(2)}</div>}
-                                                    {pdPerUnit === 0 && odPerItem === 0 && '₹0.00'}
+                                                    {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(2)}</div>}
+                                                    {pdPerUnit === 0 && odForLine === 0 && '₹0.00'}
                                                 </td>
                                                 <td className="right">₹{taxableVal.toFixed(2)}</td>
                                                 <td className="center">{gstPercent}%</td>
@@ -357,6 +368,11 @@ const BulkInvoice = () => {
                                             </tr>
                                         );
                                     })}
+                                    {/* Shipping Row */}
+                                    <tr>
+                                        <td colSpan="7" className="right bold" style={{ padding: '8px 4px' }}>Shipping & Charges</td>
+                                        <td className="right bold" style={{ padding: '8px 4px' }}>₹{Number(order.shipping).toFixed(2)}</td>
+                                    </tr>
                                     {/* Footer Row */}
                                     <tr>
                                         <td colSpan="2" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {totalQty}</td>

@@ -197,51 +197,66 @@ const Invoice = () => {
                 </thead>
                 <tbody>
                     {(order.items || []).map((item, i) => {
-                        const mrp = Number(item.price);
-                        const offerPrice = Number(item.total) / item.quantity;
-                        const gstPercent = Number(order.taxRate) || 0;
-                        const itemCount = order.items.length;
+                        const isPercentCoupon = order.coupon && order.coupon.amountType === 'percent';
+                        const totalOfferPrice = (order.items || []).reduce((sum, it) => sum + Number(it.total), 0);
+                        const totalQty = (order.items || []).reduce((sum, it) => sum + it.quantity, 0);
+
+                        // Calculations
                         const pdPerUnit = mrp - offerPrice;
                         const orderDiscount = Number(order.discount) || 0;
-                        const odPerItem = itemCount > 0 ? orderDiscount / itemCount : 0;
-                        const effectiveAmount = (offerPrice * item.quantity) - odPerItem;
-                        const taxableVal = (effectiveAmount * (100 - gstPercent)) / 100;
-                        const gstAmt = (taxableVal * gstPercent) / 100;
-                        const lineTotal = taxableVal + gstAmt;
+                        let odForLine = 0;
+                        if (orderDiscount > 0) {
+                            if (isPercentCoupon && totalOfferPrice > 0) {
+                                odForLine = (Number(item.total) / totalOfferPrice) * orderDiscount;
+                            } else {
+                                odForLine = orderDiscount / itemCount;
+                            }
+                        }
+
+                        const gstAmt = (Number(item.total) * gstPercent) / 100;
+                        const taxableVal = Number(item.total) - gstAmt;
+                        const lineTotal = Number(item.total) - odForLine;
 
                         return (
-                            <tr key={item.id}>
-                                <td style={tdStyle}>{i + 1}</td>
-                                <td style={{ ...tdStyle, textAlign: 'left' }}>{item.name}</td>
-                                <td style={tdStyle}>{item.product?.brand?.name || '—'}</td>
-                                <td style={tdStyle}>{item.variant || '1 Unit'}</td>
-                                <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
-                                <td style={tdStyle}>₹{offerPrice.toFixed(0)}</td>
-                                <td style={{ ...tdStyle, fontSize: '11px' }}>
-                                    {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(0)}</div>}
-                                    {odPerItem > 0 && <div>OD: ₹{odPerItem.toFixed(0)}</div>}
-                                    {pdPerUnit === 0 && odPerItem === 0 && '—'}
-                                </td>
-                                <td style={tdStyle}>₹{taxableVal.toFixed(2)}</td>
-                                <td style={tdStyle}>₹{gstAmt.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
-                                <td style={tdStyle}>{item.quantity}</td>
-                                <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(0)}</td>
-                            </tr>
+                            <React.Fragment key={item.id}>
+                                <tr>
+                                    <td style={tdStyle}>{i + 1}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'left' }}>
+                                        <div>{item.name}</div>
+                                        <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>SKU: {item.productId}</div>
+                                    </td>
+                                    <td style={tdStyle}>{item.product?.brand?.name || '—'}</td>
+                                    <td style={tdStyle}>{item.variant || '1 Unit'}</td>
+                                    <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
+                                    <td style={tdStyle}>₹{offerPrice.toFixed(0)}</td>
+                                    <td style={{ ...tdStyle, fontSize: '11px' }}>
+                                        {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(0)}</div>}
+                                        {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(0)}</div>}
+                                        {pdPerUnit === 0 && odForLine === 0 && '—'}
+                                    </td>
+                                    <td style={tdStyle}>₹{taxableVal.toFixed(2)}</td>
+                                    <td style={tdStyle}>₹{gstAmt.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
+                                    <td style={tdStyle}>{item.quantity}</td>
+                                    <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(0)}</td>
+                                </tr>
+                                {i === order.items.length - 1 && (
+                                    <>
+                                        <tr>
+                                            <td colSpan="10" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
+                                            <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td colSpan="4" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
+                                            <td colSpan="6" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
+                                        </tr>
+                                    </>
+                                )}
+                            </React.Fragment>
                         );
                     })}
                 </tbody>
             </table>
-
-            {/* Totals */}
-            <div style={{ textAlign: 'right', marginBottom: '30px' }}>
-                <div style={{ marginBottom: '3px' }}><strong>Sub Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.subtotal).toFixed(0)}</span></div>
-                {Number(order.discount) > 0 && (
-                    <div style={{ marginBottom: '3px', color: '#dc3545' }}><strong>Coupon Discount</strong> <span style={{ marginLeft: '40px' }}>-₹{Number(order.discount).toFixed(0)}</span></div>
-                )}
-                <div style={{ marginBottom: '3px' }}><strong>{order.taxName || (activeTax ? activeTax.name : 'Tax')} ({order.taxRate || (activeTax ? activeTax.tax : '')}%)</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.tax || 0).toFixed(2)}</span></div>
-                <div style={{ marginBottom: '3px' }}><strong>Shipping Charges</strong> <span style={{ marginLeft: '40px' }}>{Number(order.shipping) > 0 ? `₹${Number(order.shipping).toFixed(0)}` : 'Free'}</span></div>
-                <div style={{ fontSize: '18px', fontWeight: '700', marginTop: '5px' }}><strong>Grand Total</strong> <span style={{ marginLeft: '40px' }}>₹{Number(order.total).toFixed(0)}</span></div>
-            </div>
 
             {/* Signature */}
             <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>

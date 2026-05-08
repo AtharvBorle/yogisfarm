@@ -362,7 +362,13 @@ router.get('/invoice/:orderNumber', async (req, res) => {
       }
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
-    res.json({ status: true, order });
+    
+    let coupon = null;
+    if (order.couponCode) {
+      coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
+    }
+    
+    res.json({ status: true, order, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

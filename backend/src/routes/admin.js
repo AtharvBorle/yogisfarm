@@ -555,7 +555,13 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true, courierPartner: true }
     });
-    res.json({ status: true, order });
+    
+    let coupon = null;
+    if (order && order.couponCode) {
+      coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
+    }
+    
+    res.json({ status: true, order, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
