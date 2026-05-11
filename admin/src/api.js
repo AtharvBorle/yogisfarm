@@ -12,6 +12,11 @@ export const getAssetUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
 
+  const s3Base = import.meta.env.VITE_S3_BASE_URL;
+  if (s3Base) {
+    return `${s3Base}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+
   // Use relative paths in production to let Nginx handle the routing
   return `${path.startsWith('/') ? '' : '/'}${path}`;
 };
