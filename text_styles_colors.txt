@@ -1,0 +1,617 @@
+// Home
+color: #ACD140; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+//               About Us              Deals              Category              Contact Us
+color: #0A6738; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// Featured Categories
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Popular Products
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Best Deals
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Top Selling
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Trending Products
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Recently added
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Top Rated
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Dal’s
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Oil
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Tofu
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Millet
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Multigrain Atta
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Lokwan Wheat Atta
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Multigrain Atta
+color: #0A6738; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Wishlist
+color: #0A6738; font-size: 9px; font-family: Inter; font-weight: 400; text-transform: capitalize; word-wrap: break-word
+---
+// Add Cart
+color: #0A6738; font-size: 9px; font-family: Inter; font-weight: 400; text-transform: capitalize; word-wrap: break-word
+---
+// Profile
+color: #0A6738; font-size: 9px; font-family: Inter; font-weight: 400; text-transform: capitalize; word-wrap: break-word
+---
+// SEARCH
+color: white; font-size: 14px; font-family: Roboto; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; word-wrap: break-word
+---
+// Search for Product
+color: #BABABA; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 18px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 12px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #1F1F1F; font-size: 18px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// advertisement
+color: white; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// advertisement
+color: white; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Beauty & Grooming
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Hardware
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Makeup & Fragrances
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Auto Accessories
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Toys & Stationery
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// FMCG
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Health Wellness
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ready to eat food
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// (113 Reviews)
+color: #9B9B9B; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// ₹299.00
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 20% off
+color: #FF0000; font-size: 10px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Organic Moong Dal
+color: #030303; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// BUY +
+color: white; font-size: 13px; font-family: Poppins; font-weight: 600; text-transform: uppercase; line-height: 22px; word-wrap: break-word
+---
+// Search for Product
+color: #626161; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 18px; word-wrap: break-word
+---
+// Upcoming Products & Categories
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// participate in our Cooking Challenges & avail the offer
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Why Families Choose Yogi’s Farms
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// You can find us on
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Real Sourcing, Not Market Buying
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// No Shortcuts in Quality
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// Minimal Processing
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Made for Real Homes
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// Complete Transparent
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Honest Value
+color: #0A6738; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 1
+color: #161616; font-size: 16px; font-family: Poppins; font-weight: 600; line-height: 18px; word-wrap: break-word
+---
+// 2
+color: #161616; font-size: 16px; font-family: Poppins; font-weight: 600; line-height: 18px; word-wrap: break-word
+---
+// 3
+color: #161616; font-size: 16px; font-family: Poppins; font-weight: 600; line-height: 18px; word-wrap: break-word
+---
+// ...
+color: #161616; font-size: 16px; font-family: Poppins; font-weight: 600; line-height: 18px; word-wrap: break-word
+---
+// In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi’s Farm, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don’t believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
+color: black; font-size: 16px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// We work directly with farmers who follow natural practices not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// We don’t chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// Our products aren’t designed for shelves they’re made for kitchens, for daily meals, for real health.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// No inflated claims, no gimmicks just real value in every product you bring home.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 300; line-height: 24px; word-wrap: break-word
+---
+// We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That’s why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.
+color: #0A6738; font-size: 16px; font-family: Poppins; font-weight: 500; line-height: 28px; word-wrap: break-word
+---
+// Grown with intent, not sourced in bulk
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// Quality Isn’t Optimized. It’s Respected.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// We don’t over process what nature perfected
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// What we serve Our families, we serve you
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// Nothing hidden. nothing artificial.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// You pay for purity, not marketing
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// 5
+color: white; font-size: 9px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// 5
+color: white; font-size: 9px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Explore +
+color: white; font-size: 16px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// What Our Customers Say
+color: #0A6738; font-size: 32px; font-family: Paytone One; font-weight: 400; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// Avishkar Mandlik
+color: black; font-size: 15px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. 
+color: black; font-size: 8px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 12px; word-wrap: break-word
+---
+// 100% Chemical Free
+color: black; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 30px; word-wrap: break-word
+---
+// Manufacturing and extraction process is chemical-free.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 20px; word-wrap: break-word
+---
+// 100% Cruelty Free
+color: black; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 30px; word-wrap: break-word
+---
+// We utilize motors, not bullocks, to churn oil using ancient methods.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 20px; word-wrap: break-word
+---
+// 100% Indian & Vegetarian
+color: black; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 30px; word-wrap: break-word
+---
+// All our products are Indian-made, excluding Himalayan pink rock salt.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 20px; word-wrap: break-word
+---
+// Always fresh
+color: black; font-size: 20px; font-family: Poppins; font-weight: 600; text-transform: capitalize; line-height: 30px; word-wrap: break-word
+---
+// Orders will contain oils packed within 8-10 days.
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; text-transform: capitalize; line-height: 20px; word-wrap: break-word
+---
+// Legal
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 700; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Account
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 700; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Popular
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 700; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Contact
+color: #0A6738; font-size: 25px; font-family: Poppins; font-weight: 700; text-transform: capitalize; line-height: 22px; word-wrap: break-word
+---
+// Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
+color: black; font-size: 12px; font-family: Poppins; font-weight: 500; line-height: 20px; word-wrap: break-word
+---
+// Terms and Conditions
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Sign In
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// About us
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// +91 9119501177
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// info@yogisfarms.in
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Copyright © 2026 Yogis Farm
+color: white; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Yogi's farms<br/>
+color: black; font-size: 14px; font-family: Poppins; font-weight: 600; line-height: 22px; word-wrap: break-word
+---
+// S.No 18, Saikrupa Bunglow,<br/>Sudarshan Park society, <br/>Ingale Nagar, Warje, Pune 411058
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Privacy Policy
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// My Wishlist
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Contact us
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Shipping Policy
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Track Order
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Profile
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Return, Refund and cancellation<br/>Policy
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// View Cart
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
+---
+// Shop
+color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word

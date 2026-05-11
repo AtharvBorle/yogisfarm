@@ -6,69 +6,99 @@ const Footer = () => {
     const { user } = useAuth();
     
     return (
-        <footer className="main">
-            <section className="section-padding footer-mid bg-img-footer">
-                <div className="container pt-15 pb-20">
-                    <div className="row">
-                        <div className="col">
-                            <div className="widget-about font-md mb-md-3 mb-lg-3 mb-xl-0 wow animate__animated animate__fadeInUp">
-                                <div className="logo mb-30">
-                                    <Link to="/" className="mb-15"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
-                                    <p className="font-lg">Yogis Farm - Pure & Natural Farm Products</p>
-                                    <div className="mobile-social-icon" style={{ justifyContent: 'start' }}>
-                                        <h6>Follow Us</h6>
-                                        <a href="#"><img src="/assets/imgs/theme/icons/icon-facebook-white.svg" alt="" /></a>
-                                        <a href="#"><img src="/assets/imgs/theme/icons/icon-instagram-white.svg" alt="" /></a>
-                                        <a href="#"><img src="/assets/imgs/theme/icons/icon-youtube-white.svg" alt="" /></a>
-                                    </div>
-                                </div>
-                            </div>
+        <footer style={{ 
+            backgroundImage: `url(/src/assets/footer.png)`, 
+            backgroundSize: '100% 100%', 
+            backgroundPosition: 'top center', 
+            backgroundRepeat: 'no-repeat',
+            paddingTop: '80px',
+            position: 'relative',
+            minHeight: '600px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+        }}>
+            <div className="container" style={{ position: 'relative', zIndex: 10 }}>
+                <div className="row">
+                    {/* Column 1: Logo & Mission */}
+                    <div className="col-lg-3 col-md-6 mb-4">
+                        <div className="logo mb-20">
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '150px' }} onError={(e) => e.target.src = '/assets/imgs/theme/logo.png'} /></Link>
                         </div>
-                        <div className="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
-                            <h4 className="widget-title" style={{ fontSize: '24px', color: '#253D4E', marginBottom: '25px' }}>Legal Pages</h4>
-                            <ul className="footer-list mb-sm-5 mb-md-0">
-                                <li><Link to="/terms">Terms & Conditions</Link></li>
-                                <li><Link to="/return-policy">Return & Refund</Link></li>
-                                <li><Link to="/privacy">Privacy Policy</Link></li>
-                                <li><Link to="/shipping">Shipping Policy</Link></li>
-                            </ul>
-                        </div>
-                        <div className="footer-link-widget col wow animate__animated animate__fadeInUp m-0" data-wow-delay=".2s">
-                            <h4 className="widget-title">Account</h4>
-                            <ul className="footer-list mb-sm-5 mb-md-0">
-                                <li><Link to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Sign In"}</Link></li>
-                                <li><Link to="/cart">View Cart</Link></li>
-                                <li><Link to="/wishlist">My Wishlist</Link></li>
-                                <li><Link to="/track-order">Track Order</Link></li>
-                            </ul>
-                        </div>
-                        <div className="footer-link-widget col wow animate__animated animate__fadeInUp m-0" data-wow-delay=".4s">
-                            <h4 className="widget-title">Popular</h4>
-                            <ul className="footer-list mb-sm-5 mb-md-0">
-                                <li><Link to="/about-us">About Us</Link></li>
-                                <li><Link to="/shop">Shop</Link></li>
-                                <li><Link to="/contact-us">Contact Us</Link></li>
-                                <li><Link to="/deals">Deals</Link></li>
-                            </ul>
-                        </div>
-                        <div className="footer-link-widget col wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
-                            <h4 className="widget-title">Contact</h4>
-                            <ul className="contact-infor footer-list-contact">
-                                <li><img src="/assets/imgs/theme/icons/icon-location.svg" alt="Address" /><span>Pune, Maharashtra</span></li>
-                                <li><img src="/assets/imgs/theme/icons/icon-contact.svg" alt="Call Us" /><span><a href="tel:9119501177">9119501177</a></span></li>
-                                <li><img src="/assets/imgs/theme/icons/icon-email-2.svg" alt="Email" /><span><a href="mailto:info@yogisfarm.in">info@yogisfarm.in</a></span></li>
-                            </ul>
+                        <p style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
+                            Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
+                        </p>
+                        <div className="social-icons" style={{ display: 'flex', gap: '15px' }}>
+                            <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src="/src/assets/figma/image_find/instagram.svg" alt="Instagram" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                            </a>
+                            <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src="/src/assets/figma/image_find/facebook.svg" alt="Facebook" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                            </a>
+                            <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src="/src/assets/figma/image_find/youtube.svg" alt="YouTube" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                            </a>
                         </div>
                     </div>
-                    <p className="font-sm mb-0 text-center">Copyright © 2026 Yogis Farm<br/>Crafted by NeoPace Infotech LLP</p>
+
+                    {/* Column 2: Legal */}
+                    <div className="col-lg-2 col-md-3 mb-4">
+                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <li className="mb-2"><Link to="/terms" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Terms and Conditions</Link></li>
+                            <li className="mb-2"><Link to="/return-policy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Return, Refund and cancellation Policy</Link></li>
+                            <li className="mb-2"><Link to="/privacy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Privacy Policy</Link></li>
+                            <li className="mb-2"><Link to="/shipping" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shipping Policy</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Column 3: Account */}
+                    <div className="col-lg-2 col-md-3 mb-4">
+                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <li className="mb-2"><Link to={user ? "/dashboard" : "/login"} style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Sign In</Link></li>
+                            <li className="mb-2"><Link to="/cart" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>View Cart</Link></li>
+                            <li className="mb-2"><Link to="/wishlist" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>My Wishlist</Link></li>
+                            <li className="mb-2"><Link to="/track-order" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Track Order</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Column 4: Popular */}
+                    <div className="col-lg-2 col-md-3 mb-4">
+                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <li className="mb-2"><Link to="/about-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>About us</Link></li>
+                            <li className="mb-2"><Link to="/shop" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shop</Link></li>
+                            <li className="mb-2"><Link to="/contact-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Contact us</Link></li>
+                            <li className="mb-2"><Link to="/dashboard" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Profile</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Column 5: Contact */}
+                    <div className="col-lg-3 col-md-6 mb-4">
+                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                            <li className="mb-3" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                                <img src="/src/assets/figma/image_find/location.svg" alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
+                                <span><strong>Yogi's farms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
+                            </li>
+                            <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                                <img src="/src/assets/figma/image_find/call.svg" alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
+                                <a href="tel:+919119501177" style={{ color: '#000' }}>+91 9119501177</a>
+                            </li>
+                            <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                                <img src="/src/assets/figma/image_find/mail.svg" alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
+                                <a href="mailto:info@yogisfarms.in" style={{ color: '#000' }}>info@yogisfarms.in</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </section>
-            {/* Bottom landscape visual */}
-            <img 
-                src="/assets/imgs/theme/btm-bg.jpg" 
-                alt="Landscape Foreground" 
-                style={{ width: '100%', display: 'block', pointerEvents: 'none', objectFit: 'cover' }} 
-            />
+            </div>
+            
+            {/* Copyright Bar */}
+            <div style={{ width: '100%', textAlign: 'center', padding: '15px 0', marginTop: 'auto', zIndex: 10 }}>
+                <p style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 Yogis Farm</p>
+            </div>
         </footer>
     );
 };

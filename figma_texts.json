@@ -1,0 +1,2902 @@
+[
+  {
+    "id": "1:45",
+    "text": "SEARCH",
+    "style": {
+      "width": "64px",
+      "height": "16px",
+      "color": "#FFFFFF",
+      "fontFamily": "Roboto",
+      "fontSize": "14px",
+      "fontWeight": 700,
+      "textAlign": "center",
+      "lineHeight": "16px"
+    }
+  },
+  {
+    "id": "1:47",
+    "text": "Search for Product",
+    "style": {
+      "width": "130px",
+      "height": "10px",
+      "color": "#BABABA",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:10",
+    "text": "Home              About Us              Deals              Category              Contact Us",
+    "style": {
+      "width": "543px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "245px",
+      "top": "46px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:37",
+    "text": "Wishlist",
+    "style": {
+      "width": "33px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "1262px",
+      "top": "57px",
+      "color": "#0A6738",
+      "fontFamily": "Inter",
+      "fontSize": "9px",
+      "lineHeight": "11px"
+    }
+  },
+  {
+    "id": "1:38",
+    "text": "Add Cart",
+    "style": {
+      "width": "39px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "1316px",
+      "top": "57px",
+      "color": "#0A6738",
+      "fontFamily": "Inter",
+      "fontSize": "9px",
+      "lineHeight": "11px"
+    }
+  },
+  {
+    "id": "1:39",
+    "text": "Profile",
+    "style": {
+      "width": "28px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "1376px",
+      "top": "57px",
+      "color": "#0A6738",
+      "fontFamily": "Inter",
+      "fontSize": "9px",
+      "lineHeight": "11px"
+    }
+  },
+  {
+    "id": "1:18",
+    "text": "Featured Categories",
+    "style": {
+      "width": "261px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "100px",
+      "top": "564px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:469",
+    "text": "5",
+    "style": {
+      "width": "5px",
+      "height": "5px",
+      "position": "absolute",
+      "left": "5px",
+      "top": "5px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "9px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:475",
+    "text": "5",
+    "style": {
+      "width": "5px",
+      "height": "5px",
+      "position": "absolute",
+      "left": "5px",
+      "top": "5px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "9px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:25",
+    "text": "Dal’s",
+    "style": {
+      "width": "33px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "194px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:26",
+    "text": "Oil",
+    "style": {
+      "width": "18px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "371px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:27",
+    "text": "Tofu",
+    "style": {
+      "width": "29px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "534px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:28",
+    "text": "Millet",
+    "style": {
+      "width": "36px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "700px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:29",
+    "text": "Multigrain Atta",
+    "style": {
+      "width": "99px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "835px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:30",
+    "text": "Lokwan Wheat Atta",
+    "style": {
+      "width": "129px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "991px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:31",
+    "text": "Multigrain Atta",
+    "style": {
+      "width": "99px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "1177px",
+      "top": "762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:401",
+    "text": "Search for Product",
+    "style": {
+      "width": "130px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "35px",
+      "top": "13px",
+      "color": "#626161",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:19",
+    "text": "Popular Products",
+    "style": {
+      "width": "218px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "100px",
+      "top": "831px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:80",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:78",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:77",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:79",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:106",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:104",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:103",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:105",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:132",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:130",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:129",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:131",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:54",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "117px",
+      "top": "1101px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:52",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "position": "absolute",
+      "left": "208px",
+      "top": "1139px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:376",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:382",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:388",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:394",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:51",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "117px",
+      "top": "1170px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:53",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "position": "absolute",
+      "left": "199px",
+      "top": "1172px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:67",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:65",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:64",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:66",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:93",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:91",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:90",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:92",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:119",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:117",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:116",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:118",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:145",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "176px",
+      "height": "13px",
+      "color": "#1F1F1F",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:143",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:142",
+    "text": "₹299.00",
+    "style": {
+      "width": "72px",
+      "height": "13px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:144",
+    "text": "20% off",
+    "style": {
+      "width": "45px",
+      "height": "8px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:379",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:385",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:391",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:397",
+    "text": "BUY +",
+    "style": {
+      "width": "38px",
+      "height": "9px",
+      "position": "absolute",
+      "left": "14px",
+      "top": "10px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "13px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:418",
+    "text": "1",
+    "style": {
+      "width": "6px",
+      "height": "9px",
+      "color": "#161616",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:419",
+    "text": "2",
+    "style": {
+      "width": "10px",
+      "height": "9px",
+      "color": "#161616",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:420",
+    "text": "3",
+    "style": {
+      "width": "10px",
+      "height": "9px",
+      "color": "#161616",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:421",
+    "text": "...",
+    "style": {
+      "width": "13px",
+      "height": "9px",
+      "color": "#161616",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "18px"
+    }
+  },
+  {
+    "id": "1:20",
+    "text": "Best Deals",
+    "style": {
+      "width": "132px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "100px",
+      "top": "1674px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:177",
+    "text": "advertisement",
+    "style": {
+      "width": "162px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "167px",
+      "top": "2227px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:157",
+    "text": "advertisement",
+    "style": {
+      "width": "162px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "1111px",
+      "top": "2227px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:21",
+    "text": "Top Selling",
+    "style": {
+      "width": "100px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "2477px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:22",
+    "text": "Trending Products",
+    "style": {
+      "width": "168px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "2477px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:23",
+    "text": "Recently added",
+    "style": {
+      "width": "145px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "732px",
+      "top": "2477px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:24",
+    "text": "Top Rated",
+    "style": {
+      "width": "93px",
+      "height": "13px",
+      "position": "absolute",
+      "left": "1047px",
+      "top": "2477px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "18px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:192",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:182",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:190",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:191",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:223",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:213",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:221",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:222",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:238",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:228",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:236",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:237",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:253",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:243",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:251",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:252",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:268",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:258",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:266",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:267",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:283",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:273",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:281",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:282",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:298",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:288",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:296",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:297",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:313",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:303",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:311",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:312",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:328",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:318",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:326",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:327",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:343",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:333",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:341",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:342",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:358",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:348",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:356",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:357",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:373",
+    "text": "Organic Moong Dal",
+    "style": {
+      "width": "156px",
+      "height": "11px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:363",
+    "text": "(113 Reviews)",
+    "style": {
+      "width": "65px",
+      "height": "7px",
+      "color": "#9B9B9B",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:371",
+    "text": "₹299.00",
+    "style": {
+      "width": "64px",
+      "height": "11px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:372",
+    "text": "20% off",
+    "style": {
+      "width": "37px",
+      "height": "7px",
+      "color": "#FF0000",
+      "fontFamily": "Poppins",
+      "fontSize": "10px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:403",
+    "text": "Upcoming Products & Categories",
+    "style": {
+      "width": "423px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "2898px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:194",
+    "text": "Beauty & Grooming",
+    "style": {
+      "width": "160px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:198",
+    "text": "Makeup & Fragrances",
+    "style": {
+      "width": "179px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:202",
+    "text": "Toys & Stationery",
+    "style": {
+      "width": "143px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:206",
+    "text": "Health Wellness",
+    "style": {
+      "width": "131px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:196",
+    "text": "Hardware",
+    "style": {
+      "width": "81px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:200",
+    "text": "Auto Accessories",
+    "style": {
+      "width": "140px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:204",
+    "text": "FMCG",
+    "style": {
+      "width": "48px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "37px",
+      "top": "14px",
+      "color": "#030303",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:404",
+    "text": "participate in our Cooking Challenges & avail the offer",
+    "style": {
+      "width": "700px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "3261px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:481",
+    "text": "Explore +",
+    "style": {
+      "width": "74px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "69px",
+      "top": "19px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 600,
+      "verticalAlign": "middle",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:405",
+    "text": "Why Families Choose Yogi’s Farms",
+    "style": {
+      "width": "441px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "3801px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:429",
+    "text": "We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That’s why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.",
+    "style": {
+      "width": "388px",
+      "height": "211px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4189px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 500,
+      "lineHeight": "28px"
+    }
+  },
+  {
+    "id": "1:422",
+    "text": "In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi’s Farm, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don’t believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.",
+    "style": {
+      "width": "792px",
+      "height": "161px",
+      "position": "absolute",
+      "left": "546px",
+      "top": "4189px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "16px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:407",
+    "text": "Real Sourcing, Not Market Buying",
+    "style": {
+      "width": "337px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4492px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:409",
+    "text": "Minimal Processing",
+    "style": {
+      "width": "199px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4492px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:411",
+    "text": "Complete Transparent",
+    "style": {
+      "width": "232px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4492px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:430",
+    "text": "Grown with intent, not sourced in bulk",
+    "style": {
+      "width": "268px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4527px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:432",
+    "text": "We don’t over process what nature perfected",
+    "style": {
+      "width": "376px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4527px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:434",
+    "text": "Nothing hidden. nothing artificial.",
+    "style": {
+      "width": "239px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4527px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:423",
+    "text": "We work directly with farmers who follow natural practices not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4549px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:425",
+    "text": "No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4549px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:427",
+    "text": "From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4549px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:408",
+    "text": "No Shortcuts in Quality",
+    "style": {
+      "width": "232px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:410",
+    "text": "Made for Real Homes",
+    "style": {
+      "width": "216px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:412",
+    "text": "Honest Value",
+    "style": {
+      "width": "135px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4762px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:431",
+    "text": "Quality Isn’t Optimized. It’s Respected.",
+    "style": {
+      "width": "272px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4797px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:433",
+    "text": "What we serve Our families, we serve you",
+    "style": {
+      "width": "294px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4797px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:435",
+    "text": "You pay for purity, not marketing",
+    "style": {
+      "width": "235px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4797px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:424",
+    "text": "We don’t chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "4818px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:426",
+    "text": "Our products aren’t designed for shelves they’re made for kitchens, for daily meals, for real health.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "522px",
+      "top": "4818px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:428",
+    "text": "No inflated claims, no gimmicks just real value in every product you bring home.",
+    "style": {
+      "width": "376px",
+      "height": "98px",
+      "position": "absolute",
+      "left": "942px",
+      "top": "4818px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "fontWeight": 300,
+      "lineHeight": "24px"
+    }
+  },
+  {
+    "id": "1:483",
+    "text": "What Our Customers Say",
+    "style": {
+      "width": "592px",
+      "height": "52px",
+      "position": "absolute",
+      "left": "424px",
+      "top": "5031px",
+      "color": "#0A6738",
+      "fontFamily": "Paytone One",
+      "fontSize": "32px",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:498",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:487",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:488",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:507",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:508",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:517",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:518",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:527",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:528",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:537",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:538",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:502",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:503",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:492",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:493",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:512",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:513",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:522",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:523",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:532",
+    "text": "Avishkar Mandlik",
+    "style": {
+      "width": "132px",
+      "height": "11px",
+      "position": "absolute",
+      "left": "73px",
+      "top": "37px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "15px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:533",
+    "text": "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste. ",
+    "style": {
+      "width": "248px",
+      "height": "60px",
+      "position": "absolute",
+      "left": "22px",
+      "top": "78px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "8px",
+      "verticalAlign": "middle",
+      "lineHeight": "12px"
+    }
+  },
+  {
+    "id": "1:545",
+    "text": "100% Chemical Free",
+    "style": {
+      "width": "202px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "0px",
+      "top": "94px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "verticalAlign": "middle",
+      "lineHeight": "30px"
+    }
+  },
+  {
+    "id": "1:547",
+    "text": "100% Cruelty Free",
+    "style": {
+      "width": "178px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "315px",
+      "top": "94px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "verticalAlign": "middle",
+      "lineHeight": "30px"
+    }
+  },
+  {
+    "id": "1:549",
+    "text": "100% Indian & Vegetarian",
+    "style": {
+      "width": "259px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "643px",
+      "top": "94px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "verticalAlign": "middle",
+      "lineHeight": "30px"
+    }
+  },
+  {
+    "id": "1:551",
+    "text": "Always fresh",
+    "style": {
+      "width": "134px",
+      "height": "14px",
+      "position": "absolute",
+      "left": "977px",
+      "top": "94px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "20px",
+      "fontWeight": 600,
+      "verticalAlign": "middle",
+      "lineHeight": "30px"
+    }
+  },
+  {
+    "id": "1:546",
+    "text": "Manufacturing and extraction process is chemical-free.",
+    "style": {
+      "width": "240px",
+      "height": "30px",
+      "position": "absolute",
+      "left": "0px",
+      "top": "125px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "verticalAlign": "middle",
+      "lineHeight": "20px"
+    }
+  },
+  {
+    "id": "1:548",
+    "text": "We utilize motors, not bullocks, to churn oil using ancient methods.",
+    "style": {
+      "width": "245px",
+      "height": "30px",
+      "position": "absolute",
+      "left": "315px",
+      "top": "125px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "verticalAlign": "middle",
+      "lineHeight": "20px"
+    }
+  },
+  {
+    "id": "1:550",
+    "text": "All our products are Indian-made, excluding Himalayan pink rock salt.",
+    "style": {
+      "width": "253px",
+      "height": "30px",
+      "position": "absolute",
+      "left": "643px",
+      "top": "125px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "verticalAlign": "middle",
+      "lineHeight": "20px"
+    }
+  },
+  {
+    "id": "1:552",
+    "text": "Orders will contain oils packed within 8-10 days.",
+    "style": {
+      "width": "221px",
+      "height": "30px",
+      "position": "absolute",
+      "left": "977px",
+      "top": "125px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "verticalAlign": "middle",
+      "lineHeight": "20px"
+    }
+  },
+  {
+    "id": "1:406",
+    "text": "You can find us on",
+    "style": {
+      "width": "246px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "597px",
+      "top": "5907px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 600,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:569",
+    "text": "Legal",
+    "style": {
+      "width": "69px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "74px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 700,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:570",
+    "text": "Account",
+    "style": {
+      "width": "109px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "704px",
+      "top": "74px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 700,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:571",
+    "text": "Popular",
+    "style": {
+      "width": "101px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "932px",
+      "top": "74px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 700,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:572",
+    "text": "Contact",
+    "style": {
+      "width": "105px",
+      "height": "18px",
+      "position": "absolute",
+      "left": "1152px",
+      "top": "74px",
+      "color": "#0A6738",
+      "fontFamily": "Poppins",
+      "fontSize": "25px",
+      "fontWeight": 700,
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:574",
+    "text": "Terms and Conditions",
+    "style": {
+      "width": "154px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "124px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:575",
+    "text": "Sign In",
+    "style": {
+      "width": "47px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "704px",
+      "top": "124px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:576",
+    "text": "About us",
+    "style": {
+      "width": "62px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "932px",
+      "top": "124px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:580",
+    "text": "Yogi's farms\nS.No 18, Saikrupa Bunglow,\nSudarshan Park society, \nIngale Nagar, Warje, Pune 411058",
+    "style": {
+      "width": "227px",
+      "height": "87px",
+      "position": "absolute",
+      "left": "1182px",
+      "top": "124px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:587",
+    "text": "Return, Refund and cancellation\nPolicy",
+    "style": {
+      "width": "224px",
+      "height": "32px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "164px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:588",
+    "text": "View Cart",
+    "style": {
+      "width": "68px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "704px",
+      "top": "164px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:589",
+    "text": "Shop",
+    "style": {
+      "width": "36px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "932px",
+      "top": "164px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:573",
+    "text": "Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.",
+    "style": {
+      "width": "252px",
+      "height": "100px",
+      "position": "absolute",
+      "left": "102px",
+      "top": "190px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "12px",
+      "fontWeight": 500,
+      "lineHeight": "20px"
+    }
+  },
+  {
+    "id": "1:582",
+    "text": "My Wishlist",
+    "style": {
+      "width": "77px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "704px",
+      "top": "204px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:583",
+    "text": "Contact us",
+    "style": {
+      "width": "77px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "932px",
+      "top": "204px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:581",
+    "text": "Privacy Policy",
+    "style": {
+      "width": "95px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "226px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:577",
+    "text": "+91 9119501177",
+    "style": {
+      "width": "96px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "1182px",
+      "top": "237px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:585",
+    "text": "Track Order",
+    "style": {
+      "width": "82px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "704px",
+      "top": "244px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:586",
+    "text": "Profile",
+    "style": {
+      "width": "43px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "932px",
+      "top": "244px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:584",
+    "text": "Shipping Policy",
+    "style": {
+      "width": "106px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "417px",
+      "top": "266px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:578",
+    "text": "info@yogisfarms.in",
+    "style": {
+      "width": "134px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "1182px",
+      "top": "291px",
+      "color": "#000000",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  },
+  {
+    "id": "1:579",
+    "text": "Copyright © 2026 Yogis Farm",
+    "style": {
+      "width": "203px",
+      "height": "10px",
+      "position": "absolute",
+      "left": "619px",
+      "top": "673px",
+      "color": "#FFFFFF",
+      "fontFamily": "Poppins",
+      "fontSize": "14px",
+      "lineHeight": "22px"
+    }
+  }
+]

@@ -1,9 +1,14 @@
 import axios from 'axios';
 
-// Create an Axios instance with base configuration
+// Determine backend origin dynamically
+// In dev: VITE_API_BASE_URL = http://localhost:6013/api → backend is http://localhost:6013
+// In prod: same domain, so relative paths work via Nginx
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000/api`;
+const backendOrigin = apiBaseUrl.replace(/\/api\/?$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000/api`,
-  withCredentials: true, // Send cookies/session with requests
+  baseURL: apiBaseUrl,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -28,10 +33,18 @@ api.interceptors.response.use((response) => {
 
 export const getAssetUrl = (path) => {
   if (!path) return '';
+  // Already a full URL — return as-is
   if (path.startsWith('http')) return path;
-  
-  // Use relative paths in production to let Nginx handle the routing
-  return `${path.startsWith('/') ? '' : '/'}${path}`;
+
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+  // If frontend and backend are on different origins (dev mode), prepend backend origin
+  // In production (same domain), use relative path so Nginx proxies correctly
+  const isSameOrigin = backendOrigin === window.location.origin || backendOrigin === '';
+  if (isSameOrigin) {
+    return cleanPath;
+  }
+  return `${backendOrigin}${cleanPath}`;
 };
 
 export default api;

@@ -31,30 +31,42 @@ const ProductCard = ({ product }) => {
 
     const handleAddToCart = () => {
         if (!isOutOfStock && firstStockedVariant) {
-            addToCart(product.id, firstStockedVariant.id, 1);
+            addToCart(product.id, firstStockedVariant.id, 1, product, firstStockedVariant);
         }
     };
 
-    const renderStars = (rating = 5) => {
-        return (
-            <span style={{ color: '#adadad', fontSize: '14px', letterSpacing: '2px', display: 'inline-block', verticalAlign: 'middle' }}>
-                ★★★★★
-            </span>
-        );
-    };
-
     return (
-        <div className="product-cart-wrap mb-30 wow animate__animated animate__fadeIn" data-wow-delay=".1s" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-            <div className="product-img-action-wrap">
-                <div className="product-img product-img-zoom">
-                    <Link to={`/product/${product.slug}`}>
-                        <img className="default-img" src={getAssetUrl(product.image)} alt={product.name} />
-                        {product.hoverImage && (
-                            <img className="hover-img" src={getAssetUrl(product.hoverImage)} alt="" />
-                        )}
-                    </Link>
-                </div>
-                <div className="product-action-1">
+        <div className="product-cart-wrap" style={{ 
+            width: '291px', 
+            height: '314px', 
+            borderRadius: '11px', 
+            border: '1px solid #D5D5D5', 
+            backgroundColor: '#FFFFFF',
+            position: 'relative',
+            overflow: 'hidden',
+            fontFamily: "'Poppins', sans-serif"
+        }}>
+            {/* Image Section */}
+            <div style={{
+                width: '281px',
+                height: '187px',
+                position: 'absolute',
+                left: '5px',
+                top: '5px',
+                borderRadius: '9px',
+                overflow: 'hidden',
+                backgroundColor: '#F2F2F2'
+            }}>
+                <Link to={`/product/${product.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                    <img 
+                        className="default-img"
+                        src={getAssetUrl(product.image)} 
+                        alt={product.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                </Link>
+                
+                <div className="product-action-1" style={{ zIndex: 10 }}>
                     <a aria-label="Add To Wishlist" className={`action-btn ${inWishlist ? 'btn-remove-from-wishlist' : 'btn-add-to-wishlist'}`} onClick={() => toggleWishlist(product.id)} href="#!">
                         <i className="fi-rs-heart" style={{ color: inWishlist ? 'red' : 'inherit' }}></i>
                     </a>
@@ -62,68 +74,164 @@ const ProductCard = ({ product }) => {
                         <i className="fi-rs-eye"></i>
                     </a>
                 </div>
+
                 {badgeText && (
-                    <div className="product-badges product-badges-position product-badges-mrg" style={{ position: 'absolute', top: 0, left: 0, margin: 0, zIndex: 9 }}>
-                        <span className="best" style={{ backgroundColor: '#046938', color: 'white', padding: '4px 12px', borderRadius: '15px 0 15px 0', fontSize: '12px', display: 'inline-block' }}>
+                    <div style={{ position: 'absolute', top: '0', left: '0', zIndex: 9 }}>
+                        <span style={{ 
+                            backgroundColor: '#046938', 
+                            color: 'white', 
+                            padding: '4px 10px', 
+                            borderRadius: '12px 0 12px 0', 
+                            fontSize: '11px', 
+                            fontWeight: 'bold',
+                            fontFamily: 'Poppins',
+                            display: 'inline-block'
+                        }}>
                             {badgeText}
                         </span>
                     </div>
                 )}
             </div>
-            <div className="product-content-wrap" style={{ padding: '15px' }}>
-                {product.category && (
-                    <div className="product-category" style={{ marginBottom: '5px' }}>
-                        <Link to={`/shop?category=${product.category.slug}`} style={{ color: '#adadad', fontSize: '12px' }}>{product.category.name}</Link>
-                    </div>
-                )}
-                <h2 style={{ fontSize: '16px', fontWeight: 'bold', lineHeight: '1.2', marginBottom: '8px' }}>
-                    <Link to={`/product/${product.slug}`} style={{ color: '#253D4E' }}>{product.name}</Link>
-                </h2>
-                <div className="product-rate-cover" style={{ marginBottom: '10px' }}>
-                    {renderStars(5)}
-                    <span className="font-small text-muted" style={{ fontSize: '13px', color: '#B6B6B6', marginLeft: '5px', display: 'inline-block', verticalAlign: 'middle' }}>({product.reviews?.length || 0})</span>
+
+            {/* Content Section */}
+            {/* Title - Single line with ellipsis to prevent overlap */}
+            <h2 style={{ 
+                position: 'absolute',
+                top: '210px',
+                left: '15px',
+                right: '15px',
+                fontSize: '18px', 
+                fontWeight: 600, 
+                lineHeight: '22px', 
+                color: '#253D4E', 
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                fontFamily: 'Poppins',
+                textTransform: 'capitalize'
+            }}>
+                <Link to={`/product/${product.slug}`} style={{ color: '#253D4E' }}>{product.name}</Link>
+            </h2>
+
+            {/* Stars and Reviews - Grouped together to prevent "floating" */}
+            <div style={{ 
+                position: 'absolute',
+                top: '243px',
+                left: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+            }}>
+                <span style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>★★★★★</span>
+                <span style={{ 
+                    fontSize: '11px', 
+                    color: '#B6B6B6', 
+                    fontFamily: 'Poppins'
+                }}>
+                    ({product.reviews?.length || 113} Reviews)
+                </span>
+            </div>
+
+            {/* Price and Button Row */}
+            <div style={{ 
+                position: 'absolute',
+                top: '277px',
+                left: '15px',
+                right: '15px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ 
+                        fontSize: '18px', 
+                        fontWeight: 'bold', 
+                        color: '#0A6738', 
+                        lineHeight: '1',
+                        fontFamily: 'Poppins'
+                    }}>
+                        ₹{!isNaN(parseFloat(price)) ? parseFloat(price).toFixed(2) : '0.00'}
+                    </span>
+                    
+                    {oldPrice && (
+                        <span style={{ 
+                            fontSize: '11px', 
+                            color: '#FF0000', 
+                            fontFamily: 'Poppins'
+                        }}>
+                            {Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off
+                        </span>
+                    )}
                 </div>
-                <div className="product-card-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="product-price">
-                        {price !== null ? (
-                            <>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#046938', lineHeight: '1' }}>₹{parseFloat(price).toFixed(2)}</div>
-                                {oldPrice && (
-                                    <div className="old-price" style={{ fontSize: '14px', color: '#adadad', textDecoration: 'line-through', marginTop: '4px', display: 'block' }}>
-                                        ₹{parseFloat(oldPrice).toFixed(2)}
-                                    </div>
-                                )}
-                            </>
-                        ) : null}
-                    </div>
-                    <div className="add-cart">
-                        {(() => {
-                            if (isOutOfStock) {
-                                return (
-                                    <button className="add" disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'not-allowed', width: '100%', fontSize: '13px' }}>
-                                        Out of stock
-                                    </button>
-                                );
-                            }
 
-                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === firstStockedVariant?.id);
-                            if (cartItem) {
-                                return (
-                                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
-                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
-                                        <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                        <a onClick={() => cartItem.quantity < firstStockedVariant.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '6px 10px', color: cartItem.quantity >= firstStockedVariant.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= firstStockedVariant.stock ? 'not-allowed' : 'pointer' }}>+</a>
-                                    </div>
-                                );
-                            }
-
+                <div className="add-cart">
+                    {(() => {
+                        if (isOutOfStock) {
                             return (
-                                <a className="add btn-add-to-cart" onClick={handleAddToCart} href="#!" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
-                                    <i className="fi-rs-shopping-cart"></i> Add
-                                </a>
+                                <button disabled style={{ 
+                                    background: '#E0E0E0', 
+                                    color: '#666', 
+                                    border: 'none', 
+                                    width: '66px',
+                                    height: '30px',
+                                    borderRadius: '6px', 
+                                    fontSize: '10px',
+                                    fontFamily: 'Poppins',
+                                    fontWeight: 'bold',
+                                    cursor: 'not-allowed'
+                                }}>
+                                    Sold Out
+                                </button>
                             );
-                        })()}
-                    </div>
+                        }
+
+                        const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === firstStockedVariant?.id);
+                        if (cartItem) {
+                            return (
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    backgroundColor: '#f0f9f4', 
+                                    borderRadius: '6px', 
+                                    border: '1px solid #0A6738',
+                                    height: '30px',
+                                    width: '66px',
+                                    justifyContent: 'space-between',
+                                    padding: '0 5px'
+                                }}>
+                                    <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ color: '#0A6738', fontSize: '14px', fontWeight: 'bold' }}>-</a>
+                                    <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
+                                    <a onClick={() => cartItem.quantity < firstStockedVariant.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ color: cartItem.quantity >= firstStockedVariant.stock ? '#ccc' : '#0A6738', fontSize: '14px', fontWeight: 'bold' }}>+</a>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <a 
+                                onClick={handleAddToCart} 
+                                href="#!" 
+                                style={{ 
+                                    backgroundColor: '#FF0000', 
+                                    color: '#FFFFFF', 
+                                    width: '66px',
+                                    height: '30px',
+                                    borderRadius: '6px', 
+                                    fontSize: '12px', 
+                                    fontWeight: 'bold', 
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textDecoration: 'none',
+                                    fontFamily: 'Poppins',
+                                    textTransform: 'uppercase',
+                                    transition: 'background 0.3s'
+                                }}
+                            >
+                                BUY +
+                            </a>
+                        );
+                    })()}
                 </div>
             </div>
             {showQuickView && (

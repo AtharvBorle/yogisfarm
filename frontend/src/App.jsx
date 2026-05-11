@@ -26,7 +26,7 @@ import DeliveryDashboard from './pages/delivery/Dashboard';
 import DeliveryOrderDetails from './pages/delivery/OrderDetails';
 
 function App() {
-  const [showScroll, setShowScroll] = useState(false);
+
   const [isPreloading, setIsPreloading] = useState(true);
 
   useEffect(() => {
@@ -36,17 +36,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScroll(window.scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
 
   const location = useLocation();
   const isDeliveryRoute = location.pathname.startsWith('/delivery');
@@ -89,11 +79,7 @@ function App() {
       </main>
       {!isDeliveryRoute && <Footer />}
       
-      {showScroll && !isDeliveryRoute && (
-        <a id="scrollUp" href="#top" style={{ position: 'fixed', zIndex: 2147483647, display: 'block' }} onClick={(e) => { e.preventDefault(); scrollToTop(); }}>
-          <i className="fi-rs-arrow-up"></i>
-        </a>
-      )}
+
     </>
   );
 }

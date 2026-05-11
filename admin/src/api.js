@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// Determine backend origin dynamically
+// In dev: VITE_API_BASE_URL = http://localhost:6013/api/admin → backend is http://localhost:6013
+// In prod: same domain, so relative paths work via Nginx
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000/api/admin`;
+const backendOrigin = apiBaseUrl.replace(/\/api(\/admin)?\/?$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:5000/api/admin`,
+  baseURL: apiBaseUrl,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -10,10 +16,18 @@ const api = axios.create({
 
 export const getAssetUrl = (path) => {
   if (!path) return '';
+  // Already a full URL — return as-is
   if (path.startsWith('http')) return path;
 
-  // Use relative paths in production to let Nginx handle the routing
-  return `${path.startsWith('/') ? '' : '/'}${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+  // If admin and backend are on different origins (dev mode), prepend backend origin
+  // In production (same domain), use relative path so Nginx proxies correctly
+  const isSameOrigin = backendOrigin === window.location.origin || backendOrigin === '';
+  if (isSameOrigin) {
+    return cleanPath;
+  }
+  return `${backendOrigin}${cleanPath}`;
 };
 
 api.interceptors.request.use((config) => {
@@ -32,7 +46,6 @@ api.interceptors.response.use(
   (error) => {
     console.error(`%c[ADMIN API RES ERROR]`, 'color: #dc3545; font-weight: bold;', error);
     if (error.response && error.response.status === 401) {
-      // Clear cookie/session implicitly by enforcing login redirect
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/admin/login';
       }

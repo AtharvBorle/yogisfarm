@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -9,10 +9,15 @@ const Header = () => {
     const { user, logout } = useAuth();
     const { cartItems, cartCount, cartTotal, removeFromCart } = useCart();
     const { wishlist } = useWishlist();
-    
+
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [keyword, setKeyword] = useState('');
     const [catOpen, setCatOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const location = useLocation();
+    const isActive = (path) => location.pathname === path;
+
     const [suggestions, setSuggestions] = useState([]);
     const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
     const [isSticky, setIsSticky] = useState(false);
@@ -32,13 +37,13 @@ const Header = () => {
 
     useEffect(() => {
         api.get('/categories?featured=true').then(res => {
-            if(res.data.status) setCategories(res.data.categories);
+            if (res.data.status) setCategories(res.data.categories);
         });
     }, []);
 
     useEffect(() => {
         const handleLayoutScroll = () => {
-            setIsSticky(window.scrollY > 200);
+            setIsSticky(window.scrollY > 50);
         };
         window.addEventListener('scroll', handleLayoutScroll);
         return () => window.removeEventListener('scroll', handleLayoutScroll);
@@ -48,7 +53,7 @@ const Header = () => {
         if (keyword.length > 1) {
             const delayDebounceFn = setTimeout(() => {
                 api.get(`/products?search=${encodeURIComponent(keyword)}&limit=7`).then(res => {
-                    if(res.data.status) {
+                    if (res.data.status) {
                         setSuggestions(res.data.products);
                         setIsSuggestionsOpen(true);
                     }
@@ -63,172 +68,222 @@ const Header = () => {
 
     const handleSearch = (e) => {
         e.preventDefault();
-        window.location.href = `/shop?keyword=${encodeURIComponent(keyword)}`;
+        const params = new URLSearchParams();
+        if (keyword.trim()) params.set('keyword', keyword.trim());
+        if (selectedCategory) params.set('category', selectedCategory);
+        navigate(`/shop?${params.toString()}`);
+        setIsSuggestionsOpen(false);
     };
 
     return (
-        <header className="header-area header-style-1 header-height-2">
-            {/* Top Bar */}
-            <div className="header-top header-top-ptb-1 d-none d-lg-block" style={{ backgroundColor: '#046938' }}>
-                <div className="container">
-                    <div className="row align-items-center">
-                        <div className="col-xl-3 col-lg-4">
-                            <div className="header-info">
-                                <ul>
-                                    <li><Link to={user ? '/dashboard' : '/login'} className="text-white">My Account</Link></li>
-                                    <li><Link to="/wishlist" className="text-white">Wishlist</Link></li>
-                                    <li><Link to="/track-order" className="text-white">Order Tracking</Link></li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div className="col-xl-9 col-lg-8">
-                            <div className="text-center text-white">
-                                <div id="news-flash" className="d-block" style={{ width: '100%' }}></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+        <header className={`header-area header-style-1 header-height-2 ${isSticky ? 'sticky-bar' : ''}`} style={{
+            position: 'sticky',
+            top: 0,
+            width: '100%',
+            height: '103px',
+            backgroundColor: '#FFFFFF',
+            zIndex: 1000,
+            boxShadow: isSticky ? '0 8px 20px rgba(0, 0, 0, 0.05)' : 'none',
+            borderBottom: '1px solid #f1f1f1',
+            transition: 'box-shadow 0.3s ease-in-out',
+            display: 'flex',
+            alignItems: 'center'
+        }}>
             {/* Header Middle */}
-            <div className="header-middle header-middle-ptb-1 d-none d-lg-block">
-                <div className="container">
-                    <div className="header-wrap">
-                        <div className="logo logo-width-1">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
+            <div className="header-middle d-none d-lg-block" style={{ width: '100%' }}>
+                <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px', width: '100%', boxSizing: 'border-box' }}>
+                    <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
+                        {/* Logo */}
+                        <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '90px', display: 'block' }} onError={(e) => e.target.src = '/assets/imgs/theme/logo.png'} /></Link>
                         </div>
-                        <div className="header-right">
-                            <div className="search-style-2" ref={searchRef}>
-                                <form onSubmit={handleSearch} style={{ position: 'relative' }}>
-                                    <div className="main-categori-wrap d-none d-lg-block m-0" style={{ position: 'relative' }}>
-                                        <div 
-                                            className="cat-btn-custom" 
-                                            style={{ borderRadius: '0px', backgroundColor: '#046938', cursor: 'pointer', padding: '0 20px', height: '50px', display: 'flex', alignItems: 'center', color: '#fff', fontWeight: 'bold' }}
-                                            onClick={(e) => { 
-                                                e.preventDefault(); 
-                                                e.stopPropagation();
-                                                setCatOpen(!catOpen); 
-                                            }}
-                                        >
-                                            <span className="fi-rs-apps" style={{ marginRight: '8px' }}></span> All
-                                            <i className="fi-rs-angle-down" style={{ marginLeft: '12px' }}></i>
-                                        </div>
-                                        {catOpen && (
-                                            <div className="categori-dropdown-wrap categori-dropdown-active-large open" style={{ display: 'block', position: 'absolute', top: '100%', left: 0, zIndex: 9999, width: '250px', background: '#fff', border: '1px solid #ececec', borderRadius: '5px', padding: '20px' }}>
-                                                <ul>
-                                                    {categories.map(cat => (
-                                                        <li key={cat.id}>
-                                                            <Link to={`/shop?category=${cat.slug}`} onClick={() => setCatOpen(false)}>
-                                                                <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: 30, height: 30, objectFit: 'cover' }} />
-                                                                {cat.name}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                <div className="more_categories">
-                                                    <span className="icon"></span> <Link to="/category" onClick={() => setCatOpen(false)}> <span className="heading-sm-1">+ Show More...</span> </Link>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <input type="text" className="form-control pt-3 home-search" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="I Am Searching For..." />
-                                    <button className="btn btn-primary square" type="submit" style={{ backgroundColor: '#046938', borderRadius: '0px', borderColor: '#046938' }}>
-                                        <i className="fi-rs-search"></i>
-                                    </button>
 
-                                    {isSuggestionsOpen && suggestions.length > 0 && (
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: '100%',
-                                            left: '100px',
-                                            right: '60px',
-                                            background: '#fff',
-                                            border: '1px solid #ececec',
-                                            borderTop: 'none',
-                                            boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-                                            zIndex: 9999,
-                                            padding: '10px 0'
-                                        }}>
-                                            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                                                {suggestions.map(s => {
-                                                    const regex = new RegExp(`(${keyword})`, 'gi');
-                                                    const parts = s.name.split(regex);
-                                                    return (
-                                                        <li key={s.id}>
-                                                            <Link to={`/product/${s.slug}`} onClick={() => { setKeyword(''); setIsSuggestionsOpen(false); }} style={{
-                                                                display: 'block', padding: '8px 20px', color: '#7E7E7E', cursor: 'pointer', fontSize: '15px'
-                                                            }}>
-                                                                {parts.map((part, i) => (
-                                                                    part.toLowerCase() === keyword.toLowerCase() ? <strong key={i} style={{ color: '#253D4E', fontWeight: '900' }}>{part}</strong> : part
-                                                                ))}
-                                                            </Link>
-                                                        </li>
-                                                    );
-                                                })}
-                                            </ul>
+                        {/* Navigation Menu */}
+                        <div className="header-nav d-none d-lg-flex" style={{ flexShrink: 1, marginRight: 'auto', padding: 0, margin: 0 }}>
+                            <style dangerouslySetInnerHTML={{
+                                __html: `
+                                .logo.logo-width-1 { padding: 0 !important; margin: 0 !important; }
+                                .main-menu-padding-1 { padding: 0 !important; margin: 0 !important; }
+                                .header-nav li {
+                                    margin: 0 !important;
+                                    padding: 0 !important;
+                                }
+                                .header-nav .nav-link { 
+                                    color: #0A6738 !important; 
+                                    transition: all 0.3s ease !important;
+                                    padding: 0 8px !important;
+                                }
+                                .header-nav .nav-link:hover { 
+                                    color: #B2D33D !important; 
+                                }
+                                .header-nav .nav-link.active { 
+                                    color: #B2D33D !important; 
+                                    font-weight: 700 !important;
+                                }
+                                .search-btn-no-radius {
+                                    border-radius: 0 !important;
+                                }
+                            `}} />
+                            <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
+                                <nav>
+                                    <ul style={{ display: 'flex', gap: '6px', margin: 0, padding: 0, listStyle: 'none', whiteSpace: 'nowrap' }}>
+                                        <li><Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Home</Link></li>
+                                        <li><Link to="/about" className={`nav-link ${isActive('/about') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>About Us</Link></li>
+                                        <li><Link to="/deals" className={`nav-link ${isActive('/deals') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Deals</Link></li>
+                                        <li><Link to="/shop" className={`nav-link ${isActive('/shop') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Category</Link></li>
+                                        <li><Link to="/contact" className={`nav-link ${isActive('/contact') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Contact Us</Link></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+
+                        {/* Search Bar - Flexibly sized */}
+                        <div ref={searchRef} style={{ flex: 1, maxWidth: '450px', minWidth: '200px', flexShrink: 1, position: 'relative' }}>
+                            <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '45px', border: '1px solid #E2E2E2', width: '100%' }}>
+                                <div style={{ position: 'relative', flexShrink: 0 }}>
+                                    <div
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCatOpen(!catOpen); }}
+                                        style={{ display: 'flex', alignItems: 'center', padding: '0 12px', height: '45px', cursor: 'pointer', borderRight: '1px solid #D9D9D9', gap: '6px', minWidth: '80px' }}
+                                    >
+                                        <span style={{ fontSize: '12px', color: '#555', fontFamily: 'Poppins, sans-serif', whiteSpace: 'nowrap' }}>{selectedCategory ? categories.find(c => c.slug === selectedCategory)?.name || 'All' : 'All'}</span>
+                                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L5 5L9 1" stroke="#0A6738" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    </div>
+                                    {catOpen && (
+                                        <div style={{ position: 'absolute', top: '100%', left: 0, width: '200px', backgroundColor: '#fff', boxShadow: '0 8px 20px rgba(0,0,0,0.15)', borderRadius: '0 0 8px 8px', zIndex: 9999, padding: '8px 0', maxHeight: '300px', overflowY: 'auto' }}>
+                                            <div
+                                                onClick={() => { setSelectedCategory(''); setCatOpen(false); }}
+                                                style={{ display: 'block', padding: '8px 20px', color: !selectedCategory ? '#0A6738' : '#333', fontSize: '13px', cursor: 'pointer', fontWeight: !selectedCategory ? 700 : 400, backgroundColor: !selectedCategory ? '#f0f8f0' : 'transparent', fontFamily: 'Poppins, sans-serif' }}
+                                            >
+                                                All Categories
+                                            </div>
+                                            {categories.map(cat => (
+                                                <div
+                                                    key={cat.id}
+                                                    onClick={() => { setSelectedCategory(cat.slug); setCatOpen(false); }}
+                                                    style={{ display: 'block', padding: '8px 20px', color: selectedCategory === cat.slug ? '#0A6738' : '#333', fontSize: '13px', cursor: 'pointer', fontWeight: selectedCategory === cat.slug ? 700 : 400, backgroundColor: selectedCategory === cat.slug ? '#f0f8f0' : 'transparent', fontFamily: 'Poppins, sans-serif', transition: 'background-color 0.2s' }}
+                                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                                    onMouseLeave={(e) => e.target.style.backgroundColor = selectedCategory === cat.slug ? '#f0f8f0' : 'transparent'}
+                                                >
+                                                    {cat.name}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
-                                </form>
-                            </div>
-                            <div className="header-action-right">
-                                <div className="header-action-2">
-                                    <div className="header-action-icon-2">
-                                        <Link to="/wishlist">
-                                            <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" />
-                                            <span className="pro-count blue btn-wishlist-count">{wishlist?.length || 0}</span>
+                                </div>
+                                <input type="text" value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="Search for Product" style={{ flex: 1, minWidth: 0, width: '100%', border: 'none', outline: 'none', background: 'transparent', padding: '0 10px', fontSize: '13px', fontFamily: 'Poppins, sans-serif', color: '#333', height: '100%' }} />
+                                <button type="submit" className="search-btn-no-radius" style={{ flexShrink: 0, width: '90px', height: '45px', background: '#0A6738', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', borderRadius: '0 5px 5px 0' }}>
+                                    <svg width="12" height="12" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 14.5L10.5 10.5M12 6.5C12 9.53757 9.53757 12 6.5 12C3.46243 12 1 9.53757 1 6.5C1 3.46243 3.46243 1 6.5 1C9.53757 1 12 3.46243 12 6.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                    SEARCH
+                                </button>
+                            </form>
+                            {/* Search Suggestions Dropdown */}
+                            {isSuggestionsOpen && suggestions.length > 0 && (
+                                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#fff', boxShadow: '0 8px 20px rgba(0,0,0,0.15)', borderRadius: '0 0 8px 8px', zIndex: 9999, padding: '8px 0', maxHeight: '350px', overflowY: 'auto', marginTop: '2px' }}>
+                                    {suggestions.map(product => (
+                                        <Link
+                                            key={product.id}
+                                            to={`/product/${product.slug}`}
+                                            onClick={() => { setIsSuggestionsOpen(false); setKeyword(''); }}
+                                            style={{ display: 'flex', alignItems: 'center', padding: '8px 15px', color: '#333', fontSize: '13px', textDecoration: 'none', gap: '10px', fontFamily: 'Poppins, sans-serif', transition: 'background-color 0.2s' }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                        >
+                                            {product.images?.[0] && <img src={getAssetUrl(product.images[0])} alt="" style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '4px' }} />}
+                                            <span>{product.name}</span>
                                         </Link>
-                                    </div>
-                                    <div className="header-action-icon-2">
-                                        <Link className="mini-cart-icon" to="/cart">
-                                            <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" />
-                                            <span className="pro-count blue btn-cart-count">{cartCount}</span>
-                                        </Link>
-                                        <div className="cart-dropdown-wrap cart-dropdown-hm2 cart-main">
-                                            <ul>
-                                                {cartItems.map(item => (
-                                                    <li key={item.id}>
-                                                        <div className="shopping-cart-img">
-                                                            <Link to={`/product/${item.product.slug}`}><img alt={item.product.name} src={getAssetUrl(item.product.image)} /></Link>
-                                                        </div>
-                                                        <div className="shopping-cart-title">
-                                                            <h4><Link to={`/product/${item.product.slug}`}>{item.product.name}</Link></h4>
-                                                            <h4><span>{item.quantity} × </span>₹{(item.variant?.salePrice || item.product.salePrice || item.variant?.price || item.product.price)}</h4>
-                                                        </div>
-                                                        <div className="shopping-cart-delete">
-                                                            <button style={{border:'none',background:'none'}} onClick={() => removeFromCart(item.id)}><i className="fi-rs-cross-small"></i></button>
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <div className="shopping-cart-footer">
-                                                <div className="shopping-cart-total">
-                                                    <h4>Total <span>₹{cartTotal}</span></h4>
-                                                </div>
-                                                <div className="shopping-cart-button">
-                                                    <Link to="/cart">View cart</Link>
-                                                    <Link to="/checkout">Checkout</Link>
-                                                </div>
-                                            </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Action Icons */}
+                        <div className="header-action-right" style={{ flexShrink: 0 }}>
+                            <style dangerouslySetInnerHTML={{
+                                __html: `
+                                .header-action-right .action-icon-wrapper {
+                                    display: flex !important;
+                                    flex-direction: column !important;
+                                    align-items: center !important;
+                                    min-width: 55px !important;
+                                    max-width: 65px !important;
+                                    cursor: pointer !important;
+                                    transition: transform 0.2s ease !important;
+                                    padding: 0 !important;
+                                    margin: 0 !important;
+                                }
+                                .header-action-right .action-icon-wrapper:hover {
+                                    transform: translateY(-2px) !important;
+                                }
+                                .header-action-right .action-icon-svg {
+                                    width: 24px !important;
+                                    height: 24px !important;
+                                    fill: #B2D33D !important;
+                                }
+                                .header-action-right .header-action-icon-2 {
+                                    padding: 0 !important;
+                                    margin: 0 !important;
+                                }
+                                .header-action-right .pro-count {
+                                    background-color: #0A6738 !important;
+                                    color: #fff !important;
+                                    width: 14px !important;
+                                    height: 14px !important;
+                                    font-size: 8px !important;
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    justify-content: center !important;
+                                    border-radius: 50% !important;
+                                    position: absolute !important;
+                                    top: -3px !important;
+                                    right: -3px !important;
+                                    font-weight: 700 !important;
+                                    border: 1px solid #fff !important;
+                                    z-index: 2 !important;
+                                }
+                                .header-action-right .action-label {
+                                    color: #B2D33D !important;
+                                    font-size: 12px !important;
+                                    font-weight: 600 !important;
+                                    margin-top: 3px !important;
+                                    text-transform: capitalize !important;
+                                    white-space: nowrap !important;
+                                }
+                                .header-action-right .header-action-2 {
+                                    gap: 6px !important;
+                                }
+                            `}} />
+                            <div className="header-action-2" style={{ display: 'flex', gap: '6px' }}>
+                                <div className="header-action-icon-2">
+                                    <Link to="/wishlist" className="action-icon-wrapper">
+                                        <div className="position-relative">
+                                            <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                            </svg>
+                                            {wishlist?.length > 0 && <span className="pro-count">{wishlist.length}</span>}
                                         </div>
-                                    </div>
-                                    <div className="header-action-icon-2">
-                                        <Link to={user ? '/dashboard' : '/login'}>
-                                            <img className="svgInject" alt="My Account" src="/assets/imgs/theme/icons/icon-user.svg" />
-                                        </Link>
-                                        <div className="cart-dropdown-wrap cart-dropdown-hm2 account-dropdown">
-                                            <ul>
-                                                {user ? (
-                                                    <>
-                                                        <li><Link to="/dashboard"><i className="fi fi-rs-user mr-10"></i>Dashboard</Link></li>
-                                                        <li><Link to="/dashboard?tab=orders"><i className="fi fi-rs-shopping-bag mr-10"></i>Orders</Link></li>
-                                                        <li><a href="#" onClick={(e) => { e.preventDefault(); logout(); }}><i className="fi fi-rs-sign-out mr-10"></i>Logout</a></li>
-                                                    </>
-                                                ) : (
-                                                    <li><Link to="/login"><i className="fi fi-rs-sign-in mr-10"></i>Sign In</Link></li>
-                                                )}
-                                            </ul>
+                                        <span className="action-label">Wishlist</span>
+                                    </Link>
+                                </div>
+                                <div className="header-action-icon-2">
+                                    <Link to="/cart" className="action-icon-wrapper">
+                                        <div className="position-relative">
+                                            <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+                                            </svg>
+                                            {cartCount > 0 && <span className="pro-count">{cartCount}</span>}
                                         </div>
-                                    </div>
+                                        <span className="action-label">Add Cart</span>
+                                    </Link>
+                                </div>
+                                <div className="header-action-icon-2">
+                                    <Link to={user ? '/dashboard' : '/login'} className="action-icon-wrapper">
+                                        <div className="position-relative">
+                                            <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                            </svg>
+                                        </div>
+                                        <span className="action-label">Profile</span>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -236,8 +291,8 @@ const Header = () => {
                 </div>
             </div>
 
-            {/* Bottom Nav */}
-            <div className={`header-bottom header-bottom-bg-color sticky-bar ${isSticky ? 'stick' : ''}`}>
+            {/* Bottom Nav (Mobile Only) */}
+            <div className={`header-bottom header-bottom-bg-color sticky-bar d-lg-none ${isSticky ? 'stick' : ''}`}>
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo logo-width-1 d-block d-lg-none pt-1">
