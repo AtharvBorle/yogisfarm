@@ -12,6 +12,7 @@ const Product = () => {
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [taxes, setTaxes] = useState([]);
+    const [hsns, setHsns] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [isFilemanagerOpen, setFilemanagerOpen] = useState(false);
     const [isGalleryFMOpen, setGalleryFMOpen] = useState(false);
@@ -20,7 +21,7 @@ const Product = () => {
     const [editingId, setEditingId] = useState(null);
 
     const defaultForm = {
-        name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '',
+        name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '', taxId: '', hsnId: '', hsnSearch: '',
         image: '', video: '', tags: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
@@ -29,13 +30,14 @@ const Product = () => {
 
     const fetchAll = async () => {
         try {
-            const [pRes, cRes, bRes, tRes] = await Promise.all([
-                api.get('/products'), api.get('/categories'), api.get('/brands'), api.get('/taxes')
+            const [pRes, cRes, bRes, tRes, hRes] = await Promise.all([
+                api.get('/products'), api.get('/categories'), api.get('/brands'), api.get('/taxes'), api.get('/hsns')
             ]);
             if (pRes.data.status) setProducts(pRes.data.products);
             if (cRes.data.status) setCategories(cRes.data.categories);
             if (bRes.data.status) setBrands(bRes.data.brands);
             if (tRes.data.status) setTaxes(tRes.data.taxes);
+            if (hRes.data.status) setHsns(hRes.data.hsns);
         } catch (err) {
             toast.error('Failed to load data');
         }
@@ -60,6 +62,7 @@ const Product = () => {
         setFormData({
             name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
             parentCategoryId: parentCatId, categoryId: row.categoryId || '', brandId: row.brandId || '',
+            taxId: row.taxId || '', hsnId: row.hsnId || '', hsnSearch: row.hsn?.hsnCode || '',
             image: row.image || '', video: row.video || '', tags: row.tags || '',
             status: row.status, featured: row.featured, popular: row.popular, deal: row.deal,
             variants: row.variants || [], benefits: row.benefits || [], features: row.features || [],
@@ -96,6 +99,7 @@ const Product = () => {
                 name: formData.name, shortDescription: formData.shortDescription,
                 description: formData.description, image: formData.image,
                 categoryId: formData.categoryId || null, brandId: formData.brandId || null,
+                taxId: formData.taxId || null, hsnId: formData.hsnId || null,
                 video: formData.video, tags: formData.tags,
                 status: formData.status, featured: formData.featured.toString(),
                 popular: formData.popular.toString(), deal: formData.deal.toString()
@@ -307,6 +311,43 @@ const Product = () => {
                                     <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} className="admin-select">
                                         <option value="">-- Select --</option>
                                         {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="modal-row-2">
+                                <div className="admin-form-group">
+                                    <label className="admin-label">HSN Search</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input 
+                                            type="text" 
+                                            value={formData.hsnSearch} 
+                                            onChange={e => {
+                                                const search = e.target.value;
+                                                setFormData({ ...formData, hsnSearch: search, hsnId: search === '' ? '' : formData.hsnId });
+                                            }} 
+                                            className="admin-input" 
+                                            placeholder="Type keywords or HSN" 
+                                        />
+                                        {formData.hsnSearch && !hsns.find(h => h.hsnCode === formData.hsnSearch) && (
+                                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #ccc', zIndex: 10, maxHeight: '150px', overflowY: 'auto' }}>
+                                                {hsns.filter(h => h.hsnCode.includes(formData.hsnSearch) || (h.keywords && h.keywords.toLowerCase().includes(formData.hsnSearch.toLowerCase()))).map(h => (
+                                                    <div key={h.id} style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #eee' }} onClick={() => setFormData({ ...formData, hsnSearch: h.hsnCode, hsnId: h.id })}>
+                                                        <strong>{h.hsnCode}</strong> {h.keywords ? `(${h.keywords})` : ''}
+                                                    </div>
+                                                ))}
+                                                {hsns.filter(h => h.hsnCode.includes(formData.hsnSearch) || (h.keywords && h.keywords.toLowerCase().includes(formData.hsnSearch.toLowerCase()))).length === 0 && (
+                                                    <div style={{ padding: '8px', color: '#888' }}>No HSN found</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="admin-form-group">
+                                    <label className="admin-label">GST Rate (Tax)</label>
+                                    <select value={formData.taxId} onChange={e => setFormData({ ...formData, taxId: e.target.value })} className="admin-select">
+                                        <option value="">-- No Tax (0%) --</option>
+                                        {taxes.filter(t => t.status === 'active').map(t => <option key={t.id} value={t.id}>{t.name} ({t.tax}%)</option>)}
                                     </select>
                                 </div>
                             </div>

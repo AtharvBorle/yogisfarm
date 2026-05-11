@@ -39,32 +39,30 @@ const Checkout = () => {
     }, [user, newAddress.name]);
 
     const discount = 0;
-    const [globalTaxRate, setGlobalTaxRate] = useState(0);
-    const [activeTax, setActiveTax] = useState(null);
     const [shippingCharge, setShippingCharge] = useState(0);
     const [shippingThreshold, setShippingThreshold] = useState(0);
 
-    // GST-INCLUSIVE: prices already include GST, extract the GST portion
-    const totalTax = (cartTotal * globalTaxRate) / 100;
-    const subtotalBase = cartTotal - totalTax;
-    const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
+    // Calculate item-specific GST
+    let calculatedTotalTax = 0;
+    let calculatedOfferPriceSum = 0;
+    cartItems.forEach(item => {
+        const offerPrice = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
+        const itemTotal = offerPrice * item.quantity;
+        const taxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
+        calculatedTotalTax += itemTotal * (taxRate / 100);
+        calculatedOfferPriceSum += itemTotal;
+    });
+
+    const totalTax = calculatedTotalTax;
+    const subtotalBase = calculatedOfferPriceSum - totalTax;
+    const shipping = (shippingThreshold > 0 && calculatedOfferPriceSum >= shippingThreshold) ? 0 : shippingCharge;
     const grandTotal = Math.round(subtotalBase + totalTax + shipping);
 
     useEffect(() => {
-        // Fetch global tax rate and shipping rules
+        // Fetch shipping rules
         const fetchSettings = async () => {
             try {
-                const [taxRes, shipRes] = await Promise.all([
-                    api.get('/taxes'),
-                    api.get('/shipping')
-                ]);
-                if (taxRes.data.status && taxRes.data.taxes?.length > 0) {
-                    const activeTax = taxRes.data.taxes.find(t => t.status === 'active');
-                    if (activeTax) {
-                        setGlobalTaxRate(parseFloat(activeTax.tax));
-                        setActiveTax(activeTax);
-                    }
-                }
+                const shipRes = await api.get('/shipping');
                 if (shipRes.data.status && shipRes.data.shipping?.length > 0) {
                     const activeShipping = shipRes.data.shipping[0];
                     setShippingCharge(parseFloat(activeShipping.charge));
@@ -201,7 +199,7 @@ const Checkout = () => {
                                 <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{subtotalBase.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-                                <span style={{ fontWeight: '600', color: '#253D4E' }}>{activeTax ? `${activeTax.name} (${activeTax.tax}%)` : 'Tax'} :</span>
+                                <span style={{ fontWeight: '600', color: '#253D4E' }}>Total Applicable GST :</span>
                                 <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>

@@ -47,7 +47,7 @@ router.get('/:slug', async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { slug: req.params.slug },
       include: {
-        category: true, brand: true, tax: true,
+        category: true, brand: true, tax: true, hsn: true,
         images: { orderBy: { sortOrder: 'asc' } },
         variants: true, benefits: true, features: true,
         reviews: { where: { status: 'active' }, include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } }

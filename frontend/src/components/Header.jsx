@@ -95,7 +95,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '90px', display: 'block' }} onError={(e) => e.target.src = '/assets/imgs/theme/logo.png'} /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '90px', display: 'block' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}

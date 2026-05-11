@@ -182,6 +182,7 @@ const BulkInvoice = () => {
                 // GST calculations for Invoice Table
                 const totalQty = order.items.reduce((acc, item) => acc + item.quantity, 0);
                 const totalOfferPrice = (order.items || []).reduce((sum, it) => sum + Number(it.total), 0);
+                const isMaharashtra = order.addressState && order.addressState.toLowerCase().includes('maharashtra');
 
                 return (
                     <div key={order.id} className={`label-container ${index < orders.length - 1 ? 'page-break' : ''}`} style={{ paddingBottom: '20px' }}>
@@ -333,39 +334,54 @@ const BulkInvoice = () => {
                                 <thead>
                                     <tr>
                                         <th>Product</th>
-                                        <th className="center" style={{ width: '40px' }}>Qty</th>
-                                        <th className="right" style={{ width: '80px' }}>Selling Price</th>
-                                        <th className="right" style={{ width: '90px' }}>Discount</th>
-                                        <th className="right" style={{ width: '80px' }}>Taxable Val</th>
-                                        <th className="center" style={{ width: '50px' }}>GST %</th>
-                                        <th className="right" style={{ width: '70px' }}>GST Amt</th>
-                                        <th className="right" style={{ width: '80px' }}>Total</th>
+                                        <th className="center" style={{ width: '50px' }}>HSN</th>
+                                        <th className="center" style={{ width: '30px' }}>Qty</th>
+                                        <th className="right" style={{ width: '60px' }}>Sell Price</th>
+                                        <th className="right" style={{ width: '60px' }}>Discount</th>
+                                        <th className="right" style={{ width: '60px' }}>Tax Val</th>
+                                        {isMaharashtra ? (
+                                            <>
+                                                <th className="right" style={{ width: '50px' }}>CGST</th>
+                                                <th className="right" style={{ width: '50px' }}>SGST</th>
+                                            </>
+                                        ) : (
+                                            <th className="right" style={{ width: '60px' }}>IGST</th>
+                                        )}
+                                        <th className="right" style={{ width: '60px' }}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(order.items || []).map((item, i) => {
-                                        const mrp = Number(item.price); // MRP
-                                        const offerPrice = Number(item.total) / item.quantity; // offer price per unit
-                                        const gstPercent = Number(order.taxRate) || 0;
+                                        const mrp = Number(item.price) || 0;
+                                        const itemTotal = Number(item.total) || 0;
+                                        const offerPrice = itemTotal / item.quantity;
+                                        const gstPercent = Number(item.taxRate) || 0;
                                         const itemCount = order.items.length;
 
-                                        // PD = product discount per unit (MRP - offerPrice)
-                                        const pdPerUnit = mrp - offerPrice;
-                                        // OD = order discount split (proportional if percentage, equal if flat)
+                                        const pdPerUnit = mrp > offerPrice ? mrp - offerPrice : 0;
                                         const orderDiscount = Number(order.discount) || 0;
                                         let odForLine = 0;
                                         if (orderDiscount > 0) {
                                             if (isPercentCoupon && totalOfferPrice > 0) {
-                                                odForLine = (Number(item.total) / totalOfferPrice) * orderDiscount;
+                                                odForLine = (itemTotal / totalOfferPrice) * orderDiscount;
                                             } else {
                                                 odForLine = orderDiscount / itemCount;
                                             }
                                         }
 
-                                        // User's math logic: calculate tax explicitly from the offer price
-                                        const gstAmt = (Number(item.total) * gstPercent) / 100;
-                                        const taxableVal = Number(item.total) - gstAmt;
-                                        const total = Number(item.total) - odForLine;
+                                        const gstAmt = itemTotal * (gstPercent / 100);
+                                        const taxableVal = itemTotal - gstAmt;
+                                        const lineTotal = itemTotal - odForLine;
+                                        
+                                        const hsn = item.hsnCode || '—';
+
+                                        let cgst = 0, sgst = 0, igst = 0;
+                                        if (isMaharashtra) {
+                                            cgst = gstAmt / 2;
+                                            sgst = gstAmt / 2;
+                                        } else {
+                                            igst = gstAmt;
+                                        }
 
                                         return (
                                             <tr key={i}>
@@ -375,6 +391,7 @@ const BulkInvoice = () => {
                                                     <div style={{ color: '#666', fontSize: '8px' }}>SKU: {item.productId}</div>
                                                     <div style={{ color: '#888', fontSize: '8px' }}>MRP: ₹{mrp.toFixed(2)}</div>
                                                 </td>
+                                                <td className="center" style={{ fontSize: '9px' }}>{hsn}</td>
                                                 <td className="center bold">{item.quantity}</td>
                                                 <td className="right">₹{offerPrice.toFixed(2)}</td>
                                                 <td className="right" style={{ fontSize: '9px' }}>
@@ -383,21 +400,27 @@ const BulkInvoice = () => {
                                                     {pdPerUnit === 0 && odForLine === 0 && '₹0.00'}
                                                 </td>
                                                 <td className="right">₹{taxableVal.toFixed(2)}</td>
-                                                <td className="center">{gstPercent}%</td>
-                                                <td className="right">₹{gstAmt.toFixed(2)}</td>
-                                                <td className="right bold">₹{total.toFixed(2)}</td>
+                                                {isMaharashtra ? (
+                                                    <>
+                                                        <td className="right">₹{cgst.toFixed(2)}<br /><span style={{ fontSize: '8px', color: '#666' }}>({gstPercent/2}%)</span></td>
+                                                        <td className="right">₹{sgst.toFixed(2)}<br /><span style={{ fontSize: '8px', color: '#666' }}>({gstPercent/2}%)</span></td>
+                                                    </>
+                                                ) : (
+                                                    <td className="right">₹{igst.toFixed(2)}<br /><span style={{ fontSize: '8px', color: '#666' }}>({gstPercent}%)</span></td>
+                                                )}
+                                                <td className="right bold">₹{lineTotal.toFixed(2)}</td>
                                             </tr>
                                         );
                                     })}
                                     {/* Shipping Row */}
                                     <tr>
-                                        <td colSpan="7" className="right bold" style={{ padding: '8px 4px' }}>Shipping & Charges</td>
+                                        <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px' }}>Shipping & Charges</td>
                                         <td className="right bold" style={{ padding: '8px 4px' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                     </tr>
                                     {/* Footer Row */}
                                     <tr>
-                                        <td colSpan="2" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {totalQty}</td>
-                                        <td colSpan="5" className="right bold" style={{ padding: '8px 4px' }}>GRAND TOTAL:</td>
+                                        <td colSpan="3" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {totalQty}</td>
+                                        <td colSpan={isMaharashtra ? "5" : "4"} className="right bold" style={{ padding: '8px 4px' }}>GRAND TOTAL:</td>
                                         <td className="right bold" style={{ fontSize: '12px', padding: '8px 4px' }}>₹{Number(order.total).toFixed(2)}</td>
                                     </tr>
                                 </tbody>

@@ -127,6 +127,8 @@ const Invoice = () => {
     const thStyle = { padding: '10px 12px', fontSize: '13px', fontWeight: '700', background: '#e0e0e0', border: '1px solid #ccc', textAlign: 'center' };
     const tdStyle = { padding: '10px 12px', fontSize: '13px', border: '1px solid #ccc', textAlign: 'center' };
 
+    const isMaharashtra = order.addressState && order.addressState.toLowerCase().includes('maharashtra');
+
     return (
         <>
             {/* Download Button Bar - hidden in PDF */}
@@ -194,7 +196,11 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Brand', 'Unit', 'MRP', 'Selling Price', 'Discount', 'Taxable Val', 'GST', 'Qty', 'Total'].map(h => (
+                        {['#', 'Product', 'HSN', 'Unit', 'MRP', 'Selling Price', 'Discount', 'Taxable Val', 
+                          isMaharashtra ? 'CGST' : 'IGST', 
+                          isMaharashtra ? 'SGST' : null, 
+                          'Qty', 'Total'
+                        ].filter(Boolean).map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
                     </tr>
@@ -204,22 +210,39 @@ const Invoice = () => {
                         const isPercentCoupon = order.coupon && order.coupon.amountType === 'percent';
                         const totalOfferPrice = (order.items || []).reduce((sum, it) => sum + Number(it.total), 0);
                         const totalQty = (order.items || []).reduce((sum, it) => sum + it.quantity, 0);
+                        const itemCount = order.items.length;
 
                         // Calculations
-                        const pdPerUnit = mrp - offerPrice;
+                        const mrp = Number(item.price) || 0;
+                        const itemTotal = Number(item.total) || 0;
+                        const offerPrice = itemTotal / item.quantity;
+                        const pdPerUnit = mrp > offerPrice ? mrp - offerPrice : 0;
+                        
                         const orderDiscount = Number(order.discount) || 0;
                         let odForLine = 0;
                         if (orderDiscount > 0) {
                             if (isPercentCoupon && totalOfferPrice > 0) {
-                                odForLine = (Number(item.total) / totalOfferPrice) * orderDiscount;
+                                odForLine = (itemTotal / totalOfferPrice) * orderDiscount;
                             } else {
                                 odForLine = orderDiscount / itemCount;
                             }
                         }
 
-                        const gstAmt = (Number(item.total) * gstPercent) / 100;
-                        const taxableVal = Number(item.total) - gstAmt;
-                        const lineTotal = Number(item.total) - odForLine;
+                        // Tax calculation (stored on item)
+                        const gstPercent = Number(item.taxRate) || 0;
+                        const gstAmt = itemTotal * (gstPercent / 100);
+                        const taxableVal = itemTotal - gstAmt;
+                        const lineTotal = itemTotal - odForLine;
+                        
+                        const hsn = item.hsnCode || '—';
+
+                        let cgst = 0, sgst = 0, igst = 0;
+                        if (isMaharashtra) {
+                            cgst = gstAmt / 2;
+                            sgst = gstAmt / 2;
+                        } else {
+                            igst = gstAmt;
+                        }
 
                         return (
                             <React.Fragment key={item.id}>
@@ -229,7 +252,7 @@ const Invoice = () => {
                                         <div>{item.name}</div>
                                         <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>SKU: {item.productId}</div>
                                     </td>
-                                    <td style={tdStyle}>{item.product?.brand?.name || '—'}</td>
+                                    <td style={tdStyle}>{hsn}</td>
                                     <td style={tdStyle}>{item.variant || '1 Unit'}</td>
                                     <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
                                     <td style={tdStyle}>₹{offerPrice.toFixed(0)}</td>
@@ -239,19 +262,26 @@ const Invoice = () => {
                                         {pdPerUnit === 0 && odForLine === 0 && '—'}
                                     </td>
                                     <td style={tdStyle}>₹{taxableVal.toFixed(2)}</td>
-                                    <td style={tdStyle}>₹{gstAmt.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
+                                    {isMaharashtra ? (
+                                        <>
+                                            <td style={tdStyle}>₹{cgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
+                                            <td style={tdStyle}>₹{sgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
+                                        </>
+                                    ) : (
+                                        <td style={tdStyle}>₹{igst.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
+                                    )}
                                     <td style={tdStyle}>{item.quantity}</td>
                                     <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(0)}</td>
                                 </tr>
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan="10" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
+                                            <td colSpan={isMaharashtra ? "10" : "9"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
                                             <td colSpan="4" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
-                                            <td colSpan="6" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
                                         </tr>
                                     </>

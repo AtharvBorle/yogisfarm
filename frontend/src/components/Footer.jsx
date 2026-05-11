@@ -23,7 +23,7 @@ const Footer = () => {
                     {/* Column 1: Logo & Mission */}
                     <div className="col-lg-3 col-md-6 mb-4">
                         <div className="logo mb-20">
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '150px' }} onError={(e) => e.target.src = '/assets/imgs/theme/logo.png'} /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '150px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
                         </div>
                         <p style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
                             Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.

@@ -22,7 +22,7 @@ const About = () => {
                     {/* Welcome Section */}
                     <div className="row align-items-center mb-50">
                         <div className="col-lg-6 mb-lg-0 mb-4">
-                            <img src="/assets/imgs/page/about-1.png" alt="About Yogi's Farm" style={{ width: '100%', borderRadius: '15px' }} onError={(e) => e.target.src='/assets/imgs/theme/logo.png'} />
+                            <img src="/assets/imgs/page/about-1.png" alt="About Yogi's Farm" style={{ width: '100%', borderRadius: '15px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/theme/logo.png'; }} />
                         </div>
                         <div className="col-lg-6">
                             <div className="pl-25">

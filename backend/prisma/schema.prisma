@@ -101,6 +101,7 @@ model Product {
   categoryId       Int?     @map("category_id")
   brandId          Int?     @map("brand_id")
   taxId            Int?     @map("tax_id")
+  hsnId            Int?     @map("hsn_id")
   image            String?  @db.VarChar(500)
   hoverImage       String?  @map("hover_image") @db.VarChar(500)
   video            String?  @db.VarChar(500)
@@ -115,6 +116,7 @@ model Product {
   category      Category?       @relation(fields: [categoryId], references: [id])
   brand         Brand?          @relation(fields: [brandId], references: [id])
   tax           Tax?            @relation(fields: [taxId], references: [id])
+  hsn           Hsn?            @relation(fields: [hsnId], references: [id])
   images        ProductImage[]
   variants      ProductVariant[]
   benefits      ProductBenefit[]
@@ -279,6 +281,8 @@ model OrderItem {
   price     Decimal @db.Decimal(10, 2)
   discount  Decimal @default(0) @db.Decimal(10, 2)
   gst       Decimal @default(0) @db.Decimal(10, 2)
+  taxRate   Decimal @default(0) @map("tax_rate") @db.Decimal(5, 2)
+  hsnCode   String? @map("hsn_code") @db.VarChar(50)
   quantity  Int     @default(1)
   total     Decimal @db.Decimal(10, 2)
 
@@ -397,6 +401,19 @@ model Tax {
   products Product[]
 
   @@map("taxes")
+}
+
+// ─── HSN ───
+model Hsn {
+  id        Int      @id @default(autoincrement())
+  hsnCode   String   @unique @map("hsn_code") @db.VarChar(50)
+  keywords  String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products  Product[]
+
+  @@map("hsns")
 }
 
 // ─── Contact Submissions ───

@@ -159,8 +159,8 @@ const Home = () => {
                         <div style={{ display: 'flex', alignItems: 'stretch', gap: '14px', width: '100%' }}>
                             {/* Left Banners — Figma: 173x173 stacked, gap ~15px */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src="/src/assets/figma/img_13.png" alt="Left Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => e.target.src='/assets/imgs/banner/banner-1.png'} />
-                                <img src="/src/assets/figma/img_14.png" alt="Left Promo 2" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => e.target.src='/assets/imgs/banner/banner-2.png'} />
+                                <img src="/src/assets/figma/img_13.png" alt="Left Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} />
+                                <img src="/src/assets/figma/img_14.png" alt="Left Promo 2" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} />
                             </div>
 
                             {/* Main Slider — Figma: 992x361 */}
@@ -182,9 +182,9 @@ const Home = () => {
 
                             {/* Right Banners — Figma: 173x173 stacked */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src="/src/assets/figma/img_15.png" alt="Right Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => e.target.src='/assets/imgs/banner/banner-3.png'} />
+                                <img src="/src/assets/figma/img_15.png" alt="Right Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} />
                                 <div className="position-relative">
-                                    <img src="/src/assets/figma/img_16.png" alt="Right Promo 2 Video" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => e.target.src='/assets/imgs/banner/banner-4.png'} />
+                                    <img src="/src/assets/figma/img_16.png" alt="Right Promo 2 Video" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} />
                                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '35px', height: '35px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor"/></svg>
                                     </div>
@@ -334,7 +334,7 @@ const Home = () => {
                             <img 
                                 src="/src/assets/figma/img_18.png" 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '350px' }} 
-                                onError={(e) => e.target.src='/assets/imgs/banner/banner-1.png'} 
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} 
                                 alt="Best Deal 1"
                             />
                         </div>
@@ -342,7 +342,7 @@ const Home = () => {
                             <img 
                                 src="/src/assets/figma/img_19.png" 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '350px' }} 
-                                onError={(e) => e.target.src='/assets/imgs/banner/banner-2.png'} 
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} 
                                 alt="Best Deal 2"
                             />
                         </div>
@@ -355,7 +355,7 @@ const Home = () => {
                             <img 
                                 src="/src/assets/figma/img_21.png" 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => e.target.src='/assets/imgs/banner/banner-4.png'} 
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} 
                                 alt="Ad Left"
                             />
                         </div>
@@ -365,7 +365,7 @@ const Home = () => {
                             <img 
                                 src="/src/assets/figma/img_20.png" 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => e.target.src='/assets/imgs/banner/banner-3.png'} 
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} 
                                 alt="Video Banner"
                             />
                             {/* Video Play Button Overlay */}
@@ -397,7 +397,7 @@ const Home = () => {
                             <img 
                                 src="/src/assets/figma/img_22.png" 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => e.target.src='/assets/imgs/banner/banner-5.png'} 
+                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-5.png'; }} 
                                 alt="Ad Right"
                             />
                         </div>
@@ -465,7 +465,7 @@ const Home = () => {
                     <div className="row justify-content-center mb-4">
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src="/src/assets/figma/img_21.png" alt="Challenge 1" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => e.target.src='/assets/imgs/banner/banner-1.png'} />
+                                <img src="/src/assets/figma/img_21.png" alt="Challenge 1" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -473,7 +473,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src="/src/assets/figma/img_22.png" alt="Challenge 2" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => e.target.src='/assets/imgs/banner/banner-2.png'} />
+                                <img src="/src/assets/figma/img_22.png" alt="Challenge 2" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -481,7 +481,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src="/src/assets/figma/img_23.png" alt="Challenge 3" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => e.target.src='/assets/imgs/banner/banner-3.png'} />
+                                <img src="/src/assets/figma/img_23.png" alt="Challenge 3" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -489,7 +489,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src="/src/assets/figma/img_24.png" alt="Challenge 4" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => e.target.src='/assets/imgs/banner/banner-4.png'} />
+                                <img src="/src/assets/figma/img_24.png" alt="Challenge 4" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>

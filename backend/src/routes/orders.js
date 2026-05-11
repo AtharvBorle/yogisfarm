@@ -70,16 +70,14 @@ router.post('/place', requireLogin, async (req, res) => {
     if (!address) return res.json({ status: false, message: 'Address not found' });
 
     const cartItems = await prisma.cart.findMany({
-      where: { userId }, include: { product: { include: { brand: true } }, variant: true }
+      where: { userId }, include: { product: { include: { brand: true, tax: true, hsn: true } }, variant: true }
     });
     if (!cartItems.length) return res.json({ status: false, message: 'Cart is empty' });
 
-    // Fetch global tax rate from admin Tax section
-    const globalTax = await prisma.tax.findFirst({ where: { status: 'active' } });
-    const globalTaxRate = globalTax ? parseFloat(globalTax.tax) : 0;
-
-    // GST-INCLUSIVE pricing: offer prices already include GST
+    // GST-INCLUSIVE pricing: offer prices already include GST, calculating base price as Total - GST
     let offerPriceSum = 0;
+    let totalTaxAmount = 0;
+    
     const orderItems = cartItems.map(item => {
       const offerPrice = item.variant
         ? parseFloat(item.variant.salePrice || item.variant.price)
@@ -87,11 +85,18 @@ router.post('/place', requireLogin, async (req, res) => {
       const originalPrice = item.variant
         ? parseFloat(item.variant.price)
         : parseFloat(item.product.price);
+        
       const itemTotal = offerPrice * item.quantity;
       const productDiscount = (originalPrice - offerPrice) * item.quantity;
-      // Per-item GST extracted from inclusive price
-      const itemGst = (itemTotal * globalTaxRate) / 100;
+      
+      const itemTaxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
+      const itemHsnCode = item.product.hsn ? item.product.hsn.hsnCode : null;
+      
+      const itemGst = itemTotal * (itemTaxRate / 100);
+      
       offerPriceSum += itemTotal;
+      totalTaxAmount += itemGst;
+      
       return {
         productId: item.productId,
         name: item.product.name,
@@ -100,15 +105,14 @@ router.post('/place', requireLogin, async (req, res) => {
         price: originalPrice,
         discount: productDiscount,
         gst: itemGst,
+        taxRate: itemTaxRate,
+        hsnCode: itemHsnCode,
         quantity: item.quantity,
         total: itemTotal
       };
     });
 
-    // Extract GST from inclusive offer price sum
-    // GST portion = offerPriceSum * taxRate / 100
-    // subtotal (base) = offerPriceSum - GST portion
-    const totalTaxOriginal = (offerPriceSum * globalTaxRate) / 100;
+    const totalTaxOriginal = totalTaxAmount;
     let subtotal = offerPriceSum - totalTaxOriginal;
 
     let discountAmount = 0;
@@ -159,7 +163,7 @@ router.post('/place', requireLogin, async (req, res) => {
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
         subtotal, shipping, discount: discountAmount, tax: totalTax,
-        taxName: globalTax ? globalTax.name : null, taxRate: globalTaxRate,
+        taxName: 'GST', taxRate: null,
         total, couponCode: couponCode || null, orderNote: orderNote || null,
         appliedCouponId,
         orderItems,
@@ -191,7 +195,7 @@ router.post('/place', requireLogin, async (req, res) => {
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
         subtotal, shipping, discount: discountAmount, tax: totalTax, 
-        taxName: globalTax ? globalTax.name : null, taxRate: globalTaxRate,
+        taxName: 'GST', taxRate: null,
         total, couponCode: couponCode || null, orderNote: orderNote || null,
         paymentMethod: 'cod',
         orderStatus: 'placed',

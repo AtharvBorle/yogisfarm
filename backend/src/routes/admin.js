@@ -420,7 +420,7 @@ router.put('/brands/order/update', requireAdmin, async (req, res) => {
 // ─── Products CRUD ───
 router.get('/products', requireAdmin, async (req, res) => {
   const products = await prisma.product.findMany({
-    include: { category: true, brand: true, images: true, variants: true, benefits: true, features: true },
+    include: { category: true, brand: true, tax: true, hsn: true, images: true, variants: true, benefits: true, features: true },
     orderBy: { createdAt: 'desc' }
   });
   res.json({ status: true, products });
@@ -440,13 +440,14 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
+        hsnId: req.body.hsnId ? parseInt(req.body.hsnId) : null,
         status: status || 'active',
         featured: featured === 'true', popular: popular === 'true', deal: deal === 'true',
         ...(variants ? { variants: { create: JSON.parse(variants) } } : {}),
         ...(benefits ? { benefits: { create: JSON.parse(benefits) } } : {}),
         ...(features ? { features: { create: JSON.parse(features) } } : {})
       },
-      include: { category: true, brand: true, variants: true, images: true }
+      include: { category: true, brand: true, tax: true, hsn: true, variants: true, images: true }
     });
     await logAdminAction(req.session.adminId, 'Created Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product created', product });
@@ -466,6 +467,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
+      hsnId: req.body.hsnId ? parseInt(req.body.hsnId) : null,
       status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
@@ -476,7 +478,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
     if (benefits) data.benefits = { deleteMany: {}, create: JSON.parse(benefits) };
     if (features) data.features = { deleteMany: {}, create: JSON.parse(features) };
 
-    const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true } });
+    const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true, tax: true, hsn: true } });
     await logAdminAction(req.session.adminId, 'Updated Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product updated', product });
   } catch (e) {
