@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -82,6 +82,7 @@ function App() {
           <Route path="/invoice" element={<Invoice />} />
           
           {/* Delivery Portal Routes */}
+          <Route path="/delivery" element={<Navigate to="/delivery/login" />} />
           <Route path="/delivery/login" element={<DeliveryLogin />} />
           <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
           <Route path="/delivery/order/:id" element={<DeliveryOrderDetails />} />
