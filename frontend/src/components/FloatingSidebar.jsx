@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 
+import whatsappIcon from '../assets/figma/image_find/whatsapp.svg';
+import arrowIcon from '../assets/figma/image_find/arrow.svg';
+
 const FloatingSidebar = () => {
     const { cartCount } = useCart();
     const { wishlist } = useWishlist();
@@ -79,7 +82,7 @@ const FloatingSidebar = () => {
 
             {/* WhatsApp */}
             <a href="https://wa.me/919119501177" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
-                <img src="/src/assets/figma/image_find/whatsapp.svg" alt="WhatsApp" style={{ width: '28px', height: '28px' }} />
+                <img src={whatsappIcon} alt="WhatsApp" style={{ width: '28px', height: '28px' }} />
             </a>
 
             {/* Scroll to Top Arrow */}
@@ -94,7 +97,7 @@ const FloatingSidebar = () => {
                     marginTop: '5px'
                 }}
             >
-                <img src="/src/assets/figma/image_find/arrow.svg" alt="Scroll to Top" style={{ width: '20px', height: '20px' }} />
+                <img src={arrowIcon} alt="Scroll to Top" style={{ width: '20px', height: '20px' }} />
             </button>
         </div>
     );
