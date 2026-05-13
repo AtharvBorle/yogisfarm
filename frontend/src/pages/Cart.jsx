@@ -1,14 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
 import { getAssetUrl } from '../api';
+import api from '../api';
 
 const Cart = () => {
     const { cartItems, cartTotal, updateQuantity, removeFromCart } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    const [shippingCharge, setShippingCharge] = useState(0);
+    const [shippingThreshold, setShippingThreshold] = useState(0);
+    const [shippingLoaded, setShippingLoaded] = useState(false);
+
+    useEffect(() => {
+        const fetchShipping = async () => {
+            try {
+                const res = await api.get('/shipping');
+                if (res.data.status && res.data.shipping?.length > 0) {
+                    const active = res.data.shipping[0];
+                    setShippingCharge(parseFloat(active.charge));
+                    setShippingThreshold(parseFloat(active.minCartValue));
+                }
+            } catch (err) { console.error(err); }
+            finally { setShippingLoaded(true); }
+        };
+        fetchShipping();
+    }, []);
+
+    const shipping = (shippingThreshold > 0 && cartTotal >= shippingThreshold) ? 0 : shippingCharge;
 
     const handleCheckout = () => {
         if (user) {
@@ -107,11 +129,11 @@ const Cart = () => {
                                             </tr>
                                             <tr>
                                                 <td className="cart_total_label"><h6 className="text-muted">Shipping</h6></td>
-                                                <td className="cart_total_amount"><h5 className="text-heading text-end">{cartTotal >= 500 ? 'Free' : '₹50'}</h5></td>
+                                                <td className="cart_total_amount"><h5 className="text-heading text-end">{shippingLoaded ? (shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`) : '...'}</h5></td>
                                             </tr>
                                             <tr>
                                                 <td className="cart_total_label"><h6 className="text-muted">Total</h6></td>
-                                                <td className="cart_total_amount"><h4 className="text-brand text-end">₹{(cartTotal >= 500 ? cartTotal : cartTotal + 50).toFixed(2)}</h4></td>
+                                                <td className="cart_total_amount"><h4 className="text-brand text-end">₹{(cartTotal + shipping).toFixed(2)}</h4></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -127,3 +149,4 @@ const Cart = () => {
 };
 
 export default Cart;
+

@@ -32,7 +32,7 @@ const FeatureBanners = () => {
                 {/* Banner Image */}
                 <div className="row mb-40">
                     <div className="col-12 position-relative text-center">
-                        <img src={img25} alt="Tea Garden" style={{ width: '100%', height: '350px', objectFit: 'cover', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-5.png'; }} />
+                        <img src={img25} alt="Tea Garden" style={{ width: '100%', height: '350px', objectFit: 'cover', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} />
                     </div>
                 </div>
 
@@ -187,7 +187,7 @@ const FeatureBanners = () => {
                     {[1, 2, 3, 4, 1, 2, 3, 4].map((item, i) => (
                         <div key={`bottom-${i}`} style={{ minWidth: '320px', maxWidth: '320px', background: '#fff', borderRadius: '15px', padding: '20px', display: 'flex', flexDirection: 'column', whiteSpace: 'normal', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
                             <div className="d-flex align-items-center mb-2">
-                                <img src={img25} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #0A6738', marginRight: '12px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/icons/user.png'; e.currentTarget.style.border = 'none'; }} />
+                                <img src={img25} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #0A6738', marginRight: '12px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons.svg#icon-user'; e.currentTarget.style.border = 'none'; }} />
                                 <h6 style={{ margin: 0, fontFamily: 'Poppins, sans-serif', fontSize: '15px', fontWeight: 600, color: '#000' }}>
                                     Avishkar Mandlik
                                 </h6>

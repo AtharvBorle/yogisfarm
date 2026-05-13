@@ -196,10 +196,10 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'HSN', 'Unit', 'MRP', 'Selling Price', 'Discount', 'Taxable Val', 
+                        {['#', 'Product', 'Unit', 'MRP', 'Selling Price', 'Discount', 'Taxable Val', 
                           isMaharashtra ? 'CGST' : 'IGST', 
                           isMaharashtra ? 'SGST' : null, 
-                          'Qty', 'Total'
+                          'Total'
                         ].filter(Boolean).map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
@@ -250,10 +250,9 @@ const Invoice = () => {
                                     <td style={tdStyle}>{i + 1}</td>
                                     <td style={{ ...tdStyle, textAlign: 'left' }}>
                                         <div>{item.name}</div>
-                                        <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>SKU: {item.productId}</div>
+                                        {hsn !== '—' && <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>HSN: {hsn}</div>}
                                     </td>
-                                    <td style={tdStyle}>{hsn}</td>
-                                    <td style={tdStyle}>{item.variant || '1 Unit'}</td>
+                                    <td style={tdStyle}>{item.variant || '1 Unit'} ×{item.quantity}</td>
                                     <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
                                     <td style={tdStyle}>₹{offerPrice.toFixed(0)}</td>
                                     <td style={{ ...tdStyle, fontSize: '11px' }}>
@@ -270,18 +269,17 @@ const Invoice = () => {
                                     ) : (
                                         <td style={tdStyle}>₹{igst.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
                                     )}
-                                    <td style={tdStyle}>{item.quantity}</td>
                                     <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(0)}</td>
                                 </tr>
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan={isMaharashtra ? "10" : "9"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
+                                            <td colSpan={isMaharashtra ? "8" : "7"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
-                                            <td colSpan="4" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
-                                            <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
+                                            <td colSpan={isMaharashtra ? "5" : "4"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
                                         </tr>
                                     </>
