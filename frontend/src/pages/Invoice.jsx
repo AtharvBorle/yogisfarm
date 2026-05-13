@@ -53,11 +53,11 @@ const Invoice = () => {
             setTimeout(() => {
                 const element = document.getElementById('invoice-content');
                 const opt = {
-                    margin:       0.5,
+                    margin:       0.3,
                     filename:     `Invoice_${order.orderNumber}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     setTimeout(() => {
@@ -82,11 +82,11 @@ const Invoice = () => {
         setDownloading(true);
         const element = document.getElementById('invoice-content');
         const opt = {
-            margin:       0.5,
+            margin:       0.3,
             filename:     `Invoice_${order.orderNumber}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
         html2pdf().set(opt).from(element).save().then(() => {
             setDownloading(false);
@@ -274,12 +274,12 @@ const Invoice = () => {
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan={isMaharashtra ? "8" : "7"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
+                                            <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
                                             <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
-                                            <td colSpan={isMaharashtra ? "5" : "4"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
                                         </tr>
                                     </>
