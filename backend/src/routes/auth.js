@@ -5,6 +5,10 @@ const { requireLogin } = require('../middleware/auth');
 const crypto = require('crypto');
 const { sendOtpSMS } = require('../utils/sms');
 
+// Razorpay test user — fixed OTP, no SMS
+const TEST_PHONE = '1234567890';
+const TEST_OTP = '123456';
+
 // Send OTP
 router.post('/send-otp', async (req, res) => {
   try {
@@ -12,11 +16,16 @@ router.post('/send-otp', async (req, res) => {
     if (!phone || !/^\d{10}$/.test(phone.toString())) {
       return res.json({ status: false, message: 'Phone number must be exactly 10 digits' });
     }
-    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    const isTestUser = phone.toString() === TEST_PHONE;
+    const otp = isTestUser ? TEST_OTP
+              : process.env.DEMO_MODE === 'true' ? '123456'
+              : String(crypto.randomInt(100000, 999999));
     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
-    // Send OTP via Way2Smart SMS
-    sendOtpSMS(phone, otp);
+    // Send OTP via Way2Smart SMS (skip for test user)
+    if (!isTestUser) {
+      sendOtpSMS(phone, otp);
+    }
 
     let user = await prisma.user.findUnique({ where: { phone } });
     if (user) {
@@ -83,9 +92,14 @@ router.post('/submit-details', requireLogin, async (req, res) => {
 router.post('/resend-otp', async (req, res) => {
   try {
     const { phone } = req.body;
-    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
-    // Resend OTP via Way2Smart SMS
-    sendOtpSMS(phone, otp);
+    const isTestUser = phone.toString() === TEST_PHONE;
+    const otp = isTestUser ? TEST_OTP
+              : process.env.DEMO_MODE === 'true' ? '123456'
+              : String(crypto.randomInt(100000, 999999));
+    // Resend OTP via Way2Smart SMS (skip for test user)
+    if (!isTestUser) {
+      sendOtpSMS(phone, otp);
+    }
     await prisma.user.update({ where: { phone }, data: { otp, otpExpiry: new Date(Date.now() + 5 * 60 * 1000) } });
     res.json({ status: true, message: 'OTP resent' });
   } catch (e) {
