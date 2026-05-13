@@ -2,12 +2,21 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+// Import assets
+import footerBg from '../assets/footer.png';
+import instagramIcon from '../assets/figma/image_find/instagram.svg';
+import facebookIcon from '../assets/figma/image_find/facebook.svg';
+import youtubeIcon from '../assets/figma/image_find/youtube.svg';
+import locationIcon from '../assets/figma/image_find/location.svg';
+import callIcon from '../assets/figma/image_find/call.svg';
+import mailIcon from '../assets/figma/image_find/mail.svg';
+
 const Footer = () => {
     const { user } = useAuth();
     
     return (
         <footer style={{ 
-            backgroundImage: `url(/src/assets/footer.png)`, 
+            backgroundImage: `url(${footerBg})`, 
             backgroundSize: '100% 100%', 
             backgroundPosition: 'top center', 
             backgroundRepeat: 'no-repeat',
@@ -30,13 +39,13 @@ const Footer = () => {
                         </p>
                         <div className="social-icons" style={{ display: 'flex', gap: '15px' }}>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src="/src/assets/figma/image_find/instagram.svg" alt="Instagram" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                                <img src={instagramIcon} alt="Instagram" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src="/src/assets/figma/image_find/facebook.svg" alt="Facebook" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                                <img src={facebookIcon} alt="Facebook" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <img src="/src/assets/figma/image_find/youtube.svg" alt="YouTube" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
+                                <img src={youtubeIcon} alt="YouTube" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
                         </div>
                     </div>
@@ -79,15 +88,15 @@ const Footer = () => {
                         <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
-                                <img src="/src/assets/figma/image_find/location.svg" alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
+                                <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
                                 <span><strong>Yogi's farms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
                             </li>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
-                                <img src="/src/assets/figma/image_find/call.svg" alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
+                                <img src={callIcon} alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
                                 <a href="tel:+919119501177" style={{ color: '#000' }}>+91 9119501177</a>
                             </li>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
-                                <img src="/src/assets/figma/image_find/mail.svg" alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
+                                <img src={mailIcon} alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
                                 <a href="mailto:info@yogisfarms.in" style={{ color: '#000' }}>info@yogisfarms.in</a>
                             </li>
                         </ul>
