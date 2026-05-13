@@ -3,6 +3,8 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const multerS3 = require('multer-s3');
+const { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
@@ -10,19 +12,47 @@ const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
 const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
 
-// Multer config — supports subfolder uploads via uploadPath field
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const subdir = req.body.uploadPath || req.query.uploadPath || '';
-    const dir = path.join(__dirname, '..', '..', 'uploads', subdir);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+let upload;
+let s3;
+
+if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
+  s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+  });
+
+  upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_S3_BUCKET_NAME,
+      metadata: function (req, file, cb) {
+        cb(null, { fieldName: file.fieldname });
+      },
+      key: function (req, file, cb) {
+        const subdir = req.body.uploadPath || req.query.uploadPath || '';
+        const dirPath = subdir ? `uploads/${subdir}/` : 'uploads/';
+        cb(null, dirPath + Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+      }
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }
+  });
+} else {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const subdir = req.body.uploadPath || req.query.uploadPath || '';
+      const dir = path.join(__dirname, '..', '..', 'uploads', subdir);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+    }
+  });
+  upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+}
 
 // ─── Admin Auth ───
 router.post('/login', async (req, res) => {
@@ -125,7 +155,7 @@ router.put('/profile', requireAdmin, async (req, res) => {
 router.post('/profile/image', requireAdmin, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) return res.json({ status: false, message: 'No image provided' });
-        const image = '/uploads/' + req.file.filename;
+        const image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
         await prisma.admin.update({
             where: { id: req.session.adminId },
             data: { image }
@@ -285,7 +315,7 @@ router.get('/sliders', requireAdmin, async (req, res) => {
 router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || '');
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const slider = await prisma.slider.create({ data: { name, image, status: status || 'active', type: type || 'web', position: position || 'main', linkType, link } });
     res.json({ status: true, message: 'Slider created', slider });
   } catch (e) {
@@ -297,7 +327,7 @@ router.put('/sliders/:id', requireAdmin, upload.single('image'), async (req, res
   try {
     const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
     const data = { name, status, type, position, linkType, link };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const slider = await prisma.slider.update({ where: { id: parseInt(req.params.id) }, data });
     res.json({ status: true, message: 'Slider updated', slider });
@@ -333,7 +363,7 @@ router.post('/categories', requireAdmin, upload.single('image'), async (req, res
   try {
     const { name, status, parentId, featured, image: bodyImage } = req.body;
     const slug = slugify(name, { lower: true, strict: true });
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
     const category = await prisma.category.create({
       data: { name, slug, image, status: status || 'active', parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' }
     });
@@ -349,7 +379,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
     const { name, status, parentId, featured, image: bodyImage } = req.body;
     const data = { name, status, parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' };
     if (name) data.slug = slugify(name, { lower: true, strict: true });
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const category = await prisma.category.update({ where: { id: parseInt(req.params.id) }, data });
     await logAdminAction(req.session.adminId, 'Updated Category', `Name: ${category.name}`);
@@ -375,7 +405,7 @@ router.post('/brands', requireAdmin, upload.single('image'), async (req, res) =>
   try {
     const { name, status, image: bodyImage } = req.body;
     const slug = slugify(name, { lower: true, strict: true });
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
     const brand = await prisma.brand.create({ data: { name, slug, image, status: status || 'active' } });
     await logAdminAction(req.session.adminId, 'Created Brand', `Name: ${name}`);
     res.json({ status: true, message: 'Brand created', brand });
@@ -389,7 +419,7 @@ router.put('/brands/:id', requireAdmin, upload.single('image'), async (req, res)
     const { name, status, showHome, image: bodyImage } = req.body;
     const data = { name, status, showHome: showHome === 'true' };
     if (name) data.slug = slugify(name, { lower: true, strict: true });
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const brand = await prisma.brand.update({ where: { id: parseInt(req.params.id) }, data });
     await logAdminAction(req.session.adminId, 'Updated Brand', `Name: ${brand.name}`);
@@ -432,7 +462,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const slug = slugify(name, { lower: true, strict: true }) + '-' + Date.now();
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
 
     const product = await prisma.product.create({
       data: {
@@ -471,7 +501,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
       status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
 
     if (variants) data.variants = { deleteMany: {}, create: JSON.parse(variants) };
@@ -511,7 +541,7 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
     let imageData = [];
     // Support file uploads
     if (req.files && req.files.length > 0) {
-      imageData = req.files.map((f, i) => ({ productId, image: '/uploads/' + f.filename, sortOrder: i }));
+      imageData = req.files.map((f, i) => ({ productId, image: (f.key ? '/' + f.key : '/uploads/' + f.filename), sortOrder: i }));
     }
     // Support Filemanager paths sent as JSON array
     if (req.body.images && Array.isArray(req.body.images)) {
@@ -1090,7 +1120,7 @@ router.get('/coupons', requireAdmin, async (req, res) => {
 router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, expireOn } = req.body;
-    const image = req.file ? '/uploads/' + req.file.filename : null;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : null;
     const coupon = await prisma.coupon.create({
       data: { name, code, image, status: status || 'active', amountType: amountType || 'percent',
         amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
@@ -1115,7 +1145,7 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
       maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
       usageLimit: usageLimit ? parseInt(usageLimit) : null,
       description, expireOn: expireOn ? new Date(expireOn) : null };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
     const expiryStr = coupon.expireOn ? new Date(coupon.expireOn).toLocaleDateString() : 'Never';
     const amountStr = coupon.amountType === 'percent' ? `${coupon.amount}%` : `₹${coupon.amount}`;
@@ -1188,19 +1218,41 @@ router.delete('/sections/:id', requireAdmin, async (req, res) => {
 // ─── File Manager ───
 router.get('/files', requireAdmin, async (req, res) => {
   try {
-    const dir = path.join(__dirname, '..', '..', 'uploads');
     const subdir = req.query.path || '';
-    const fullPath = path.join(dir, subdir);
-    if (!fs.existsSync(fullPath)) return res.json({ status: true, files: [], folders: [], currentPath: subdir });
+    if (s3) {
+      const prefix = subdir ? `uploads/${subdir}/` : 'uploads/';
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Prefix: prefix,
+        Delimiter: '/'
+      });
+      const data = await s3.send(command);
+      
+      const folders = (data.CommonPrefixes || []).map(p => {
+        const parts = p.Prefix.split('/');
+        return parts[parts.length - 2];
+      });
+      
+      const files = (data.Contents || []).filter(e => e.Key !== prefix).map(e => ({
+        name: e.Key.split('/').pop(),
+        path: '/' + e.Key,
+        size: e.Size
+      }));
+      res.json({ status: true, files, folders, currentPath: subdir });
+    } else {
+      const dir = path.join(__dirname, '..', '..', 'uploads');
+      const fullPath = path.join(dir, subdir);
+      if (!fs.existsSync(fullPath)) return res.json({ status: true, files: [], folders: [], currentPath: subdir });
 
-    const entries = fs.readdirSync(fullPath, { withFileTypes: true });
-    const folders = entries.filter(e => e.isDirectory()).map(e => e.name);
-    const files = entries.filter(e => e.isFile()).map(e => ({
-      name: e.name,
-      path: '/uploads/' + (subdir ? subdir + '/' : '') + e.name,
-      size: fs.statSync(path.join(fullPath, e.name)).size
-    }));
-    res.json({ status: true, files, folders, currentPath: subdir });
+      const entries = fs.readdirSync(fullPath, { withFileTypes: true });
+      const folders = entries.filter(e => e.isDirectory()).map(e => e.name);
+      const files = entries.filter(e => e.isFile()).map(e => ({
+        name: e.name,
+        path: '/uploads/' + (subdir ? subdir + '/' : '') + e.name,
+        size: fs.statSync(path.join(fullPath, e.name)).size
+      }));
+      res.json({ status: true, files, folders, currentPath: subdir });
+    }
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -1210,8 +1262,8 @@ router.post('/files/upload', requireAdmin, upload.array('files', 20), async (req
   try {
     const subdir = req.body.uploadPath || '';
     const files = req.files.map(f => ({
-      name: f.filename,
-      path: '/uploads/' + (subdir ? subdir + '/' : '') + f.filename
+      name: f.originalname || f.filename,
+      path: (f.key ? '/' + f.key : '/uploads/' + (subdir ? subdir + '/' : '') + f.filename)
     }));
     res.json({ status: true, message: 'Files uploaded', files });
   } catch (e) {
@@ -1222,8 +1274,18 @@ router.post('/files/upload', requireAdmin, upload.array('files', 20), async (req
 router.post('/files/folder', requireAdmin, async (req, res) => {
   try {
     const { name, parentPath } = req.body;
-    const dir = path.join(__dirname, '..', '..', 'uploads', parentPath || '', name);
-    fs.mkdirSync(dir, { recursive: true });
+    if (s3) {
+      const prefix = parentPath ? `uploads/${parentPath}/${name}/` : `uploads/${name}/`;
+      const command = new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: prefix,
+        Body: ''
+      });
+      await s3.send(command);
+    } else {
+      const dir = path.join(__dirname, '..', '..', 'uploads', parentPath || '', name);
+      fs.mkdirSync(dir, { recursive: true });
+    }
     res.json({ status: true, message: 'Folder created' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1233,9 +1295,23 @@ router.post('/files/folder', requireAdmin, async (req, res) => {
 router.delete('/files/folder', requireAdmin, async (req, res) => {
   try {
     const { folderPath } = req.body;
-    const fullPath = path.join(__dirname, '..', '..', 'uploads', folderPath);
-    if (fs.existsSync(fullPath)) {
-      fs.rmSync(fullPath, { recursive: true, force: true });
+    if (s3) {
+      const prefix = `uploads/${folderPath}/`;
+      const listCommand = new ListObjectsV2Command({ Bucket: process.env.AWS_S3_BUCKET_NAME, Prefix: prefix });
+      const listedObjects = await s3.send(listCommand);
+      
+      if (listedObjects.Contents && listedObjects.Contents.length > 0) {
+        const deleteParams = {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Delete: { Objects: listedObjects.Contents.map(obj => ({ Key: obj.Key })) }
+        };
+        await s3.send(new DeleteObjectsCommand(deleteParams));
+      }
+    } else {
+      const fullPath = path.join(__dirname, '..', '..', 'uploads', folderPath);
+      if (fs.existsSync(fullPath)) {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+      }
     }
     res.json({ status: true, message: 'Folder deleted' });
   } catch (e) {
@@ -1246,8 +1322,13 @@ router.delete('/files/folder', requireAdmin, async (req, res) => {
 router.delete('/files', requireAdmin, async (req, res) => {
   try {
     const { filePath } = req.body;
-    const fullPath = path.join(__dirname, '..', '..', filePath);
-    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    if (s3) {
+      const key = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      await s3.send(new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: key }));
+    } else {
+      const fullPath = path.join(__dirname, '..', '..', filePath);
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    }
     res.json({ status: true, message: 'File deleted' });
   } catch (e) {
     res.json({ status: false, message: e.message });

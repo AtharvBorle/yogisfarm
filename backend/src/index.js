@@ -21,7 +21,10 @@ app.use(cors({
     'http://localhost:5174',
     'http://192.168.0.151:5173', 
     'http://192.168.0.151:5174',
-    'https://yf.travelcarts.co.in'
+    'https://yogisfarms.com',
+    'https://admin.yogisfarms.com',
+    'http://yogisfarms.com',
+    'http://admin.yogisfarms.com'
   ],
   credentials: true
 }));

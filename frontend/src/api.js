@@ -35,11 +35,13 @@ export const getAssetUrl = (path) => {
   if (!path) return '';
   // Already a full URL — return as-is
   if (path.startsWith('http')) return path;
+  const s3Base = import.meta.env.VITE_S3_BASE_URL;
+  if (s3Base) {
+    return `${s3Base}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
 
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-
   // If frontend and backend are on different origins (dev mode), prepend backend origin
-  // In production (same domain), use relative path so Nginx proxies correctly
   const isSameOrigin = backendOrigin === window.location.origin || backendOrigin === '';
   if (isSameOrigin) {
     return cleanPath;

@@ -19,10 +19,13 @@ export const getAssetUrl = (path) => {
   // Already a full URL — return as-is
   if (path.startsWith('http')) return path;
 
-  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const s3Base = import.meta.env.VITE_S3_BASE_URL;
+  if (s3Base) {
+    return `${s3Base}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
 
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
   // If admin and backend are on different origins (dev mode), prepend backend origin
-  // In production (same domain), use relative path so Nginx proxies correctly
   const isSameOrigin = backendOrigin === window.location.origin || backendOrigin === '';
   if (isSameOrigin) {
     return cleanPath;
@@ -47,7 +50,7 @@ api.interceptors.response.use(
     console.error(`%c[ADMIN API RES ERROR]`, 'color: #dc3545; font-weight: bold;', error);
     if (error.response && error.response.status === 401) {
       if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);
