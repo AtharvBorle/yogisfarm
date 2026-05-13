@@ -10,7 +10,7 @@ const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
-const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
+const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS, sendCancelledSMS } = require('../utils/sms');
 
 let upload;
 let s3;
@@ -694,6 +694,8 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     } else if (orderStatus === 'delivered') {
       const invoiceLink = `${FRONTEND_URL}/invoice?order=${order.orderNumber}`;
       sendDeliveredSMS(order.user.phone, order.orderNumber, invoiceLink);
+    } else if (orderStatus === 'cancelled') {
+      sendCancelledSMS(order.user.phone, order.orderNumber);
     }
 
     // COD handling
