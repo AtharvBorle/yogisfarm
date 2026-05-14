@@ -175,9 +175,9 @@ const Dashboard = () => {
     const cellPd = { padding: '10px 15px', borderBottom: borderStyle };
     const headerCell = { ...cellPd, fontWeight: '600', color: '#253D4E', background: '#f8f9fa' };
 
-    if (!user) return null;
-
     if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
+
+    if (!user) return null;
 
     return (
         <main className="main">

@@ -13,6 +13,8 @@ const Login = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [step, setStep] = useState(1);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
     const { fetchUser, user, loading: authLoading } = useAuth();
     const { fetchCart } = useCart();
     const navigate = useNavigate();
@@ -27,6 +29,7 @@ const Login = () => {
 
     const sendOtp = async (e) => {
         e.preventDefault();
+        setSendingOtp(true);
         try {
             const res = await api.post('/auth/send-otp', { phone });
             if (res.data.status) {
@@ -37,11 +40,14 @@ const Login = () => {
             }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to send OTP');
+        } finally {
+            setSendingOtp(false);
         }
     };
 
     const verifyOtp = async (e) => {
         e.preventDefault();
+        setVerifyingOtp(true);
         try {
             const res = await api.post('/auth/verify-otp', { phone, otp });
             if (res.data.status) {
@@ -58,6 +64,8 @@ const Login = () => {
             }
         } catch (err) {
             toast.error(err.response?.data?.message || 'Invalid OTP');
+        } finally {
+            setVerifyingOtp(false);
         }
     };
 
@@ -122,9 +130,10 @@ const Login = () => {
                                         <div className="form-group mb-30" style={{ textAlign: 'left' }}>
                                             <button 
                                                 type="submit" 
-                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold' }}
+                                                disabled={sendingOtp}
+                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold', opacity: sendingOtp ? 0.7 : 1, cursor: sendingOtp ? 'not-allowed' : 'pointer' }}
                                             >
-                                                Send OTP
+                                                {sendingOtp ? 'Sending...' : 'Send OTP'}
                                             </button>
                                         </div>
                                     </form>
@@ -160,9 +169,10 @@ const Login = () => {
                                         <div className="form-group" style={{ textAlign: 'left' }}>
                                             <button 
                                                 type="submit" 
-                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold' }}
+                                                disabled={verifyingOtp}
+                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold', opacity: verifyingOtp ? 0.7 : 1, cursor: verifyingOtp ? 'not-allowed' : 'pointer' }}
                                             >
-                                                Verify & Login
+                                                {verifyingOtp ? 'Verifying...' : 'Verify & Login'}
                                             </button>
                                         </div>
                                     </form>
