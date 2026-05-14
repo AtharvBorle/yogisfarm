@@ -7,6 +7,10 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
+// New Assets
+import loginBg from '../assets/figma/image_find/login_page.png';
+import yogisLogo from '../assets/figma/image_find/Yogis-Farms-Logo.png';
+
 const Login = () => {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
@@ -100,8 +104,13 @@ const Login = () => {
             <div className="container mb-80 mt-80">
                 <div className="row align-items-center">
                     {/* Left side illustration */}
-                    <div className="col-lg-6 pr-30 d-none d-lg-block text-center">
-                        <img className="border-radius-15" src="https://yogisfarm.in/writable/uploads/login.png?v=1.0.6" alt="YogisFarms Login" style={{ maxWidth: '80%' }} />
+                    <div className="col-lg-6 pr-30 d-none d-lg-block text-center position-relative">
+                        <div style={{ position: 'relative', borderRadius: '15px', overflow: 'hidden' }}>
+                            <img src={loginBg} alt="Login Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                                <img src={yogisLogo} alt="YogisFarms Logo" style={{ width: '150px' }} />
+                            </div>
+                        </div>
                     </div>
                     
                     {/* Right side Form */}

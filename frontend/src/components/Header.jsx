@@ -5,6 +5,9 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import api, { getAssetUrl } from '../api';
 
+// New Assets
+import loginIcon from '../assets/figma/image_find/Login_SVG.svg';
+
 const Header = () => {
     const { user, logout } = useAuth();
     const { cartItems, cartCount, cartTotal, removeFromCart } = useCart();
@@ -249,7 +252,28 @@ const Header = () => {
                                     white-space: nowrap !important;
                                 }
                                 .header-action-right .header-action-2 {
-                                    gap: 6px !important;
+                                    gap: 15px !important;
+                                    align-items: center !important;
+                                }
+                                .header-action-right .sign-in-btn {
+                                    flex-direction: row !important;
+                                    background: #fff !important;
+                                    border: 1px solid #eee !important;
+                                    padding: 10px 18px !important;
+                                    border-radius: 10px !important;
+                                    box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+                                    gap: 10px !important;
+                                    min-width: auto !important;
+                                    max-width: none !important;
+                                }
+                                .header-action-right .sign-in-btn .action-label {
+                                    margin-top: 0 !important;
+                                    color: #253D4E !important;
+                                    font-size: 14px !important;
+                                }
+                                .header-action-right .sign-in-btn:hover {
+                                    background: #f9f9f9 !important;
+                                    transform: translateY(-1px) !important;
                                 }
                             `}} />
                             <div className="header-action-2" style={{ display: 'flex', gap: '6px' }}>
@@ -276,13 +300,17 @@ const Header = () => {
                                     </Link>
                                 </div>
                                 <div className="header-action-icon-2">
-                                    <Link to={user ? '/dashboard' : '/login'} className="action-icon-wrapper">
-                                        <div className="position-relative">
-                                            <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                            </svg>
+                                    <Link to={user ? '/dashboard' : '/login'} className={user ? "action-icon-wrapper" : "action-icon-wrapper sign-in-btn"}>
+                                        <div className="position-relative d-flex align-items-center">
+                                            {user ? (
+                                                <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                                </svg>
+                                            ) : (
+                                                <img src={loginIcon} alt="Login" style={{ width: '18px', height: '18px' }} />
+                                            )}
                                         </div>
-                                        <span className="action-label">Profile</span>
+                                        <span className="action-label">{user ? 'Profile' : 'Login'}</span>
                                     </Link>
                                 </div>
                             </div>
@@ -382,7 +410,7 @@ const Header = () => {
                         </div>
                         <div className="mobile-header-info-wrap">
                             <div className="single-mobile-header-info">
-                                <Link to={user ? '/dashboard' : '/login'} onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-user"></i> {user ? 'My Account' : 'Log In / Sign Up'} </Link>
+                                <Link to={user ? '/dashboard' : '/login'} onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-user"></i> {user ? 'My Account' : 'Login'} </Link>
                             </div>
                             <div className="single-mobile-header-info">
                                 <Link to="/track-order" onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-truck"></i> Track Order</Link>
