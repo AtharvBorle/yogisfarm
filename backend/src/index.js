@@ -22,8 +22,10 @@ app.use(cors({
     'http://192.168.0.151:5173', 
     'http://192.168.0.151:5174',
     'https://yogisfarms.com',
+    'https://www.yogisfarms.com',
     'https://admin.yogisfarms.com',
     'http://yogisfarms.com',
+    'http://www.yogisfarms.com',
     'http://admin.yogisfarms.com'
   ],
   credentials: true
