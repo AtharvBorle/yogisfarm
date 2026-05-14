@@ -238,7 +238,7 @@ const BulkInvoice = () => {
 
                             {/* Sold By Footer */}
                             <div className="flex justify-between p-1 border-bottom text-xs bg-gray">
-                                <div>Sold By: Yogi's Farms, Pune - 411058</div>
+                                <div>Sold By: YogisFarms, Pune - 411058</div>
                                 <div>GSTIN: {gstNumber || '27AAXFN9221D1ZX'}</div>
                             </div>
 
@@ -302,7 +302,7 @@ const BulkInvoice = () => {
                             <div className="flex" style={{ marginBottom: '15px' }}>
                                 <div style={{ width: '33%', paddingRight: '10px' }}>
                                     <div className="text-md bold border-bottom" style={{ paddingBottom: '4px', marginBottom: '8px' }}>SOLD BY</div>
-                                    <div className="text-sm bold" style={{ marginBottom: '4px' }}>Yogi's Farms</div>
+                                    <div className="text-sm bold" style={{ marginBottom: '4px' }}>YogisFarms</div>
                                     <div className="text-xs" style={{ lineHeight: '1.4' }}>
                                         S.No 18, Saikrupa Bunglow, Sudarshan Park Society,<br/>
                                         Ingale Nagar, Warje, Pune, Maharashtra - 411058<br/>
@@ -429,10 +429,10 @@ const BulkInvoice = () => {
                             {/* Footer */}
                             <div className="flex justify-between items-center" style={{ marginTop: '30px' }}>
                                 <div className="text-xs" style={{ color: '#555' }}>
-                                    <span className="bold">Registered Office:</span> Yogi's Farms, Warje, Pune 411058.
+                                    <span className="bold">Registered Office:</span> YogisFarms, Warje, Pune 411058.
                                 </div>
                                 <div className="text-xs" style={{ textAlign: 'right' }}>
-                                    Ordered Through <span className="bold">YOGI'S FARMS</span><br/>
+                                    Ordered Through <span className="bold">YOGISFARMS</span><br/>
                                     <span style={{ color: '#777', fontSize: '9px' }}>Authorized Signatory</span>
                                 </div>
                             </div>

@@ -95,7 +95,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '90px', display: 'block' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="YogisFarms" style={{ width: '90px', display: 'block' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}
@@ -296,7 +296,7 @@ const Header = () => {
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo logo-width-1 d-block d-lg-none pt-1">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="YogisFarms" /></Link>
                         </div>
                         <div className="header-nav d-none d-lg-flex">
                             <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">

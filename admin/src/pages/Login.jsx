@@ -30,7 +30,7 @@ const Login = () => {
         <div className="admin-login-container" style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f5f9'}}>
             <div className="card" style={{width:'400px', padding:'30px', boxShadow:'0 4px 6px rgba(0,0,0,0.1)', borderRadius:'8px', background:'white'}}>
                 <div className="text-center mb-4">
-                    <h2>Yogis Farm Admin</h2>
+                    <h2>YogisFarms Admin</h2>
                     <p className="text-muted">Sign in to your account</p>
                 </div>
                 <form onSubmit={handleLogin}>

@@ -1,5 +1,5 @@
 /**
- * Centralized Pricing Engine for Yogis Farm
+ * Centralized Pricing Engine for YogisFarms
  * 
  * SINGLE SOURCE OF TRUTH for all price calculations.
  * Used by: orders.js (place order), coupons.js (apply coupon), admin.js (order details)

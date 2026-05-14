@@ -41,7 +41,7 @@ CREATE TABLE `admins` (
 
 LOCK TABLES `admins` WRITE;
 /*!40000 ALTER TABLE `admins` DISABLE KEYS */;
-INSERT INTO `admins` VALUES (1,'Yogis Farm','admin@yogisfarm.in','$2a$10$8Vtup/COdZ0CCpm/ppJyuutbSTLZtwqmQY241qyShXkmpnJcUbh0e','superadmin','2026-04-09 13:00:38.845','2026-04-09 13:00:38.845');
+INSERT INTO `admins` VALUES (1,'YogisFarms','admin@yogisfarm.in','$2a$10$8Vtup/COdZ0CCpm/ppJyuutbSTLZtwqmQY241qyShXkmpnJcUbh0e','superadmin','2026-04-09 13:00:38.845','2026-04-09 13:00:38.845');
 /*!40000 ALTER TABLE `admins` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

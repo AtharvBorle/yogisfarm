@@ -32,7 +32,7 @@ const Footer = () => {
                     {/* Column 1: Logo & Mission */}
                     <div className="col-lg-3 col-md-6 mb-4">
                         <div className="logo mb-20">
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Yogis Farm" style={{ width: '150px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="YogisFarms" style={{ width: '150px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
                         </div>
                         <p style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
                             Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
@@ -89,7 +89,7 @@ const Footer = () => {
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
-                                <span><strong>Yogi's farms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
+                                <span><strong>YogisFarms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
                             </li>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={callIcon} alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
@@ -106,7 +106,7 @@ const Footer = () => {
             
             {/* Copyright Bar */}
             <div style={{ width: '100%', textAlign: 'center', padding: '15px 0', marginTop: 'auto', zIndex: 10 }}>
-                <p style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 Yogis Farm</p>
+                <p style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
             </div>
         </footer>
     );

@@ -45,7 +45,7 @@ function App() {
     <>
       {isPreloading && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: '#fff', zIndex: 99999999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <img src="/assets/imgs/theme/loader.gif" alt="Loading Yogis Farm..." style={{ width: '150px' }} />
+          <img src="/assets/imgs/theme/loader.gif" alt="Loading YogisFarms..." style={{ width: '150px' }} />
         </div>
       )}
 

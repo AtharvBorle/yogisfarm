@@ -524,7 +524,7 @@ const Home = () => {
                     <div style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                            <img src={yogisLogoWhite} alt="Yogis Farm Logo" style={{ width: '120px' }} />
+                            <img src={yogisLogoWhite} alt="YogisFarms Logo" style={{ width: '120px' }} />
                         </div>
                     </div>
 

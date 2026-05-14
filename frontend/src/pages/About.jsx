@@ -22,18 +22,18 @@ const About = () => {
                     {/* Welcome Section */}
                     <div className="row align-items-center mb-50">
                         <div className="col-lg-6 mb-lg-0 mb-4">
-                            <img src="/assets/imgs/page/about-1.png" alt="About Yogi's Farm" style={{ width: '100%', borderRadius: '15px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/theme/logo.png'; }} />
+                            <img src="/assets/imgs/page/about-1.png" alt="About YogisFarms" style={{ width: '100%', borderRadius: '15px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/theme/logo.png'; }} />
                         </div>
                         <div className="col-lg-6">
                             <div className="pl-25">
-                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700' }}>Welcome to Yogi's Farm</h2>
+                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700' }}>Welcome to YogisFarms</h2>
                                 <p className="mb-25">
-                                    At Yogi's Farm, we believe that great health begins with great food. Our mission is to preserve the purity of traditional Indian food and bring it straight to your table.
+                                    At YogisFarms, we believe that great health begins with great food. Our mission is to preserve the purity of traditional Indian food and bring it straight to your table.
                                     Our mission is simple yet profound - to provide 100% natural, unrefined, and authentic food staples that your family can trust every single day.
                                 </p>
                                 <p className="mb-50">
                                     We started our journey with a rich passion. The inspiration is the wisdom of our ancestors who valued deep, traditional, and natural food practices.
-                                    Today, Yogi's Farm has grown into a trusted brand offering a wide range of premium products including Atta, Wood-pressed Oils, all crafted with love, purity, and profound dedication.
+                                    Today, YogisFarms has grown into a trusted brand offering a wide range of premium products including Atta, Wood-pressed Oils, all crafted with love, purity, and profound dedication.
                                 </p>
                                 <p>Every product we harvest and every meal you prepare carries the promise of purity, tradition, and authenticity.</p>
                                 
@@ -103,7 +103,7 @@ const About = () => {
                         <div className="col-lg-6">
                             <div className="pl-25">
                                 <h6 className="text-brand mb-10" style={{ color: '#046938' }}>Our Promise</h6>
-                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700', fontSize: '36px', lineHeight: '1.2' }}>When you choose Yogi's Farm, you choose:</h2>
+                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700', fontSize: '36px', lineHeight: '1.2' }}>When you choose YogisFarms, you choose:</h2>
                                 <ul style={{ listStyle: 'none', padding: 0 }}>
                                     <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
                                         <span style={{ color: '#046938' }}><Check size={16} /></span> <strong>Purity:</strong> 100% natural and unrefined food without any adulteration.

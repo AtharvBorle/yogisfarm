@@ -133,7 +133,7 @@ const Contact = () => {
                             </div>
                             
                             <div className="col-lg-5 pl-50 d-none d-lg-block">
-                                <img src="/assets/imgs/page/contact-2.png" alt="Contact Yogi's Farm" style={{ width: '100%', marginTop: '50px' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.style.display='none'; }} />
+                                <img src="/assets/imgs/page/contact-2.png" alt="Contact YogisFarms" style={{ width: '100%', marginTop: '50px' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.style.display='none'; }} />
                             </div>
                         </div>
                     </div>

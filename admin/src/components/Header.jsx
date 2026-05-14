@@ -48,7 +48,7 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                     onClick={toggleSidebar}
                 />
                 <span style={{ fontSize: '14px', color: isDarkMode ? '#ccc' : '#7E7E7E', fontWeight: '500' }}>
-                    Yogis Farm (admin)
+                    YogisFarms (admin)
                 </span>
             </div>
             

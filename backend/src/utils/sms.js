@@ -1,5 +1,5 @@
 /**
- * Way2Smart SMS Integration for Yogis Farm
+ * Way2Smart SMS Integration for YogisFarms
  * All SMS templates are DLT-registered with specific template IDs.
  */
 const https = require('https');

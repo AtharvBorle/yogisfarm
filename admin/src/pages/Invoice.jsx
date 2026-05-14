@@ -119,7 +119,7 @@ const Invoice = () => {
             {/* Company Info + Invoice Meta */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                 <div>
-                    <strong>Yogis Farm (Yogis Farm)</strong><br />
+                    <strong>YogisFarms (YogisFarms)</strong><br />
                     S.No 18, Saikrupa Bunglow, Sudarshan Park society, Ingale Nagar, Warje, Pune 411058, Pune<br />
                     Pune, Maharashtra - 411058<br />
                     E-Mail Address: info@yogisfarms.com<br />

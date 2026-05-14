@@ -78,7 +78,7 @@ const AdminLayout = ({ children }) => {
                     borderTop: `1px solid ${isDarkMode ? '#333' : '#f2f2f2'}`, 
                     background: isDarkMode ? '#1a1a1a' : '#fff' 
                 }}>
-                    Copyright © {new Date().getFullYear()} Yogis Farm Crafted by NeoPace Infotech LLP
+                    Copyright © {new Date().getFullYear()} YogisFarms Crafted by NeoPace Infotech LLP
                 </footer>
             </div>
         </div>

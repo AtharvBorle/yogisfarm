@@ -95,5 +95,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Yogis Farm Backend running on http://localhost:${PORT}`);
+  console.log(`YogisFarms Backend running on http://localhost:${PORT}`);
 });
