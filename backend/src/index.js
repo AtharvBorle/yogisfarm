@@ -11,6 +11,11 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy (required for secure cookies behind CloudFront/Nginx)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
 app.use(morgan('dev'));
 app.use(cors({
@@ -40,7 +45,7 @@ app.use(session({
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: process.env.NODE_ENV === 'production',
     domain: process.env.NODE_ENV === 'production' ? '.yogisfarms.com' : undefined
   }
