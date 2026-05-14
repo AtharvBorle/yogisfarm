@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
+import { useOrderPricing } from '../hooks/useOrderPricing';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -30,39 +31,11 @@ const Payment = () => {
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [termsError, setTermsError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [shippingCharge, setShippingCharge] = useState(0);
-    const [shippingThreshold, setShippingThreshold] = useState(0);
 
-    // Calculate item-specific GST
-    let calculatedTotalTax = 0;
-    let calculatedOfferPriceSum = 0;
-    cartItems.forEach(item => {
-        const offerPrice = item.variant ? parseFloat(item.variant.salePrice || item.variant.price) : parseFloat(item.product.salePrice || item.product.price);
-        const itemTotal = offerPrice * item.quantity;
-        const taxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
-        calculatedTotalTax += itemTotal * (taxRate / 100);
-        calculatedOfferPriceSum += itemTotal;
-    });
-
-    const totalTax = calculatedTotalTax;
-    const subtotalBase = calculatedOfferPriceSum - totalTax;
-    const shipping = (shippingThreshold > 0 && calculatedOfferPriceSum >= shippingThreshold) ? 0 : shippingCharge;
-    const grandTotal = Math.round(subtotalBase - discount + totalTax + shipping);
+    // === USE CENTRALIZED PRICING HOOK ===
+    const { subtotalBase, totalTax, shipping, grandTotal } = useOrderPricing(cartItems, discount);
 
     useEffect(() => {
-        // Fetch shipping rules
-        const fetchSettings = async () => {
-            try {
-                const shipRes = await api.get('/shipping');
-                if (shipRes.data.status && shipRes.data.shipping?.length > 0) {
-                    const activeShipping = shipRes.data.shipping[0];
-                    setShippingCharge(parseFloat(activeShipping.charge));
-                    setShippingThreshold(parseFloat(activeShipping.minCartValue));
-                }
-            } catch (err) { console.error(err); }
-        };
-        fetchSettings();
-
         // Cleanup Razorpay on unmount to prevent background SPA polling
         return () => {
             const rzpScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');

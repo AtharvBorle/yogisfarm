@@ -5,6 +5,7 @@ const { requireLogin } = require('../middleware/auth');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { sendOrderConfirmSMS } = require('../utils/sms');
+const { calculateOrderTotals } = require('../utils/pricing');
 
 // Generate order number matching reference format: YF260430A0001AZ
 const generateOrderNumber = async () => {
@@ -69,78 +70,8 @@ router.post('/place', requireLogin, async (req, res) => {
     const address = await prisma.address.findFirst({ where: { id: parseInt(addressId), userId } });
     if (!address) return res.json({ status: false, message: 'Address not found' });
 
-    const cartItems = await prisma.cart.findMany({
-      where: { userId }, include: { product: { include: { brand: true, tax: true, hsn: true } }, variant: true }
-    });
-    if (!cartItems.length) return res.json({ status: false, message: 'Cart is empty' });
-
-    // GST-INCLUSIVE pricing: offer prices already include GST, calculating base price as Total - GST
-    let offerPriceSum = 0;
-    let totalTaxAmount = 0;
-    
-    const orderItems = cartItems.map(item => {
-      const offerPrice = item.variant
-        ? parseFloat(item.variant.salePrice || item.variant.price)
-        : parseFloat(item.product.salePrice || item.product.price);
-      const originalPrice = item.variant
-        ? parseFloat(item.variant.price)
-        : parseFloat(item.product.price);
-        
-      const itemTotal = offerPrice * item.quantity;
-      const productDiscount = (originalPrice - offerPrice) * item.quantity;
-      
-      const itemTaxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
-      const itemHsnCode = item.product.hsn ? item.product.hsn.hsnCode : null;
-      
-      const itemGst = itemTotal * (itemTaxRate / 100);
-      
-      offerPriceSum += itemTotal;
-      totalTaxAmount += itemGst;
-      
-      return {
-        productId: item.productId,
-        name: item.product.name,
-        variant: item.variant?.name || null,
-        brand: item.product.brand?.name || null,
-        price: originalPrice,
-        discount: productDiscount,
-        gst: itemGst,
-        taxRate: itemTaxRate,
-        hsnCode: itemHsnCode,
-        quantity: item.quantity,
-        total: itemTotal
-      };
-    });
-
-    const totalTaxOriginal = totalTaxAmount;
-    let subtotal = offerPriceSum - totalTaxOriginal;
-
-    let discountAmount = 0;
-    let appliedCouponId = null;
-    if (couponCode) {
-      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
-      if (coupon && coupon.status === 'active') {
-        if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
-          discountAmount = coupon.amountType === 'percent'
-            ? (subtotal * parseFloat(coupon.amount)) / 100
-            : parseFloat(coupon.amount);
-          if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
-          appliedCouponId = coupon.id;
-        }
-      }
-    }
-
-    // GST stays as extracted from the inclusive price; discount is a separate line item
-    const totalTax = totalTaxOriginal;
-
-    // Fetch dynamic shipping from admin settings (use offerPriceSum for threshold check)
-    const shippingRule = await prisma.shipping.findFirst({ where: { status: 'active' }, orderBy: { minCartValue: 'asc' } });
-    let shipping = 0;
-    if (shippingRule) {
-      shipping = offerPriceSum >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
-    }
-    const rawTotal = subtotal - discountAmount + totalTax + shipping;
-    const total = Math.round(rawTotal); // Strictly round off ONLY final amount
+    // === USE CENTRALIZED PRICING ENGINE ===
+    const pricing = await calculateOrderTotals(userId, couponCode || null);
 
     // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
     if (paymentMethod.toLowerCase() === 'online') {
@@ -150,7 +81,7 @@ router.post('/place', requireLogin, async (req, res) => {
       });
 
       const razorpayOrder = await razorpay.orders.create({
-        amount: Math.round(total * 100),
+        amount: Math.round(pricing.total * 100),
         currency: 'INR',
         receipt: `pending_${userId}_${Date.now()}`,
       });
@@ -162,12 +93,14 @@ router.post('/place', requireLogin, async (req, res) => {
         addressText: address.address, addressCity: address.city,
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
-        subtotal, shipping, discount: discountAmount, tax: totalTax,
+        subtotal: pricing.subtotal, shipping: pricing.shipping,
+        discount: pricing.discountAmount, tax: pricing.totalTax,
         taxName: 'GST', taxRate: null,
-        total, couponCode: couponCode || null, orderNote: orderNote || null,
-        appliedCouponId,
-        orderItems,
-        cartItemIds: cartItems.map(c => ({ id: c.id, productId: c.productId, variantId: c.variantId, quantity: c.quantity }))
+        total: pricing.total, couponCode: couponCode || null,
+        orderNote: orderNote || null,
+        appliedCouponId: pricing.appliedCouponId,
+        orderItems: pricing.orderItems,
+        cartItemIds: pricing.cartItemIds
       };
 
       return res.json({
@@ -182,8 +115,8 @@ router.post('/place', requireLogin, async (req, res) => {
     const orderNumber = await generateOrderNumber();
 
     // Update coupon usage
-    if (appliedCouponId) {
-      await prisma.coupon.update({ where: { id: appliedCouponId }, data: { usedCount: { increment: 1 } } });
+    if (pricing.appliedCouponId) {
+      await prisma.coupon.update({ where: { id: pricing.appliedCouponId }, data: { usedCount: { increment: 1 } } });
     }
 
     const order = await prisma.order.create({
@@ -194,28 +127,29 @@ router.post('/place', requireLogin, async (req, res) => {
         addressText: address.address, addressCity: address.city,
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
-        subtotal, shipping, discount: discountAmount, tax: totalTax, 
+        subtotal: pricing.subtotal, shipping: pricing.shipping,
+        discount: pricing.discountAmount, tax: pricing.totalTax,
         taxName: 'GST', taxRate: null,
-        total, couponCode: couponCode || null, orderNote: orderNote || null,
+        total: pricing.total, couponCode: couponCode || null, orderNote: orderNote || null,
         paymentMethod: 'cod',
         orderStatus: 'placed',
         paymentStatus: 'pending',
-        items: { create: orderItems }
+        items: { create: pricing.orderItems }
       },
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
 
     // Deduct stock for COD
-    for (const item of cartItems) {
-      if (item.variantId) {
+    for (const ci of pricing.cartItemIds) {
+      if (ci.variantId) {
         await prisma.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } }
+          where: { id: ci.variantId },
+          data: { stock: { decrement: ci.quantity } }
         });
       } else {
         await prisma.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } }
+          where: { id: ci.productId },
+          data: { stock: { decrement: ci.quantity } }
         });
       }
     }
