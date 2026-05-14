@@ -29,9 +29,11 @@ app.use(cors({
     'https://yogisfarms.com',
     'https://www.yogisfarms.com',
     'https://admin.yogisfarms.com',
+    'https://www.admin.yogisfarms.com',
     'http://yogisfarms.com',
     'http://www.yogisfarms.com',
-    'http://admin.yogisfarms.com'
+    'http://admin.yogisfarms.com',
+    'http://www.admin.yogisfarms.com'
   ],
   credentials: true
 }));
