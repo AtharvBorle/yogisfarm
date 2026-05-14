@@ -255,28 +255,48 @@ const Header = () => {
                                     gap: 15px !important;
                                     align-items: center !important;
                                 }
+                                .header-action-right .profile-dropdown-container {
+                                    position: relative !important;
+                                }
+                                .header-action-right .profile-dropdown {
+                                    position: absolute !important;
+                                    top: 100% !important;
+                                    right: 0 !important;
+                                    padding-top: 15px !important;
+                                    opacity: 0 !important;
+                                    visibility: hidden !important;
+                                    transition: all 0.3s ease !important;
+                                    z-index: 1000 !important;
+                                }
+                                .header-action-right .profile-dropdown-container:hover .profile-dropdown {
+                                    opacity: 1 !important;
+                                    visibility: visible !important;
+                                }
                                 .header-action-right .sign-in-btn {
                                     flex-direction: row !important;
                                     background: #fff !important;
                                     border: 1px solid #eee !important;
-                                    padding: 10px 18px !important;
+                                    padding: 12px 20px !important;
                                     border-radius: 10px !important;
-                                    box-shadow: 0 4px 12px rgba(0,0,0,0.04) !important;
+                                    box-shadow: 0 8px 25px rgba(0,0,0,0.08) !important;
                                     gap: 10px !important;
-                                    min-width: auto !important;
-                                    max-width: none !important;
+                                    min-width: 140px !important;
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    text-decoration: none !important;
                                 }
                                 .header-action-right .sign-in-btn .action-label {
                                     margin-top: 0 !important;
                                     color: #253D4E !important;
                                     font-size: 14px !important;
+                                    font-weight: 600 !important;
                                 }
                                 .header-action-right .sign-in-btn:hover {
                                     background: #f9f9f9 !important;
-                                    transform: translateY(-1px) !important;
+                                    border-color: #0A6738 !important;
                                 }
                             `}} />
-                            <div className="header-action-2" style={{ display: 'flex', gap: '6px' }}>
+                            <div className="header-action-2" style={{ display: 'flex', gap: '15px' }}>
                                 <div className="header-action-icon-2">
                                     <Link to="/wishlist" className="action-icon-wrapper">
                                         <div className="position-relative">
@@ -299,19 +319,23 @@ const Header = () => {
                                         <span className="action-label">Add Cart</span>
                                     </Link>
                                 </div>
-                                <div className="header-action-icon-2">
-                                    <Link to={user ? '/dashboard' : '/login'} className={user ? "action-icon-wrapper" : "action-icon-wrapper sign-in-btn"}>
-                                        <div className="position-relative d-flex align-items-center">
-                                            {user ? (
-                                                <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                                                </svg>
-                                            ) : (
-                                                <img src={loginIcon} alt="Login" style={{ width: '18px', height: '18px' }} />
-                                            )}
+                                <div className="header-action-icon-2 profile-dropdown-container">
+                                    <Link to={user ? '/dashboard' : '/login'} className="action-icon-wrapper">
+                                        <div className="position-relative">
+                                            <svg className="action-icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                                            </svg>
                                         </div>
-                                        <span className="action-label">{user ? 'Profile' : 'Login'}</span>
+                                        <span className="action-label">Profile</span>
                                     </Link>
+                                    {!user && (
+                                        <div className="profile-dropdown">
+                                            <Link to="/login" className="sign-in-btn">
+                                                <img src={loginIcon} alt="Login" style={{ width: '18px', height: '18px' }} />
+                                                <span className="action-label">Login</span>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
