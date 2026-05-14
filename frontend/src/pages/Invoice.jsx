@@ -196,7 +196,7 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Unit', 'MRP', 'Selling Price', 'Discount', 'Taxable Val', 
+                        {['#', 'Product', 'Unit', 'MRP', 'Gross Amt', 'Discount', 'Taxable Val', 
                           isMaharashtra ? 'CGST' : 'IGST', 
                           isMaharashtra ? 'SGST' : null, 
                           'Total'
@@ -254,7 +254,7 @@ const Invoice = () => {
                                     </td>
                                     <td style={tdStyle}>{item.variant || '1 Unit'} ×{item.quantity}</td>
                                     <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
-                                    <td style={tdStyle}>₹{offerPrice.toFixed(0)}</td>
+                                    <td style={tdStyle}>₹{(mrp * item.quantity).toFixed(0)}</td>
                                     <td style={{ ...tdStyle, fontSize: '11px' }}>
                                         {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(0)}</div>}
                                         {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(0)}</div>}
