@@ -8,18 +8,25 @@ import FloatingSidebar from '../components/FloatingSidebar';
 
 import { ArrowRight } from 'react-feather';
 
-// Import Figma assets for production reliability
-import img13 from '../assets/figma/img_13.png';
-import img14 from '../assets/figma/img_14.png';
-import img15 from '../assets/figma/img_15.png';
-import img16 from '../assets/figma/img_16.png';
-import img18 from '../assets/figma/img_18.png';
-import img19 from '../assets/figma/img_19.png';
-import img20 from '../assets/figma/img_20.png';
-import img21 from '../assets/figma/img_21.png';
-import img22 from '../assets/figma/img_22.png';
-import img23 from '../assets/figma/img_23.png';
-import img24 from '../assets/figma/img_24.png';
+// Import Figma assets from the new image_find folder
+import mainR1Left from '../assets/figma/image_find/Main_R1_Left.png';
+import mainR2Left from '../assets/figma/image_find/Main_R2_Left.png';
+import mainR1Right from '../assets/figma/image_find/Main_R1_Right.png';
+import mainR2Right from '../assets/figma/image_find/Main_R2_Right.png';
+
+import bestDealsR1C1 from '../assets/figma/image_find/Best_deals_R1_C1.png';
+import bestDealsR1C2 from '../assets/figma/image_find/Best_deals_R1_C2.png';
+import bestDealsR2Left from '../assets/figma/image_find/Best_deals_R2_Left_Side.png';
+import bestDealsR2Mid from '../assets/figma/image_find/Best_deals_R2_Mid.png';
+import bestDealsR2Right from '../assets/figma/image_find/Best_deals_R2_Right_Side.png';
+
+import cooking1 from '../assets/figma/image_find/Cooking_challange_1.png';
+import cooking2 from '../assets/figma/image_find/Cooking_challange_2.png';
+import cooking3 from '../assets/figma/image_find/Cooking_challange_3.png';
+import cooking4 from '../assets/figma/image_find/Cooking_challange_4.png';
+
+import whyChooseBg from '../assets/figma/image_find/Why_choose_bg.png';
+import yogisLogoWhite from '../assets/figma/image_find/Yogis-Farms-Logo-white 1.png';
 
 const ProductSmallCard = ({ product }) => {
 
@@ -172,8 +179,8 @@ const Home = () => {
                         <div style={{ display: 'flex', alignItems: 'stretch', gap: '14px', width: '100%' }}>
                             {/* Left Banners — Figma: 173x173 stacked, gap ~15px */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={img13} alt="Left Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} />
-                                <img src={img14} alt="Left Promo 2" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} />
+                                <img src={mainR1Left} alt="Main R1 Left" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} />
+                                <img src={mainR2Left} alt="Main R2 Left" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} />
                             </div>
 
                             {/* Main Slider — Figma: 992x361 */}
@@ -195,13 +202,8 @@ const Home = () => {
 
                             {/* Right Banners — Figma: 173x173 stacked */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={img15} alt="Right Promo 1" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} />
-                                <div className="position-relative">
-                                    <img src={img16} alt="Right Promo 2 Video" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} />
-                                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '35px', height: '35px', backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor"/></svg>
-                                    </div>
-                                </div>
+                                <img src={mainR1Right} alt="Main R1 Right" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} />
+                                <img src={mainR2Right} alt="Main R2 Right" style={{ width: '173px', height: '173px', borderRadius: '9px', objectFit: 'cover' }} />
                             </div>
                         </div>
                     </div>
@@ -345,18 +347,16 @@ const Home = () => {
                     <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
                         <div style={{ width: '606px' }}>
                             <img 
-                                src={img18} 
+                                src={bestDealsR1C1} 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '350px' }} 
-                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} 
-                                alt="Best Deal 1"
+                                alt="Best Deal R1 C1"
                             />
                         </div>
                         <div style={{ width: '606px' }}>
                             <img 
-                                src={img19} 
+                                src={bestDealsR1C2} 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '350px' }} 
-                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} 
-                                alt="Best Deal 2"
+                                alt="Best Deal R1 C2"
                             />
                         </div>
                     </div>
@@ -366,20 +366,18 @@ const Home = () => {
                         {/* Left Advertisement */}
                         <div style={{ width: '280px' }}>
                             <img 
-                                src={img21} 
+                                src={bestDealsR2Left} 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} 
-                                alt="Ad Left"
+                                alt="Best Deal R2 Left"
                             />
                         </div>
 
                         {/* Center Video Banner */}
                         <div style={{ width: '628px', position: 'relative' }}>
                             <img 
-                                src={img20} 
+                                src={bestDealsR2Mid} 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} 
-                                alt="Video Banner"
+                                alt="Best Deal R2 Mid"
                             />
                             {/* Video Play Button Overlay */}
                             <div style={{ 
@@ -408,10 +406,9 @@ const Home = () => {
                         {/* Right Advertisement */}
                         <div style={{ width: '280px' }}>
                             <img 
-                                src={img22} 
+                                src={bestDealsR2Right} 
                                 style={{ width: '100%', borderRadius: '15px', objectFit: 'cover', height: '400px' }} 
-                                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-5.png'; }} 
-                                alt="Ad Right"
+                                alt="Best Deal R2 Right"
                             />
                         </div>
                     </div>
@@ -478,7 +475,7 @@ const Home = () => {
                     <div className="row justify-content-center mb-4">
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={img21} alt="Challenge 1" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-1.png'; }} />
+                                <img src={cooking1} alt="Cooking 1" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -486,7 +483,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={img22} alt="Challenge 2" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-2.png'; }} />
+                                <img src={cooking2} alt="Cooking 2" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -494,7 +491,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={img23} alt="Challenge 3" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-3.png'; }} />
+                                <img src={cooking3} alt="Cooking 3" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -502,7 +499,7 @@ const Home = () => {
                         </div>
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={img24} alt="Challenge 4" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/banner/banner-4.png'; }} />
+                                <img src={cooking4} alt="Cooking 4" style={{ width: '100%', objectFit: 'cover', height: '220px', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                                     <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
                                 </div>
@@ -512,6 +509,20 @@ const Home = () => {
                     <div className="text-center mt-40">
                         <button className="btn" style={{ padding: '18px 60px', fontSize: '18px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, borderRadius: '10px', backgroundColor: '#FF0000', color: '#FFFFFF', border: 'none', boxShadow: '0 10px 20px rgba(255,0,0,0.15)', cursor: 'pointer' }}>Explore More +</button>
                     </div>
+                </div>
+            </section>
+
+            {/* 12. Why Families Choose Section */}
+            <section className="section-padding" style={{ 
+                backgroundImage: `url(${whyChooseBg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                padding: '100px 0',
+                position: 'relative'
+            }}>
+                <div className="container text-center">
+                    <img src={yogisLogoWhite} alt="Yogis Farm Logo" style={{ width: '250px', marginBottom: '30px' }} />
+                    <h2 style={{ color: '#fff', fontSize: '42px', fontWeight: 'bold', fontFamily: 'Poppins, sans-serif' }}>Why Families Choose Yogi's Farms</h2>
                 </div>
             </section>
 
