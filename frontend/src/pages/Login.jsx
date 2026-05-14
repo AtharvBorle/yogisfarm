@@ -49,8 +49,8 @@ const Login = () => {
                 if (res.data.needsDetails) {
                     setStep(3);
                 } else {
-                    fetchUser();
-                    fetchCart(); // Fetch new merged cart
+                    await fetchUser();  // Wait for user state to be set BEFORE navigating
+                    fetchCart();
                     navigate(redirect);
                 }
             } else {
@@ -67,8 +67,8 @@ const Login = () => {
             const res = await api.post('/auth/submit-details', { name, email });
             if (res.data.status) {
                 toast.success('Registration successful!');
-                fetchUser();
-                fetchCart(); // Fetch new merged cart
+                await fetchUser();
+                fetchCart();
                 navigate(redirect);
             } else {
                 toast.error(res.data.message);
