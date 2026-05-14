@@ -114,7 +114,7 @@ const Payment = () => {
                         key: res.data.key,
                         amount: res.data.razorpayOrder.amount,
                         currency: res.data.razorpayOrder.currency,
-                        name: "Yogis Farm",
+                        name: "YogisFarms",
                         description: "Organic Products Purchase",
                         order_id: res.data.razorpayOrder.id,
                         handler: async function (response) {
@@ -170,7 +170,7 @@ const Payment = () => {
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
+    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/icons/logo-new.svg" alt="Loading..." style={{ width: '50px' }} /></div>;
 
     return (
         <main className="main">

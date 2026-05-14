@@ -1,4 +1,4 @@
-﻿-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: yogisfarm
 -- ------------------------------------------------------
@@ -1252,7 +1252,7 @@ CREATE TABLE `settings` (
 
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
-INSERT INTO `settings` VALUES (1,'site_name','Yogis Farm'),(2,'site_tagline','Farm Fresh, Direct to You'),(3,'site_email','info@yogisfarm.in'),(4,'site_phone','9119501177'),(5,'site_address','S.No 18, Salkunje Bunglow, Sudardhan Park society, Ingale Nagar, Warje, Pune - 417006'),(6,'site_logo','/uploads/logo.png'),(7,'site_currency','â‚¹'),(8,'site_currency_code','INR'),(9,'site_color','#3BB77E'),(10,'free_shipping_min','500'),(11,'shipping_charge','50'),(12,'gst_number','GST00909098');
+INSERT INTO `settings` VALUES (1,'site_name','Yogis Farm'),(2,'site_tagline','Farm Fresh, Direct to You'),(3,'site_email','info@yogisfarms.com'),(4,'site_phone','9119501177'),(5,'site_address','S.No 18, Salkunje Bunglow, Sudardhan Park society, Ingale Nagar, Warje, Pune - 417006'),(6,'site_logo','/uploads/logo.png'),(7,'site_currency','â‚¹'),(8,'site_currency_code','INR'),(9,'site_color','#3BB77E'),(10,'free_shipping_min','500'),(11,'shipping_charge','50'),(12,'gst_number','GST00909098');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

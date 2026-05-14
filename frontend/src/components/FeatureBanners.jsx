@@ -13,116 +13,15 @@ import vegan from '../assets/figma/image_find/vegan 1.svg';
 import vector1 from '../assets/figma/image_find/Vector (1).svg';
 import freshLayer from '../assets/figma/image_find/freshlayer.svg';
 import findUs from '../assets/figma/image_find/findus.svg';
+import feedbackProfile from '../assets/figma/image_find/feedback_profile.png';
 
 const FeatureBanners = () => {
     const testimonialText = "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste.";
 
     return (
         <>
-        <section className="section-padding pb-5 mt-5">
-            <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
+        {/* Removed duplicated Why Families Choose Yogi's Farms section - now only in Home.jsx */}
 
-                {/* ── Why Families Choose Yogi's Farms ── */}
-                <div className="section-title">
-                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 600, marginBottom: '30px' }}>
-                        Why Families Choose Yogi's Farms
-                    </h3>
-                </div>
-
-                {/* Banner Image */}
-                <div className="row mb-40">
-                    <div className="col-12 position-relative text-center">
-                        <img src={img25} alt="Tea Garden" style={{ width: '100%', height: '350px', objectFit: 'cover', borderRadius: '15px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }} />
-                    </div>
-                </div>
-
-                {/* Two-column text Intro */}
-                <div className="row mb-50">
-                    <div className="col-md-5 mb-4">
-                        <h4 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '20px', fontWeight: 600, lineHeight: '32px', borderLeft: '4px solid #B2D33D', paddingLeft: '20px' }}>
-                            We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That's why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.
-                        </h4>
-                    </div>
-                    <div className="col-md-7 mb-4">
-                        <p style={{ color: '#444', fontFamily: 'Poppins, sans-serif', fontSize: '16px', fontWeight: 400, lineHeight: '28px' }}>
-                            In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi's Farm, every product begins at the source — with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn't just a product — it's a process rooted in care, transparency, and intention.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Feature Blocks Grid */}
-                <div className="row mb-50">
-                    {[
-                        {
-                            title: 'Real Sourcing, Not Market Buying',
-                            subtitle: 'Grown with intent, not sourced in bulk',
-                            desc: 'We work directly with farmers who follow natural practices — not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.',
-                            icon: iconApproval
-                        },
-                        {
-                            title: 'Minimal Processing',
-                            subtitle: "We don't over process what nature perfected",
-                            desc: 'No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.',
-                            icon: iconGears
-                        },
-                        {
-                            title: 'Complete Transparent',
-                            subtitle: 'Nothing hidden. nothing artificial.',
-                            desc: 'From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.',
-                            icon: iconVision
-                        },
-                        {
-                            title: 'No Shortcuts in Quality',
-                            subtitle: "Quality Isn't Optimized. It's Respected.",
-                            desc: "We don't chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.",
-                            icon: iconApproval
-                        },
-                        {
-                            title: 'Made for Real Homes',
-                            subtitle: 'What we serve Our families, we serve you',
-                            desc: "Our products aren't designed for shelves — they're made for kitchens, for daily meals, for real health.",
-                            icon: iconGears
-                        },
-                        {
-                            title: 'Honest Value',
-                            subtitle: 'You pay for purity, not marketing',
-                            desc: 'No inflated claims, no gimmicks — just real value in every product you bring home.',
-                            icon: iconVision
-                        }
-                    ].map((item, i) => (
-                        <div key={i} className="col-lg-4 col-md-6 mb-40">
-                            <div style={{ height: '100%', paddingRight: '20px' }}>
-                                {/* Icon Container (72x72px with #ECFFBE background) */}
-                                <div style={{ 
-                                    width: '72px', 
-                                    height: '72px', 
-                                    borderRadius: '50%', 
-                                    backgroundColor: '#ECFFBE', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center', 
-                                    marginBottom: '20px',
-                                    border: i === 0 ? '2px solid #3AB0FF' : 'none',
-                                    transition: 'transform 0.3s ease'
-                                }} onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'} onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                                    <img src={item.icon} alt="Feature Icon" style={{ width: '40px', height: '40px' }} />
-                                </div>
-                                <h5 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '20px', fontWeight: 600, marginBottom: '12px' }}>
-                                    {item.title}
-                                </h5>
-                                <p style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>
-                                    {item.subtitle}
-                                </p>
-                                <p style={{ color: '#666', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 400, lineHeight: '24px' }}>
-                                    {item.desc}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-            </div>
-        </section>
 
         {/* ── What Our Customers Say (Auto-sliding Marquee) ── */}
         <section style={{ background: '#ECFFBE', overflow: 'hidden', padding: '80px 0' }}>
@@ -165,16 +64,32 @@ const FeatureBanners = () => {
             {/* Top Row (Sliding Left) */}
             <div className="marquee-container mb-4" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
                 <div className="marquee-content">
-                    {[1, 2, 3, 4, 1, 2, 3, 4].map((item, i) => (
-                        <div key={`top-${i}`} style={{ minWidth: '320px', maxWidth: '320px', background: '#fff', borderRadius: '15px', padding: '20px', display: 'flex', flexDirection: 'column', whiteSpace: 'normal', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
-                            <div className="d-flex align-items-center mb-2">
-                                <img src={img25} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #0A6738', marginRight: '12px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/icons/icon-user.svg'; e.currentTarget.style.border = 'none'; }} />
-                                <h6 style={{ margin: 0, fontFamily: 'Poppins, sans-serif', fontSize: '15px', fontWeight: 600, color: '#000' }}>
-                                    Avishkar Mandlik
+                    {[
+                        { name: 'Omkar Joshi', text: 'The wood-pressed groundnut oil is exactly like what we used to get in our village. Very pure, aromatic, and it adds a distinct flavor to our cooking that processed oils simply can\'t match. We\'ve been using it for over six months now and the quality has been consistently excellent. Highly recommend it for health-conscious families.' },
+                        { name: 'Lakhan S', text: 'Finally found a brand that doesn\'t use chemicals or hidden additives. Their turmeric is so bright and natural, you can immediately tell the difference in the color and aroma. It\'s heartening to see a brand committed to traditional purity in this age of mass-produced, refined food. Definitely a permanent addition to our pantry.' },
+                        { name: 'Pratik Ghodake', text: 'Great quality products across the board. The ghee has a very nice grainy texture and smells wonderful, just like homemade ghee. My parents were very impressed with the authenticity. It\'s rare to find such genuine products delivered right to your doorstep. The packaging is also very robust and premium.' },
+                        { name: 'Atharv Borle', text: 'I\'ve tried many organic brands, but Yogi\'s Farm\'s honey is the most authentic I\'ve found. It\'s raw, unprocessed, and you can truly taste the floral notes. It\'s great to know that I\'m giving my family something truly natural. Their commitment to transparency is what makes me a loyal customer.' },
+                        { name: 'Jayraj P', text: 'Ordered the cold pressed mustard oil for traditional cooking. It has that strong, authentic pungency that is missing in most market brands. It reminds me of the oil we used to get directly from the ghani. Excellent quality and very reasonably priced considering the purity and health benefits it offers.' },
+                        { name: 'Avishkar Mandlik', text: 'The packaging is very premium and ensures that the oils reach us in perfect condition. The quality of the wood pressed oil is top-notch, with no chemical smell or aftertaste. We\'ve completely switched to Yogi\'s Farm for all our cooking needs and have noticed a significant improvement in the taste of our meals.' },
+                        { name: 'Pravin Wadkar', text: 'Excellent service and genuine organic products. My family loves the taste of their spices, especially the chili powder which has the perfect balance of heat and color. The delivery was prompt and the customer support was very helpful with my queries. A very reliable brand for authentic food.' }
+                    ].concat([
+                        { name: 'Omkar Joshi', text: 'The wood-pressed groundnut oil is exactly like what we used to get in our village. Very pure, aromatic, and it adds a distinct flavor to our cooking that processed oils simply can\'t match. We\'ve been using it for over six months now and the quality has been consistently excellent. Highly recommend it for health-conscious families.' },
+                        { name: 'Lakhan S', text: 'Finally found a brand that doesn\'t use chemicals or hidden additives. Their turmeric is so bright and natural, you can immediately tell the difference in the color and aroma. It\'s heartening to see a brand committed to traditional purity in this age of mass-produced, refined food. Definitely a permanent addition to our pantry.' },
+                        { name: 'Pratik Ghodake', text: 'Great quality products across the board. The ghee has a very nice grainy texture and smells wonderful, just like homemade ghee. My parents were very impressed with the authenticity. It\'s rare to find such genuine products delivered right to your doorstep. The packaging is also very robust and premium.' },
+                        { name: 'Atharv Borle', text: 'I\'ve tried many organic brands, but Yogi\'s Farm\'s honey is the most authentic I\'ve found. It\'s raw, unprocessed, and you can truly taste the floral notes. It\'s great to know that I\'m giving my family something truly natural. Their commitment to transparency is what makes me a loyal customer.' },
+                        { name: 'Jayraj P', text: 'Ordered the cold pressed mustard oil for traditional cooking. It has that strong, authentic pungency that is missing in most market brands. It reminds me of the oil we used to get directly from the ghani. Excellent quality and very reasonably priced considering the purity and health benefits it offers.' },
+                        { name: 'Avishkar Mandlik', text: 'The packaging is very premium and ensures that the oils reach us in perfect condition. The quality of the wood pressed oil is top-notch, with no chemical smell or aftertaste. We\'ve completely switched to Yogi\'s Farm for all our cooking needs and have noticed a significant improvement in the taste of our meals.' },
+                        { name: 'Pravin Wadkar', text: 'Excellent service and genuine organic products. My family loves the taste of their spices, especially the chili powder which has the perfect balance of heat and color. The delivery was prompt and the customer support was very helpful with my queries. A very reliable brand for authentic food.' }
+                    ]).map((item, i) => (
+                        <div key={`top-${i}`} style={{ minWidth: '400px', maxWidth: '400px', background: '#fff', borderRadius: '15px', padding: '25px', display: 'flex', flexDirection: 'column', whiteSpace: 'normal', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+                            <div className="d-flex align-items-center mb-3">
+                                <img src={feedbackProfile} alt={item.name} style={{ width: '45px', height: '45px', borderRadius: '50%', marginRight: '12px', objectFit: 'cover' }} />
+                                <h6 style={{ margin: 0, fontFamily: 'Poppins, sans-serif', fontSize: '16px', fontWeight: 600, color: '#000' }}>
+                                    {item.name}
                                 </h6>
                             </div>
-                            <p style={{ fontSize: '11px', color: '#555', fontFamily: 'Poppins, sans-serif', margin: 0, lineHeight: '16px' }}>
-                                Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste.
+                            <p style={{ fontSize: '13px', color: '#555', fontFamily: 'Poppins, sans-serif', margin: 0, lineHeight: '20px' }}>
+                                {item.text}
                             </p>
                         </div>
                     ))}
@@ -184,16 +99,32 @@ const FeatureBanners = () => {
             {/* Bottom Row (Sliding Right) */}
             <div className="marquee-container" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
                 <div className="marquee-content reverse">
-                    {[1, 2, 3, 4, 1, 2, 3, 4].map((item, i) => (
-                        <div key={`bottom-${i}`} style={{ minWidth: '320px', maxWidth: '320px', background: '#fff', borderRadius: '15px', padding: '20px', display: 'flex', flexDirection: 'column', whiteSpace: 'normal', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
-                            <div className="d-flex align-items-center mb-2">
-                                <img src={img25} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #0A6738', marginRight: '12px', objectFit: 'cover' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/icons.svg#icon-user'; e.currentTarget.style.border = 'none'; }} />
-                                <h6 style={{ margin: 0, fontFamily: 'Poppins, sans-serif', fontSize: '15px', fontWeight: 600, color: '#000' }}>
-                                    Avishkar Mandlik
+                    {[
+                        { name: 'Shuham', text: 'Their cold pressed oils are a game changer for my kitchen. Not only are they healthier, but they also have a much higher smoke point than I expected, making them versatile for all types of Indian cooking. The natural aroma that fills the kitchen while cooking is just amazing. Truly a superior product.' },
+                        { name: 'Pallavi', text: 'I\'m very conscious about what my kids eat, and Yogi\'s Farm gives me complete peace of mind with their purity and transparency. From their oils to their pulses, everything feels clean and full of nutrition. It\'s wonderful to have a local brand that prioritizes health and tradition over profit margins.' },
+                        { name: 'Mitesh W', text: 'The multi-floral honey is amazing. You can tell it\'s raw and unprocessed by its texture and rich flavor. It\'s become a staple in our morning routine. I also tried their rock salt and it\'s much better than the refined salts available in the market. Great job on maintaining such high standards.' },
+                        { name: 'Jeevan Joshi', text: 'Highly impressed with the transparent sourcing model. You know exactly where your food comes from and how it\'s processed. This level of honesty is rare in the food industry today. The wood pressed oils have a rich, dense consistency that proves their purity. Will definitely be ordering more soon.' },
+                        { name: 'Sayli', text: 'The aroma of the fresh groundnut oil makes everything taste better, from simple stir-fries to elaborate festive dishes. It\'s become the secret ingredient in my kitchen! I love that they stick to ancient methods instead of modern shortcuts. It\'s a brand that truly respects our culinary heritage.' },
+                        { name: 'Rutuja', text: 'Best quality organic products at reasonable prices. The delivery was also very prompt and the staff is very courteous. I appreciate the detailed information provided for each product, which helps in making informed choices. Yogi\'s Farm has made switching to a healthier lifestyle so much easier.' },
+                        { name: 'Atharv Borle', text: 'The taste of their organic spices is unmatched. Very high quality and consistently fresh. I\'ve recommended Yogi\'s Farm to all my friends and family who are looking for authentic, chemical-free food options. It\'s truly a brand you can trust with your eyes closed.' }
+                    ].concat([
+                        { name: 'Shuham', text: 'Their cold pressed oils are a game changer for my kitchen. Not only are they healthier, but they also have a much higher smoke point than I expected, making them versatile for all types of Indian cooking. The natural aroma that fills the kitchen while cooking is just amazing. Truly a superior product.' },
+                        { name: 'Pallavi', text: 'I\'m very conscious about what my kids eat, and Yogi\'s Farm gives me complete peace of mind with their purity and transparency. From their oils to their pulses, everything feels clean and full of nutrition. It\'s wonderful to have a local brand that prioritizes health and tradition over profit margins.' },
+                        { name: 'Mitesh W', text: 'The multi-floral honey is amazing. You can tell it\'s raw and unprocessed by its texture and rich flavor. It\'s become a staple in our morning routine. I also tried their rock salt and it\'s much better than the refined salts available in the market. Great job on maintaining such high standards.' },
+                        { name: 'Jeevan Joshi', text: 'Highly impressed with the transparent sourcing model. You know exactly where your food comes from and how it\'s processed. This level of honesty is rare in the food industry today. The wood pressed oils have a rich, dense consistency that proves their purity. Will definitely be ordering more soon.' },
+                        { name: 'Sayli', text: 'The aroma of the fresh groundnut oil makes everything taste better, from simple stir-fries to elaborate festive dishes. It\'s become the secret ingredient in my kitchen! I love that they stick to ancient methods instead of modern shortcuts. It\'s a brand that truly respects our culinary heritage.' },
+                        { name: 'Rutuja', text: 'Best quality organic products at reasonable prices. The delivery was also very prompt and the staff is very courteous. I appreciate the detailed information provided for each product, which helps in making informed choices. Yogi\'s Farm has made switching to a healthier lifestyle so much easier.' },
+                        { name: 'Atharv Borle', text: 'The taste of their organic spices is unmatched. Very high quality and consistently fresh. I\'ve recommended Yogi\'s Farm to all my friends and family who are looking for authentic, chemical-free food options. It\'s truly a brand you can trust with your eyes closed.' }
+                    ]).map((item, i) => (
+                        <div key={`bottom-${i}`} style={{ minWidth: '400px', maxWidth: '400px', background: '#fff', borderRadius: '15px', padding: '25px', display: 'flex', flexDirection: 'column', whiteSpace: 'normal', boxShadow: '0 4px 15px rgba(0,0,0,0.04)' }}>
+                            <div className="d-flex align-items-center mb-3">
+                                <img src={feedbackProfile} alt={item.name} style={{ width: '45px', height: '45px', borderRadius: '50%', marginRight: '12px', objectFit: 'cover' }} />
+                                <h6 style={{ margin: 0, fontFamily: 'Poppins, sans-serif', fontSize: '16px', fontWeight: 600, color: '#000' }}>
+                                    {item.name}
                                 </h6>
                             </div>
-                            <p style={{ fontSize: '11px', color: '#555', fontFamily: 'Poppins, sans-serif', margin: 0, lineHeight: '16px' }}>
-                                Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste.
+                            <p style={{ fontSize: '13px', color: '#555', fontFamily: 'Poppins, sans-serif', margin: 0, lineHeight: '20px' }}>
+                                {item.text}
                             </p>
                         </div>
                     ))}

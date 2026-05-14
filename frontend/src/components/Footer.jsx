@@ -97,7 +97,7 @@ const Footer = () => {
                             </li>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={mailIcon} alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
-                                <a href="mailto:info@yogisfarms.in" style={{ color: '#000' }}>info@yogisfarms.in</a>
+                                <a href="mailto:info@yogisfarms.com" style={{ color: '#000' }}>info@yogisfarms.com</a>
                             </li>
                         </ul>
                     </div>

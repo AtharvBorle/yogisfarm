@@ -109,7 +109,7 @@ const Invoice = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
-                    <img src="/assets/imgs/theme/logo.png" alt="Yogis Farm" style={{ height: '60px', marginBottom: '10px' }} />
+                    <img src="/assets/imgs/theme/icons/logo-new.svg" alt="YogisFarms" style={{ height: '60px', marginBottom: '10px' }} />
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <h1 style={{ color: '#046938', fontSize: '32px', fontWeight: '800', margin: '0' }}>INVOICE</h1>
@@ -122,7 +122,7 @@ const Invoice = () => {
                     <strong>Yogis Farm (Yogis Farm)</strong><br />
                     S.No 18, Saikrupa Bunglow, Sudarshan Park society, Ingale Nagar, Warje, Pune 411058, Pune<br />
                     Pune, Maharashtra - 411058<br />
-                    E-Mail Address: info@yogisfarm.in<br />
+                    E-Mail Address: info@yogisfarms.com<br />
                     Phone Number: +91 9119501177
                     {gstNumber && <><br />GST Number: <strong>{gstNumber}</strong></>}
                 </div>

@@ -59,7 +59,7 @@ const Sidebar = ({ isCollapsed, isDarkMode }) => {
                 transition: 'padding 0.3s'
             }}>
                 <img 
-                    src="/assets/imgs/theme/logo.png" 
+                    src="/assets/imgs/theme/icons/logo-new.svg" 
                     alt="Logo" 
                     style={{ 
                         width: isCollapsed ? '40px' : '150px',

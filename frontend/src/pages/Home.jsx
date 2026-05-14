@@ -471,12 +471,12 @@ const Home = () => {
             </section>
 
             {/* 11. Cooking Challenges Banner (Full Width) */}
-            <section className="section-padding pb-5" style={{ background: '#F2FFD6', margin: '40px 0' }}>
-                <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '40px 15px' }} className="wow animate__animated animate__fadeIn">
+            <section className="section-padding" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
+                <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                     <div className="section-title text-center">
-                        <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '40px', textTransform: 'capitalize' }}>Participate in our Cooking Challenges & avail the offer</h3>
+                        <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>Participate in our Cooking Challenges & avail the offer</h3>
                     </div>
-                    <div className="row justify-content-center mb-4">
+                    <div className="row justify-content-center mb-2">
                         <div className="col-lg-3 col-md-6 mb-3">
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
                                 <img src={cooking1} alt="Cooking 1" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
@@ -510,8 +510,8 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="text-center mt-40">
-                        <button className="btn" style={{ padding: '18px 60px', fontSize: '18px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, borderRadius: '10px', backgroundColor: '#FF0000', color: '#FFFFFF', border: 'none', boxShadow: '0 10px 20px rgba(255,0,0,0.15)', cursor: 'pointer' }}>Explore More +</button>
+                    <div className="text-center mt-20">
+                        <button className="btn" style={{ padding: '15px 50px', fontSize: '16px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, borderRadius: '10px', backgroundColor: '#FF0000', color: '#FFFFFF', border: 'none', boxShadow: '0 8px 16px rgba(255,0,0,0.15)', cursor: 'pointer' }}>Explore More +</button>
                     </div>
                 </div>
             </section>
@@ -570,6 +570,37 @@ const Home = () => {
                                 <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Complete Transparent</h4>
                                 <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Nothing hidden. nothing artificial.</p>
                                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.</p>
+                            </div>
+                        </div>
+                        {/* Adding the missing 3 points */}
+                        <div className="col-md-4 mb-30">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <img src={iconApproval} alt="Quality" style={{ width: '30px' }} />
+                                </div>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>No Shortcuts in Quality</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Quality Isn't Optimized. It's Respected.</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We don't chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.</p>
+                            </div>
+                        </div>
+                        <div className="col-md-4 mb-30">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <img src={iconGears} alt="Real Homes" style={{ width: '30px' }} />
+                                </div>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Made for Real Homes</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>What we serve Our families, we serve you</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products aren't designed for shelves — they're made for kitchens, for daily meals, for real health.</p>
+                            </div>
+                        </div>
+                        <div className="col-md-4 mb-30">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <img src={iconVision} alt="Honest Value" style={{ width: '30px' }} />
+                                </div>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Honest Value</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>You pay for purity, not marketing</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No inflated claims, no gimmicks — just real value in every product you bring home.</p>
                             </div>
                         </div>
                     </div>
