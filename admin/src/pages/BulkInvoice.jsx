@@ -336,7 +336,7 @@ const BulkInvoice = () => {
                                         <th>Product</th>
                                         <th className="center" style={{ width: '50px' }}>HSN</th>
                                         <th className="center" style={{ width: '30px' }}>Qty</th>
-                                        <th className="right" style={{ width: '60px' }}>Sell Price</th>
+                                        <th className="right" style={{ width: '60px' }}>Gross Amt</th>
                                         <th className="right" style={{ width: '60px' }}>Discount</th>
                                         <th className="right" style={{ width: '60px' }}>Tax Val</th>
                                         {isMaharashtra ? (
@@ -393,7 +393,7 @@ const BulkInvoice = () => {
                                                 </td>
                                                 <td className="center" style={{ fontSize: '9px' }}>{hsn}</td>
                                                 <td className="center bold">{item.quantity}</td>
-                                                <td className="right">₹{offerPrice.toFixed(2)}</td>
+                                                <td className="right">₹{(mrp * item.quantity).toFixed(2)}</td>
                                                 <td className="right" style={{ fontSize: '9px' }}>
                                                     {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(2)}</div>}
                                                     {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(2)}</div>}
