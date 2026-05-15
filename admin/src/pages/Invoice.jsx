@@ -181,11 +181,11 @@ const Invoice = () => {
                             }
                         }
 
-                        // Tax calculation (stored on item)
+                        // Tax calculation
                         const gstPercent = Number(item.taxRate) || 0;
-                        const gstAmt = itemTotal * (gstPercent / 100);
-                        const taxableVal = itemTotal - gstAmt;
                         const lineTotal = itemTotal - odForLine;
+                        const gstAmt = lineTotal * (gstPercent / 100);
+                        const taxableVal = lineTotal - gstAmt;
                         
                         const hsn = item.hsnCode || '—';
 

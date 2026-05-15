@@ -369,9 +369,9 @@ const BulkInvoice = () => {
                                             }
                                         }
 
-                                        const gstAmt = itemTotal * (gstPercent / 100);
-                                        const taxableVal = itemTotal - gstAmt;
                                         const lineTotal = itemTotal - odForLine;
+                                        const gstAmt = lineTotal * (gstPercent / 100);
+                                        const taxableVal = lineTotal - gstAmt;
                                         
                                         const hsn = item.hsnCode || '—';
 

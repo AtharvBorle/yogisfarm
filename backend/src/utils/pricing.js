@@ -28,9 +28,36 @@ async function calculateOrderTotals(userId, couponCode = null) {
     throw new Error('Cart is empty');
   }
 
-  // 2. Calculate per-item prices & tax (GST-inclusive model)
+  // 2. First pass: find offerPriceSum
   let offerPriceSum = 0;
+  cartItems.forEach(item => {
+    const offerPrice = item.variant
+      ? parseFloat(item.variant.salePrice || item.variant.price)
+      : parseFloat(item.product.salePrice || item.product.price);
+    offerPriceSum += offerPrice * item.quantity;
+  });
+
+  // 3. Calculate total coupon discount
+  let discountAmount = 0;
+  let appliedCouponId = null;
+  let coupon = null;
+
+  if (couponCode) {
+    coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
+    if (coupon && coupon.status === 'active') {
+      if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
+        discountAmount = coupon.amountType === 'percent'
+          ? (offerPriceSum * parseFloat(coupon.amount)) / 100
+          : parseFloat(coupon.amount);
+        if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
+        appliedCouponId = coupon.id;
+      }
+    }
+  }
+
+  // 4. Second pass: Calculate tax and item totals
   let totalTaxAmount = 0;
+  let subtotal = 0; // Sum of tax values
 
   const orderItems = cartItems.map(item => {
     const offerPrice = item.variant
@@ -43,12 +70,28 @@ async function calculateOrderTotals(userId, couponCode = null) {
     const itemTotal = offerPrice * item.quantity;
     const productDiscount = (originalPrice - offerPrice) * item.quantity;
 
+    // Allocate order discount to this line
+    let odForLine = 0;
+    if (discountAmount > 0) {
+      if (coupon.amountType === 'percent') {
+        // Proportional allocation ensures percent logic holds true per item while respecting any max caps
+        odForLine = (itemTotal / offerPriceSum) * discountAmount;
+      } else {
+        // Flat coupon evenly divided across all line items
+        odForLine = discountAmount / cartItems.length;
+      }
+    }
+
+    const finalItemTotal = itemTotal - odForLine;
     const itemTaxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
     const itemHsnCode = item.product.hsn ? item.product.hsn.hsnCode : null;
-    const itemGst = itemTotal * (itemTaxRate / 100);
+    
+    // User's formula: Tax Amount = Final Item Price * Tax Rate
+    const itemGst = finalItemTotal * (itemTaxRate / 100);
+    const itemTaxVal = finalItemTotal - itemGst;
 
-    offerPriceSum += itemTotal;
     totalTaxAmount += itemGst;
+    subtotal += itemTaxVal;
 
     return {
       productId: item.productId,
@@ -61,31 +104,11 @@ async function calculateOrderTotals(userId, couponCode = null) {
       taxRate: itemTaxRate,
       hsnCode: itemHsnCode,
       quantity: item.quantity,
-      total: itemTotal
+      total: itemTotal // Keep total as itemTotal so UI can re-derive the breakdown if needed
     };
   });
 
-  // 3. Subtotal = offerPriceSum minus GST (base price)
-  const subtotal = offerPriceSum - totalTaxAmount;
   const totalTax = totalTaxAmount;
-
-  // 4. Apply coupon discount (on base/subtotal, not on tax)
-  let discountAmount = 0;
-  let appliedCouponId = null;
-  let coupon = null;
-
-  if (couponCode) {
-    coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
-    if (coupon && coupon.status === 'active') {
-      if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
-        discountAmount = coupon.amountType === 'percent'
-          ? (subtotal * parseFloat(coupon.amount)) / 100
-          : parseFloat(coupon.amount);
-        if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
-        appliedCouponId = coupon.id;
-      }
-    }
-  }
 
   // 5. Fetch shipping rule
   const shippingRule = await prisma.shipping.findFirst({ where: { status: 'active' }, orderBy: { minCartValue: 'asc' } });
@@ -94,8 +117,8 @@ async function calculateOrderTotals(userId, couponCode = null) {
     shipping = offerPriceSum >= parseFloat(shippingRule.minCartValue) ? 0 : parseFloat(shippingRule.charge);
   }
 
-  // 6. Final total (round only the final amount)
-  const rawTotal = subtotal - discountAmount + totalTax + shipping;
+  // 6. Final total (subtotal + tax + shipping = offerPriceSum - discount + shipping)
+  const rawTotal = subtotal + totalTax + shipping;
   const total = Math.round(rawTotal);
 
   // 7. Cart item IDs for stock deduction later

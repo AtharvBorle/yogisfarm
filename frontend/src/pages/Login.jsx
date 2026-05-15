@@ -105,10 +105,10 @@ const Login = () => {
                 <div className="row align-items-center">
                     {/* Left side illustration */}
                     <div className="col-lg-6 pr-30 d-none d-lg-block text-center position-relative">
-                        <div style={{ position: 'relative', borderRadius: '15px', overflow: 'hidden' }}>
+                        <div style={{ position: 'relative', borderRadius: '15px', overflow: 'hidden', maxWidth: '420px', margin: '0 auto' }}>
                             <img src={loginBg} alt="Login Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
                             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                                <img src={yogisLogo} alt="YogisFarms Logo" style={{ width: '150px' }} />
+                                <img src={yogisLogo} alt="YogisFarms Logo" style={{ width: '100px' }} />
                             </div>
                         </div>
                     </div>
