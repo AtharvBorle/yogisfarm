@@ -71,7 +71,27 @@ router.post('/place', requireLogin, async (req, res) => {
     if (!address) return res.json({ status: false, message: 'Address not found' });
 
     // === USE CENTRALIZED PRICING ENGINE ===
-    const pricing = await calculateOrderTotals(userId, couponCode || null);
+    const pricing = await calculateOrderTotals(userId, 'userId', couponCode || null);
+    
+    // === STRICT INVOICE VALIDATION ASSERTIONS (Point 8) ===
+    let sumOfItemTotals = 0;
+    for (const item of pricing.orderItems) {
+      sumOfItemTotals += item.total;
+      const taxRebuild = Math.round((item.taxableValue + item.cgst + item.sgst) * 100) / 100;
+      if (Math.abs(taxRebuild - Math.round(item.total * 100) / 100) > 0.02) {
+        throw new Error(`Invoice Validation Failed: Line item tax mismatch for ${item.name}`);
+      }
+    }
+    
+    const shippingTaxRebuild = Math.round((pricing.shippingTaxable + pricing.shippingGST) * 100) / 100;
+    if (Math.abs(shippingTaxRebuild - Math.round(pricing.shippingTotal * 100) / 100) > 0.02) {
+      throw new Error('Invoice Validation Failed: Shipping tax mismatch');
+    }
+
+    const calculatedGrandTotal = sumOfItemTotals + pricing.shippingTotal;
+    if (Math.abs(calculatedGrandTotal - pricing.grandTotal) > 0.02) {
+      throw new Error('Invoice Validation Failed: Grand total mismatch');
+    }
 
     // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
     if (paymentMethod.toLowerCase() === 'online') {
@@ -95,6 +115,8 @@ router.post('/place', requireLogin, async (req, res) => {
         addressType: address.addressType || 'Home',
         subtotal: pricing.subtotal, shipping: pricing.shipping,
         discount: pricing.discountAmount, tax: pricing.totalTax,
+        shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
+        grandTotal: pricing.grandTotal,
         taxName: 'GST', taxRate: null,
         total: pricing.total, couponCode: couponCode || null,
         orderNote: orderNote || null,
@@ -129,6 +151,8 @@ router.post('/place', requireLogin, async (req, res) => {
         addressType: address.addressType || 'Home',
         subtotal: pricing.subtotal, shipping: pricing.shipping,
         discount: pricing.discountAmount, tax: pricing.totalTax,
+        shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
+        grandTotal: pricing.grandTotal,
         taxName: 'GST', taxRate: null,
         total: pricing.total, couponCode: couponCode || null, orderNote: orderNote || null,
         paymentMethod: 'cod',
@@ -207,6 +231,8 @@ router.post('/verify-payment', requireLogin, async (req, res) => {
         addressType: pendingOrder.addressType,
         subtotal: pendingOrder.subtotal, shipping: pendingOrder.shipping,
         discount: pendingOrder.discount, tax: pendingOrder.tax,
+        shippingTotal: pendingOrder.shippingTotal, shippingTaxable: pendingOrder.shippingTaxable, shippingGST: pendingOrder.shippingGST,
+        grandTotal: pendingOrder.grandTotal,
         taxName: pendingOrder.taxName, taxRate: pendingOrder.taxRate,
         total: pendingOrder.total,
         couponCode: pendingOrder.couponCode, orderNote: pendingOrder.orderNote,

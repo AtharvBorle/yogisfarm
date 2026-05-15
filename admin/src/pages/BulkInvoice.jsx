@@ -352,36 +352,16 @@ const BulkInvoice = () => {
                                 </thead>
                                 <tbody>
                                     {(order.items || []).map((item, i) => {
-                                        const mrp = Number(item.price) || 0;
-                                        const itemTotal = Number(item.total) || 0;
-                                        const offerPrice = itemTotal / item.quantity;
+                                        const mrp = Number(item.mrp) || Number(item.price) || 0;
+                                        const pd = Number(item.productDiscount) || 0;
+                                        const od = Number(item.orderDiscount) || 0;
+                                        const taxableVal = Number(item.taxableValue) || 0;
+                                        const cgst = Number(item.cgst) || 0;
+                                        const sgst = Number(item.sgst) || 0;
+                                        const igst = Number(item.gstAmount) || 0;
                                         const gstPercent = Number(item.taxRate) || 0;
-                                        const itemCount = order.items.length;
-
-                                        const pdPerUnit = mrp > offerPrice ? mrp - offerPrice : 0;
-                                        const orderDiscount = Number(order.discount) || 0;
-                                        let odForLine = 0;
-                                        if (orderDiscount > 0) {
-                                            if (isPercentCoupon && totalOfferPrice > 0) {
-                                                odForLine = (itemTotal / totalOfferPrice) * orderDiscount;
-                                            } else {
-                                                odForLine = orderDiscount / itemCount;
-                                            }
-                                        }
-
-                                        const lineTotal = itemTotal - odForLine;
-                                        const gstAmt = lineTotal * (gstPercent / 100);
-                                        const taxableVal = lineTotal - gstAmt;
-                                        
+                                        const lineTotal = Number(item.total) || 0;
                                         const hsn = item.hsnCode || '—';
-
-                                        let cgst = 0, sgst = 0, igst = 0;
-                                        if (isMaharashtra) {
-                                            cgst = gstAmt / 2;
-                                            sgst = gstAmt / 2;
-                                        } else {
-                                            igst = gstAmt;
-                                        }
 
                                         return (
                                             <tr key={i}>
@@ -395,9 +375,9 @@ const BulkInvoice = () => {
                                                 <td className="center bold">{item.quantity}</td>
                                                 <td className="right">₹{(mrp * item.quantity).toFixed(2)}</td>
                                                 <td className="right" style={{ fontSize: '9px' }}>
-                                                    {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(2)}</div>}
-                                                    {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(2)}</div>}
-                                                    {pdPerUnit === 0 && odForLine === 0 && '₹0.00'}
+                                                    {pd > 0 && <div>PD: ₹{pd.toFixed(2)}</div>}
+                                                    {od > 0 && <div>OD: ₹{od.toFixed(2)}</div>}
+                                                    {pd === 0 && od === 0 && '₹0.00'}
                                                 </td>
                                                 <td className="right">₹{taxableVal.toFixed(2)}</td>
                                                 {isMaharashtra ? (
@@ -419,7 +399,7 @@ const BulkInvoice = () => {
                                     </tr>
                                     {/* Footer Row */}
                                     <tr>
-                                        <td colSpan="3" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {totalQty}</td>
+                                        <td colSpan="3" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
                                         <td colSpan={isMaharashtra ? "5" : "4"} className="right bold" style={{ padding: '8px 4px' }}>GRAND TOTAL:</td>
                                         <td className="right bold" style={{ fontSize: '12px', padding: '8px 4px' }}>₹{Number(order.total).toFixed(2)}</td>
                                     </tr>

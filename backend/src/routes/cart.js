@@ -139,4 +139,29 @@ router.delete('/remove/:id', async (req, res) => {
   }
 });
 
+// Calculate totals (Backend Source of Truth)
+const { calculateOrderTotals } = require('../utils/pricing');
+
+router.post('/calculate', async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    let identifier, type;
+
+    if (req.session.userId) {
+      identifier = req.session.userId;
+      type = 'userId';
+    } else if (req.sessionID) {
+      identifier = req.sessionID;
+      type = 'sessionId';
+    } else {
+      return res.json({ status: false, message: 'No session or user found' });
+    }
+
+    const pricing = await calculateOrderTotals(identifier, type, couponCode || null);
+    res.json({ status: true, pricing });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 module.exports = router;

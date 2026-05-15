@@ -196,10 +196,7 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Unit', 'MRP', 'Gross Amt', 'Discount', 'Taxable Val', 
-                          isMaharashtra ? 'CGST' : 'IGST', 
-                          isMaharashtra ? 'SGST' : null, 
-                          'Total'
+                        {['#', 'Product', 'Qty', 'MRP', 'Gross Amt', 'Discount', 'Total'
                         ].filter(Boolean).map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
@@ -207,42 +204,11 @@ const Invoice = () => {
                 </thead>
                 <tbody>
                     {(order.items || []).map((item, i) => {
-                        const isPercentCoupon = order.coupon && order.coupon.amountType === 'percent';
-                        const totalOfferPrice = (order.items || []).reduce((sum, it) => sum + Number(it.total), 0);
-                        const totalQty = (order.items || []).reduce((sum, it) => sum + it.quantity, 0);
-                        const itemCount = order.items.length;
-
-                        // Calculations
-                        const mrp = Number(item.price) || 0;
-                        const itemTotal = Number(item.total) || 0;
-                        const offerPrice = itemTotal / item.quantity;
-                        const pdPerUnit = mrp > offerPrice ? mrp - offerPrice : 0;
-                        
-                        const orderDiscount = Number(order.discount) || 0;
-                        let odForLine = 0;
-                        if (orderDiscount > 0) {
-                            if (isPercentCoupon && totalOfferPrice > 0) {
-                                odForLine = (itemTotal / totalOfferPrice) * orderDiscount;
-                            } else {
-                                odForLine = orderDiscount / itemCount;
-                            }
-                        }
-
-                        // Tax calculation (stored on item)
-                        const gstPercent = Number(item.taxRate) || 0;
-                        const lineTotal = itemTotal - odForLine;
-                        const gstAmt = lineTotal * (gstPercent / 100);
-                        const taxableVal = lineTotal - gstAmt;
-                        
-                        const hsn = item.hsnCode || '—';
-
-                        let cgst = 0, sgst = 0, igst = 0;
-                        if (isMaharashtra) {
-                            cgst = gstAmt / 2;
-                            sgst = gstAmt / 2;
-                        } else {
-                            igst = gstAmt;
-                        }
+                        const mrp = Number(item.mrp) || Number(item.price) || 0;
+                        const pd = Number(item.productDiscount) || 0;
+                        const od = Number(item.orderDiscount) || 0;
+                        const totalDiscount = pd + od;
+                        const lineTotal = Number(item.total) || 0;
 
                         return (
                             <React.Fragment key={item.id}>
@@ -250,36 +216,26 @@ const Invoice = () => {
                                     <td style={tdStyle}>{i + 1}</td>
                                     <td style={{ ...tdStyle, textAlign: 'left' }}>
                                         <div>{item.name}</div>
-                                        {hsn !== '—' && <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>HSN: {hsn}</div>}
                                     </td>
-                                    <td style={tdStyle}>{item.variant || '1 Unit'} ×{item.quantity}</td>
-                                    <td style={tdStyle}>₹{mrp.toFixed(0)}</td>
-                                    <td style={tdStyle}>₹{(mrp * item.quantity).toFixed(0)}</td>
-                                    <td style={{ ...tdStyle, fontSize: '11px' }}>
-                                        {pdPerUnit > 0 && <div>PD: ₹{(pdPerUnit * item.quantity).toFixed(0)}</div>}
-                                        {odForLine > 0 && <div>OD: ₹{odForLine.toFixed(0)}</div>}
-                                        {pdPerUnit === 0 && odForLine === 0 && '—'}
+                                    <td style={{ ...tdStyle, textAlign: 'center' }}>{item.quantity}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right' }}>₹{mrp.toFixed(2)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right' }}>₹{(mrp * item.quantity).toFixed(2)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right', fontSize: '12px' }}>
+                                        {pd > 0 && <div>PD: ₹{pd.toFixed(2)}</div>}
+                                        {od > 0 && <div>OD: ₹{od.toFixed(2)}</div>}
+                                        {totalDiscount === 0 && '₹0.00'}
                                     </td>
-                                    <td style={tdStyle}>₹{taxableVal.toFixed(2)}</td>
-                                    {isMaharashtra ? (
-                                        <>
-                                            <td style={tdStyle}>₹{cgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
-                                            <td style={tdStyle}>₹{sgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
-                                        </>
-                                    ) : (
-                                        <td style={tdStyle}>₹{igst.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
-                                    )}
-                                    <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(0)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>₹{lineTotal.toFixed(2)}</td>
                                 </tr>
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping & Charges</td>
-                                            <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
+                                            <td colSpan="5" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
-                                            <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {totalQty}</td>
-                                            <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
+                                            <td colSpan="3" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
                                         </tr>
                                     </>

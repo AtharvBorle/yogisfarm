@@ -1,64 +1,57 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api';
 
 /**
  * Centralized pricing hook for Yogis Farm frontend.
  * 
- * SINGLE SOURCE OF TRUTH for all price calculations on the client side.
+ * SINGLE SOURCE OF TRUTH (Fetches directly from backend API).
  * Used by: Cart, Checkout, Payment pages.
  * 
- * Pricing model: GST-INCLUSIVE (offer prices already include GST)
- * 
- * @param {Array} cartItems - Cart items from CartContext
- * @param {number} discount - Coupon discount amount (default 0)
- * @returns {Object} { offerPriceSum, subtotalBase, totalTax, shipping, shippingLoaded, grandTotal }
+ * @param {Array} cartItems - Cart items
+ * @param {string|null} couponCode - Applied coupon code
+ * @returns {Object} { offerPriceSum, subtotalBase, totalTax, shipping, loading, grandTotal }
  */
-export function useOrderPricing(cartItems, discount = 0) {
-  const [shippingCharge, setShippingCharge] = useState(0);
-  const [shippingThreshold, setShippingThreshold] = useState(0);
-  const [shippingLoaded, setShippingLoaded] = useState(false);
+export function useOrderPricing(cartItems, couponCode = null) {
+  const [pricing, setPricing] = useState({
+    offerPriceSum: 0,
+    subtotalBase: 0,
+    totalTax: 0,
+    shipping: 0,
+    discountAmount: 0,
+    grandTotal: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Fetch shipping rules once
   useEffect(() => {
-    const fetchShipping = async () => {
-      try {
-        const res = await api.get('/shipping');
-        if (res.data.status && res.data.shipping?.length > 0) {
-          const active = res.data.shipping[0];
-          setShippingCharge(parseFloat(active.charge));
-          setShippingThreshold(parseFloat(active.minCartValue));
+    if (!cartItems || cartItems.length === 0) {
+      setPricing({ offerPriceSum: 0, subtotalBase: 0, totalTax: 0, shipping: 0, discountAmount: 0, grandTotal: 0 });
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setLoading(true);
+
+    api.post('/cart/calculate', { couponCode })
+      .then(res => {
+        if (isMounted && res.data.status) {
+          setPricing({
+            offerPriceSum: res.data.pricing.offerPriceSum,
+            subtotalBase: res.data.pricing.subtotal,
+            totalTax: res.data.pricing.totalTax,
+            shipping: res.data.pricing.shipping,
+            discountAmount: res.data.pricing.discountAmount,
+            grandTotal: res.data.pricing.grandTotal
+          });
         }
-      } catch (err) { console.error(err); }
-      finally { setShippingLoaded(true); }
-    };
-    fetchShipping();
-  }, []);
+      })
+      .catch(console.error)
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
-  // Calculate all pricing from cart items (memoized for performance)
-  const pricing = useMemo(() => {
-    let offerPriceSum = 0;
-    let totalTax = 0;
+    return () => { isMounted = false; };
+  }, [cartItems, couponCode]);
 
-    cartItems.forEach(item => {
-      const offerPrice = item.variant
-        ? parseFloat(item.variant.salePrice || item.variant.price)
-        : parseFloat(item.product.salePrice || item.product.price);
-      const itemTotal = offerPrice * item.quantity;
-      const taxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
-
-      offerPriceSum += itemTotal;
-      totalTax += itemTotal * (taxRate / 100);
-    });
-
-    const subtotalBase = offerPriceSum - totalTax;
-    const shipping = (shippingThreshold > 0 && offerPriceSum >= shippingThreshold) ? 0 : shippingCharge;
-    const grandTotal = Math.round(subtotalBase - discount + totalTax + shipping);
-
-    return { offerPriceSum, subtotalBase, totalTax, shipping, grandTotal };
-  }, [cartItems, discount, shippingCharge, shippingThreshold]);
-
-  return {
-    ...pricing,
-    shippingLoaded
-  };
+  return { ...pricing, loading };
 }

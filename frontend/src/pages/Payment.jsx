@@ -33,7 +33,7 @@ const Payment = () => {
     const [loading, setLoading] = useState(false);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, grandTotal } = useOrderPricing(cartItems, discount);
+    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, loading: pricingLoading } = useOrderPricing(cartItems, couponCode);
 
     useEffect(() => {
         // Cleanup Razorpay on unmount to prevent background SPA polling
@@ -210,25 +210,25 @@ const Payment = () => {
                             })}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', padding: '10px 0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{subtotalBase.toFixed(0)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{pricingLoading ? '...' : subtotalBase.toFixed(2)}</span>
                             </div>
-                            {discount > 0 && (
+                            {discountAmount > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
                                     <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({couponCode}) :</span>
-                                    <span style={{ fontWeight: '700', color: '#dc3545', fontSize: '16px' }}>-₹{discount.toFixed(0)}</span>
+                                    <span style={{ fontWeight: '700', color: '#dc3545', fontSize: '16px' }}>-₹{pricingLoading ? '...' : discountAmount.toFixed(2)}</span>
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Total Applicable GST :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{totalTax.toFixed(0)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{pricingLoading ? '...' : totalTax.toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{pricingLoading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0 0 0', marginTop: '5px' }}>
                                 <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>
-                                <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{grandTotal.toFixed(0)}</span>
+                                <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{pricingLoading ? '...' : grandTotal.toFixed(0)}</span>
                             </div>
                         </div>
                     </div>

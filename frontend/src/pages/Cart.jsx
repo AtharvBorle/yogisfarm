@@ -12,7 +12,7 @@ const Cart = () => {
     const navigate = useNavigate();
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { shipping, shippingLoaded, grandTotal } = useOrderPricing(cartItems);
+    const { shipping, loading, grandTotal } = useOrderPricing(cartItems);
 
     const handleCheckout = () => {
         if (user) {
@@ -111,11 +111,11 @@ const Cart = () => {
                                             </tr>
                                             <tr>
                                                 <td className="cart_total_label"><h6 className="text-muted">Shipping</h6></td>
-                                                <td className="cart_total_amount"><h5 className="text-heading text-end">{shippingLoaded ? (shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`) : '...'}</h5></td>
+                                                <td className="cart_total_amount"><h5 className="text-heading text-end">{loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`)}</h5></td>
                                             </tr>
                                             <tr>
                                                 <td className="cart_total_label"><h6 className="text-muted">Total</h6></td>
-                                                <td className="cart_total_amount"><h4 className="text-brand text-end">₹{grandTotal.toFixed(2)}</h4></td>
+                                                <td className="cart_total_amount"><h4 className="text-brand text-end">₹{loading ? '...' : grandTotal.toFixed(2)}</h4></td>
                                             </tr>
                                         </tbody>
                                     </table>
