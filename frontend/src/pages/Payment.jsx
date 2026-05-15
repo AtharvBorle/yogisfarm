@@ -25,6 +25,7 @@ const Payment = () => {
     }, [stateAddressId, navigate, authLoading]);
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState('');
     const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -33,7 +34,7 @@ const Payment = () => {
     const [loading, setLoading] = useState(false);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, loading: pricingLoading } = useOrderPricing(cartItems, couponCode);
+    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
 
     useEffect(() => {
         // Cleanup Razorpay on unmount to prevent background SPA polling
@@ -70,9 +71,12 @@ const Payment = () => {
         if (!couponCode.trim()) return;
         try {
             const res = await api.post('/coupons/apply', { code: couponCode, subtotal: cartTotal });
-            if (res.data.status) { toast.success('Coupon applied'); setDiscount(res.data.discount || 0); }
+            if (res.data.status) { 
+                toast.success('Coupon applied'); 
+                setAppliedCoupon(couponCode); 
+            }
             else { toast.error(res.data.message); }
-        } catch (err) { toast.error(err.response?.data?.message || 'Invalid coupon'); setDiscount(0); }
+        } catch (err) { toast.error(err.response?.data?.message || 'Invalid coupon'); setAppliedCoupon(''); }
     };
 
     const loadRazorpay = () => {
@@ -98,7 +102,7 @@ const Payment = () => {
             const res = await api.post('/orders/place', {
                 addressId: selectedAddress.id,
                 paymentMethod,
-                couponCode: couponCode || undefined,
+                couponCode: appliedCoupon || undefined,
                 orderNote: notes || undefined,
                 agreeTerms: true
             });
