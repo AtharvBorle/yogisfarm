@@ -62,7 +62,7 @@ const Sidebar = ({ isCollapsed, isDarkMode }) => {
                     src="/assets/imgs/theme/icons/logo.png" 
                     alt="Logo" 
                     style={{ 
-                        width: isCollapsed ? '40px' : '150px',
+                        width: isCollapsed ? '35px' : '100px',
                         height: 'auto',
                         objectFit: 'contain',
                         transition: 'width 0.3s'

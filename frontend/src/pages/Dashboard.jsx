@@ -435,7 +435,7 @@ const Dashboard = () => {
                                                         <span>₹{Number(selectedOrder.subtotal).toFixed(2)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>{selectedOrder.taxName ? `${selectedOrder.taxName} (${selectedOrder.taxRate}%)` : 'Tax Amount'}</span>
+                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>GST</span>
                                                         <span>₹{Number(selectedOrder.tax || 0).toFixed(2)}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>

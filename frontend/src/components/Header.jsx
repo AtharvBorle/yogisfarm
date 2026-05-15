@@ -7,6 +7,7 @@ import api, { getAssetUrl } from '../api';
 
 // New Assets
 import loginIcon from '../assets/figma/image_find/Login_SVG.svg';
+import headerLogo from '../assets/figma/image_find/header_logo.svg';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -104,7 +105,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ width: '90px', display: 'block' }} /></Link>
+                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '55px', width: 'auto', display: 'block' }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}
