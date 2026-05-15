@@ -214,7 +214,7 @@ const BulkInvoice = () => {
                                 {/* Left Vertical Bar */}
                                 <div className="border-right" style={{ width: '25%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0' }}>
                                     <div className="text-xs bold" style={{ marginBottom: '5px' }}>ORDERED THROUGH</div>
-                                    <img src="/assets/imgs/theme/icons/logo-new.svg" alt="Logo" style={{ width: '80%', objectFit: 'contain' }} />
+                                    <img src="/assets/imgs/theme/icons/logo.png" alt="Logo" style={{ width: '80%', objectFit: 'contain' }} />
                                     <div style={{ position: 'absolute', bottom: '80px', left: '-50px', transform: 'rotate(-90deg)', transformOrigin: 'top left', whiteSpace: 'nowrap', fontSize: '12px', fontWeight: 'bold', width: '200px', textAlign: 'center' }}>
                                         AWB No. {awbNo}
                                     </div>

@@ -78,6 +78,12 @@ const Header = () => {
         setIsSuggestionsOpen(false);
     };
 
+    const handleLogout = async (e) => {
+        e.preventDefault();
+        await logout();
+        navigate('/');
+    };
+
     return (
         <header className={`header-area header-style-1 header-height-2 ${isSticky ? 'sticky-bar' : ''}`} style={{
             position: 'sticky',
@@ -98,7 +104,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src="/assets/imgs/theme/icons/logo-new.svg" alt="YogisFarms" style={{ width: '90px', display: 'block' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/assets/imgs/theme/logo.png'; }} /></Link>
+                            <Link to="/"><img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ width: '90px', display: 'block' }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}
@@ -295,6 +301,43 @@ const Header = () => {
                                     background: #f9f9f9 !important;
                                     border-color: #0A6738 !important;
                                 }
+                                .header-action-right .logged-in-menu {
+                                    background: #fff !important;
+                                    border: 1px solid #eee !important;
+                                    border-radius: 10px !important;
+                                    box-shadow: 0 8px 25px rgba(0,0,0,0.08) !important;
+                                    min-width: 200px !important;
+                                    padding: 10px 0 !important;
+                                }
+                                .header-action-right .logged-in-menu ul {
+                                    margin: 0 !important;
+                                    padding: 0 !important;
+                                    list-style: none !important;
+                                }
+                                .header-action-right .logged-in-menu li {
+                                    padding: 0 !important;
+                                    margin: 0 !important;
+                                }
+                                .header-action-right .logged-in-menu a {
+                                    display: flex !important;
+                                    align-items: center !important;
+                                    padding: 10px 20px !important;
+                                    color: #253D4E !important;
+                                    font-size: 14px !important;
+                                    font-weight: 500 !important;
+                                    text-decoration: none !important;
+                                    transition: background-color 0.2s !important;
+                                }
+                                .header-action-right .logged-in-menu a:hover {
+                                    background-color: #f0f8f0 !important;
+                                    color: #0A6738 !important;
+                                }
+                                .header-action-right .logged-in-menu svg {
+                                    width: 18px !important;
+                                    height: 18px !important;
+                                    margin-right: 12px !important;
+                                    fill: currentColor !important;
+                                }
                             `}} />
                             <div className="header-action-2" style={{ display: 'flex', gap: '15px' }}>
                                 <div className="header-action-icon-2">
@@ -328,7 +371,38 @@ const Header = () => {
                                         </div>
                                         <span className="action-label">Profile</span>
                                     </Link>
-                                    {!user && (
+                                    {user ? (
+                                        <div className="profile-dropdown">
+                                            <div className="logged-in-menu">
+                                                <ul>
+                                                    <li>
+                                                        <Link to="/dashboard">
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                                            My Account
+                                                        </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link to="/dashboard?tab=orders">
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                                                            Orders
+                                                        </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link to="/track-order">
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                                                            Track Order
+                                                        </Link>
+                                                    </li>
+                                                    <li style={{ borderTop: '1px solid #eee' }}>
+                                                        <a href="#!" onClick={handleLogout}>
+                                                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                                                            Logout
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    ) : (
                                         <div className="profile-dropdown">
                                             <Link to="/login" className="sign-in-btn">
                                                 <img src={loginIcon} alt="Login" style={{ width: '18px', height: '18px' }} />

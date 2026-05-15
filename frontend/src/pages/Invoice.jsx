@@ -156,7 +156,7 @@ const Invoice = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
-                    <img src="/assets/imgs/theme/icons/logo-new.svg" alt="YogisFarms" style={{ height: '60px', marginBottom: '10px' }} />
+                    <img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '60px', marginBottom: '10px' }} />
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <h1 style={{ color: '#046938', fontSize: '32px', fontWeight: '800', margin: '0' }}>INVOICE</h1>
