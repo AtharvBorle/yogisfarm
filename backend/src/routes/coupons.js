@@ -10,7 +10,7 @@ router.post('/apply', async (req, res) => {
     }
 
     // Use the SAME pricing engine that order placement uses
-    const pricing = await calculateOrderTotals(req.session.userId, code);
+    const pricing = await calculateOrderTotals(req.session.userId, 'userId', code);
 
     if (!pricing.appliedCouponId) {
       return res.json({ status: false, message: 'Coupon could not be applied' });
