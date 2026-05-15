@@ -158,7 +158,27 @@ router.post('/place', requireLogin, async (req, res) => {
         paymentMethod: 'cod',
         orderStatus: 'placed',
         paymentStatus: 'pending',
-        items: { create: pricing.orderItems }
+        items: { 
+          create: pricing.orderItems.map(item => ({
+            name: item.name,
+            variant: item.variant,
+            brand: item.brand,
+            quantity: item.quantity,
+            price: item.price,
+            mrp: item.mrp,
+            productDiscount: item.productDiscount,
+            orderDiscount: item.orderDiscount,
+            taxableValue: item.taxableValue,
+            taxRate: item.gstRate,
+            gstAmount: item.gstAmount,
+            cgst: item.cgst,
+            sgst: item.sgst,
+            gst: item.gstAmount,
+            hsnCode: item.hsnCode,
+            total: item.total,
+            ...(item.productId ? { product: { connect: { id: item.productId } } } : {})
+          }))
+        }
       },
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
@@ -240,7 +260,27 @@ router.post('/verify-payment', requireLogin, async (req, res) => {
         orderStatus: 'placed',
         paymentStatus: 'completed',
         paymentDescription: razorpay_payment_id,
-        items: { create: pendingOrder.orderItems }
+        items: { 
+          create: pendingOrder.orderItems.map(item => ({
+            name: item.name,
+            variant: item.variant,
+            brand: item.brand,
+            quantity: item.quantity,
+            price: item.price,
+            mrp: item.mrp,
+            productDiscount: item.productDiscount,
+            orderDiscount: item.orderDiscount,
+            taxableValue: item.taxableValue,
+            taxRate: item.gstRate,
+            gstAmount: item.gstAmount,
+            cgst: item.cgst,
+            sgst: item.sgst,
+            gst: item.gstAmount,
+            hsnCode: item.hsnCode,
+            total: item.total,
+            ...(item.productId ? { product: { connect: { id: item.productId } } } : {})
+          }))
+        }
       },
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
