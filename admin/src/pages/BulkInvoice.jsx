@@ -214,7 +214,7 @@ const BulkInvoice = () => {
                                 {/* Left Vertical Bar */}
                                 <div className="border-right" style={{ width: '25%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0' }}>
                                     <div className="text-xs bold" style={{ marginBottom: '5px' }}>ORDERED THROUGH</div>
-                                    <img src="/assets/imgs/theme/icons/logo.png" alt="Logo" style={{ width: '80%', objectFit: 'contain' }} />
+                                    <img src="/assets/imgs/theme/icons/logo.png" alt="Logo" style={{ width: '60%', objectFit: 'contain' }} />
                                     <div style={{ position: 'absolute', bottom: '80px', left: '-50px', transform: 'rotate(-90deg)', transformOrigin: 'top left', whiteSpace: 'nowrap', fontSize: '12px', fontWeight: 'bold', width: '200px', textAlign: 'center' }}>
                                         AWB No. {awbNo}
                                     </div>
@@ -394,7 +394,9 @@ const BulkInvoice = () => {
                                     })}
                                     {/* Shipping Row */}
                                     <tr>
-                                        <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px' }}>Shipping & Charges</td>
+                                        <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px' }}>
+                                            Shipping and charges : {Number(order.shippingTaxable || (order.shipping / 1.18)).toFixed(2)} | shipping gst 18% : {Number(order.shippingGST || (order.shipping - (order.shipping / 1.18))).toFixed(2)}
+                                        </td>
                                         <td className="right bold" style={{ padding: '8px 4px' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                     </tr>
                                     {/* Footer Row */}

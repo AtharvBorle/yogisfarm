@@ -156,7 +156,7 @@ const Invoice = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
-                    <img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '60px', marginBottom: '10px' }} />
+                    <img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '45px', marginBottom: '10px' }} />
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <h1 style={{ color: '#046938', fontSize: '32px', fontWeight: '800', margin: '0' }}>INVOICE</h1>
@@ -186,6 +186,7 @@ const Invoice = () => {
             {/* Bill To */}
             <div style={{ marginBottom: '30px' }}>
                 <strong>Bill To:</strong><br />
+                {order.addressName || order.user?.name}<br />
                 {order.addressText}, {order.addressCity}, {order.addressState}, India - {order.addressPincode}<br />
                 E-Mail Address: {order.user?.email || 'N/A'}<br />
                 Phone Number: +91 - {order.addressPhone}<br />
@@ -230,7 +231,9 @@ const Invoice = () => {
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan="5" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>Shipping</td>
+                                            <td colSpan="5" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
+                                                Shipping and charges : {Number(order.shippingTaxable || (order.shipping / 1.18)).toFixed(2)} | shipping gst 18% : {Number(order.shippingGST || (order.shipping - (order.shipping / 1.18))).toFixed(2)}
+                                            </td>
                                             <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
