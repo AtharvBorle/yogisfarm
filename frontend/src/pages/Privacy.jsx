@@ -8,52 +8,96 @@ const Privacy = () => {
         {
             id: 1,
             title: "1. Information We Collect",
-            content: "We may collect the following types of information:\na. Personal Information\nName, Email address, Billing and shipping addresses, Phone number, Payment information (via secure third-party payment processors)\nb. Non-Personal Information\nIP address, Browser type, Device type, Pages visited and time spent on the site"
+            content: [
+                "We may collect the following types of information:",
+                "a. Personal Information: Name, Email address, Billing and shipping addresses, Phone number, Payment information (via secure third-party payment processors)",
+                "b. Non-Personal Information: IP address, Browser type, Device type, Pages visited and time spent on the site"
+            ]
         },
         {
             id: 2,
             title: "2. How We Use Your Information",
-            content: "We use the collected information to:\nProcess orders and transactions\nSend order confirmations and shipping updates\nImprove our website and customer experience\nSend marketing emails (with your consent)\nPrevent fraud and enhance security\nComply with legal obligations"
+            content: [
+                "Process orders and transactions",
+                "Send order confirmations and shipping updates",
+                "Improve our website and customer experience",
+                "Send marketing emails (with your consent)",
+                "Prevent fraud and enhance security",
+                "Comply with legal obligations"
+            ]
         },
         {
             id: 3,
             title: "3. Sharing Your Information",
-            content: "We do not sell your personal information. We may share your data with:\nPayment gateways (e.g., Stripe, PayPal) to process payments\nShipping carriers (e.g., FedEx, UPS) to deliver orders\nService providers (e.g., email marketing platforms, analytics tools)\nLegal authorities, if required by law"
+            content: [
+                "We do not sell your personal information.",
+                "We may share your data with secure payment gateways to process payments.",
+                "We may share your data with shipping carriers to deliver orders.",
+                "We may share your data with service providers (e.g., email marketing platforms, analytics tools).",
+                "We may share your data with legal authorities, if required by law."
+            ]
         },
         {
             id: 4,
             title: "4. Cookies & Tracking Technologies",
-            content: "We use cookies and similar tracking technologies to:\nRemember your preferences\nTrack website performance\nAnalyze visitor behavior\nYou can control or disable cookies through your browser settings."
+            content: [
+                "We use cookies and similar tracking technologies to:",
+                "Remember your preferences",
+                "Track website performance",
+                "Analyze visitor behavior",
+                "You can control or disable cookies through your browser settings."
+            ]
         },
         {
             id: 5,
             title: "5. Data Security",
-            content: "We implement industry-standard security measures to protect your personal data. However, no method of transmission over the Internet is 100% secure."
+            content: [
+                "We implement industry-standard security measures to protect your personal data.",
+                "However, no method of transmission over the Internet is 100% secure."
+            ]
         },
         {
             id: 6,
             title: "6. Your Rights",
-            content: "Depending on your location, you may have rights to:\nAccess, update, or delete your personal data\nObject to or restrict our processing of your data\nWithdraw consent (e.g., unsubscribe from marketing emails)\nTo exercise these rights, contact us at info@yogisfarms.com."
+            content: [
+                "Depending on your location, you may have rights to:",
+                "Access, update, or delete your personal data",
+                "Object to or restrict our processing of your data",
+                "Withdraw consent (e.g., unsubscribe from marketing emails)",
+                "To exercise these rights, contact us at info@yogisfarms.com."
+            ]
         },
         {
             id: 7,
             title: "7. Third-Party Links",
-            content: "Our site may contain links to third-party websites. We are not responsible for their privacy practices."
+            content: [
+                "Our site may contain links to third-party websites.",
+                "We are not responsible for their privacy practices."
+            ]
         },
         {
             id: 8,
             title: "8. Children’s Privacy",
-            content: "We do not knowingly collect information from children under 13 (or relevant age in your jurisdiction). If we learn we have collected such data, we will delete it promptly."
+            content: [
+                "We do not knowingly collect information from children under 13 (or relevant age in your jurisdiction).",
+                "If we learn we have collected such data, we will delete it promptly."
+            ]
         },
         {
             id: 9,
             title: "9. Changes to This Policy",
-            content: "We may update this Privacy Policy from time to time. Changes will be posted on this page with the updated effective date."
+            content: [
+                "We may update this Privacy Policy from time to time.",
+                "Changes will be posted on this page with the updated effective date."
+            ]
         },
         {
             id: 10,
             title: "10. Contact Us",
-            content: "If you have questions or concerns about this policy, contact us at:\nYogisFarms\nEmail: info@yogisfarms.com"
+            content: [
+                "If you have questions or concerns about this policy, contact us at YogisFarms.",
+                "Email: info@yogisfarms.com"
+            ]
         }
     ];
 
@@ -83,9 +127,13 @@ const Privacy = () => {
                         {sections.map(section => (
                             <div key={section.id} className="col-lg-4 col-md-6 mb-40">
                                 <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 600, marginBottom: '15px' }}>{section.title}</h4>
-                                <p style={{ color: '#000', fontSize: '12px', fontWeight: 300, lineHeight: '22px', whiteSpace: 'pre-line' }}>
-                                    {section.content}
-                                </p>
+                                <ul style={{ listStyleType: 'disc', paddingLeft: '18px', margin: 0 }}>
+                                    {section.content.map((item, index) => (
+                                        <li key={index} style={{ color: '#000', fontSize: '12px', fontWeight: 300, lineHeight: '22px', marginBottom: '8px' }}>
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         ))}
                     </div>
