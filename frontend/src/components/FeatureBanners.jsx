@@ -139,7 +139,7 @@ export const CorePillars = () => {
         const containers = document.querySelectorAll('.auto-scroll-container');
         let animationFrameId;
         let lastTime = 0;
-        const speedPerSecond = 30;
+        const speedPerSecond = 35;
 
         const animate = (time) => {
             if (!lastTime) lastTime = time;

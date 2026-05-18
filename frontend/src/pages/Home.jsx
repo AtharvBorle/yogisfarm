@@ -111,7 +111,7 @@ const Home = () => {
         const containers = document.querySelectorAll('.auto-scroll-container');
         let animationFrameId;
         let lastTime = 0;
-        const speedPerSecond = 30; // Pixels per second (slower, relaxed scroll for product sections)
+        const speedPerSecond = 35; // Pixels per second (slower, relaxed scroll for product sections)
 
         const animate = (time) => {
             if (!lastTime) lastTime = time;
