@@ -3,6 +3,8 @@ import { useSearchParams, Link } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
 import Breadcrumb from '../components/Breadcrumb';
+import FloatingSidebar from '../components/FloatingSidebar';
+import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 
 const sortLabels = {
     '': 'Relevance',
@@ -85,7 +87,7 @@ const Shop = () => {
                                         <Link className={category === cat.slug ? 'active' : ''} to={`/shop?category=${cat.slug}`} style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                                             <img src={getAssetUrl(cat.image)} alt="" style={{width:'30px', height:'30px', marginRight:'8px'}} />
                                             {cat.name}
-                                            <span className="count" style={{ marginLeft: 'auto' }}>{cat._count?.products || 0}</span>
+                                            <span className="count" style={{ marginLeft: 'auto', backgroundColor: '#046938', color: '#fff', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>{cat._count?.products || 0}</span>
                                         </Link>
                                     </li>
                                 ))}
@@ -94,7 +96,7 @@ const Shop = () => {
                     </div>
 
                     {/* Product Grid */}
-                    <div className="col-lg-4-5">
+                    <div className="col-lg-4-5" style={{ paddingRight: '50px' }}>
                         {(() => {
                             const currentCategoryObj = categories.find(c => c.slug === category);
                             let childCategoriesToDisplay = [];
@@ -170,7 +172,7 @@ const Shop = () => {
                                 </div>
                             ) : (
                                 products.map(product => (
-                                    <div key={product.id} className="col-lg-1-5 col-md-4 col-6 col-sm-6">
+                                    <div key={product.id} className="col-lg-4 col-md-6 col-sm-6 mb-30">
                                         <ProductCard product={product} />
                                     </div>
                                 ))
@@ -194,6 +196,14 @@ const Shop = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* Core Pillars */}
+            <CorePillars />
+
+            {/* Partner Logos */}
+            <PartnerLogos />
+
+            <FloatingSidebar />
         </main>
     );
 };

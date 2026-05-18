@@ -15,15 +15,8 @@ import freshLayer from '../assets/figma/image_find/freshlayer.svg';
 import findUs from '../assets/figma/image_find/findus.svg';
 import feedbackProfile from '../assets/figma/image_find/feedback_profile.png';
 
-const FeatureBanners = () => {
-    const testimonialText = "Groundnut oils are generally costlier than other cooking oils like ricebran oil, sunflower oil, mustard oil etc. Found this Freedom Groundnut oil in Flipcart being sold at a low price almost at the price of Sunflower oil. Purchased it, used it and was delighted with its sweet aroma and antic taste.";
-
+export const Testimonials = () => {
     return (
-        <>
-        {/* Removed duplicated Why Families Choose Yogi's Farms section - now only in Home.jsx */}
-
-
-        {/* ── What Our Customers Say (Auto-sliding Marquee) ── */}
         <section style={{ background: '#ECFFBE', overflow: 'hidden', padding: '80px 0' }}>
             <style>
                 {`
@@ -131,9 +124,12 @@ const FeatureBanners = () => {
                 </div>
             </div>
         </section>
+    );
+};
 
-        {/* ── 4 Core Pillars ── */}
-        <section className="section-padding py-5" style={{ background: '#FFF', marginTop: '40px' }}>
+export const CorePillars = () => {
+    return (
+        <section className="section-padding pt-0 pb-5" style={{ background: '#FFF' }}>
             <div className="container" style={{ maxWidth: '1236px' }}>
                 <div className="row text-center">
                     <div className="col-lg-3 col-md-6 mb-4">
@@ -162,8 +158,11 @@ const FeatureBanners = () => {
                 </div>
             </div>
         </section>
+    );
+};
 
-        {/* ── You Can Find Us On ── */}
+export const PartnerLogos = () => {
+    return (
         <section className="section-padding pb-5 mb-5" style={{ background: '#FFF' }}>
             <div className="container text-center" style={{ maxWidth: '1236px' }}>
                 <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '26px', fontWeight: 700, marginBottom: '50px' }}>
@@ -174,6 +173,15 @@ const FeatureBanners = () => {
                 </div>
             </div>
         </section>
+    );
+};
+
+const FeatureBanners = () => {
+    return (
+        <>
+            <Testimonials />
+            <CorePillars />
+            <PartnerLogos />
         </>
     );
 };

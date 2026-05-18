@@ -19,6 +19,10 @@ import Wishlist from './pages/Wishlist';
 import TrackOrder from './pages/TrackOrder';
 import OrderSuccess from './pages/OrderSuccess';
 import Invoice from './pages/Invoice';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+
+
 
 // Delivery Portal Pages
 import DeliveryLogin from './pages/delivery/Login';
@@ -65,6 +69,10 @@ function App() {
           <Route path="/category" element={<Category />} />
           <Route path="/brands" element={<Brands />} />
           <Route path="/deals" element={<Deals />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+
+
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />

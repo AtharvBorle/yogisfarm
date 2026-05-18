@@ -1,194 +1,128 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FeatureBanners from '../components/FeatureBanners';
+import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
+import FloatingSidebar from '../components/FloatingSidebar';
 
-import { Check, Feather, Heart } from 'react-feather';
+// Import Assets
+import whyChooseBg from '../assets/figma/image_find/Why_choose_bg.png';
+import yogisLogoWhite from '../assets/figma/image_find/Yogis-Farms-Logo-white 1.png';
+import iconApproval from '../assets/figma/icon_approval.svg';
+import iconGears from '../assets/figma/icon_gears.svg';
+import iconVision from '../assets/figma/icon_vision.svg';
 
 const About = () => {
     return (
         <main className="main pages">
-            {/* Standard Breadcrumb - can be customized to green banner if desired, but screenshot shows standard style for About Us but green banner logic usually applies globally or per-page. We'll stick to a plain breadcrumb as seen in the screenshot or generic green. Let's use generic green for consistency */}
+            {/* Standard Breadcrumb */}
             <div className="page-header breadcrumb-wrap" style={{ margin: '0' }}>
                 <div className="container">
                     <div className="breadcrumb">
                         <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
-                        <span></span> About us
+                        <span></span> Pages
+                        <span></span> About Us
                     </div>
                 </div>
             </div>
 
-            <div className="page-content pt-50">
-                <div className="container">
-                    {/* Welcome Section */}
-                    <div className="row align-items-center mb-50">
-                        <div className="col-lg-6 mb-lg-0 mb-4">
-                            <img src="/assets/imgs/page/about-1.png" alt="About YogisFarms" style={{ width: '100%', borderRadius: '15px' }} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src='/assets/imgs/theme/logo.png'; }} />
+            <div className="page-content pt-10">
+                {/* 12. Why Families Choose Section (Imported from Home page) */}
+                <section className="section-padding" style={{ padding: '10px 0 20px 0' }}>
+                    <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
+                        <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
+                        
+                        <div style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
+                            <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                                <img src={yogisLogoWhite} alt="YogisFarms Logo" style={{ width: '120px' }} />
+                            </div>
                         </div>
-                        <div className="col-lg-6">
-                            <div className="pl-25">
-                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700' }}>Welcome to YogisFarms</h2>
-                                <p className="mb-25">
-                                    At YogisFarms, we believe that great health begins with great food. Our mission is to preserve the purity of traditional Indian food and bring it straight to your table.
-                                    Our mission is simple yet profound - to provide 100% natural, unrefined, and authentic food staples that your family can trust every single day.
+
+                        <div className="row" style={{ marginBottom: '50px' }}>
+                            <div className="col-md-5">
+                                <p style={{ color: '#0A6738', fontSize: '16px', fontWeight: 600, lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
+                                    We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That’s why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.
                                 </p>
-                                <p className="mb-50">
-                                    We started our journey with a rich passion. The inspiration is the wisdom of our ancestors who valued deep, traditional, and natural food practices.
-                                    Today, YogisFarms has grown into a trusted brand offering a wide range of premium products including Atta, Wood-pressed Oils, all crafted with love, purity, and profound dedication.
+                            </div>
+                            <div className="col-md-7">
+                                <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
+                                    In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi’s Farm, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
                                 </p>
-                                <p>Every product we harvest and every meal you prepare carries the promise of purity, tradition, and authenticity.</p>
-                                
-                                <div className="mt-30 d-flex gap-3">
-                                    <img src="/assets/imgs/page/about-sm-1.jpg" alt="" style={{ width: '80px', borderRadius: '5px' }} />
-                                    <img src="/assets/imgs/page/about-sm-2.jpg" alt="" style={{ width: '80px', borderRadius: '5px' }} />
-                                    <img src="/assets/imgs/page/about-sm-3.jpg" alt="" style={{ width: '80px', borderRadius: '5px' }} />
-                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* What We Provide */}
-                    <section className="text-center mb-50 mt-50">
-                        <h2 className="title style-3 mb-40" style={{ color: '#253D4E', fontWeight: '700' }}>What We Provide?</h2>
-                        <div className="row justify-content-center">
-                            <div className="col-lg-3 col-md-4 col-sm-6 mb-24">
-                                <div className="featured-card text-center" style={{ border: '1px solid #ececec', padding: '40px 20px', borderRadius: '15px', height: '100%' }}>
-                                    <img src="/assets/imgs/theme/icons/icon-1.svg" alt="" style={{ marginBottom: '20px' }} />
-                                    <h5 className="mb-10" style={{ color: '#253D4E', fontWeight: '700' }}>Best Prices & Offers</h5>
-                                    <p className="text-muted" style={{ fontSize: '14px' }}>Healthy food at affordable rates.</p>
-                                </div>
-                            </div>
-                            <div className="col-lg-3 col-md-4 col-sm-6 mb-24">
-                                <div className="featured-card text-center" style={{ border: '1px solid #ececec', padding: '40px 20px', borderRadius: '15px', height: '100%' }}>
-                                    <img src="/assets/imgs/theme/icons/icon-2.svg" alt="" style={{ marginBottom: '20px' }} />
-                                    <h5 className="mb-10" style={{ color: '#253D4E', fontWeight: '700' }}>Wide Assortment</h5>
-                                    <p className="text-muted" style={{ fontSize: '14px' }}>Atta, Dals, Oils & more under one roof.</p>
-                                </div>
-                            </div>
-                            <div className="col-lg-3 col-md-4 col-sm-6 mb-24">
-                                <div className="featured-card text-center" style={{ border: '1px solid #ececec', padding: '40px 20px', borderRadius: '15px', height: '100%' }}>
-                                    <img src="/assets/imgs/theme/icons/icon-3.svg" alt="" style={{ marginBottom: '20px' }} />
-                                    <h5 className="mb-10" style={{ color: '#253D4E', fontWeight: '700' }}>Fast Delivery</h5>
-                                    <p className="text-muted" style={{ fontSize: '14px' }}>Fresh products delivered quickly to your home.</p>
-                                </div>
-                            </div>
-                            <div className="col-lg-3 col-md-4 col-sm-6 mb-24">
-                                <div className="featured-card text-center" style={{ border: '1px solid #ececec', padding: '40px 20px', borderRadius: '15px', height: '100%' }}>
-                                    <img src="/assets/imgs/theme/icons/icon-4.svg" alt="" style={{ marginBottom: '20px' }} />
-                                    <h5 className="mb-10" style={{ color: '#253D4E', fontWeight: '700' }}>100% Satisfaction</h5>
-                                    <p className="text-muted" style={{ fontSize: '14px' }}>Pure quality, guaranteed.</p>
-                                </div>
-                            </div>
-                            <div className="col-lg-3 col-md-4 col-sm-6 mb-24">
-                                <div className="featured-card text-center" style={{ border: '1px solid #ececec', padding: '40px 20px', borderRadius: '15px', height: '100%' }}>
-                                    <img src="/assets/imgs/theme/icons/icon-5.svg" alt="" style={{ marginBottom: '20px' }} />
-                                    <h5 className="mb-10" style={{ color: '#253D4E', fontWeight: '700' }}>Great Daily Deal</h5>
-                                    <p className="text-muted" style={{ fontSize: '14px' }}>Healthy living doesn't have to be expensive.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Our Promise */}
-                    <div className="row align-items-center mb-50 mt-50">
-                        <div className="col-lg-6 mb-lg-0 mb-4">
-                            <div className="row">
-                                <div className="col-6">
-                                    <img src="/assets/imgs/page/about-2.png" alt="" style={{ width: '100%', borderRadius: '15px' }} />
-                                </div>
-                                <div className="col-6">
-                                    <img src="/assets/imgs/page/about-3.png" alt="" style={{ width: '100%', borderRadius: '15px' }} />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-6">
-                            <div className="pl-25">
-                                <h6 className="text-brand mb-10" style={{ color: '#046938' }}>Our Promise</h6>
-                                <h2 className="mb-30" style={{ color: '#253D4E', fontWeight: '700', fontSize: '36px', lineHeight: '1.2' }}>When you choose YogisFarms, you choose:</h2>
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
-                                    <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Check size={16} /></span> <strong>Purity:</strong> 100% natural and unrefined food without any adulteration.
-                                    </li>
-                                    <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Feather size={16} /></span> <strong>Nutrition:</strong> Products rich in vitamins, minerals, and natural goodness.
-                                    </li>
-                                    <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Feather size={16} color="green" /></span> <strong>Sustainability:</strong> Supporting eco-friendly and sustainable farming practices.
-                                    </li>
-                                    <li className="mb-15" style={{ display: 'flex', gap: '10px' }}>
-                                        <span style={{ color: '#046938' }}><Heart size={16} color="red" /></span> <strong>Trust:</strong> Every item is processed and packed with care.
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Three Columns Info */}
-                    <div className="row mb-50 mt-50">
-                        <div className="col-lg-4 col-md-6 mb-24">
-                            <h4 className="mb-15" style={{ color: '#253D4E', fontWeight: '700' }}>Who we are</h4>
-                            <p style={{ color: '#7E7E7E', fontSize: '15px' }}>
-                                We are a passion-driven team delivering pure, natural, and wholesome food products sourced directly from farms.
-                                Being farmers, we believe in bringing back traditional, healthy, and chemical-free eating.
-                            </p>
-                        </div>
-                        <div className="col-lg-4 col-md-6 mb-24">
-                            <h4 className="mb-15" style={{ color: '#253D4E', fontWeight: '700' }}>Our history</h4>
-                            <p style={{ color: '#7E7E7E', fontSize: '15px' }}>
-                                We have roots in traditional Indian agriculture. Over the years we expanded into Atta, Oils, and Dals backed by families.
-                                Our journey is built on purity, authenticity, and a commitment to healthy food.
-                            </p>
-                        </div>
-                        <div className="col-lg-4 col-md-6 mb-24">
-                            <h4 className="mb-15" style={{ color: '#253D4E', fontWeight: '700' }}>Our mission</h4>
-                            <p style={{ color: '#7E7E7E', fontSize: '15px' }}>
-                                Our mission is to make healthy, nutritious, and farm-fresh staples accessible to every household.
-                                We strive to empower farmers, promote sustainability, and create a positive impact on society.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Stats Banner */}
-                <section className="mt-50 mb-50">
-                    <div className="container-fluid p-0">
-                        <div className="row" style={{ 
-                            background: 'url(/assets/imgs/page/about-5.png) no-repeat center center',
-                            backgroundSize: 'cover',
-                            padding: '80px 0',
-                            position: 'relative',
-                            backgroundColor: '#046938' // Fallback
-                        }}>
-                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(37,61,78,0.7)' }}></div>
-                            <div className="container position-relative">
-                                <div className="row text-center text-white">
-                                    <div className="col-lg-2 col-md-4 col-sm-6 mb-3">
-                                        <h1 className="text-white" style={{ fontSize: '48px', fontWeight: '700' }}>3+</h1>
-                                        <p style={{ fontSize: '18px', fontWeight: '600' }}>Glorious years</p>
+                        <div className="row text-start">
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconApproval} alt="Real Sourcing" style={{ width: '30px' }} />
                                     </div>
-                                    <div className="col-lg-2 col-md-4 col-sm-6 mb-3">
-                                        <h1 className="text-white" style={{ fontSize: '48px', fontWeight: '700' }}>9+</h1>
-                                        <p style={{ fontSize: '18px', fontWeight: '600' }}>Happy clients</p>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Real Sourcing, Not Market Buying</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Grown with intent, not sourced in bulk</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We work directly with farmers who follow natural practices not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.</p>
+                                </div>
+                            </div>
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconGears} alt="Minimal Processing" style={{ width: '30px' }} />
                                     </div>
-                                    <div className="col-lg-3 col-md-4 col-sm-6 mb-3">
-                                        <h1 className="text-white" style={{ fontSize: '48px', fontWeight: '700' }}>15+</h1>
-                                        <p style={{ fontSize: '18px', fontWeight: '600' }}>Projects complete</p>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Minimal Processing</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>We don’t over process what nature perfected</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.</p>
+                                </div>
+                            </div>
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconVision} alt="Complete Transparent" style={{ width: '30px' }} />
                                     </div>
-                                    <div className="col-lg-2 col-md-4 col-sm-6 mb-3">
-                                        <h1 className="text-white" style={{ fontSize: '48px', fontWeight: '700' }}>6+</h1>
-                                        <p style={{ fontSize: '18px', fontWeight: '600' }}>Team advisor</p>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Complete Transparent</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Nothing hidden. nothing artificial.</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.</p>
+                                </div>
+                            </div>
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconApproval} alt="Quality" style={{ width: '30px' }} />
                                     </div>
-                                    <div className="col-lg-3 col-md-4 col-sm-6 mb-3">
-                                        <h1 className="text-white" style={{ fontSize: '48px', fontWeight: '700' }}>6+</h1>
-                                        <p style={{ fontSize: '18px', fontWeight: '600' }}>Products Sale</p>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>No Shortcuts in Quality</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Quality Isn't Optimized. It's Respected.</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We don't chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.</p>
+                                </div>
+                            </div>
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconGears} alt="Real Homes" style={{ width: '30px' }} />
                                     </div>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Made for Real Homes</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>What we serve Our families, we serve you</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products aren't designed for shelves — they're made for kitchens, for daily meals, for real health.</p>
+                                </div>
+                            </div>
+                            <div className="col-md-4 mb-30">
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <img src={iconVision} alt="Honest Value" style={{ width: '30px' }} />
+                                    </div>
+                                    <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Honest Value</h4>
+                                    <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>You pay for purity, not marketing</p>
+                                    <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No inflated claims, no gimmicks — just real value in every product you bring home.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
+
+                {/* Core Pillars (Pillars from Home page) */}
+                <CorePillars />
+
+                {/* Partner Logos (Find us on from Home page) */}
+                <PartnerLogos />
             </div>
 
-            <FeatureBanners />
+            <FloatingSidebar />
         </main>
     );
 };

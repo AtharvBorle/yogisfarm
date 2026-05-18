@@ -138,10 +138,10 @@ const Header = () => {
                                 <nav>
                                     <ul style={{ display: 'flex', gap: '6px', margin: 0, padding: 0, listStyle: 'none', whiteSpace: 'nowrap' }}>
                                         <li><Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Home</Link></li>
-                                        <li><Link to="/about" className={`nav-link ${isActive('/about') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>About Us</Link></li>
+                                        <li><Link to="/about-us" className={`nav-link ${isActive('/about-us') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>About Us</Link></li>
                                         <li><Link to="/deals" className={`nav-link ${isActive('/deals') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Deals</Link></li>
                                         <li><Link to="/shop" className={`nav-link ${isActive('/shop') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Category</Link></li>
-                                        <li><Link to="/contact" className={`nav-link ${isActive('/contact') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Contact Us</Link></li>
+                                        <li><Link to="/contact-us" className={`nav-link ${isActive('/contact-us') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Contact Us</Link></li>
                                     </ul>
                                 </nav>
                             </div>
@@ -499,6 +499,7 @@ const Header = () => {
                             <nav>
                                 <ul className="mobile-menu font-heading">
                                     <li><Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link></li>
+                                    <li><Link to="/about-us" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link></li>
                                     <li><Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link></li>
                                     <li><Link to="/category" onClick={() => setIsMobileMenuOpen(false)}>Category</Link></li>
                                     <li><Link to="/brands" onClick={() => setIsMobileMenuOpen(false)}>Brands</Link></li>

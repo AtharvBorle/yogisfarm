@@ -102,3 +102,39 @@ h1, h2, h3, h4, h5, h6, .title {
   color: var(--yf-primary-dark) !important;
   white-space: nowrap !important;
 }
+/* ── Cart Page Overrides ── */
+.cart-banner-section h1.cart-banner-title {
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cart-table-row:hover {
+  background-color: #FAFAFA !important;
+}
+
+.qty-btn:hover {
+  background-color: #f0f0f0 !important;
+  border-color: #ccc !important;
+}
+
+.btn-checkout {
+  background-color: #FF0000 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 15px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  text-transform: uppercase !important;
+  transition: 0.3s !important;
+}
+
+.btn-checkout:hover {
+  background-color: #0A6738 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(10, 103, 56, 0.2);
+}
+
+.cart-summary-box {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
