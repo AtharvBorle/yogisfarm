@@ -111,7 +111,7 @@ const Home = () => {
         const containers = document.querySelectorAll('.auto-scroll-container');
         let animationFrameId;
         let lastTime = 0;
-        const speedPerSecond = 35; // Pixels per second (slower, relaxed scroll for product sections)
+        const speedPerSecond = 35; // Pixels per second
 
         const animate = (time) => {
             if (!lastTime) lastTime = time;
@@ -122,15 +122,24 @@ const Home = () => {
                 const moveAmount = (speedPerSecond * deltaTime) / 1000;
 
                 containers.forEach(container => {
-                    if (container.dataset.paused === 'true') return;
-
+                    if (container.dataset.paused === 'true') {
+                        container._wasPaused = true;
+                        return;
+                    }
+                    
+                    if (container._wasPaused) {
+                        // Sync internal tracking with manual scroll position
+                        container._exactScrollLeft = container.scrollLeft;
+                        container._wasPaused = false;
+                    }
+                    
                     // Track exact fractional scroll position to prevent rounding issues
                     if (typeof container._exactScrollLeft === 'undefined') {
                         container._exactScrollLeft = container.scrollLeft;
                     }
 
                     container._exactScrollLeft += moveAmount;
-
+                    
                     const { scrollWidth, clientWidth } = container;
                     // If scrolled to the end, snap back to the start to loop
                     if (container._exactScrollLeft + clientWidth >= scrollWidth - 1) {
@@ -146,8 +155,18 @@ const Home = () => {
 
         animationFrameId = requestAnimationFrame(animate);
 
-        const pause = (e) => e.currentTarget.dataset.paused = 'true';
-        const resume = (e) => e.currentTarget.dataset.paused = 'false';
+        const pause = (e) => {
+            const container = e.currentTarget;
+            container.dataset.paused = 'true';
+            clearTimeout(container._resumeTimeout);
+        };
+        const resume = (e) => {
+            const container = e.currentTarget;
+            clearTimeout(container._resumeTimeout);
+            container._resumeTimeout = setTimeout(() => {
+                container.dataset.paused = 'false';
+            }, 500);
+        };
 
         containers.forEach(container => {
             container.addEventListener('touchstart', pause, { passive: true });
@@ -159,6 +178,7 @@ const Home = () => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             containers.forEach(container => {
+                clearTimeout(container._resumeTimeout);
                 container.removeEventListener('touchstart', pause);
                 container.removeEventListener('touchend', resume);
                 container.removeEventListener('mouseenter', pause);

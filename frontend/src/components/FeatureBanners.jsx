@@ -150,8 +150,17 @@ export const CorePillars = () => {
                 const moveAmount = (speedPerSecond * deltaTime) / 1000;
 
                 containers.forEach(container => {
-                    if (container.dataset.paused === 'true') return;
-
+                    if (container.dataset.paused === 'true') {
+                        container._wasPaused = true;
+                        return;
+                    }
+                    
+                    if (container._wasPaused) {
+                        // Sync internal tracking with manual scroll position
+                        container._exactScrollLeft = container.scrollLeft;
+                        container._wasPaused = false;
+                    }
+                    
                     if (typeof container._exactScrollLeft === 'undefined') {
                         container._exactScrollLeft = container.scrollLeft;
                     }
@@ -172,8 +181,18 @@ export const CorePillars = () => {
 
         animationFrameId = requestAnimationFrame(animate);
 
-        const pause = (e) => e.currentTarget.dataset.paused = 'true';
-        const resume = (e) => e.currentTarget.dataset.paused = 'false';
+        const pause = (e) => {
+            const container = e.currentTarget;
+            container.dataset.paused = 'true';
+            clearTimeout(container._resumeTimeout);
+        };
+        const resume = (e) => {
+            const container = e.currentTarget;
+            clearTimeout(container._resumeTimeout);
+            container._resumeTimeout = setTimeout(() => {
+                container.dataset.paused = 'false';
+            }, 500);
+        };
 
         containers.forEach(container => {
             container.addEventListener('touchstart', pause, { passive: true });
@@ -185,6 +204,7 @@ export const CorePillars = () => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             containers.forEach(container => {
+                clearTimeout(container._resumeTimeout);
                 container.removeEventListener('touchstart', pause);
                 container.removeEventListener('touchend', resume);
                 container.removeEventListener('mouseenter', pause);
