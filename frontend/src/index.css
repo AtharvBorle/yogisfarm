@@ -134,6 +134,66 @@ code {
 .marquee-content.reverse { 
     animation: marquee-right 30s linear infinite; 
 } 
+}
 .marquee-content:hover { 
     animation-play-state: paused; 
+}
+
+/* Native Horizontal Scroll for Grid Replacements on Mobile */
+.mobile-scroll-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 15px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.mobile-scroll-row::-webkit-scrollbar {
+    display: none;
+}
+.mobile-scroll-row > div {
+    scroll-snap-align: start;
+    flex: 0 0 75%;
+    max-width: 250px;
+}
+@media (min-width: 768px) {
+    .mobile-scroll-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        overflow-x: visible;
+        gap: 24px;
+    }
+    .mobile-scroll-row > div {
+        flex: none;
+        max-width: none;
+    }
+}
+
+/* Native Horizontal Scroll for Small Lists on Mobile */
+.mobile-scroll-list {
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding-bottom: 15px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.mobile-scroll-list::-webkit-scrollbar {
+    display: none;
+}
+.mobile-scroll-list > div {
+    flex: 0 0 85%;
+    scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+    .mobile-scroll-list {
+        display: block;
+        overflow-x: visible;
+    }
+    .mobile-scroll-list > div {
+        flex: none;
+        margin-bottom: 20px;
+    }
 }

@@ -20,23 +20,26 @@ const BannerGrid = ({ sliders, getSliderLink, columns = 4 }) => {
             }}
         >
             <div 
+                className="row flex-nowrap flex-md-wrap overflow-auto"
                 style={{
                     width: '1440px', // Desktop focus
                     maxWidth: '100%',
                     padding: '0 20px',
-                    display: 'grid',
-                    gridTemplateColumns: `repeat(${Math.min(displaySliders.length, columns)}, 1fr)`,
-                    gap: '20px'
+                    marginBottom: '0',
+                    
                 }}
             >
                 {displaySliders.map(slider => (
                     <div 
                         key={slider.id} 
+                        className="col-10 col-sm-6 col-md-4 col-lg-3 mb-3"
                         style={{
                             borderRadius: '9px',
                             overflow: 'hidden',
                             transition: 'all 0.3s ease',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                            
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-5px)';

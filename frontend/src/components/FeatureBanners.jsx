@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 // Import Figma assets
 import img25 from '../assets/figma/img_25.png';
@@ -18,8 +18,8 @@ import feedbackProfile from '../assets/figma/image_find/feedback_profile.png';
 export const Testimonials = () => {
     return (
         <section style={{ background: '#ECFFBE', overflow: 'hidden', padding: '80px 0' }}>
-            <style>
-                {`
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes marquee-left { 
                     0% { transform: translateX(0); } 
                     100% { transform: translateX(-50%); } 
@@ -45,15 +45,22 @@ export const Testimonials = () => {
                 .marquee-content:hover { 
                     animation-play-state: paused; 
                 }
-                `}
-            </style>
-            
+                @media (max-width: 767px) {
+                    .auto-scroll-container {
+                        flex-wrap: nowrap !important;
+                    }
+                    .auto-scroll-container::-webkit-scrollbar {
+                        display: none !important;
+                    }
+                }
+            `}} />
+
             <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '40px' }}>
                 <h3 style={{ color: '#0A6738', fontFamily: "Paytone One, sans-serif", fontSize: '36px', fontWeight: 600, margin: 0, textAlign: 'center' }}>
                     What Our Customers Say
                 </h3>
             </div>
-            
+
             {/* Top Row (Sliding Left) */}
             <div className="marquee-container mb-4" style={{ paddingLeft: '15px', paddingRight: '15px' }}>
                 <div className="marquee-content">
@@ -128,33 +135,130 @@ export const Testimonials = () => {
 };
 
 export const CorePillars = () => {
+    useEffect(() => {
+        const containers = document.querySelectorAll('.auto-scroll-container');
+        let animationFrameId;
+        let lastTime = 0;
+        const speedPerSecond = 30;
+
+        const animate = (time) => {
+            if (!lastTime) lastTime = time;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            if (window.innerWidth <= 768) {
+                const moveAmount = (speedPerSecond * deltaTime) / 1000;
+
+                containers.forEach(container => {
+                    if (container.dataset.paused === 'true') return;
+
+                    if (typeof container._exactScrollLeft === 'undefined') {
+                        container._exactScrollLeft = container.scrollLeft;
+                    }
+
+                    container._exactScrollLeft += moveAmount;
+
+                    const { scrollWidth, clientWidth } = container;
+                    if (container._exactScrollLeft + clientWidth >= scrollWidth - 1) {
+                        container._exactScrollLeft = 0;
+                        container.scrollLeft = 0;
+                    } else {
+                        container.scrollLeft = container._exactScrollLeft;
+                    }
+                });
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+
+        const pause = (e) => e.currentTarget.dataset.paused = 'true';
+        const resume = (e) => e.currentTarget.dataset.paused = 'false';
+
+        containers.forEach(container => {
+            container.addEventListener('touchstart', pause, { passive: true });
+            container.addEventListener('touchend', resume, { passive: true });
+            container.addEventListener('mouseenter', pause);
+            container.addEventListener('mouseleave', resume);
+        });
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            containers.forEach(container => {
+                container.removeEventListener('touchstart', pause);
+                container.removeEventListener('touchend', resume);
+                container.removeEventListener('mouseenter', pause);
+                container.removeEventListener('mouseleave', resume);
+            });
+        };
+    }, []);
+
+    const pillars = [
+        {
+            id: 1,
+            img: chemicalFree,
+            title: "100% Chemical Free",
+            desc: "Manufacturing And Extraction Process Is Chemical-Free."
+        },
+        {
+            id: 2,
+            img: crueltyFree,
+            title: "100% Cruelty Free",
+            desc: "We Utilize Motors, Not Bullocks, To Churn Oil Using Ancient Methods."
+        },
+        {
+            id: 3,
+            img: vegan,
+            title: "100% Indian & Vegetarian",
+            desc: "All Our Products Are Indian-Made, Excluding Himalayan Pink Rock Salt."
+        },
+        {
+            id: 4,
+            isLayered: true,
+            title: "Always Fresh",
+            desc: "Orders Will Contain Oils Packed Within 8-10 Days."
+        }
+    ];
+
+    const displayPillars = [...pillars, ...pillars];
+
     return (
-        <section className="section-padding pt-0 pb-5" style={{ background: '#FFF' }}>
+        <section className="section-padding pt-0 pb-5" style={{ background: '#FFF', overflow: 'hidden' }}>
             <div className="container" style={{ maxWidth: '1236px' }}>
-                <div className="row text-center">
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <img src={chemicalFree} alt="100% Chemical Free" style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
-                        <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>100% Chemical Free</div>
-                        <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>Manufacturing And Extraction Process Is Chemical-Free.</p>
-                    </div>
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <img src={crueltyFree} alt="100% Cruelty Free" style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
-                        <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>100% Cruelty Free</div>
-                        <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>We Utilize Motors, Not Bullocks, To Churn Oil Using Ancient Methods.</p>
-                    </div>
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <img src={vegan} alt="100% Indian & Vegetarian" style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
-                        <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>100% Indian & Vegetarian</div>
-                        <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>All Our Products Are Indian-Made, Excluding Himalayan Pink Rock Salt.</p>
-                    </div>
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 25px auto' }}>
-                            <img src={vector1} alt="Circle Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                            <img src={freshLayer} alt="Always Fresh" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', objectFit: 'contain' }} />
+                {/* Desktop Grid View */}
+                <div className="row text-center d-none d-md-flex">
+                    {pillars.map((pillar) => (
+                        <div key={`desktop-${pillar.id}`} className="col-lg-3 col-md-6 mb-4">
+                            {pillar.isLayered ? (
+                                <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 25px auto' }}>
+                                    <img src={vector1} alt="Circle Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    <img src={freshLayer} alt="Always Fresh" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', objectFit: 'contain' }} />
+                                </div>
+                            ) : (
+                                <img src={pillar.img} alt={pillar.title} style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
+                            )}
+                            <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>{pillar.title}</div>
+                            <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>{pillar.desc}</p>
                         </div>
-                        <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>Always Fresh</div>
-                        <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>Orders Will Contain Oils Packed Within 8-10 Days.</p>
-                    </div>
+                    ))}
+                </div>
+
+                {/* Mobile Drag/Flick View */}
+                <div className="d-flex d-md-none overflow-auto auto-scroll-container" style={{ paddingBottom: '15px', WebkitOverflowScrolling: 'touch', gap: '15px' }}>
+                    {displayPillars.map((pillar, i) => (
+                        <div key={`mobile-${i}`} style={{ minWidth: '250px', maxWidth: '250px', textAlign: 'center', padding: '10px', flexShrink: 0 }}>
+                            {pillar.isLayered ? (
+                                <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 25px auto' }}>
+                                    <img src={vector1} alt="Circle Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    <img src={freshLayer} alt="Always Fresh" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', objectFit: 'contain' }} />
+                                </div>
+                            ) : (
+                                <img src={pillar.img} alt={pillar.title} style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
+                            )}
+                            <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>{pillar.title}</div>
+                            <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>{pillar.desc}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>

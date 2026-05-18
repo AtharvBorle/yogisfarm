@@ -131,7 +131,7 @@ const Cart = () => {
                     </div>
                     {cartItems.length > 0 && (
                         <div className="col-lg-4">
-                            <div className="cart-summary-box" style={{ border: '1px solid #eee', borderRadius: '15px', padding: '30px', background: '#fff', transition: '0.3s', marginRight: '80px' }}>
+                            <div className="cart-summary-box" style={{ border: '1px solid #eee', borderRadius: '15px', padding: '30px', background: '#fff', transition: '0.3s' }}>
                                 <h4 className="mb-30" style={{ color: '#0A6738', fontSize: '20px', fontWeight: '700' }}>Order Summary</h4>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Subtotal</span>
@@ -164,7 +164,7 @@ const Cart = () => {
                         <h3 className="mb-30" style={{ color: '#0A6738', fontSize: '24px', fontWeight: '700' }}>You May Also Like</h3>
                         <div style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
                             gap: '24px' 
                         }}>
                             {popularProducts.map(p => (

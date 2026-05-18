@@ -94,17 +94,78 @@ const Home = () => {
             api.get('/products?deal=true&limit=10'),
             api.get('/sections')
         ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, popularRes, dealRes, secRes]) => {
-            if(mainRes.data.status) setMainSliders(mainRes.data.sliders);
-            if(topRes.data.status) setTopSliders(topRes.data.sliders);
-            if(midRes.data.status) setMiddleSliders(midRes.data.sliders);
-            if(bottomRes.data.status) setBottomSliders(bottomRes.data.sliders);
-            if(catRes.data.status) setCategories(catRes.data.categories);
-            if(featuredRes.data.status) setFeaturedProducts(featuredRes.data.products);
-            if(popularRes.data.status) setPopularProducts(popularRes.data.products);
-            if(dealRes.data.status) setDealProducts(dealRes.data.products);
-            if(secRes.data.status) setSections(secRes.data.sections);
+            if (mainRes.data.status) setMainSliders(mainRes.data.sliders);
+            if (topRes.data.status) setTopSliders(topRes.data.sliders);
+            if (midRes.data.status) setMiddleSliders(midRes.data.sliders);
+            if (bottomRes.data.status) setBottomSliders(bottomRes.data.sliders);
+            if (catRes.data.status) setCategories(catRes.data.categories);
+            if (featuredRes.data.status) setFeaturedProducts(featuredRes.data.products);
+            if (popularRes.data.status) setPopularProducts(popularRes.data.products);
+            if (dealRes.data.status) setDealProducts(dealRes.data.products);
+            if (secRes.data.status) setSections(secRes.data.sections);
         }).catch(err => console.error(err));
     }, []);
+
+    // Auto-Scroll Logic for Mobile Swipe Rows
+    useEffect(() => {
+        const containers = document.querySelectorAll('.auto-scroll-container');
+        let animationFrameId;
+        let lastTime = 0;
+        const speedPerSecond = 30; // Pixels per second (slower, relaxed scroll for product sections)
+
+        const animate = (time) => {
+            if (!lastTime) lastTime = time;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            if (window.innerWidth <= 768) {
+                const moveAmount = (speedPerSecond * deltaTime) / 1000;
+
+                containers.forEach(container => {
+                    if (container.dataset.paused === 'true') return;
+
+                    // Track exact fractional scroll position to prevent rounding issues
+                    if (typeof container._exactScrollLeft === 'undefined') {
+                        container._exactScrollLeft = container.scrollLeft;
+                    }
+
+                    container._exactScrollLeft += moveAmount;
+
+                    const { scrollWidth, clientWidth } = container;
+                    // If scrolled to the end, snap back to the start to loop
+                    if (container._exactScrollLeft + clientWidth >= scrollWidth - 1) {
+                        container._exactScrollLeft = 0;
+                        container.scrollLeft = 0;
+                    } else {
+                        container.scrollLeft = container._exactScrollLeft;
+                    }
+                });
+            }
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+
+        const pause = (e) => e.currentTarget.dataset.paused = 'true';
+        const resume = (e) => e.currentTarget.dataset.paused = 'false';
+
+        containers.forEach(container => {
+            container.addEventListener('touchstart', pause, { passive: true });
+            container.addEventListener('touchend', resume, { passive: true });
+            container.addEventListener('mouseenter', pause);
+            container.addEventListener('mouseleave', resume);
+        });
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            containers.forEach(container => {
+                container.removeEventListener('touchstart', pause);
+                container.removeEventListener('touchend', resume);
+                container.removeEventListener('mouseenter', pause);
+                container.removeEventListener('mouseleave', resume);
+            });
+        };
+    }, [categories, popularProducts, featuredProducts, dealProducts]);
 
     const getSliderLink = (slider) => {
         if (!slider.linkType || slider.linkType === 'none') return '#';
@@ -176,6 +237,19 @@ const Home = () => {
 
     return (
         <>
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media (max-width: 767px) {
+                    .auto-scroll-container {
+                        flex-wrap: nowrap !important;
+                        scrollbar-width: none;
+                        -ms-overflow-style: none;
+                    }
+                    .auto-scroll-container::-webkit-scrollbar {
+                        display: none !important;
+                    }
+                }
+            `}} />
             {/* 1. MAIN SLIDER */}
             {mainSliders.length > 0 && (
                 <section className="home-slider position-relative pt-25 pb-20">
@@ -223,25 +297,23 @@ const Home = () => {
                                 <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
                             </div>
                         </div>
-                        <div className="position-relative">
-                            <Slider {...categorySettings}>
-                                {categories.map(cat => (
-                                    <div key={cat.id} className="m-2 wow animate__animated animate__fadeInUp" data-wow-delay=".1s">
-                                        <figure 
-                                            className="img-hover-scale overflow-hidden text-center d-flex flex-column align-items-center"
-                                            style={{ cursor: 'pointer', gap: '10px' }}
-                                            onClick={() => navigate(`/shop?category=${cat.slug}`)}
-                                        >
-                                            <div className="end" style={{ display: 'inline-block' }}>
-                                                <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: '112px', height: '112px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #F9F9F9' }} />
-                                            </div>
-                                            <h6 className="text-center" style={{ margin: 0 }}>
-                                                <span className="end" style={{ fontSize: '13px', color: 'var(--yf-primary-dark)', fontFamily: 'var(--font-poppins)', fontWeight: 600 }}>{cat.name}</span>
-                                            </h6>
-                                        </figure>
-                                    </div>
-                                ))}
-                            </Slider>
+                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                            {categories.map(cat => (
+                                <div key={cat.id} className="col-4 col-sm-3 col-md-2 mb-3" style={{ flexShrink: 0 }}>
+                                    <figure
+                                        className="img-hover-scale overflow-hidden text-center d-flex flex-column align-items-center"
+                                        style={{ cursor: 'pointer', gap: '10px' }}
+                                        onClick={() => navigate(`/shop?category=${cat.slug}`)}
+                                    >
+                                        <div className="end" style={{ display: 'inline-block' }}>
+                                            <img src={getAssetUrl(cat.image)} alt={cat.name} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #F9F9F9' }} />
+                                        </div>
+                                        <h6 className="text-center" style={{ margin: 0 }}>
+                                            <span className="end" style={{ fontSize: '12px', color: 'var(--yf-primary-dark)', fontFamily: 'var(--font-poppins)', fontWeight: 600 }}>{cat.name}</span>
+                                        </h6>
+                                    </figure>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </section>
@@ -258,28 +330,22 @@ const Home = () => {
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                         <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Popular Products</h3>
-                            
+
                             {/* Search field in section header */}
                             <div style={{ position: 'relative', width: '200px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '35px', padding: '0 10px' }}>
                                     <i className="fi-rs-search" style={{ color: '#0A6738', fontSize: '14px', marginRight: '8px' }}></i>
                                     <input type="text" placeholder="Search for Product" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#333', width: '100%', fontFamily: 'Poppins, sans-serif' }} />
                                     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '5px' }}>
-                                        <path d="M1 1L5 5L9 1" stroke="#0A6738" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        <path d="M1 1L5 5L9 1" stroke="#0A6738" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div style={{ 
-                            display: 'grid', 
-                            gridTemplateColumns: 'repeat(4, 291px)', 
-                            gap: '24px', 
-                            justifyContent: 'center',
-                            marginBottom: '30px'
-                        }}>
+
+                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '20px' }}>
                             {popularProducts.slice(0, 8).map(product => (
-                                <div key={product.id}>
+                                <div key={product.id} className="col-10 col-sm-6 col-md-4 col-lg-3 mb-4" style={{ flexShrink: 0 }}>
                                     <ProductCard product={product} />
                                 </div>
                             ))}
@@ -346,20 +412,20 @@ const Home = () => {
                     <div className="section-title">
                         <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
                     </div>
-                    
+
                     {/* Row 1: Two Wide Banners (606px each with 24px gap = 1236px) */}
                     <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
                         <div style={{ width: '606px' }}>
-                            <img 
-                                src={bestDealsR1C1} 
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }} 
+                            <img
+                                src={bestDealsR1C1}
+                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
                                 alt="Best Deal R1 C1"
                             />
                         </div>
                         <div style={{ width: '606px' }}>
-                            <img 
-                                src={bestDealsR1C2} 
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }} 
+                            <img
+                                src={bestDealsR1C2}
+                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
                                 alt="Best Deal R1 C2"
                             />
                         </div>
@@ -369,49 +435,49 @@ const Home = () => {
                     <div style={{ display: 'flex', gap: '24px' }}>
                         {/* Left Advertisement */}
                         <div style={{ width: '280px' }}>
-                            <img 
-                                src={bestDealsR2Left} 
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }} 
+                            <img
+                                src={bestDealsR2Left}
+                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
                                 alt="Best Deal R2 Left"
                             />
                         </div>
 
                         {/* Center Video Banner */}
                         <div style={{ width: '628px', position: 'relative' }}>
-                            <img 
-                                src={bestDealsR2Mid} 
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }} 
+                            <img
+                                src={bestDealsR2Mid}
+                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
                                 alt="Best Deal R2 Mid"
                             />
                             {/* Video Play Button Overlay */}
-                            <div style={{ 
-                                position: 'absolute', 
-                                top: '50%', 
-                                left: '50%', 
-                                transform: 'translate(-50%, -50%)', 
-                                width: '64px', 
-                                height: '64px', 
-                                backgroundColor: 'rgba(255,255,255,0.2)', 
-                                borderRadius: '50%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                color: '#fff', 
+                            <div style={{
+                                position: 'absolute',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                width: '64px',
+                                height: '64px',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
                                 cursor: 'pointer',
                                 border: '2px solid #fff',
                                 backdropFilter: 'blur(4px)'
                             }}>
                                 <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor"/>
+                                    <path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor" />
                                 </svg>
                             </div>
                         </div>
 
                         {/* Right Advertisement */}
                         <div style={{ width: '280px' }}>
-                            <img 
-                                src={bestDealsR2Right} 
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }} 
+                            <img
+                                src={bestDealsR2Right}
+                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
                                 alt="Best Deal R2 Right"
                             />
                         </div>
@@ -428,26 +494,46 @@ const Home = () => {
                     <div className="row">
                         <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
                             <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
-                            <div className="product-list-small">
-                                {popularProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                                {popularProducts.slice(0, 3).map(p => (
+                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
                             <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
-                            <div className="product-list-small">
-                                {dealProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                                {dealProducts.slice(0, 3).map(p => (
+                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} />
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0 d-none d-lg-block">
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0">
                             <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
-                            <div className="product-list-small">
-                                {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => <ProductSmallCard key={p.id} product={p} />) : dealProducts.slice(0,3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                                {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => (
+                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} />
+                                    </div>
+                                )) : dealProducts.slice(0, 3).map(p => (
+                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} />
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0 d-none d-xl-block">
+                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0">
                             <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
-                            <div className="product-list-small">
-                                {featuredProducts.slice(0, 3).map(p => <ProductSmallCard key={p.id} product={p} />)}
+                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                                {featuredProducts.slice(0, 3).map(p => (
+                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -462,9 +548,9 @@ const Home = () => {
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600 }}>Upcoming Products & Categories</h3>
                         </div>
                     </div>
-                    <div className="d-flex flex-wrap" style={{ gap: '15px' }}>
+                    <div className="d-flex flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ gap: '15px', paddingBottom: '15px' }}>
                         {['Beauty & Grooming', 'Makeup & Fragrances', 'Toys & Stationery', 'Health Wellness', 'Hardware', 'Auto Accessories', 'FMCG'].map(cat => (
-                            <span key={cat} style={{ background: '#EFEFEF', padding: '14px 37px', borderRadius: '20px', color: '#030303', fontSize: '16px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '22px', transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseOver={(e) => { e.target.style.background = '#0A6738'; e.target.style.color = '#fff'; }} onMouseOut={(e) => { e.target.style.background = '#EFEFEF'; e.target.style.color = '#030303'; }}>{cat}</span>
+                            <span key={cat} style={{ flexShrink: 0, whiteSpace: 'nowrap', background: '#EFEFEF', padding: '14px 37px', borderRadius: '20px', color: '#030303', fontSize: '16px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '22px', transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseOver={(e) => { e.target.style.background = '#0A6738'; e.target.style.color = '#fff'; }} onMouseOut={(e) => { e.target.style.background = '#EFEFEF'; e.target.style.color = '#030303'; }}>{cat}</span>
                         ))}
                     </div>
                 </div>
@@ -476,36 +562,36 @@ const Home = () => {
                     <div className="section-title text-center">
                         <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>Participate in our Cooking Challenges & avail the offer</h3>
                     </div>
-                    <div className="row justify-content-center mb-2">
-                        <div className="col-lg-3 col-md-6 mb-3">
+                    <div className="row flex-nowrap flex-md-wrap overflow-auto justify-content-md-center mb-2 auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
                                 <img src={cooking1} alt="Cooking 1" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-lg-3 col-md-6 mb-3">
+                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
                                 <img src={cooking2} alt="Cooking 2" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-lg-3 col-md-6 mb-3">
+                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
                                 <img src={cooking3} alt="Cooking 3" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-lg-3 col-md-6 mb-3">
+                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
                             <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
                                 <img src={cooking4} alt="Cooking 4" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
                                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -520,7 +606,7 @@ const Home = () => {
             <section className="section-padding" style={{ padding: '60px 0' }}>
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                     <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
-                    
+
                     <div style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
@@ -541,8 +627,8 @@ const Home = () => {
                         </div>
                     </div>
 
-                    <div className="row text-start">
-                        <div className="col-md-4 mb-30">
+                    <div className="row text-start flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconApproval} alt="Real Sourcing" style={{ width: '30px' }} />
@@ -552,7 +638,7 @@ const Home = () => {
                                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We work directly with farmers who follow natural practices not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.</p>
                             </div>
                         </div>
-                        <div className="col-md-4 mb-30">
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconGears} alt="Minimal Processing" style={{ width: '30px' }} />
@@ -562,7 +648,7 @@ const Home = () => {
                                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.</p>
                             </div>
                         </div>
-                        <div className="col-md-4 mb-30">
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconVision} alt="Complete Transparent" style={{ width: '30px' }} />
@@ -573,7 +659,7 @@ const Home = () => {
                             </div>
                         </div>
                         {/* Adding the missing 3 points */}
-                        <div className="col-md-4 mb-30">
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconApproval} alt="Quality" style={{ width: '30px' }} />
@@ -583,7 +669,7 @@ const Home = () => {
                                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We don't chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.</p>
                             </div>
                         </div>
-                        <div className="col-md-4 mb-30">
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconGears} alt="Real Homes" style={{ width: '30px' }} />
@@ -593,7 +679,7 @@ const Home = () => {
                                 <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products aren't designed for shelves — they're made for kitchens, for daily meals, for real health.</p>
                             </div>
                         </div>
-                        <div className="col-md-4 mb-30">
+                        <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconVision} alt="Honest Value" style={{ width: '30px' }} />

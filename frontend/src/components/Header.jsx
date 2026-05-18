@@ -90,14 +90,15 @@ const Header = () => {
             position: 'sticky',
             top: 0,
             width: '100%',
-            height: '103px',
+            minHeight: '80px',
             backgroundColor: '#FFFFFF',
             zIndex: 1000,
             boxShadow: isSticky ? '0 8px 20px rgba(0, 0, 0, 0.05)' : 'none',
             borderBottom: '1px solid #f1f1f1',
             transition: 'box-shadow 0.3s ease-in-out',
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexWrap: 'wrap'
         }}>
             {/* Header Middle */}
             <div className="header-middle d-none d-lg-block" style={{ width: '100%' }}>
@@ -419,11 +420,11 @@ const Header = () => {
             </div>
 
             {/* Bottom Nav (Mobile Only) */}
-            <div className={`header-bottom header-bottom-bg-color sticky-bar d-lg-none ${isSticky ? 'stick' : ''}`}>
+            <div className="header-bottom header-bottom-bg-color sticky-bar d-lg-none stick">
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
-                        <div className="logo logo-width-1 d-block d-lg-none pt-1">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="YogisFarms" /></Link>
+                        <div className="logo d-block d-lg-none pt-1" style={{ flex: 1, maxWidth: '140px', minWidth: '100px' }}>
+                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ maxHeight: '40px', maxWidth: '100%', width: 'auto', objectFit: 'contain' }} /></Link>
                         </div>
                         <div className="header-nav d-none d-lg-flex">
                             <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
@@ -447,21 +448,21 @@ const Header = () => {
                                 <span className="text-center">24/7 Support Center</span>
                             </p>
                         </div>
-                        <div className="header-action-right d-block d-lg-none">
-                            <div className="header-action-2">
+                        <div className="header-action-right d-block d-lg-none" style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                            <div className="header-action-2" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                 <div className="header-action-icon-2">
-                                    <Link to="/wishlist">
-                                        <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" />
-                                        <span className="pro-count white">{wishlist?.length || 0}</span>
+                                    <Link to="/wishlist" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                        <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" style={{ width: '22px' }} />
+                                        <span className="pro-count white" style={{ position: 'absolute', top: '-8px', right: '-8px', fontSize: '10px', width: '16px', height: '16px', lineHeight: '16px' }}>{wishlist?.length || 0}</span>
                                     </Link>
                                 </div>
                                 <div className="header-action-icon-2">
-                                    <Link className="mini-cart-icon" to="/cart">
-                                        <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" />
-                                        <span className="pro-count white">{cartCount}</span>
+                                    <Link className="mini-cart-icon" to="/cart" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                                        <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" style={{ width: '22px' }} />
+                                        <span className="pro-count white" style={{ position: 'absolute', top: '-8px', right: '-8px', fontSize: '10px', width: '16px', height: '16px', lineHeight: '16px' }}>{cartCount}</span>
                                     </Link>
                                 </div>
-                                <div className="header-action-icon-2">
+                                <div className="header-action-icon-2" style={{ marginLeft: '5px' }}>
                                     <div className="burger-icon burger-icon-white" onClick={() => setIsMobileMenuOpen(true)}>
                                         <span className="burger-icon-top"></span>
                                         <span className="burger-icon-mid"></span>
@@ -479,7 +480,7 @@ const Header = () => {
                 <div className="mobile-header-wrapper-inner">
                     <div className="mobile-header-top">
                         <div className="mobile-header-logo">
-                            <Link to="/"><img src="/assets/imgs/theme/logo.png" alt="logo" /></Link>
+                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '40px', width: 'auto' }} /></Link>
                         </div>
                         <div className="mobile-menu-close close-style-wrap close-style-position-inherit" onClick={() => setIsMobileMenuOpen(false)}>
                             <button className="close-style search-close">

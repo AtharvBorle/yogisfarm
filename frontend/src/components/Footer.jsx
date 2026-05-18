@@ -15,29 +15,55 @@ const Footer = () => {
     const { user } = useAuth();
     
     return (
-        <footer style={{ 
-            backgroundImage: `url(${footerBg})`, 
-            backgroundSize: '100% 100%', 
-            backgroundPosition: 'top center', 
-            backgroundRepeat: 'no-repeat',
-            paddingTop: '80px',
-            position: 'relative',
-            minHeight: '600px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-        }}>
+        <>
+        <style dangerouslySetInnerHTML={{ __html: `
+            .footer-wrapper {
+                background-image: url(${footerBg});
+                background-size: cover;
+                background-position: bottom center;
+                background-repeat: no-repeat;
+                padding-top: 60px;
+                padding-bottom: 180px;
+                position: relative;
+                min-height: auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+            @media (max-width: 767px) {
+                .footer-wrapper {
+                    padding-top: 40px;
+                    padding-bottom: 40px;
+                }
+                .footer-col-title {
+                    font-size: 18px !important;
+                    margin-bottom: 15px !important;
+                    border-bottom: 1px solid rgba(10, 103, 56, 0.2);
+                    padding-bottom: 10px;
+                }
+                .footer-col-content {
+                    margin-bottom: 25px;
+                }
+                .footer-logo {
+                    text-align: center;
+                }
+                .footer-socials {
+                    justify-content: center !important;
+                }
+            }
+        `}} />
+        <footer className="footer-wrapper">
             <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="row">
                     {/* Column 1: Logo & Mission */}
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <div className="logo mb-20">
+                    <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content">
+                        <div className="logo mb-20 footer-logo">
                             <Link to="/"><img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '80px', width: 'auto' }} /></Link>
                         </div>
                         <p style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
                             Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
                         </p>
-                        <div className="social-icons" style={{ display: 'flex', gap: '15px' }}>
+                        <div className="social-icons footer-socials" style={{ display: 'flex', gap: '15px' }}>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <img src={instagramIcon} alt="Instagram" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
@@ -51,8 +77,8 @@ const Footer = () => {
                     </div>
 
                     {/* Column 2: Legal */}
-                    <div className="col-lg-2 col-md-3 mb-4">
-                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
+                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/terms" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Terms and Conditions</Link></li>
                             <li className="mb-2"><Link to="/return-policy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Return, Refund and cancellation Policy</Link></li>
@@ -62,8 +88,8 @@ const Footer = () => {
                     </div>
 
                     {/* Column 3: Account */}
-                    <div className="col-lg-2 col-md-3 mb-4">
-                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
+                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to={user ? "/dashboard" : "/login"} style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Sign In</Link></li>
                             <li className="mb-2"><Link to="/cart" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>View Cart</Link></li>
@@ -73,8 +99,8 @@ const Footer = () => {
                     </div>
 
                     {/* Column 4: Popular */}
-                    <div className="col-lg-2 col-md-3 mb-4">
-                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
+                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/about-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>About us</Link></li>
                             <li className="mb-2"><Link to="/shop" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shop</Link></li>
@@ -84,8 +110,8 @@ const Footer = () => {
                     </div>
 
                     {/* Column 5: Contact */}
-                    <div className="col-lg-3 col-md-6 mb-4">
-                        <h4 style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
+                    <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content">
+                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-3" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
@@ -109,6 +135,7 @@ const Footer = () => {
                 <p style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
             </div>
         </footer>
+        </>
     );
 };
 
