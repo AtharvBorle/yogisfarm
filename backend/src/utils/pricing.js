@@ -91,7 +91,7 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
     if (coupon && coupon.status === 'active') {
       const now = new Date();
-      if (!coupon.expiryDate || new Date(coupon.expiryDate) > now) {
+      if (!coupon.expireOn || new Date(coupon.expireOn) > now) {
         if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
           discountAmount = coupon.amountType === 'percent'
             ? (offerPriceSum * parseFloat(coupon.amount)) / 100
