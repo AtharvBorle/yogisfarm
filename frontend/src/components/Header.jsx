@@ -141,7 +141,7 @@ const Header = () => {
                                         <li><Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Home</Link></li>
                                         <li><Link to="/about-us" className={`nav-link ${isActive('/about-us') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>About Us</Link></li>
                                         <li><Link to="/deals" className={`nav-link ${isActive('/deals') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Deals</Link></li>
-                                        <li><Link to="/shop" className={`nav-link ${isActive('/shop') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Category</Link></li>
+                                        <li><Link to="/shop" className={`nav-link ${isActive('/shop') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Shop</Link></li>
                                         <li><Link to="/contact-us" className={`nav-link ${isActive('/contact-us') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Contact Us</Link></li>
                                     </ul>
                                 </nav>
@@ -433,7 +433,6 @@ const Header = () => {
                                         <li className="hot-deals"><img src="/assets/imgs/theme/icons/icon-hot.svg" alt="hot deals" /><Link to="/deals">Deals</Link></li>
                                         <li><Link to="/">Home</Link></li>
                                         <li><Link to="/about-us">About Us</Link></li>
-                                        <li><Link to="/category">Category</Link></li>
                                         <li><Link to="/brands">Brands</Link></li>
                                         <li><Link to="/shop">Shop</Link></li>
                                         <li><Link to="/contact-us">Contact Us</Link></li>
@@ -502,7 +501,6 @@ const Header = () => {
                                     <li><Link to="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link></li>
                                     <li><Link to="/about-us" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link></li>
                                     <li><Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link></li>
-                                    <li><Link to="/category" onClick={() => setIsMobileMenuOpen(false)}>Category</Link></li>
                                     <li><Link to="/deals" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link></li>
                                     <li><Link to="/contact-us" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link></li>
                                 </ul>

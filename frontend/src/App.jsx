@@ -24,9 +24,13 @@ import Privacy from './pages/Privacy';
 import Shipping from './pages/Shipping';
 import ReturnPolicy from './pages/ReturnPolicy';
 
-
-
-
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 // Delivery Portal Pages
 import DeliveryLogin from './pages/delivery/Login';
@@ -58,6 +62,7 @@ function App() {
       )}
 
       {!isDeliveryRoute && <Header />}
+      <ScrollToTop />
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
