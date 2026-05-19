@@ -1260,17 +1260,23 @@ router.get('/files', requireAdmin, async (req, res) => {
   }
 });
 
-router.post('/files/upload', requireAdmin, upload.array('files', 20), async (req, res) => {
-  try {
-    const subdir = req.body.uploadPath || '';
-    const files = req.files.map(f => ({
-      name: f.originalname || f.filename,
-      path: (f.key ? '/' + f.key : '/uploads/' + (subdir ? subdir + '/' : '') + f.filename)
-    }));
-    res.json({ status: true, message: 'Files uploaded', files });
-  } catch (e) {
-    res.json({ status: false, message: e.message });
-  }
+router.post('/files/upload', requireAdmin, (req, res) => {
+  upload.array('files', 20)(req, res, function (err) {
+    if (err) {
+      console.error('Multer upload error:', err);
+      return res.json({ status: false, message: 'File upload error: ' + err.message });
+    }
+    try {
+      const subdir = req.body.uploadPath || '';
+      const files = req.files.map(f => ({
+        name: f.originalname || f.filename,
+        path: (f.key ? '/' + f.key : '/uploads/' + (subdir ? subdir + '/' : '') + f.filename)
+      }));
+      res.json({ status: true, message: 'Files uploaded', files });
+    } catch (e) {
+      res.json({ status: false, message: e.message });
+    }
+  });
 });
 
 router.post('/files/folder', requireAdmin, async (req, res) => {
