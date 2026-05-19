@@ -90,12 +90,18 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   if (couponCode) {
     coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
     if (coupon && coupon.status === 'active') {
-      if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
-        discountAmount = coupon.amountType === 'percent'
-          ? (offerPriceSum * parseFloat(coupon.amount)) / 100
-          : parseFloat(coupon.amount);
-        if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
-        appliedCouponId = coupon.id;
+      const now = new Date();
+      if (!coupon.expiryDate || new Date(coupon.expiryDate) > now) {
+        if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
+          discountAmount = coupon.amountType === 'percent'
+            ? (offerPriceSum * parseFloat(coupon.amount)) / 100
+            : parseFloat(coupon.amount);
+          if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
+          appliedCouponId = coupon.id;
+        }
+      } else {
+        // Coupon expired
+        coupon = null;
       }
     }
   }

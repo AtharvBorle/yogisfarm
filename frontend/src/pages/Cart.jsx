@@ -34,7 +34,7 @@ const Cart = () => {
     const navigate = useNavigate();
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { shipping, loading, grandTotal } = useOrderPricing(cartItems);
+    const { subtotalBase, totalTax, shipping, loading, grandTotal } = useOrderPricing(cartItems);
 
     React.useEffect(() => {
         api.get('/products?popular=true&limit=4').then(res => {
@@ -135,20 +135,20 @@ const Cart = () => {
                                 <h4 className="mb-30" style={{ color: '#0A6738', fontSize: '20px', fontWeight: '700' }}>Order Summary</h4>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Subtotal</span>
-                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{cartTotal.toFixed(2)}</span>
+                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : subtotalBase.toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-15">
-                                    <span style={{ color: '#666' }}>Tax</span>
-                                    <span style={{ color: '#333', fontWeight: '600' }}>₹50.00</span>
+                                    <span style={{ color: '#666' }}>Total Applicable GST</span>
+                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : totalTax.toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Shipping</span>
-                                    <span style={{ color: '#0A6738', fontWeight: '600' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(0)}`)}</span>
+                                    <span style={{ color: '#0A6738', fontWeight: '600' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}</span>
                                 </div>
                                 <div style={{ height: '1px', background: '#eee', margin: '20px 0' }}></div>
                                 <div className="d-flex justify-content-between mb-30">
                                     <span style={{ color: '#333', fontWeight: '700', fontSize: '18px' }}>Total</span>
-                                    <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : (grandTotal + 50).toFixed(2)}</span>
+                                    <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : grandTotal.toFixed(0)}</span>
                                 </div>
                                 <button onClick={handleCheckout} className="btn btn-checkout w-100">
                                     Proceed To Checkout

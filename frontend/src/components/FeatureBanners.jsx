@@ -300,10 +300,16 @@ export const PartnerLogos = () => {
     );
 };
 
-const FeatureBanners = () => {
+const FeatureBanners = ({ showTestimonialsOnMobile = true }) => {
     return (
         <>
-            <Testimonials />
+            {showTestimonialsOnMobile ? (
+                <Testimonials />
+            ) : (
+                <div className="d-none d-md-block">
+                    <Testimonials />
+                </div>
+            )}
             <CorePillars />
             <PartnerLogos />
         </>

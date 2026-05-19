@@ -252,13 +252,13 @@ const Payment = () => {
                                 <span>Delivery Address : {selectedAddress ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state},India` : 'No address'}</span>
                                 <Link to="/checkout" style={{ color: '#046938', fontSize: '14px' }}>Change</Link>
                             </div>
-                            {discount > 0 ? (
+                            {appliedCoupon ? (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8f9fa' }}>
                                     <div>
                                         <i className="fi-rs-label" style={{ color: '#046938', marginRight: '8px' }}></i>
-                                        <span style={{ fontWeight: '600', color: '#046938' }}>{couponCode}</span> applied!
+                                        <span style={{ fontWeight: '600', color: '#046938' }}>{appliedCoupon}</span> applied!
                                     </div>
-                                    <button onClick={() => { setDiscount(0); setCouponCode(''); toast.success('Coupon removed'); }}
+                                    <button onClick={() => { setAppliedCoupon(''); setCouponCode(''); toast.success('Coupon removed'); }}
                                         style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <i className="fi-rs-cross-small"></i> Remove
                                     </button>

@@ -14,8 +14,18 @@ const api = axios.create({
   },
 });
 
-// Console Formatting Interceptors
+// Generate a persistent guest session ID if one doesn't exist
+let guestSessionId = localStorage.getItem('guestSessionId');
+if (!guestSessionId) {
+  guestSessionId = 'guest_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  localStorage.setItem('guestSessionId', guestSessionId);
+}
+
+// Console Formatting Interceptors & Guest Session
 api.interceptors.request.use((config) => {
+  if (guestSessionId) {
+    config.headers['x-guest-session-id'] = guestSessionId;
+  }
   console.log(`%c[API REQ] ${config.method.toUpperCase()} ${config.url}`, 'color: #046938; font-weight: bold;');
   return config;
 }, (error) => {

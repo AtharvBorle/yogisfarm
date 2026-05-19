@@ -503,7 +503,6 @@ const Header = () => {
                                     <li><Link to="/about-us" onClick={() => setIsMobileMenuOpen(false)}>About Us</Link></li>
                                     <li><Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link></li>
                                     <li><Link to="/category" onClick={() => setIsMobileMenuOpen(false)}>Category</Link></li>
-                                    <li><Link to="/brands" onClick={() => setIsMobileMenuOpen(false)}>Brands</Link></li>
                                     <li><Link to="/deals" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link></li>
                                     <li><Link to="/contact-us" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link></li>
                                 </ul>
