@@ -255,6 +255,21 @@ const Home = () => {
         </section>
     );
 
+    // Filter Main banner sliders
+    const carouselSliders = mainSliders.filter(s => !s.subposition || s.subposition === 'Main' || s.subposition === '');
+    const r1c1Slider = mainSliders.find(s => s.subposition === 'R1C1');
+    const r2c1Slider = mainSliders.find(s => s.subposition === 'R2C1');
+    const r1c2Slider = mainSliders.find(s => s.subposition === 'R1C2');
+    const r2c2Slider = mainSliders.find(s => s.subposition === 'R2C2');
+
+    // Filter homepage deal sections
+    const dealSections = sections.filter(s => s.isDeal && s.page === 'home');
+    const dr1c1 = dealSections.find(s => s.position === 'DR1C1');
+    const dr1c2 = dealSections.find(s => s.position === 'DR1C2');
+    const dr2c1 = dealSections.find(s => s.position === 'DR2C1');
+    const dr2mid = dealSections.find(s => s.position === 'DR2Mid');
+    const dr2c2 = dealSections.find(s => s.position === 'DR2C2');
+
     return (
         <>
             <style dangerouslySetInnerHTML={{
@@ -283,8 +298,20 @@ const Home = () => {
                         <div style={{ display: 'flex', alignItems: 'stretch', gap: '14px', width: '100%' }}>
                             {/* Left Banners — Figma: 173x173 stacked, gap ~15px */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={mainR1Left} alt="Main R1 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
-                                <img src={mainR2Left} alt="Main R2 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                {r1c1Slider ? (
+                                    <a href={getSliderLink(r1c1Slider)}>
+                                        <img src={getAssetUrl(r1c1Slider.image)} alt={r1c1Slider.name || ''} style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                    </a>
+                                ) : (
+                                    <img src={mainR1Left} alt="Main R1 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                )}
+                                {r2c1Slider ? (
+                                    <a href={getSliderLink(r2c1Slider)}>
+                                        <img src={getAssetUrl(r2c1Slider.image)} alt={r2c1Slider.name || ''} style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                    </a>
+                                ) : (
+                                    <img src={mainR2Left} alt="Main R2 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                )}
                             </div>
 
                             {/* Main Slider — Figma: 992x361 */}
@@ -292,13 +319,21 @@ const Home = () => {
                                 <div className="home-slide-cover" style={{ borderRadius: '9px', overflow: 'hidden' }}>
                                     <div className="hero-slider-1 style-2 dot-style-1 dot-style-1-position-1">
                                         <Slider {...heroSettings}>
-                                            {mainSliders.map(slider => (
-                                                <div key={slider.id}>
-                                                    <a href={getSliderLink(slider)}>
-                                                        <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
+                                            {carouselSliders.length > 0 ? (
+                                                carouselSliders.map(slider => (
+                                                    <div key={slider.id}>
+                                                        <a href={getSliderLink(slider)}>
+                                                            <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
+                                                        </a>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div>
+                                                    <a href="#">
+                                                        <img src="/src/assets/figma/img_3.png" alt="Fallback Slider" className="home-slider-img" />
                                                     </a>
                                                 </div>
-                                            ))}
+                                            )}
                                         </Slider>
                                     </div>
                                 </div>
@@ -306,8 +341,20 @@ const Home = () => {
 
                             {/* Right Banners — Figma: 173x173 stacked */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={mainR1Right} alt="Main R1 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
-                                <img src={mainR2Right} alt="Main R2 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                {r1c2Slider ? (
+                                    <a href={getSliderLink(r1c2Slider)}>
+                                        <img src={getAssetUrl(r1c2Slider.image)} alt={r1c2Slider.name || ''} style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                    </a>
+                                ) : (
+                                    <img src={mainR1Right} alt="Main R1 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                )}
+                                {r2c2Slider ? (
+                                    <a href={getSliderLink(r2c2Slider)}>
+                                        <img src={getAssetUrl(r2c2Slider.image)} alt={r2c2Slider.name || ''} style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                    </a>
+                                ) : (
+                                    <img src={mainR2Right} alt="Main R2 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -410,7 +457,7 @@ const Home = () => {
             {middleSliders.length > 0 && <SliderBanner sliders={middleSliders} />}
 
             {/* 6.5 DYNAMIC SECTIONS from Admin */}
-            {sections.map(section => {
+            {sections.filter(s => !s.isDeal).map(section => {
                 const products = section.category?.products || [];
                 if (products.length === 0) return null;
                 return (
@@ -442,18 +489,22 @@ const Home = () => {
                     {/* Row 1: Two Wide Banners (606px each with 24px gap = 1236px) */}
                     <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
                         <div style={{ width: '606px' }}>
-                            <img
-                                src={bestDealsR1C1}
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
-                                alt="Best Deal R1 C1"
-                            />
+                            {dr1c1 ? (
+                                <a href={getSliderLink(dr1c1)}>
+                                    <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                                </a>
+                            ) : (
+                                <img src={bestDealsR1C1} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                            )}
                         </div>
                         <div style={{ width: '606px' }}>
-                            <img
-                                src={bestDealsR1C2}
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
-                                alt="Best Deal R1 C2"
-                            />
+                            {dr1c2 ? (
+                                <a href={getSliderLink(dr1c2)}>
+                                    <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                                </a>
+                            ) : (
+                                <img src={bestDealsR1C2} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                            )}
                         </div>
                     </div>
 
@@ -461,20 +512,24 @@ const Home = () => {
                     <div style={{ display: 'flex', gap: '24px' }}>
                         {/* Left Advertisement */}
                         <div style={{ width: '280px' }}>
-                            <img
-                                src={bestDealsR2Left}
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
-                                alt="Best Deal R2 Left"
-                            />
+                            {dr2c1 ? (
+                                <a href={getSliderLink(dr2c1)}>
+                                    <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                                </a>
+                            ) : (
+                                <img src={bestDealsR2Left} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                            )}
                         </div>
 
                         {/* Center Video Banner */}
                         <div style={{ width: '628px', position: 'relative' }}>
-                            <img
-                                src={bestDealsR2Mid}
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
-                                alt="Best Deal R2 Mid"
-                            />
+                            {dr2mid ? (
+                                <a href={getSliderLink(dr2mid)}>
+                                    <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                                </a>
+                            ) : (
+                                <img src={bestDealsR2Mid} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                            )}
                             {/* Video Play Button Overlay */}
                             <div style={{
                                 position: 'absolute',
@@ -501,11 +556,13 @@ const Home = () => {
 
                         {/* Right Advertisement */}
                         <div style={{ width: '280px' }}>
-                            <img
-                                src={bestDealsR2Right}
-                                style={{ width: '100%', borderRadius: '15px', height: 'auto' }}
-                                alt="Best Deal R2 Right"
-                            />
+                            {dr2c2 ? (
+                                <a href={getSliderLink(dr2c2)}>
+                                    <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                                </a>
+                            ) : (
+                                <img src={bestDealsR2Right} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                            )}
                         </div>
                     </div>
                 </div>

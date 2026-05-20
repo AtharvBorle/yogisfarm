@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
@@ -54,6 +54,7 @@ const NextArrow = (props) => {
 
 const Deals = () => {
     const [popularProducts, setPopularProducts] = useState([]);
+    const [sections, setSections] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -64,7 +65,27 @@ const Deals = () => {
             console.error(err);
             setLoading(false);
         });
+
+        api.get('/sections').then(res => {
+            if (res.data.status) setSections(res.data.sections);
+        }).catch(err => console.error(err));
     }, []);
+
+    const getSliderLink = (slider) => {
+        if (!slider.linkType || slider.linkType === 'none') return '#';
+        if (slider.linkType === 'url') return slider.link || '#';
+        if (slider.linkType === 'category') return `/shop?category=${slider.link}`;
+        if (slider.linkType === 'brand') return `/shop?brand=${slider.link}`;
+        if (slider.linkType === 'product') return `/product/${slider.link}`;
+        return slider.link || '#';
+    };
+
+    const dealSections = sections.filter(s => s.isDeal && s.page === 'deals');
+    const dr1c1 = dealSections.find(s => s.position === 'DR1C1');
+    const dr1c2 = dealSections.find(s => s.position === 'DR1C2');
+    const dr2c1 = dealSections.find(s => s.position === 'DR2C1');
+    const dr2mid = dealSections.find(s => s.position === 'DR2Mid');
+    const dr2c2 = dealSections.find(s => s.position === 'DR2C2');
 
     const BestDealsSection = () => (
         <section className="section-padding pb-5">
@@ -72,20 +93,44 @@ const Deals = () => {
                 {/* Row 1: Two Wide Banners */}
                 <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
                     <div style={{ width: '606px' }}>
-                        <img src={bestDealsR1C1} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                        {dr1c1 ? (
+                            <a href={getSliderLink(dr1c1)}>
+                                <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                            </a>
+                        ) : (
+                            <img src={bestDealsR1C1} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                        )}
                     </div>
                     <div style={{ width: '606px' }}>
-                        <img src={bestDealsR1C2} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                        {dr1c2 ? (
+                            <a href={getSliderLink(dr1c2)}>
+                                <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                            </a>
+                        ) : (
+                            <img src={bestDealsR1C2} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                        )}
                     </div>
                 </div>
 
                 {/* Row 2: Ad | Video | Ad */}
                 <div style={{ display: 'flex', gap: '24px' }}>
                     <div style={{ width: '280px' }}>
-                        <img src={bestDealsR2Left} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                        {dr2c1 ? (
+                            <a href={getSliderLink(dr2c1)}>
+                                <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                            </a>
+                        ) : (
+                            <img src={bestDealsR2Left} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                        )}
                     </div>
                     <div style={{ width: '628px', position: 'relative' }}>
-                        <img src={bestDealsR2Mid} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                        {dr2mid ? (
+                            <a href={getSliderLink(dr2mid)}>
+                                <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                            </a>
+                        ) : (
+                            <img src={bestDealsR2Mid} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                        )}
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '64px', height: '64px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer', border: '2px solid #fff', backdropFilter: 'blur(4px)' }}>
                             <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor"/>
@@ -93,7 +138,13 @@ const Deals = () => {
                         </div>
                     </div>
                     <div style={{ width: '280px' }}>
-                        <img src={bestDealsR2Right} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                        {dr2c2 ? (
+                            <a href={getSliderLink(dr2c2)}>
+                                <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                            </a>
+                        ) : (
+                            <img src={bestDealsR2Right} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                        )}
                     </div>
                 </div>
             </div>

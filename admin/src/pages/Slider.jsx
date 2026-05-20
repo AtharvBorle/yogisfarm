@@ -15,7 +15,7 @@ const Slider = () => {
     const [isReorderOpen, setReorderOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', image: '', status: 'active', type: 'web', position: 'main', linkType: '', link: ''
+        name: '', image: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: ''
     });
 
     const [categories, setCategories] = useState([]);
@@ -52,7 +52,7 @@ const Slider = () => {
     }, [productKeyword, formData.linkType]);
 
     const openAddModal = () => {
-        setFormData({ name: '', image: '', status: 'active', type: 'web', position: 'main', linkType: '', link: '' });
+        setFormData({ name: '', image: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: '' });
         setProductKeyword('');
         setEditingId(null);
         setModalOpen(true);
@@ -61,7 +61,7 @@ const Slider = () => {
     const openEditModal = (row) => {
         setFormData({
             name: row.name || '', image: row.image || '', status: row.status,
-            type: row.type || 'web', position: row.position || 'main',
+            type: row.type || 'web', position: row.position || 'main', subposition: row.subposition || '',
             linkType: row.linkType || '', link: row.link || ''
         });
         setProductKeyword('');
@@ -196,6 +196,7 @@ const Slider = () => {
                                     <label className="admin-label">Position <span className="required">*</span></label>
                                     <select value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} className="admin-select">
                                         <option value="main">Main</option>
+                                        <option value="BD">BD</option>
                                         <option value="top">Top</option>
                                         <option value="middle">Middle</option>
                                         <option value="bottom">Bottom</option>
@@ -212,6 +213,20 @@ const Slider = () => {
                                     </select>
                                 </div>
                             </div>
+
+                            {formData.position === 'main' && (
+                                <div className="admin-form-group">
+                                    <label className="admin-label">Subposition (Main Only)</label>
+                                    <select value={formData.subposition} onChange={e => setFormData({ ...formData, subposition: e.target.value })} className="admin-select">
+                                        <option value="">None (Default Middle)</option>
+                                        <option value="R1C1">R1C1</option>
+                                        <option value="R1C2">R1C2</option>
+                                        <option value="R2C1">R2C1</option>
+                                        <option value="R2C2">R2C2</option>
+                                        <option value="Main">Main</option>
+                                    </select>
+                                </div>
+                            )}
 
                             {formData.linkType === 'category' && (
                                 <div className="admin-form-group">

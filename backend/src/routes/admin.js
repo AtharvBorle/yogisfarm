@@ -314,9 +314,9 @@ router.get('/sliders', requireAdmin, async (req, res) => {
 
 router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage } = req.body;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
-    const slider = await prisma.slider.create({ data: { name, image, status: status || 'active', type: type || 'web', position: position || 'main', linkType, link } });
+    const slider = await prisma.slider.create({ data: { name, image, status: status || 'active', type: type || 'web', position: position || 'main', subposition, linkType, link } });
     res.json({ status: true, message: 'Slider created', slider });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -325,8 +325,8 @@ router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/sliders/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
-    const data = { name, status, type, position, linkType, link };
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage } = req.body;
+    const data = { name, status, type, position, subposition, linkType, link };
     if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const slider = await prisma.slider.update({ where: { id: parseInt(req.params.id) }, data });
@@ -947,11 +947,23 @@ router.get('/sections', requireAdmin, async (req, res) => {
   res.json({ status: true, sections });
 });
 
-router.post('/sections', requireAdmin, async (req, res) => {
+router.post('/sections', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, categoryId } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
-      data: { name, status: status || 'active', categoryId: categoryId ? parseInt(categoryId) : null }
+      data: {
+        name,
+        status: status || 'active',
+        categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+        isDeal: parsedIsDeal,
+        page: parsedIsDeal ? page : null,
+        position: parsedIsDeal ? position : null,
+        image: parsedIsDeal ? image : null,
+        linkType: parsedIsDeal ? linkType : null,
+        link: parsedIsDeal ? link : null
+      }
     });
     await logAdminAction(req.session.adminId, 'Created Section', `Name: ${name}`);
     res.json({ status: true, message: 'Section created', section });
@@ -960,12 +972,35 @@ router.post('/sections', requireAdmin, async (req, res) => {
   }
 });
 
-router.put('/sections/:id', requireAdmin, async (req, res) => {
+router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, categoryId } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    
+    const data = {
+      name,
+      status,
+      categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+      isDeal: parsedIsDeal,
+      page: parsedIsDeal ? page : null,
+      position: parsedIsDeal ? position : null,
+      linkType: parsedIsDeal ? linkType : null,
+      link: parsedIsDeal ? link : null
+    };
+
+    if (parsedIsDeal) {
+      if (req.file) {
+        data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
+      } else if (bodyImage) {
+        data.image = bodyImage;
+      }
+    } else {
+      data.image = null;
+    }
+
     const section = await prisma.section.update({
       where: { id: parseInt(req.params.id) },
-      data: { name, status, categoryId: categoryId ? parseInt(categoryId) : null }
+      data
     });
     await logAdminAction(req.session.adminId, 'Updated Section', `Name: ${section.name}`);
     res.json({ status: true, message: 'Section updated', section });
@@ -1191,22 +1226,57 @@ router.get('/sections', requireAdmin, async (req, res) => {
   res.json({ status: true, sections });
 });
 
-router.post('/sections', requireAdmin, async (req, res) => {
+router.post('/sections', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, categoryId, status } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
-      data: { name, status: status || 'active', categoryId: categoryId ? parseInt(categoryId) : null }
+      data: {
+        name,
+        status: status || 'active',
+        categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+        isDeal: parsedIsDeal,
+        page: parsedIsDeal ? page : null,
+        position: parsedIsDeal ? position : null,
+        image: parsedIsDeal ? image : null,
+        linkType: parsedIsDeal ? linkType : null,
+        link: parsedIsDeal ? link : null
+      }
     });
     res.json({ status: true, message: 'Section created', section });
   } catch (e) { res.json({ status: false, message: e.message }); }
 });
 
-router.put('/sections/:id', requireAdmin, async (req, res) => {
+router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, categoryId, status } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    
+    const data = {
+      name,
+      status,
+      categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+      isDeal: parsedIsDeal,
+      page: parsedIsDeal ? page : null,
+      position: parsedIsDeal ? position : null,
+      linkType: parsedIsDeal ? linkType : null,
+      link: parsedIsDeal ? link : null
+    };
+
+    if (parsedIsDeal) {
+      if (req.file) {
+        data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
+      } else if (bodyImage) {
+        data.image = bodyImage;
+      }
+    } else {
+      data.image = null;
+    }
+
     const section = await prisma.section.update({
       where: { id: parseInt(req.params.id) },
-      data: { name, status, categoryId: categoryId ? parseInt(categoryId) : null }
+      data
     });
     res.json({ status: true, message: 'Section updated', section });
   } catch (e) { res.json({ status: false, message: e.message }); }
