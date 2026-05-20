@@ -185,7 +185,7 @@ const Home = () => {
                 container.removeEventListener('mouseleave', resume);
             });
         };
-    }, [categories, popularProducts, featuredProducts, dealProducts]);
+    }, [categories, popularProducts, featuredProducts, dealProducts, sections]);
 
     const getSliderLink = (slider) => {
         if (!slider.linkType || slider.linkType === 'none') return '#';
@@ -465,7 +465,7 @@ const Home = () => {
             {middleSliders.length > 0 && <SliderBanner sliders={middleSliders} />}
 
             {/* 6.5 DYNAMIC SECTIONS from Admin */}
-            {sections.filter(s => !s.isDeal).map(section => {
+            {sections.filter(s => !s.isDeal && s.position !== 'cooking_challenge').map(section => {
                 const products = section.category?.products || [];
                 if (products.length === 0) return null;
                 return (
@@ -647,51 +647,55 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* 11. Cooking Challenges Banner (Full Width) */}
-            <section className="section-padding" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
-                <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
-                    <div className="section-title text-center">
-                        <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>Participate in our Cooking Challenges & avail the offer</h3>
-                    </div>
-                    <div className="row flex-nowrap flex-md-wrap overflow-auto justify-content-md-center mb-2 auto-scroll-container" style={{ paddingBottom: '15px' }}>
-                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
-                            <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={cooking1} alt="Cooking 1" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
-                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
-                                </div>
+            {/* 11. Dynamic Cooking Challenges Sections */}
+            {sections.filter(s => s.position === 'cooking_challenge').map(section => {
+                let items = [];
+                try {
+                    items = JSON.parse(section.image || '[]');
+                } catch (e) {
+                    console.error("Failed to parse cooking challenge JSON", e);
+                }
+                if (items.length === 0) return null;
+                return (
+                    <section key={section.id} className="section-padding" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
+                        <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
+                            <div className="section-title text-center">
+                                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>
+                                    {section.name}
+                                </h3>
+                            </div>
+                            <div className="row flex-nowrap overflow-auto justify-content-md-center mb-2 auto-scroll-container" style={{ paddingBottom: '15px', gap: '20px' }}>
+                                {items.map((item, idx) => {
+                                    const cardContent = (
+                                        <div className="position-relative overflow-hidden hover-zoom-container" style={{ borderRadius: '12px', width: '291px', height: '200px', flexShrink: 0, border: '1px solid #e0e0e0', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', position: 'relative' }}>
+                                            <img src={getAssetUrl(item.image)} alt={item.description || `Cooking ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} className="hover-zoom" />
+                                            {/* Video Play Button Overlay */}
+                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.85)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
+                                                <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
+                                            </div>
+                                            {item.description && (
+                                                <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(10, 103, 56, 0.95)', color: '#fff', padding: '8px 12px', fontSize: '13px', fontWeight: 600, fontFamily: 'Poppins, sans-serif', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                    {item.description}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+
+                                    return (
+                                        <div key={idx} style={{ flexShrink: 0 }}>
+                                            {item.linkType && item.linkType !== 'none' ? (
+                                                <a href={getSliderLink(item)} style={{ display: 'block' }}>
+                                                    {cardContent}
+                                                </a>
+                                            ) : cardContent}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
-                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
-                            <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={cooking2} alt="Cooking 2" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
-                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
-                            <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={cooking3} alt="Cooking 3" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
-                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-9 col-sm-6 col-lg-3 col-md-6 mb-3" style={{ flexShrink: 0 }}>
-                            <div className="position-relative overflow-hidden" style={{ borderRadius: '12px' }}>
-                                <img src={cooking4} alt="Cooking 4" style={{ width: '100%', height: 'auto', transition: 'transform 0.5s ease' }} className="hover-zoom" />
-                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '45px', height: '45px', background: 'rgba(255,255,255,0.8)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                    <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-center mt-20">
-                        <button className="btn" style={{ padding: '15px 50px', fontSize: '16px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, borderRadius: '10px', backgroundColor: '#FF0000', color: '#FFFFFF', border: 'none', boxShadow: '0 8px 16px rgba(255,0,0,0.15)', cursor: 'pointer' }}>Explore More +</button>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                );
+            })}
 
             {/* 12. Why Families Choose Section */}
             <section className="section-padding" style={{ padding: '60px 0' }}>

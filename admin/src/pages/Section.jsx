@@ -82,11 +82,13 @@ const Section = () => {
 
     const openEditModal = (row) => {
         let initialBanners = [];
-        if (row.isDeal && row.image) {
+        const isChallenge = row.position === 'cooking_challenge';
+        const isDealOrChallenge = row.isDeal || isChallenge;
+        if (isDealOrChallenge && row.image) {
             try {
                 initialBanners = JSON.parse(row.image);
             } catch (e) {
-                console.error("Failed to parse deal banners JSON", e);
+                console.error("Failed to parse banners JSON", e);
             }
         }
 
@@ -119,11 +121,13 @@ const Section = () => {
         e.preventDefault();
         try {
             let res;
+            const isChallenge = formData.position === 'cooking_challenge';
+            const isDealOrChallenge = formData.isDeal || isChallenge;
             const payload = {
                 ...formData,
                 name: formData.isDeal ? 'Deal' : formData.name,
-                categoryId: formData.isDeal ? '' : formData.categoryId,
-                image: formData.isDeal ? JSON.stringify(dealBanners) : formData.image
+                categoryId: isDealOrChallenge ? '' : formData.categoryId,
+                image: isDealOrChallenge ? JSON.stringify(dealBanners) : formData.image
             };
 
             if (editingId) res = await api.put(`/sections/${editingId}`, payload);
@@ -153,14 +157,22 @@ const Section = () => {
     };
 
     // Sub-form actions for nested banner editing
+    const isChallenge = formData.position === 'cooking_challenge';
+
     const openAddBanner = () => {
-        const usedPositions = dealBanners.map(b => b.position);
-        const allPositions = ['DR1C1', 'DR1C2', 'DR2C1', 'DR2Mid', 'DR2C2'];
-        const firstAvailable = allPositions.find(p => !usedPositions.includes(p)) || 'DR1C1';
-        
-        setBannerFormData({
-            position: firstAvailable, image: '', linkType: '', link: ''
-        });
+        if (isChallenge) {
+            setBannerFormData({
+                position: `Item ${dealBanners.length + 1}`, image: '', linkType: '', link: '', description: ''
+            });
+        } else {
+            const usedPositions = dealBanners.map(b => b.position);
+            const allPositions = ['DR1C1', 'DR1C2', 'DR2C1', 'DR2Mid', 'DR2C2'];
+            const firstAvailable = allPositions.find(p => !usedPositions.includes(p)) || 'DR1C1';
+            
+            setBannerFormData({
+                position: firstAvailable, image: '', linkType: '', link: '', description: ''
+            });
+        }
         setBannerProductKeyword('');
         setBannerEditIndex(-1);
         setShowBannerForm(true);
@@ -177,7 +189,7 @@ const Section = () => {
     const handleSaveBanner = (e) => {
         e.preventDefault();
         if (!bannerFormData.image) {
-            toast.error('Please upload an image for the banner');
+            toast.error('Please upload an image/GIF for the item');
             return;
         }
 
@@ -185,8 +197,8 @@ const Section = () => {
         if (bannerEditIndex >= 0) {
             updated[bannerEditIndex] = bannerFormData;
         } else {
-            // Prevent duplicate position addition
-            if (dealBanners.some(b => b.position === bannerFormData.position)) {
+            // Prevent duplicate position addition for deals only
+            if (!isChallenge && dealBanners.some(b => b.position === bannerFormData.position)) {
                 toast.error('This banner position is already added!');
                 return;
             }
@@ -197,7 +209,7 @@ const Section = () => {
     };
 
     const handleRemoveBanner = (idx) => {
-        if (window.confirm('Remove this banner position?')) {
+        if (window.confirm('Remove this item?')) {
             setDealBanners(dealBanners.filter((_, i) => i !== idx));
         }
     };
@@ -206,14 +218,20 @@ const Section = () => {
         { header: 'ID', accessor: 'id' },
         { 
             header: 'Type', 
-            render: (row) => row.isDeal ? <strong style={{ color: '#ff9900' }}>Deal Banners</strong> : 'Product Grid' 
+            render: (row) => {
+                if (row.isDeal) return <strong style={{ color: '#ff9900' }}>Deal Banners</strong>;
+                if (row.position === 'cooking_challenge') return <strong style={{ color: '#0A6738' }}>Cooking Challenge</strong>;
+                return 'Product Grid';
+            }
         },
         { 
             header: 'Page / Configured Positions', 
             render: (row) => {
-                if (row.isDeal) {
+                const isRowChallenge = row.position === 'cooking_challenge';
+                if (row.isDeal || isRowChallenge) {
                     let banners = [];
                     try { banners = JSON.parse(row.image || '[]'); } catch(e){}
+                    if (isRowChallenge) return `Home Page (${banners.length} challenge items)`;
                     return `${row.page === 'deals' ? 'Deals Page' : 'Home Page'} (${banners.map(b => b.position).join(', ') || 'No banners'})`;
                 }
                 return 'Home Page';
@@ -221,28 +239,37 @@ const Section = () => {
         },
         { 
             header: 'Name / Linked Category', 
-            render: (row) => row.isDeal ? (
-                <div style={{ display: 'flex', gap: '5px' }}>
-                    {(() => {
-                        let banners = [];
-                        try { banners = JSON.parse(row.image || '[]'); } catch(e){}
-                        return banners.map((b, idx) => (
-                            <img 
-                                key={idx}
-                                src={getAssetUrl(b.image)} 
-                                alt={b.position} 
-                                title={b.position} 
-                                style={{ height: '30px', width: '30px', objectFit: 'cover', border: '1px solid #eee', borderRadius: '4px' }} 
-                            />
-                        ));
-                    })()}
-                    {(() => {
-                        let banners = [];
-                        try { banners = JSON.parse(row.image || '[]'); } catch(e){}
-                        return banners.length === 0 && <span style={{ color: '#aaa', fontSize: '13px' }}>Empty</span>;
-                    })()}
-                </div>
-            ) : (row.category?.name || 'None')
+            render: (row) => {
+                const isRowChallenge = row.position === 'cooking_challenge';
+                if (row.isDeal || isRowChallenge) {
+                    return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                                {(() => {
+                                    let banners = [];
+                                    try { banners = JSON.parse(row.image || '[]'); } catch(e){}
+                                    return banners.slice(0, 5).map((b, idx) => (
+                                        <img 
+                                            key={idx}
+                                            src={getAssetUrl(b.image)} 
+                                            alt={b.position} 
+                                            title={b.position} 
+                                            style={{ height: '30px', width: '30px', objectFit: 'cover', border: '1px solid #eee', borderRadius: '4px' }} 
+                                        />
+                                    ));
+                                })()}
+                                {(() => {
+                                    let banners = [];
+                                    try { banners = JSON.parse(row.image || '[]'); } catch(e){}
+                                    return banners.length > 5 && <span style={{ fontSize: '11px', alignSelf: 'center', color: '#666' }}>+{banners.length - 5} more</span>;
+                                })()}
+                            </div>
+                            {isRowChallenge && <span style={{ fontWeight: 600, fontSize: '13px', color: '#0A6738' }}>{row.name}</span>}
+                        </div>
+                    );
+                }
+                return (row.category?.name || 'None');
+            }
         },
         { 
             header: 'Status', 
@@ -269,20 +296,61 @@ const Section = () => {
             <GenericModal isOpen={isModalOpen} title={editingId ? "Update Section" : "New Section"} onClose={() => setModalOpen(false)}>
                 <form onSubmit={handleSubmit}>
                     
-                    <div style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <input 
-                            type="checkbox" 
-                            id="isDealCheckbox"
-                            checked={formData.isDeal} 
-                            onChange={e => setFormData({ 
-                                ...formData, 
-                                isDeal: e.target.checked,
-                                name: e.target.checked ? 'Deal' : '',
-                                categoryId: e.target.checked ? '' : formData.categoryId
-                            })} 
-                            style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                        />
-                        <label htmlFor="isDealCheckbox" style={{ fontWeight: 600, color: 'var(--text)', cursor: 'pointer', fontSize: '15px' }}>Deal Banner Section</label>
+                    <div style={{ margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontWeight: 600, color: 'var(--text)', fontSize: '15px', marginBottom: '5px' }}>Section Type</label>
+                        <div style={{ display: 'flex', gap: '20px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500, color: 'var(--text)' }}>
+                                <input 
+                                    type="radio" 
+                                    name="sectionType" 
+                                    value="grid" 
+                                    checked={!formData.isDeal && formData.position !== 'cooking_challenge'} 
+                                    onChange={() => setFormData({
+                                        ...formData,
+                                        isDeal: false,
+                                        position: '',
+                                        name: formData.position === 'cooking_challenge' || formData.isDeal ? '' : formData.name,
+                                        categoryId: formData.categoryId
+                                    })} 
+                                    style={{ width: '16px', height: '16px' }}
+                                />
+                                Product Grid Section
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500, color: 'var(--text)' }}>
+                                <input 
+                                    type="radio" 
+                                    name="sectionType" 
+                                    value="deal" 
+                                    checked={formData.isDeal} 
+                                    onChange={() => setFormData({
+                                        ...formData,
+                                        isDeal: true,
+                                        position: '',
+                                        name: 'Deal',
+                                        categoryId: ''
+                                    })} 
+                                    style={{ width: '16px', height: '16px' }}
+                                />
+                                Deal Banners Section
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 500, color: 'var(--text)' }}>
+                                <input 
+                                    type="radio" 
+                                    name="sectionType" 
+                                    value="challenge" 
+                                    checked={formData.position === 'cooking_challenge'} 
+                                    onChange={() => setFormData({
+                                        ...formData,
+                                        isDeal: false,
+                                        position: 'cooking_challenge',
+                                        name: formData.name === 'Deal' ? '' : formData.name,
+                                        categoryId: ''
+                                    })} 
+                                    style={{ width: '16px', height: '16px' }}
+                                />
+                                Cooking Challenge Section
+                            </label>
+                        </div>
                     </div>
 
                     <div className="modal-row-2">
@@ -295,7 +363,7 @@ const Section = () => {
                                 required={!formData.isDeal} 
                                 disabled={formData.isDeal} 
                                 className="admin-input" 
-                                placeholder="Enter Name" 
+                                placeholder={formData.position === 'cooking_challenge' ? "e.g. Participate In Our Cooking Challenges & Avail The Offer" : "Enter Name"} 
                             />
                         </div>
                         <div className="admin-form-group">
@@ -308,63 +376,67 @@ const Section = () => {
                     </div>
                     
                     <div className="admin-form-group" style={{ marginBottom: '20px' }}>
-                        <label className="admin-label">Category {!formData.isDeal && <span className="required">*</span>}</label>
+                        <label className="admin-label">Category {!isFrozen && <span className="required">*</span>}</label>
                         <select 
-                            value={formData.isDeal ? '' : formData.categoryId} 
+                            value={isFrozen ? '' : formData.categoryId} 
                             onChange={e => setFormData({...formData, categoryId: e.target.value})} 
-                            required={!formData.isDeal} 
-                            disabled={formData.isDeal} 
+                            required={!isFrozen} 
+                            disabled={isFrozen} 
                             className="admin-select"
                         >
-                            <option value="">Select</option>
+                            <option value="">{isFrozen ? 'N/A' : 'Select'}</option>
                             {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                         </select>
                     </div>
 
-                    {formData.isDeal && (
+                    {(formData.isDeal || isChallenge) && (
                         <div style={{ borderTop: '1px dashed var(--border)', paddingTop: '20px', marginTop: '10px' }}>
-                            <div className="admin-form-group" style={{ marginBottom: '20px' }}>
-                                <label className="admin-label" style={{ fontWeight: 600 }}>Target Page <span className="required">*</span></label>
-                                <div style={{ display: 'flex', gap: '20px', marginTop: '8px' }}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text)', cursor: 'pointer', fontWeight: 500 }}>
-                                        <input 
-                                            type="radio" 
-                                            name="dealPage" 
-                                            value="home" 
-                                            checked={formData.page === 'home'} 
-                                            onChange={e => setFormData({ ...formData, page: e.target.value })} 
-                                            style={{ width: '16px', height: '16px' }}
-                                        />
-                                        Home Page
-                                    </label>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text)', cursor: 'pointer', fontWeight: 500 }}>
-                                        <input 
-                                            type="radio" 
-                                            name="dealPage" 
-                                            value="deals" 
-                                            checked={formData.page === 'deals'} 
-                                            onChange={e => setFormData({ ...formData, page: e.target.value })} 
-                                            style={{ width: '16px', height: '16px' }}
-                                        />
-                                        Deals Page (/deals)
-                                    </label>
+                            {formData.isDeal && (
+                                <div className="admin-form-group" style={{ marginBottom: '20px' }}>
+                                    <label className="admin-label" style={{ fontWeight: 600 }}>Target Page <span className="required">*</span></label>
+                                    <div style={{ display: 'flex', gap: '20px', marginTop: '8px' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text)', cursor: 'pointer', fontWeight: 500 }}>
+                                            <input 
+                                                type="radio" 
+                                                name="dealPage" 
+                                                value="home" 
+                                                checked={formData.page === 'home'} 
+                                                onChange={e => setFormData({ ...formData, page: e.target.value })} 
+                                                style={{ width: '16px', height: '16px' }}
+                                            />
+                                            Home Page
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text)', cursor: 'pointer', fontWeight: 500 }}>
+                                            <input 
+                                                type="radio" 
+                                                name="dealPage" 
+                                                value="deals" 
+                                                checked={formData.page === 'deals'} 
+                                                onChange={e => setFormData({ ...formData, page: e.target.value })} 
+                                                style={{ width: '16px', height: '16px' }}
+                                            />
+                                            Deals Page (/deals)
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Dynamic Banner Positions List */}
                             <div style={{ marginBottom: '20px', border: '1px solid var(--border)', borderRadius: '8px', padding: '15px', background: '#fcfcfc' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                    <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text)', fontWeight: 600 }}>Configured Banner Positions ({dealBanners.length}/5)</h4>
-                                    {dealBanners.length < 5 && !showBannerForm && (
+                                    <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text)', fontWeight: 600 }}>
+                                        {isChallenge ? `Configured Cooking Challenge Items (${dealBanners.length})` : `Configured Banner Positions (${dealBanners.length}/5)`}
+                                    </h4>
+                                    {(!isChallenge ? dealBanners.length < 5 : true) && !showBannerForm && (
                                         <button type="button" onClick={openAddBanner} style={{ padding: '4px 10px', fontSize: '12px', background: '#0A6738', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 500 }}>
-                                            + Add Banner Position
+                                            {isChallenge ? '+ Add Challenge Item' : '+ Add Banner Position'}
                                         </button>
                                     )}
                                 </div>
 
                                 {dealBanners.length === 0 && !showBannerForm && (
                                     <div style={{ padding: '20px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
-                                        No banner positions added yet. Click "+ Add Banner Position" below to configure deal images.
+                                        {isChallenge ? 'No challenge items added yet. Click "+ Add Challenge Item" to add images or GIFs.' : 'No banner positions added yet. Click "+ Add Banner Position" below to configure deal images.'}
                                     </div>
                                 )}
 
@@ -377,6 +449,11 @@ const Section = () => {
                                                     <img src={getAssetUrl(banner.image)} alt={banner.position} style={{ width: '45px', height: '45px', objectFit: 'contain', border: '1px solid #f0f0f0', borderRadius: '4px' }} />
                                                     <div>
                                                         <strong style={{ fontSize: '13px', color: '#0A6738' }}>{banner.position}</strong>
+                                                        {banner.description && (
+                                                            <div style={{ fontSize: '12px', fontWeight: 500, color: '#333', marginTop: '2px' }}>
+                                                                {banner.description}
+                                                            </div>
+                                                        )}
                                                         <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>
                                                             Link: {banner.linkType ? `${banner.linkType} (${banner.link || 'Empty'})` : 'None'}
                                                         </div>
@@ -395,27 +472,45 @@ const Section = () => {
                                 {showBannerForm && (
                                     <div style={{ marginTop: '15px', border: '1px solid #ddd', borderRadius: '6px', padding: '15px', background: '#f5f5f5' }}>
                                         <h5 style={{ margin: '0 0 15px 0', fontSize: '13px', color: 'var(--text)', fontWeight: 600 }}>
-                                            {bannerEditIndex >= 0 ? `Edit Banner: ${bannerFormData.position}` : 'Add Banner Position'}
+                                            {isChallenge 
+                                                ? (bannerEditIndex >= 0 ? `Edit Challenge Item` : 'Add Challenge Item')
+                                                : (bannerEditIndex >= 0 ? `Edit Banner: ${bannerFormData.position}` : 'Add Banner Position')
+                                            }
                                         </h5>
 
-                                        <div className="admin-form-group" style={{ marginBottom: '15px' }}>
-                                            <label className="admin-label" style={{ fontWeight: 600 }}>Position <span className="required">*</span></label>
-                                            <select 
-                                                value={bannerFormData.position} 
-                                                onChange={e => setBannerFormData({ ...bannerFormData, position: e.target.value })} 
-                                                className="admin-select"
-                                                disabled={bannerEditIndex >= 0}
-                                            >
-                                                <option value="DR1C1">DR1C1 (Row 1 Left)</option>
-                                                <option value="DR1C2">DR1C2 (Row 1 Right)</option>
-                                                <option value="DR2C1">DR2C1 (Row 2 Left Ad)</option>
-                                                <option value="DR2Mid">DR2Mid (Row 2 Mid Video)</option>
-                                                <option value="DR2C2">DR2C2 (Row 2 Right Ad)</option>
-                                            </select>
-                                        </div>
+                                        {!isChallenge && (
+                                            <div className="admin-form-group" style={{ marginBottom: '15px' }}>
+                                                <label className="admin-label" style={{ fontWeight: 600 }}>Position <span className="required">*</span></label>
+                                                <select 
+                                                    value={bannerFormData.position} 
+                                                    onChange={e => setBannerFormData({ ...bannerFormData, position: e.target.value })} 
+                                                    className="admin-select"
+                                                    disabled={bannerEditIndex >= 0}
+                                                >
+                                                    <option value="DR1C1">DR1C1 (Row 1 Left)</option>
+                                                    <option value="DR1C2">DR1C2 (Row 1 Right)</option>
+                                                    <option value="DR2C1">DR2C1 (Row 2 Left Ad)</option>
+                                                    <option value="DR2Mid">DR2Mid (Row 2 Mid Video)</option>
+                                                    <option value="DR2C2">DR2C2 (Row 2 Right Ad)</option>
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        {isChallenge && (
+                                            <div className="admin-form-group" style={{ marginBottom: '15px' }}>
+                                                <label className="admin-label" style={{ fontWeight: 600 }}>Description / Title (Optional)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={bannerFormData.description || ''} 
+                                                    onChange={e => setBannerFormData({ ...bannerFormData, description: e.target.value })} 
+                                                    placeholder="Enter item description or title" 
+                                                    className="admin-input" 
+                                                />
+                                            </div>
+                                        )}
 
                                         <div className="admin-form-group" style={{ marginBottom: '15px' }}>
-                                            <label className="admin-label" style={{ fontWeight: 600 }}>Image (Accepts GIFs) <span className="required">*</span></label>
+                                            <label className="admin-label" style={{ fontWeight: 600 }}>Image or GIF <span className="required">*</span></label>
                                             <div 
                                                 className="image-placeholder-box" 
                                                 onClick={() => setFilemanagerOpen(true)}
@@ -433,7 +528,7 @@ const Section = () => {
                                                 }}
                                             >
                                                 {bannerFormData.image ? (
-                                                    <img src={getAssetUrl(bannerFormData.image)} alt="Selected Deal" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    <img src={getAssetUrl(bannerFormData.image)} alt="Selected Item" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                                 ) : (
                                                     <div style={{ textAlign: 'center', color: '#aaa' }}>
                                                         <Image size={24} />

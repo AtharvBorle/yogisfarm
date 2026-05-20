@@ -1234,18 +1234,20 @@ router.post('/sections', requireAdmin, upload.single('image'), async (req, res) 
   try {
     const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
     const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isChallenge = position === 'cooking_challenge';
+    const isDealOrChallenge = parsedIsDeal || isChallenge;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
       data: {
         name,
         status: status || 'active',
-        categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+        categoryId: isDealOrChallenge ? null : (categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null),
         isDeal: parsedIsDeal,
-        page: parsedIsDeal ? page : null,
-        position: parsedIsDeal ? position : null,
-        image: parsedIsDeal ? image : null,
-        linkType: parsedIsDeal ? linkType : null,
-        link: parsedIsDeal ? link : null
+        page: isDealOrChallenge ? page : null,
+        position: isDealOrChallenge ? position : null,
+        image: isDealOrChallenge ? image : null,
+        linkType: isDealOrChallenge ? linkType : null,
+        link: isDealOrChallenge ? link : null
       }
     });
     res.json({ status: true, message: 'Section created', section });
@@ -1256,19 +1258,21 @@ router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, re
   try {
     const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
     const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isChallenge = position === 'cooking_challenge';
+    const isDealOrChallenge = parsedIsDeal || isChallenge;
     
     const data = {
       name,
       status,
-      categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+      categoryId: isDealOrChallenge ? null : (categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null),
       isDeal: parsedIsDeal,
-      page: parsedIsDeal ? page : null,
-      position: parsedIsDeal ? position : null,
-      linkType: parsedIsDeal ? linkType : null,
-      link: parsedIsDeal ? link : null
+      page: isDealOrChallenge ? page : null,
+      position: isDealOrChallenge ? position : null,
+      linkType: isDealOrChallenge ? linkType : null,
+      link: isDealOrChallenge ? link : null
     };
 
-    if (parsedIsDeal) {
+    if (isDealOrChallenge) {
       if (req.file) {
         data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
       } else if (bodyImage) {
