@@ -394,7 +394,7 @@ model Section {
   isDeal     Boolean  @default(false) @map("is_deal")
   page       String?  @db.VarChar(20)
   position   String?  @db.VarChar(20)
-  image      String?  @db.VarChar(500)
+  image      String?  @db.Text
   linkType   String?  @map("link_type") @db.VarChar(20)
   link       String?  @db.VarChar(500)
   sortOrder  Int      @default(0) @map("sort_order")

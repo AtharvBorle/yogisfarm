@@ -263,12 +263,20 @@ const Home = () => {
     const r2c2Slider = mainSliders.find(s => s.subposition === 'R2C2');
 
     // Filter homepage deal sections
-    const dealSections = sections.filter(s => s.isDeal && s.page === 'home');
-    const dr1c1 = dealSections.find(s => s.position === 'DR1C1');
-    const dr1c2 = dealSections.find(s => s.position === 'DR1C2');
-    const dr2c1 = dealSections.find(s => s.position === 'DR2C1');
-    const dr2mid = dealSections.find(s => s.position === 'DR2Mid');
-    const dr2c2 = dealSections.find(s => s.position === 'DR2C2');
+    const dealSection = sections.find(s => s.isDeal && s.page === 'home');
+    let dealBanners = [];
+    if (dealSection && dealSection.image) {
+        try {
+            dealBanners = JSON.parse(dealSection.image);
+        } catch (e) {
+            console.error("Failed to parse deal banners JSON on Home", e);
+        }
+    }
+    const dr1c1 = dealBanners.find(b => b.position === 'DR1C1');
+    const dr1c2 = dealBanners.find(b => b.position === 'DR1C2');
+    const dr2c1 = dealBanners.find(b => b.position === 'DR2C1');
+    const dr2mid = dealBanners.find(b => b.position === 'DR2Mid');
+    const dr2c2 = dealBanners.find(b => b.position === 'DR2C2');
 
     return (
         <>
