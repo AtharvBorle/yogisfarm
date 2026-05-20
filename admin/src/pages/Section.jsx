@@ -158,6 +158,7 @@ const Section = () => {
 
     // Sub-form actions for nested banner editing
     const isChallenge = formData.position === 'cooking_challenge';
+    const isFrozen = formData.isDeal || isChallenge;
 
     const openAddBanner = () => {
         if (isChallenge) {
