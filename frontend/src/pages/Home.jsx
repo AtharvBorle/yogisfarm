@@ -269,16 +269,22 @@ const Home = () => {
                         display: none !important;
                     }
                 }
+                .home-slider-img {
+                    width: 100% !important;
+                    height: 361px !important;
+                    object-fit: cover !important;
+                    border-radius: 9px !important;
+                }
             `}} />
             {/* 1. MAIN SLIDER */}
             {mainSliders.length > 0 && (
                 <section className="home-slider position-relative pt-25 pb-20">
-                    <div className="container-fluid" style={{ padding: '0 20px' }}>
+                    <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                         <div style={{ display: 'flex', alignItems: 'stretch', gap: '14px', width: '100%' }}>
                             {/* Left Banners — Figma: 173x173 stacked, gap ~15px */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={mainR1Left} alt="Main R1 Left" style={{ width: '173px', height: 'auto', borderRadius: '9px' }} />
-                                <img src={mainR2Left} alt="Main R2 Left" style={{ width: '173px', height: 'auto', borderRadius: '9px' }} />
+                                <img src={mainR1Left} alt="Main R1 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                <img src={mainR2Left} alt="Main R2 Left" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
                             </div>
 
                             {/* Main Slider — Figma: 992x361 */}
@@ -289,7 +295,7 @@ const Home = () => {
                                             {mainSliders.map(slider => (
                                                 <div key={slider.id}>
                                                     <a href={getSliderLink(slider)}>
-                                                        <img src={getAssetUrl(slider.image)} alt={slider.name || ''} style={{ width: '100%', height: '361px', objectFit: 'cover', borderRadius: '9px' }} />
+                                                        <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
                                                     </a>
                                                 </div>
                                             ))}
@@ -300,8 +306,8 @@ const Home = () => {
 
                             {/* Right Banners — Figma: 173x173 stacked */}
                             <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
-                                <img src={mainR1Right} alt="Main R1 Right" style={{ width: '173px', height: 'auto', borderRadius: '9px' }} />
-                                <img src={mainR2Right} alt="Main R2 Right" style={{ width: '173px', height: 'auto', borderRadius: '9px' }} />
+                                <img src={mainR1Right} alt="Main R1 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
+                                <img src={mainR2Right} alt="Main R2 Right" style={{ width: '173px', height: '173px', objectFit: 'cover', borderRadius: '9px' }} />
                             </div>
                         </div>
                     </div>

@@ -50,6 +50,85 @@ const ProductCard = ({ product }) => {
             flexDirection: 'column',
             margin: '0 auto'
         }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .product-cart-wrap .product-hover-actions {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #FFFFFF;
+                    border: 1px solid #0A6738;
+                    border-radius: 20px;
+                    display: flex;
+                    align-items: center;
+                    padding: 6px 12px;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    z-index: 15;
+                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+                    gap: 12px;
+                }
+                .product-cart-wrap:hover .product-hover-actions {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                .product-hover-actions a {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: transform 0.2s ease;
+                }
+                .product-hover-actions a::before {
+                    content: attr(data-tooltip);
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(-8px);
+                    background: #0A6738;
+                    color: #FFF;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 500;
+                    pointer-events: none;
+                }
+                .product-hover-actions a::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(0px);
+                    border-width: 5px;
+                    border-style: solid;
+                    border-color: #0A6738 transparent transparent transparent;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    pointer-events: none;
+                }
+                .product-hover-actions a:hover::before,
+                .product-hover-actions a:hover::after {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                .product-hover-actions a:hover {
+                    transform: scale(1.1);
+                }
+                .product-hover-actions .action-divider {
+                    width: 1px;
+                    height: 18px;
+                    background-color: #0A6738;
+                    opacity: 0.3;
+                }
+            `}} />
+
             {/* Image Section */}
             <div style={{
                 width: '100%',
@@ -72,12 +151,17 @@ const ProductCard = ({ product }) => {
                         />
                     </Link>
                     
-                    <div className="product-action-1" style={{ zIndex: 10 }}>
-                        <a aria-label="Add To Wishlist" className={`action-btn ${inWishlist ? 'btn-remove-from-wishlist' : 'btn-add-to-wishlist'}`} onClick={() => toggleWishlist(product.id)} href="#!">
-                            <i className="fi-rs-heart" style={{ color: inWishlist ? 'red' : 'inherit' }}></i>
+                    <div className="product-hover-actions">
+                        <a aria-label="Add To Wishlist" data-tooltip="Add To Wishlist" onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }} href="#!">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill={inWishlist ? '#0A6738' : 'none'} xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.1 18.55L12 18.65L11.89 18.55C7.14 14.24 4 11.39 4 8.5C4 6.5 5.5 5 7.5 5C9.04 5 10.54 6 11.07 7.36H12.93C13.46 6 14.96 5 16.5 5C18.5 5 20 6.5 20 8.5C20 11.39 16.86 14.24 12.1 18.55ZM16.5 3C14.76 3 13.09 3.81 12 5.08C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.41 2 8.5C2 12.27 5.4 15.36 10.55 20.03L12 21.35L13.45 20.03C18.6 15.36 22 12.27 22 8.5C22 5.41 19.58 3 16.5 3Z" fill="#0A6738"/>
+                            </svg>
                         </a>
-                        <a aria-label="Quick View" className="action-btn btn-quick-view" onClick={() => setShowQuickView(true)} href="#!">
-                            <i className="fi-rs-eye"></i>
+                        <div className="action-divider"></div>
+                        <a aria-label="Quick View" data-tooltip="Quick View" onClick={(e) => { e.preventDefault(); setShowQuickView(true); }} href="#!">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="#0A6738"/>
+                            </svg>
                         </a>
                     </div>
 
