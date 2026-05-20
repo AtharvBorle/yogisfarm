@@ -52,9 +52,9 @@ const QuickViewModal = ({ product, onClose }) => {
         discountPct = Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100);
     }
 
-    const avgRating = fetchedProduct?.reviews?.length > 0 
-        ? Math.round(fetchedProduct.reviews.reduce((acc, r) => acc + r.rating, 0) / (fetchedProduct.reviews.length || 1)) 
-        : 5;
+    const avgRatingRaw = fetchedProduct?.reviews?.length > 0 
+        ? (fetchedProduct.reviews.reduce((acc, r) => acc + r.rating, 0) / fetchedProduct.reviews.length) 
+        : 5.0;
 
     const handleAddToCart = () => {
         if (!isOutOfStock && selectedVariant) {
@@ -395,7 +395,7 @@ const QuickViewModal = ({ product, onClose }) => {
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M10.7909 3.15274C10.9024 2.9269 11.0749 2.73675 11.2888 2.6038C11.5027 2.47085 11.7496 2.40039 12.0014 2.40039C12.2533 2.40039 12.5001 2.47085 12.7141 2.6038C12.928 2.73675 13.1004 2.9269 13.2119 3.15274L15.4934 7.77574L20.5949 8.51674C20.8443 8.55271 21.0787 8.65776 21.2715 8.82C21.4643 8.98225 21.6078 9.19521 21.6858 9.43479C21.7639 9.67438 21.7733 9.93102 21.7131 10.1757C21.6528 10.4204 21.5253 10.6433 21.3449 10.8192L17.6519 14.4192L18.5234 19.4997C18.5658 19.748 18.5379 20.0031 18.4429 20.2363C18.3478 20.4695 18.1895 20.6714 17.9857 20.8193C17.7819 20.9673 17.5408 21.0552 17.2897 21.0733C17.0385 21.0914 16.7873 21.0389 16.5644 20.9217L12.0014 18.5247L7.43843 20.9247C7.21531 21.0422 6.96375 21.0948 6.71226 21.0766C6.46077 21.0584 6.2194 20.9702 6.0155 20.8218C5.81159 20.6735 5.6533 20.4711 5.55855 20.2374C5.46381 20.0037 5.4364 19.7482 5.47943 19.4997L6.34943 14.4192L2.65943 10.8207C2.4791 10.6449 2.35156 10.4221 2.29124 10.1775C2.23091 9.93296 2.24022 9.67641 2.31809 9.43686C2.39596 9.19731 2.5393 8.98433 2.73189 8.82199C2.92449 8.65966 3.15866 8.55444 3.40793 8.51824L8.50793 7.77724L10.7909 3.15274Z" fill="#FFCD0F"/>
                         </svg>
-                        {avgRating.toFixed(1)} rating <span style={{ fontWeight: 400 }}>({fetchedProduct.reviews?.length || 0} reviews)</span>
+                        {avgRatingRaw.toFixed(1)} rating <span style={{ fontWeight: 400 }}>({fetchedProduct.reviews?.length || 0} reviews)</span>
                     </div>
 
                     <div className="qv-price-wrap">

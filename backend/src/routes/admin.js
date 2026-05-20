@@ -1117,10 +1117,14 @@ router.get('/reviews', requireAdmin, async (req, res) => {
 
 router.put('/reviews/:id', requireAdmin, async (req, res) => {
   try {
-    const { status, comment } = req.body;
+    const { status, comment, rating } = req.body;
+    const data = { status, comment };
+    if (rating !== undefined) {
+      data.rating = parseInt(rating);
+    }
     const review = await prisma.review.update({
       where: { id: parseInt(req.params.id) },
-      data: { status, comment }
+      data
     });
     res.json({ status: true, message: 'Review updated', review });
   } catch (e) {

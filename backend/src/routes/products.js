@@ -72,7 +72,13 @@ router.get('/:id/quick-view', async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { category: true, brand: true, variants: true, images: true }
+      include: { 
+        category: true, 
+        brand: true, 
+        variants: true, 
+        images: true,
+        reviews: { where: { status: 'active' }, include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } }
+      }
     });
     res.json({ status: true, product });
   } catch (e) {

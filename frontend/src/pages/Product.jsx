@@ -7,6 +7,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import ProductCard from '../components/ProductCard';
 import Breadcrumb from '../components/Breadcrumb';
 import { 
@@ -72,6 +74,41 @@ const Product = () => {
     const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [newRating, setNewRating] = useState(5);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [newComment, setNewComment] = useState('');
+    const [filterRating, setFilterRating] = useState('all');
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim()) {
+            toast.error('Please enter a review comment');
+            return;
+        }
+        try {
+            const res = await api.post('/reviews', { 
+                productId: product.id, 
+                rating: newRating, 
+                comment: newComment 
+            });
+            if (res.data.status) {
+                toast.success('Review submitted successfully!');
+                setNewComment('');
+                setNewRating(5);
+                // Refresh product data to show the new review and update average rating
+                api.get(`/products/${slug}`).then(response => {
+                    if (response.data.status) {
+                        setProduct(response.data.product);
+                    }
+                });
+            } else {
+                toast.error(res.data.message || 'Failed to submit review');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to submit review');
+        }
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -127,11 +164,13 @@ const Product = () => {
 
     const inWishlist = isInWishlist(product?.id);
 
-    const avgRating = product.reviews?.length > 0 
-        ? Math.round(product.reviews.reduce((acc, r) => acc + r.rating, 0) / (product.reviews.length || 1)) 
-        : 5;
+    const avgRatingRaw = product.reviews?.length > 0 
+        ? (product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length) 
+        : 5.0;
 
-    const renderStars = (rating = avgRating) => {
+    const avgRating = Math.round(avgRatingRaw);
+
+    const renderStars = (rating = avgRatingRaw) => {
         const rounded = Math.round(rating);
         return (
             <div className="d-inline-block" title={`${rating * 20}%`} style={{ verticalAlign: 'middle' }}>
@@ -198,7 +237,7 @@ const Product = () => {
                                         <div className="mb-20" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#fff', border: '1px solid #eee', padding: '4px 10px', borderRadius: '20px' }}>
                                                 <Star size={16} fill="#FFCD0F" color="#FFCD0F" />
-                                                <span style={{ fontWeight: '600', fontSize: '14px' }}>{avgRating.toFixed(1)}</span>
+                                                <span style={{ fontWeight: '600', fontSize: '14px' }}>{avgRatingRaw.toFixed(1)}</span>
                                             </div>
                                             <span className="font-small text-muted">({product.reviews?.length || 0} reviews)</span>
                                         </div>
@@ -326,26 +365,38 @@ const Product = () => {
                                 </div>
 
                                 {/* Features Section */}
-                                <div id="features" className="mb-50">
-                                    <h3 style={{ color: '#0A6738', fontSize: '24px', fontWeight: '700', marginBottom: '20px', borderBottom: '2px solid #F2FFD6', paddingBottom: '10px', display: 'inline-block' }}>Features</h3>
-                                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                                        {product.features && product.features.length > 0 && product.features.map((f, i) => (
-                                            <li key={i} className="mb-15" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '15px', color: '#333' }}>
-                                                <span style={{ color: '#0A6738', fontWeight: '900' }}>•</span>
-                                                <div>
-                                                    <strong style={{ color: '#0A6738' }}>{f.feature} :</strong> {f.description}
-                                                </div>
-                                            </li>
-                                        ))}
-                                        {/* Example tags based on image */}
-                                        <li className="mb-15" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '15px', color: '#333' }}>
-                                            <span style={{ color: '#0A6738', fontWeight: '900' }}>•</span>
-                                            <div>
-                                                <strong style={{ color: '#0A6738' }}>Tags :</strong> {product.category?.name || 'Oil'} , Lakdi Ghana Oil , Cold Pressed Oil , Wood Pressed Oil , Organic Cooking Oil , Healthy Edible Oil , Chemical-Free Oil , Yogi’s Farm
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
+                                {product.features && product.features.length > 0 && (
+                                    <div id="features" className="mb-50">
+                                        <h3 style={{ color: '#0A6738', fontSize: '24px', fontWeight: '700', marginBottom: '20px', borderBottom: '2px solid #F2FFD6', paddingBottom: '10px', display: 'inline-block' }}>Features</h3>
+                                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            {product.features.map((f, i) => (
+                                                <li key={i} className="mb-15" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '15px', color: '#333' }}>
+                                                    <span style={{ color: '#0A6738', fontWeight: '900' }}>•</span>
+                                                    <div>
+                                                        <strong style={{ color: '#0A6738' }}>{f.feature} :</strong> {f.description}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Benefits Section */}
+                                {product.benefits && product.benefits.length > 0 && (
+                                    <div id="benefits" className="mb-50">
+                                        <h3 style={{ color: '#0A6738', fontSize: '24px', fontWeight: '700', marginBottom: '20px', borderBottom: '2px solid #F2FFD6', paddingBottom: '10px', display: 'inline-block' }}>Benefits</h3>
+                                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                                            {product.benefits.map((b, i) => (
+                                                <li key={i} className="mb-15" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '15px', color: '#333' }}>
+                                                    <span style={{ color: '#0A6738', fontWeight: '900' }}>•</span>
+                                                    <div>
+                                                        <strong style={{ color: '#0A6738' }}>{b.title} :</strong> {b.description}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
                                 {/* Additional Information Section (Core Pillars from Home) */}
                                 <div id="additional-info" className="mb-50">
@@ -358,7 +409,7 @@ const Product = () => {
                                     <h3 style={{ color: '#0A6738', fontSize: '24px', fontWeight: '700', marginBottom: '40px', borderBottom: '2px solid #F2FFD6', paddingBottom: '10px', display: 'inline-block' }}>Reviews</h3>
                                     <div className="row">
                                         <div className="col-lg-5 mb-40">
-                                            <div style={{ background: '#fff', padding: '30px', borderRadius: '15px', border: '1px solid #eee' }}>
+                                            <div style={{ background: '#fff', padding: '30px', borderRadius: '15px', border: '1px solid #eee', marginBottom: '30px' }}>
                                                 <h4 className="mb-20" style={{ fontSize: '18px', fontWeight: '600', color: '#0A6738' }}>Based On Reviews</h4>
                                                 <div className="progress-list mb-10">
                                                     {[5, 4, 3, 2, 1].map(star => {
@@ -378,42 +429,140 @@ const Product = () => {
                                                     })}
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="col-lg-7">
+
+                                            {/* Existing Customer Reviews List */}
                                             <div style={{ background: '#fff', padding: '30px', borderRadius: '15px', border: '1px solid #eee' }}>
-                                                <h4 className="mb-15" style={{ fontSize: '18px', fontWeight: '600', color: '#0A6738' }}>Add A Review</h4>
-                                                <p className="font-xs text-muted mb-25">Your email address will not be published. Required fields are marked *</p>
-                                                <form className="form-contact comment_form" action="#" id="commentForm">
-                                                    <div className="row">
-                                                        <div className="col-12 mb-20">
-                                                            <label style={{ fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                Your Rating : <div style={{ display: 'flex', gap: '5px' }}>{[1, 2, 3, 4, 5].map(s => <Star key={s} size={20} color="#ddd" style={{ cursor: 'pointer' }} />)}</div>
-                                                            </label>
-                                                        </div>
-                                                        <div className="col-12 mb-20">
-                                                            <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>Your Review *</label>
-                                                            <textarea className="form-control" name="comment" id="comment" cols="30" rows="4" placeholder="Your Review" style={{ padding: '15px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff' }}></textarea>
-                                                        </div>
-                                                        <div className="col-sm-6 mb-20">
-                                                            <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>Your Name *</label>
-                                                            <input className="form-control" name="name" id="name" type="text" placeholder="" style={{ padding: '12px 15px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff' }} />
-                                                        </div>
-                                                        <div className="col-sm-6 mb-20">
-                                                            <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>Email *</label>
-                                                            <input className="form-control" name="email" id="email" type="email" placeholder="" style={{ padding: '12px 15px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff' }} />
-                                                        </div>
-                                                        <div className="col-12 mb-20">
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                <input type="checkbox" id="save-info" style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#FF0000' }} />
-                                                                <label htmlFor="save-info" style={{ fontSize: '13px', color: '#666', cursor: 'pointer', margin: 0 }}>Save My Name, Email, And Website In This Browser For The Next Time I Comment.</label>
+                                                <h4 className="mb-20" style={{ fontSize: '18px', fontWeight: '600', color: '#0A6738' }}>Customer Reviews ({product.reviews?.length || 0})</h4>
+                                                
+                                                {/* Review Star Filters */}
+                                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                                                    {['all', 5, 4, 3, 2, 1].map(r => {
+                                                        const count = r === 'all' 
+                                                            ? (product.reviews?.length || 0) 
+                                                            : (product.reviews?.filter(rev => rev.rating === r).length || 0);
+                                                        const isActive = filterRating === r;
+                                                        return (
+                                                            <button
+                                                                key={r}
+                                                                type="button"
+                                                                onClick={() => setFilterRating(r)}
+                                                                style={{
+                                                                    padding: '6px 12px',
+                                                                    borderRadius: '20px',
+                                                                    border: isActive ? '1px solid #0A6738' : '1px solid #ddd',
+                                                                    background: isActive ? '#E9FFF4' : '#fff',
+                                                                    color: isActive ? '#0A6738' : '#666',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '600',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px'
+                                                                }}
+                                                            >
+                                                                {r === 'all' ? 'All' : `${r} ★`} ({count})
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {product.reviews && product.reviews.length > 0 ? (
+                                                    <div style={{ maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
+                                                        {(() => {
+                                                            const filtered = product.reviews.filter(r => filterRating === 'all' || r.rating === filterRating);
+                                                            if (filtered.length === 0) {
+                                                                return <p style={{ color: '#888', fontSize: '13px', fontStyle: 'italic', margin: '20px 0 0 0' }}>No {filterRating}-star reviews found.</p>;
+                                                            }
+                                                            return filtered.map((r, i) => (
+                                                                <div key={r.id || i} style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '15px' }}>
+                                                                    <div className="d-flex justify-content-between align-items-center mb-5">
+                                                                        <span style={{ fontWeight: '600', color: '#333', fontSize: '14px' }}>{r.user?.name || 'Anonymous'}</span>
+                                                                        <span style={{ fontSize: '11px', color: '#999' }}>{new Date(r.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                                                    </div>
+                                                                    <div className="mb-5">{renderStars(r.rating)}</div>
+                                                                    <p style={{ margin: 0, fontSize: '13px', color: '#555', lineHeight: '1.6' }}>{r.comment}</p>
+                                                                </div>
+                                                            ));
+                                                        })()}
+                                                    </div>
+                                                ) : (
+                                                    <p style={{ color: '#888', fontSize: '13px', fontStyle: 'italic', margin: 0 }}>No reviews yet. Be the first to review this product!</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="col-lg-7">
+                                            {user ? (
+                                                <div style={{ background: '#fff', padding: '30px', borderRadius: '15px', border: '1px solid #eee' }}>
+                                                    <h4 className="mb-15" style={{ fontSize: '18px', fontWeight: '600', color: '#0A6738' }}>Add A Review</h4>
+                                                    <p className="font-xs text-muted mb-25">Share your experience with this product. Required fields are marked *</p>
+                                                    <form className="form-contact comment_form" onSubmit={handleReviewSubmit} id="commentForm">
+                                                        <div className="row">
+                                                            <div className="col-12 mb-20">
+                                                                <label style={{ fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15px' }}>
+                                                                    Your Rating : 
+                                                                    <div style={{ display: 'flex', gap: '6px', marginLeft: '10px' }}>
+                                                                        {[1, 2, 3, 4, 5].map(s => (
+                                                                            <Star 
+                                                                                key={s} 
+                                                                                size={24} 
+                                                                                fill={(hoverRating || newRating) >= s ? '#FFCD0F' : 'none'} 
+                                                                                color={(hoverRating || newRating) >= s ? '#FFCD0F' : '#ddd'} 
+                                                                                style={{ cursor: 'pointer', transition: 'color 0.2s, fill 0.2s' }}
+                                                                                onClick={() => setNewRating(s)}
+                                                                                onMouseEnter={() => setHoverRating(s)}
+                                                                                onMouseLeave={() => setHoverRating(0)}
+                                                                            />
+                                                                        ))}
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+                                                            <div className="col-12 mb-20">
+                                                                <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block', fontSize: '15px' }}>Your Review *</label>
+                                                                <textarea 
+                                                                    className="form-control" 
+                                                                    value={newComment} 
+                                                                    onChange={e => setNewComment(e.target.value)} 
+                                                                    cols="30" 
+                                                                    rows="6" 
+                                                                    placeholder="Write your review here..." 
+                                                                    style={{ padding: '15px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff', fontSize: '14px' }}
+                                                                    required
+                                                                ></textarea>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="form-group">
-                                                        <button type="submit" className="button button-contactForm" style={{ background: '#FF0000', color: '#fff', border: 'none', padding: '15px 60px', borderRadius: '8px', fontWeight: '700', fontSize: '16px', textTransform: 'uppercase', width: '100%' }}>Submit</button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                                        <div className="form-group">
+                                                            <button type="submit" className="button button-contactForm" style={{ background: '#FF0000', color: '#fff', border: 'none', padding: '15px 60px', borderRadius: '8px', fontWeight: '700', fontSize: '16px', textTransform: 'uppercase', width: '100%' }}>Submit Review</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            ) : (
+                                                <div style={{ background: '#FFF9F9', padding: '40px 30px', borderRadius: '15px', border: '1px dashed #FF9E9E', textAlign: 'center', fontFamily: 'Poppins, sans-serif' }}>
+                                                    <h4 className="mb-15" style={{ fontSize: '20px', fontWeight: '600', color: '#D32F2F' }}>Add A Review</h4>
+                                                    <p className="mb-25" style={{ fontSize: '14px', color: '#555', lineHeight: '1.6' }}>
+                                                        Only logged-in customers can submit reviews for this product.
+                                                    </p>
+                                                    <Link 
+                                                        to="/login" 
+                                                        style={{ 
+                                                            background: '#0A6738', 
+                                                            color: '#fff', 
+                                                            padding: '12px 35px', 
+                                                            borderRadius: '8px', 
+                                                            fontWeight: '700', 
+                                                            fontSize: '15px', 
+                                                            textTransform: 'uppercase', 
+                                                            textDecoration: 'none', 
+                                                            display: 'inline-block',
+                                                            boxShadow: '0 4px 12px rgba(10, 103, 56, 0.2)',
+                                                            transition: '0.2s'
+                                                        }}
+                                                    >
+                                                        Login to your Account
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

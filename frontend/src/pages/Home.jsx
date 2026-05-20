@@ -494,49 +494,49 @@ const Home = () => {
                         <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
                     </div>
 
-                    {/* Row 1: Two Wide Banners (606px each with 24px gap = 1236px) */}
-                    <div style={{ display: 'flex', gap: '24px', marginBottom: '24px' }}>
-                        <div style={{ width: '606px' }}>
+                    {/* Row 1: Two Wide Banners (605px each with 26px gap = 1236px) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '26px', marginBottom: '24px', justifyContent: 'center' }}>
+                        <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
                             {dr1c1 ? (
                                 <a href={getSliderLink(dr1c1)}>
-                                    <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                                    <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
                                 </a>
                             ) : (
-                                <img src={bestDealsR1C1} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C1" />
+                                <img src={bestDealsR1C1} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
                             )}
                         </div>
-                        <div style={{ width: '606px' }}>
+                        <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
                             {dr1c2 ? (
                                 <a href={getSliderLink(dr1c2)}>
-                                    <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                                    <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
                                 </a>
                             ) : (
-                                <img src={bestDealsR1C2} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R1 C2" />
+                                <img src={bestDealsR1C2} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
                             )}
                         </div>
                     </div>
 
-                    {/* Row 2: Ad | Video | Ad (280px | 628px | 280px with 2x24px gaps = 1236px) */}
-                    <div style={{ display: 'flex', gap: '24px' }}>
+                    {/* Row 2: Ad | Video | Ad (291px | 606px | 291px with 2x24px gaps = 1236px) */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
                         {/* Left Advertisement */}
-                        <div style={{ width: '280px' }}>
+                        <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
                             {dr2c1 ? (
                                 <a href={getSliderLink(dr2c1)}>
-                                    <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                                    <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
                                 </a>
                             ) : (
-                                <img src={bestDealsR2Left} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Left" />
+                                <img src={bestDealsR2Left} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
                             )}
                         </div>
 
                         {/* Center Video Banner */}
-                        <div style={{ width: '628px', position: 'relative' }}>
+                        <div style={{ flex: '2 1 480px', maxWidth: '606px', position: 'relative' }}>
                             {dr2mid ? (
                                 <a href={getSliderLink(dr2mid)}>
-                                    <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                                    <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
                                 </a>
                             ) : (
-                                <img src={bestDealsR2Mid} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Mid" />
+                                <img src={bestDealsR2Mid} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
                             )}
                             {/* Video Play Button Overlay */}
                             <div style={{
@@ -563,13 +563,13 @@ const Home = () => {
                         </div>
 
                         {/* Right Advertisement */}
-                        <div style={{ width: '280px' }}>
+                        <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
                             {dr2c2 ? (
                                 <a href={getSliderLink(dr2c2)}>
-                                    <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                                    <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
                                 </a>
                             ) : (
-                                <img src={bestDealsR2Right} style={{ width: '100%', borderRadius: '15px', height: 'auto' }} alt="Best Deal R2 Right" />
+                                <img src={bestDealsR2Right} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
                             )}
                         </div>
                     </div>
