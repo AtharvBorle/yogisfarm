@@ -951,6 +951,7 @@ router.post('/sections', requireAdmin, upload.single('image'), async (req, res) 
   try {
     const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
     const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isSpecial = parsedIsDeal || position === 'cooking_challenge';
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
       data: {
@@ -958,11 +959,11 @@ router.post('/sections', requireAdmin, upload.single('image'), async (req, res) 
         status: status || 'active',
         categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
         isDeal: parsedIsDeal,
-        page: parsedIsDeal ? page : null,
-        position: parsedIsDeal ? position : null,
-        image: parsedIsDeal ? image : null,
-        linkType: parsedIsDeal ? linkType : null,
-        link: parsedIsDeal ? link : null
+        page: isSpecial ? page : null,
+        position: isSpecial ? position : null,
+        image: isSpecial ? image : null,
+        linkType: isSpecial ? linkType : null,
+        link: isSpecial ? link : null
       }
     });
     await logAdminAction(req.session.adminId, 'Created Section', `Name: ${name}`);
@@ -976,19 +977,20 @@ router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, re
   try {
     const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
     const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isSpecial = parsedIsDeal || position === 'cooking_challenge';
     
     const data = {
       name,
       status,
       categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
       isDeal: parsedIsDeal,
-      page: parsedIsDeal ? page : null,
-      position: parsedIsDeal ? position : null,
-      linkType: parsedIsDeal ? linkType : null,
-      link: parsedIsDeal ? link : null
+      page: isSpecial ? page : null,
+      position: isSpecial ? position : null,
+      linkType: isSpecial ? linkType : null,
+      link: isSpecial ? link : null
     };
 
-    if (parsedIsDeal) {
+    if (isSpecial) {
       if (req.file) {
         data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
       } else if (bodyImage) {
