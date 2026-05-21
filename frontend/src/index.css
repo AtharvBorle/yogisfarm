@@ -198,6 +198,17 @@ code {
     }
 }
 
+.why-choose-logo {
+  width: 16%;
+  max-width: 180px;
+  min-width: 80px;
+  height: auto;
+  filter: brightness(0) invert(1);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  display: inline-block;
+}
+
 /* Custom mobile overrides for compact layout elements */
 @media (max-width: 767px) {
   /* Compact Product Small Card overrides on mobile */
@@ -250,7 +261,9 @@ code {
     margin-bottom: 20px !important;
   }
   .why-choose-logo {
-    width: 39px !important;
+    width: 16% !important;
+    min-width: 45px !important;
+    max-width: 80px !important;
   }
   .why-choose-desc-1 {
     font-size: 10px !important;

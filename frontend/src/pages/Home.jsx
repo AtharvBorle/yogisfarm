@@ -26,7 +26,7 @@ import cooking3 from '../assets/figma/image_find/Cooking_challange_3.png';
 import cooking4 from '../assets/figma/image_find/Cooking_challange_4.png';
 
 import whyChooseBg from '../assets/figma/image_find/Why_choose_bg.png';
-import yogisLogoWhite from '../assets/figma/image_find/Yogis-Farms-Logo-white 1.png';
+import headerLogo from '../assets/figma/image_find/header_logo.svg';
 
 import iconApproval from '../assets/figma/icon_approval.svg';
 import iconGears from '../assets/figma/icon_gears.svg';
@@ -952,8 +952,8 @@ const Home = () => {
 
                     <div className="why-choose-banner" style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                            <img className="why-choose-logo" src={yogisLogoWhite} alt="YogisFarms Logo" />
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <img className="why-choose-logo" src={headerLogo} alt="YogisFarms Logo" />
                         </div>
                     </div>
 
