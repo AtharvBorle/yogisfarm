@@ -40,24 +40,24 @@ const ProductSmallCard = ({ product }) => {
     const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
 
     return (
-        <article style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
+        <article className="product-small-card-article" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
             <figure style={{ margin: 0, width: '80px', height: '80px', flexShrink: 0 }}>
                 <Link to={`/product/${product.slug}`}>
-                    <img src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '10px', width: '80px', height: '80px', objectFit: 'cover', border: '1px solid #F0F0F0' }} />
+                    <img className="product-small-card-img" src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '10px', width: '80px', height: '80px', objectFit: 'cover', border: '1px solid #F0F0F0' }} />
                 </Link>
             </figure>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0px' }}>
                 <h6 style={{ margin: 0, lineHeight: '1' }}>
-                    <Link to={`/product/${product.slug}`} style={{ color: '#000', fontSize: '15px', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
+                    <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: '15px', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
                 </h6>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <span style={{ color: '#FFB800', fontSize: '12px' }}>★★★★★</span>
-                    <span style={{ fontSize: '10px', color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>(113 Reviews)</span>
+                    <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: '12px' }}>★★★★★</span>
+                    <span className="product-small-card-reviews-text" style={{ fontSize: '10px', color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>(113 Reviews)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ color: '#0A6738', fontWeight: 'bold', fontSize: '15px', fontFamily: 'Poppins, sans-serif' }}>₹{parseFloat(price || 0).toFixed(2)}</span>
+                    <span className="product-small-card-price" style={{ color: '#0A6738', fontWeight: 'bold', fontSize: '15px', fontFamily: 'Poppins, sans-serif' }}>₹{parseFloat(price || 0).toFixed(2)}</span>
                     {oldPrice && (
-                        <span style={{ color: '#FF0000', fontSize: '11px', fontFamily: 'Poppins, sans-serif' }}>
+                        <span className="product-small-card-discount" style={{ color: '#FF0000', fontSize: '11px', fontFamily: 'Poppins, sans-serif' }}>
                             {Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off
                         </span>
                     )}
@@ -291,6 +291,53 @@ const Home = () => {
                     .auto-scroll-container::-webkit-scrollbar {
                         display: none !important;
                     }
+                    .home-slider-img {
+                        width: 100% !important;
+                        height: 100% !important;
+                        object-fit: cover !important;
+                    }
+                    .home-slider,
+                    .home-slide-cover,
+                    .hero-slider-1 {
+                        aspect-ratio: 312 / 190 !important;
+                        height: auto !important;
+                        min-height: unset !important;
+                    }
+                    .hero-slider-1 .slick-slider,
+                    .hero-slider-1 .slick-list,
+                    .hero-slider-1 .slick-track,
+                    .hero-slider-1 .slick-slide,
+                    .hero-slider-1 .slick-slide * {
+                        height: 100% !important;
+                        min-height: unset !important;
+                    }
+                    .popular-categories .section-title h3 {
+                        font-size: 14px !important;
+                        line-height: 22px !important;
+                        margin-bottom: 10px !important;
+                    }
+                    .popular-categories .col-4 {
+                        width: auto !important;
+                        padding-left: 6px !important;
+                        padding-right: 6px !important;
+                        margin-bottom: 5px !important;
+                    }
+                    .popular-categories figure {
+                        gap: 6px !important;
+                    }
+                    .popular-categories img {
+                        width: 95px !important;
+                        height: 95px !important;
+                        border-radius: 7.639px !important;
+                        border: 0.849px solid #F9F9F9 !important;
+                    }
+                    .popular-categories h6 span {
+                        font-size: 10px !important;
+                    }
+                    .section-title h3 {
+                        font-size: 14px !important;
+                        line-height: 22px !important;
+                    }
                 }
                 .home-slider-img {
                     width: 100% !important;
@@ -331,7 +378,10 @@ const Home = () => {
                                                 carouselSliders.map(slider => (
                                                     <div key={slider.id}>
                                                         <a href={getSliderLink(slider)}>
-                                                            <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
+                                                            <picture style={{ display: 'block', width: '100%', height: '100%' }}>
+                                                                {slider.mobileImage && <source media="(max-width: 767px)" srcSet={getAssetUrl(slider.mobileImage)} />}
+                                                                <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
+                                                            </picture>
                                                         </a>
                                                     </div>
                                                 ))
@@ -343,6 +393,38 @@ const Home = () => {
                                                 </div>
                                             )}
                                         </Slider>
+                                    </div>
+                                </div>
+
+                                {/* Mobile-Only Banner Grid Row (c1r1, c1r2, c2r1, c2r2) */}
+                                <div className="d-flex d-md-none justify-content-between" style={{ marginTop: '12px', gap: '8px' }}>
+                                    {/* Box 1: c1r1 / R1C1 */}
+                                    <div style={{ width: '72px', height: '72px', borderRadius: '6.158px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                        <a href={r1c1Slider ? getSliderLink(r1c1Slider) : '#'}>
+                                            <img src={r1c1Slider ? getAssetUrl(r1c1Slider.image) : mainR1Left} alt="R1C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </a>
+                                    </div>
+                                    {/* Box 2: c1r2 / R2C1 */}
+                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                        <a href={r2c1Slider ? getSliderLink(r2c1Slider) : '#'}>
+                                            <img src={r2c1Slider ? getAssetUrl(r2c1Slider.image) : mainR2Left} alt="R2C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </a>
+                                    </div>
+                                    {/* Box 3: c2r1 / R1C2 */}
+                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                        <a href={r1c2Slider ? getSliderLink(r1c2Slider) : '#'}>
+                                            <img src={r1c2Slider ? getAssetUrl(r1c2Slider.image) : mainR1Right} alt="R1C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </a>
+                                    </div>
+                                    {/* Box 4: c2r2 / R2C2 with Video Icon */}
+                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1', position: 'relative' }}>
+                                        <a href={r2c2Slider ? getSliderLink(r2c2Slider) : '#'}>
+                                            <img src={r2c2Slider ? getAssetUrl(r2c2Slider.image) : mainR2Right} alt="R2C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            {/* Video Play Icon Overlay */}
+                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '22px', height: '22px', background: 'rgba(255,255,255,0.85)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                                <svg width="10" height="10" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
+                                            </div>
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -368,6 +450,8 @@ const Home = () => {
                     </div>
                 </section>
             )}
+
+
 
             {/* 2. Featured Categories */}
             {categories.length > 0 && (
@@ -413,7 +497,7 @@ const Home = () => {
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Popular Products</h3>
 
                             {/* Search field in section header */}
-                            <div style={{ position: 'relative', width: '200px' }}>
+                            <div className="d-none d-md-block" style={{ position: 'relative', width: '200px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '35px', padding: '0 10px' }}>
                                     <i className="fi-rs-search" style={{ color: '#0A6738', fontSize: '14px', marginRight: '8px' }}></i>
                                     <input type="text" placeholder="Search for Product" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#333', width: '100%', fontFamily: 'Poppins, sans-serif' }} />
@@ -424,9 +508,9 @@ const Home = () => {
                             </div>
                         </div>
 
-                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '20px' }}>
+                        <div className="row flex-wrap" style={{ paddingBottom: '20px' }}>
                             {popularProducts.slice(0, 8).map(product => (
-                                <div key={product.id} className="col-10 col-sm-6 col-md-4 col-lg-3 mb-4" style={{ flexShrink: 0 }}>
+                                <div key={product.id} className="col-6 col-sm-6 col-md-4 col-lg-3 mb-3 d-flex justify-content-center">
                                     <ProductCard product={product} />
                                 </div>
                             ))}
@@ -488,7 +572,7 @@ const Home = () => {
             })}
 
             {/* 7. Deals Section (Restructured 2-over-3 Layout) */}
-            <section className="section-padding pb-5">
+            <section className="section-padding pb-5 d-none d-md-block">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                     <div className="section-title">
                         <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
@@ -576,52 +660,72 @@ const Home = () => {
                 </div>
             </section>
 
+            {/* Mobile-Only Best Deals swipe carousel */}
+            {dealSection && dealBanners.length > 0 && (
+                <section className="popular-categories d-block d-md-none section-padding pb-5">
+                    <div style={{ padding: '0 15px' }}>
+                        <div className="section-title">
+                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: '0 0 10px 0' }}>Best Deals</h3>
+                        </div>
+                        <div className="d-flex flex-nowrap overflow-auto auto-scroll-container" style={{ gap: '16px', paddingBottom: '10px' }}>
+                            {dealBanners.map((banner, idx) => (
+                                <div key={idx} style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', overflow: 'hidden' }}>
+                                    <a href={getSliderLink(banner)}>
+                                        <img src={getAssetUrl(banner.image)} alt={banner.name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* 8. BOTTOM SLIDER */}
             {bottomSliders.length > 0 && <SliderBanner sliders={bottomSliders} containerClass="container-fluid" maxCols={2} />}
 
             {/* 9. 4-Column Compact Products Section */}
-            <section className="section-padding mb-30 mt-30">
+            <section className="section-padding mb-10 mt-10">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                     <div className="row">
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
-                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
-                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                            <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {popularProducts.slice(0, 3).map(p => (
-                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                    <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-md-0">
-                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
-                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                            <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {dealProducts.slice(0, 3).map(p => (
-                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                    <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0">
-                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
-                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                            <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => (
-                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                    <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
                                 )) : dealProducts.slice(0, 3).map(p => (
-                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                    <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
                                 ))}
                             </div>
                         </div>
-                        <div className="col-xl-3 col-lg-4 col-md-6 mb-sm-5 mb-md-0">
-                            <h4 className="section-title style-1 mb-30" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
-                            <div className="product-list-small row flex-nowrap flex-md-wrap flex-md-column overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                            <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {featuredProducts.slice(0, 3).map(p => (
-                                    <div key={p.id} className="col-10 col-md-12 mb-3" style={{ flexShrink: 0 }}>
+                                    <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
                                 ))}
@@ -657,7 +761,7 @@ const Home = () => {
                 }
                 if (items.length === 0) return null;
                 return (
-                    <section key={section.id} className="section-padding" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
+                    <section key={section.id} className="section-padding d-none d-md-block" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
                         <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                             <div className="section-title text-center">
                                 <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>
@@ -697,32 +801,90 @@ const Home = () => {
                 );
             })}
 
+            {/* 11. Dynamic Cooking Challenges Sections - Mobile Version */}
+            {sections.filter(s => s.position === 'cooking_challenge').map(section => {
+                let items = [];
+                try {
+                    items = JSON.parse(section.image || '[]');
+                } catch (e) {
+                    console.error("Failed to parse cooking challenge JSON", e);
+                }
+                if (items.length === 0) return null;
+                return (
+                    <section key={`mobile-${section.id}`} className="d-block d-md-none section-padding" style={{ background: '#F2FFD6', padding: '20px 0 15px 0', margin: '15px 0' }}>
+                        <div style={{ padding: '0 15px' }}>
+                            <div className="section-title text-center" style={{ marginBottom: '15px' }}>
+                                <h4 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize', margin: 0 }}>
+                                    {section.name}
+                                </h4>
+                            </div>
+                            <div className="d-flex flex-nowrap overflow-auto auto-scroll-container mb-15" style={{ gap: '14px', paddingBottom: '10px' }}>
+                                {items.map((item, idx) => {
+                                    const cardContent = (
+                                        <div className="position-relative overflow-hidden hover-zoom-container" style={{ borderRadius: '6px', width: '149px', height: '101px', flexShrink: 0, border: '0.5px solid #ececec', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
+                                            <img src={getAssetUrl(item.image)} alt={item.description || `Cooking ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            {/* Video Play Button Overlay */}
+                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '26px', height: '26px', background: 'rgba(255,255,255,0.85)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                                <svg width="12" height="12" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
+                                            </div>
+                                            {item.description && (
+                                                <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(10, 103, 56, 0.9)', color: '#fff', padding: '3px 6px', fontSize: '8px', fontWeight: 600, fontFamily: 'Poppins, sans-serif', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                                                    {item.description}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+
+                                    return (
+                                        <div key={idx} style={{ flexShrink: 0 }}>
+                                            {item.linkType && item.linkType !== 'none' ? (
+                                                <a href={getSliderLink(item)} style={{ display: 'block' }}>
+                                                    {cardContent}
+                                                </a>
+                                            ) : cardContent}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            {/* Figma Play CTA button centered below list */}
+                            <div className="text-center mt-10">
+                                <a href="/deals" className="btn btn-sm" style={{ display: 'inline-flex', padding: '4px 15px', background: '#0A6738', color: '#fff', fontSize: '10px', fontWeight: 600, fontFamily: 'Poppins, sans-serif', borderRadius: '9px', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                                    Participate Now
+                                    <ArrowRight size={10} />
+                                </a>
+                            </div>
+                        </div>
+                    </section>
+                );
+            })}
+
             {/* 12. Why Families Choose Section */}
             <section className="section-padding" style={{ padding: '60px 0' }}>
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
+                    <h3 className="why-choose-title" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
 
-                    <div style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
+                    <div className="why-choose-banner" style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                            <img src={yogisLogoWhite} alt="YogisFarms Logo" style={{ width: '120px' }} />
+                            <img className="why-choose-logo" src={yogisLogoWhite} alt="YogisFarms Logo" style={{ width: '120px' }} />
                         </div>
                     </div>
 
                     <div className="row" style={{ marginBottom: '50px' }}>
                         <div className="col-md-5">
-                            <p style={{ color: '#0A6738', fontSize: '16px', fontWeight: 600, lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
+                            <p className="why-choose-desc-1" style={{ color: '#0A6738', fontSize: '16px', fontWeight: 600, lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
                                 We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That’s why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.
                             </p>
                         </div>
                         <div className="col-md-7">
-                            <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
+                            <p className="why-choose-desc-2" style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
                                 In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi’s Farm, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
                             </p>
                         </div>
                     </div>
 
-                    <div className="row text-start flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                    <div className="row text-start why-choose-points-grid flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

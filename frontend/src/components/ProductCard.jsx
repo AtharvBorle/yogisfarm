@@ -127,14 +127,129 @@ const ProductCard = ({ product }) => {
                     background-color: #0A6738;
                     opacity: 0.3;
                 }
+
+                 @media (max-width: 767px) {
+                    .product-cart-wrap {
+                        max-width: 148px !important;
+                        height: 160px !important;
+                        border-radius: 5.59px !important;
+                        border: 0.509px solid #D5D5D5 !important;
+                        box-sizing: border-box !important;
+                    }
+                    .product-cart-wrap .img-container {
+                        padding: 3px 3px 0 3px !important;
+                    }
+                    .product-cart-wrap .img-wrapper {
+                        aspect-ratio: 142 / 95 !important;
+                        height: 95px !important;
+                        border-radius: 4.56px !important;
+                    }
+                    .product-cart-wrap .product-content {
+                        padding: 4px 6px 3px 6px !important;
+                        position: relative !important;
+                        flex: 1 !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        overflow: hidden !important;
+                    }
+                    .product-cart-wrap .product-title {
+                        font-size: 9px !important;
+                        font-weight: 600 !important;
+                        color: #1F1F1F !important;
+                        margin: 0 0 1px 0 !important;
+                        line-height: 10px !important;
+                        height: auto !important;
+                        -webkit-line-clamp: 1 !important;
+                    }
+                    .product-cart-wrap .rating-reviews-row {
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 2px !important;
+                        margin-bottom: 2px !important;
+                        height: 8px !important;
+                    }
+                    .product-cart-wrap .stars-text {
+                        font-size: 7px !important;
+                        letter-spacing: 0.2px !important;
+                    }
+                    .product-cart-wrap .reviews-text {
+                        font-size: 5px !important;
+                        color: #9B9B9B !important;
+                    }
+                    .product-cart-wrap .price-btn-row {
+                        display: flex !important;
+                        justify-content: space-between !important;
+                        align-items: center !important;
+                        margin-top: 5px !important;
+                        height: 20px !important;
+                        gap: 2px !important;
+                    }
+                    .product-cart-wrap .price-wrapper {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        gap: 3px !important;
+                        align-items: center !important;
+                    }
+                    .product-cart-wrap .price-text {
+                        font-size: 9px !important;
+                        font-weight: 600 !important;
+                        color: #0A6738 !important;
+                        line-height: 1 !important;
+                    }
+                    .product-cart-wrap .discount-text {
+                        font-size: 6px !important;
+                        color: #FF0000 !important;
+                        line-height: 1 !important;
+                        white-space: nowrap !important;
+                    }
+                    .product-cart-wrap .btn-buy {
+                        background-color: #FF1A00 !important;
+                        color: #FFFFFF !important;
+                        width: 43px !important;
+                        height: 20px !important;
+                        border-radius: 3.9px !important;
+                        font-size: 8px !important;
+                        font-weight: 600 !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        text-transform: uppercase !important;
+                        text-decoration: none !important;
+                        border: none !important;
+                        line-height: 1 !important;
+                        padding: 0 !important;
+                    }
+                    .product-cart-wrap .qty-controls {
+                        display: flex !important;
+                        align-items: center !important;
+                        background-color: #f0f9f4 !important;
+                        border: 1px solid #0A6738 !important;
+                        border-radius: 3.9px !important;
+                        width: 43px !important;
+                        height: 20px !important;
+                        justify-content: space-between !important;
+                        padding: 0 3px !important;
+                    }
+                    .product-cart-wrap .qty-controls a {
+                        font-size: 10px !important;
+                        font-weight: bold !important;
+                        color: #0A6738 !important;
+                        line-height: 1 !important;
+                    }
+                    .product-cart-wrap .qty-controls span {
+                        font-size: 9px !important;
+                        font-weight: bold !important;
+                        line-height: 1 !important;
+                    }
+                }
             `}} />
 
             {/* Image Section */}
-            <div style={{
+            <div className="img-container" style={{
                 width: '100%',
                 padding: '5px 5px 0 5px'
             }}>
-                <div style={{
+                <div className="img-wrapper" style={{
                     width: '100%',
                     aspectRatio: '281 / 187',
                     position: 'relative',
@@ -185,9 +300,9 @@ const ProductCard = ({ product }) => {
             </div>
 
             {/* Content Section */}
-            <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <div className="product-content" style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                 {/* Title */}
-                <h2 style={{ 
+                <h2 className="product-title" style={{ 
                     fontSize: 'clamp(14px, 4vw, 18px)', 
                     fontWeight: 600, 
                     lineHeight: '1.2', 
@@ -205,14 +320,14 @@ const ProductCard = ({ product }) => {
                 </h2>
 
                 {/* Stars and Reviews */}
-                <div style={{ 
+                <div className="rating-reviews-row" style={{ 
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
                     marginBottom: '15px'
                 }}>
-                    <span style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>★★★★★</span>
-                    <span style={{ 
+                    <span className="stars-text" style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>★★★★★</span>
+                    <span className="reviews-text" style={{ 
                         fontSize: '11px', 
                         color: '#B6B6B6', 
                         fontFamily: 'Poppins'
@@ -222,7 +337,7 @@ const ProductCard = ({ product }) => {
                 </div>
 
                 {/* Price and Button Row */}
-                <div style={{ 
+                <div className="price-btn-row" style={{ 
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
@@ -230,8 +345,8 @@ const ProductCard = ({ product }) => {
                     flexWrap: 'wrap',
                     gap: '5px'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ 
+                    <div className="price-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="price-text" style={{ 
                             fontSize: 'clamp(14px, 4vw, 18px)', 
                             fontWeight: 'bold', 
                             color: '#0A6738', 
@@ -242,7 +357,7 @@ const ProductCard = ({ product }) => {
                         </span>
                         
                         {oldPrice && (
-                            <span style={{ 
+                            <span className="discount-text" style={{ 
                                 fontSize: 'clamp(10px, 2.5vw, 11px)', 
                                 color: '#FF0000', 
                                 fontFamily: 'Poppins'
@@ -276,7 +391,7 @@ const ProductCard = ({ product }) => {
                             const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === firstStockedVariant?.id);
                             if (cartItem) {
                                 return (
-                                    <div style={{ 
+                                    <div className="qty-controls" style={{ 
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         backgroundColor: '#f0f9f4', 
@@ -298,6 +413,7 @@ const ProductCard = ({ product }) => {
                                 <a 
                                     onClick={handleAddToCart} 
                                     href="#!" 
+                                    className="btn-buy"
                                     style={{ 
                                         backgroundColor: '#FF0000', 
                                         color: '#FFFFFF', 

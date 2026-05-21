@@ -373,6 +373,7 @@ model Slider {
   id          Int      @id @default(autoincrement())
   name        String?  @db.VarChar(100)
   image       String   @db.VarChar(500)
+  mobileImage String?  @map("mobile_image") @db.VarChar(500)
   type        String   @default("web") @db.VarChar(20)
   position    String   @default("main") @db.VarChar(20)
   subposition String?  @db.VarChar(20)

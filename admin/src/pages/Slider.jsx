@@ -12,10 +12,11 @@ const Slider = () => {
     const [sliders, setSliders] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [isFilemanagerOpen, setFilemanagerOpen] = useState(false);
+    const [filemanagerTarget, setFilemanagerTarget] = useState('image');
     const [isReorderOpen, setReorderOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
-        name: '', image: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: ''
+        name: '', image: '', mobileImage: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: ''
     });
 
     const [categories, setCategories] = useState([]);
@@ -52,7 +53,7 @@ const Slider = () => {
     }, [productKeyword, formData.linkType]);
 
     const openAddModal = () => {
-        setFormData({ name: '', image: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: '' });
+        setFormData({ name: '', image: '', mobileImage: '', status: 'active', type: 'web', position: 'main', subposition: '', linkType: '', link: '' });
         setProductKeyword('');
         setEditingId(null);
         setModalOpen(true);
@@ -60,7 +61,7 @@ const Slider = () => {
 
     const openEditModal = (row) => {
         setFormData({
-            name: row.name || '', image: row.image || '', status: row.status,
+            name: row.name || '', image: row.image || '', mobileImage: row.mobileImage || '', status: row.status,
             type: row.type || 'web', position: row.position || 'main', subposition: row.subposition || '',
             linkType: row.linkType || '', link: row.link || ''
         });
@@ -112,8 +113,13 @@ const Slider = () => {
     const columns = [
         { header: 'ID', accessor: 'id' },
         {
-            header: 'Image',
-            render: (row) => row.image ? <img src={getAssetUrl(row.image)} alt="Slider" style={{ height: '50px', objectFit: 'cover', borderRadius: '4px' }} /> : 'N/A'
+            header: 'Images',
+            render: (row) => (
+                <div style={{ display: 'flex', gap: '5px' }}>
+                    {row.image && <img src={getAssetUrl(row.image)} alt="Desktop" title="Desktop" style={{ height: '40px', width: '60px', objectFit: 'cover', borderRadius: '4px' }} />}
+                    {row.mobileImage && <img src={getAssetUrl(row.mobileImage)} alt="Mobile" title="Mobile" style={{ height: '40px', width: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #0A6738' }} />}
+                </div>
+            )
         },
         { header: 'Name', accessor: 'name' },
         { header: 'Type', accessor: 'type' },
@@ -148,19 +154,39 @@ const Slider = () => {
             <GenericModal isOpen={isModalOpen} title={editingId ? "Update Slider" : "Add Slider"} onClose={() => setModalOpen(false)}>
                 <form onSubmit={handleSubmit}>
                     <div className="modal-form-grid">
-                        {/* LEFT COLUMN: Image */}
-                        <div className="modal-image-col">
+                        {/* LEFT COLUMN: Images */}
+                        <div className="modal-image-col" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div className="admin-form-group">
-                                <label className="admin-label">Image <span className="required">*</span></label>
+                                <label className="admin-label">Desktop Image <span className="required">*</span></label>
                                 <div 
                                     className="image-placeholder-box" 
-                                    onClick={() => setFilemanagerOpen(true)}
+                                    onClick={() => { setFilemanagerTarget('image'); setFilemanagerOpen(true); }}
+                                    style={{ cursor: 'pointer', border: '2px dashed #ccc', borderRadius: '8px', padding: '10px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', overflow: 'hidden' }}
                                 >
                                     {formData.image ? (
-                                        <img src={getAssetUrl(formData.image)} alt="Selected" />
+                                        <img src={getAssetUrl(formData.image)} alt="Desktop Selected" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                     ) : (
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}><Image size={48} /></div>
+                                            <div style={{ fontSize: '32px', color: '#ccc', display: 'flex', justifyContent: 'center' }}><Image size={32} /></div>
+                                            <span style={{ fontSize: '12px', color: '#666' }}>Upload Desktop</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label className="admin-label">Mobile Image (312px x 190px)</label>
+                                <div 
+                                    className="image-placeholder-box" 
+                                    onClick={() => { setFilemanagerTarget('mobileImage'); setFilemanagerOpen(true); }}
+                                    style={{ cursor: 'pointer', border: '2px dashed #ccc', borderRadius: '8px', padding: '10px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fafafa', overflow: 'hidden' }}
+                                >
+                                    {formData.mobileImage ? (
+                                        <img src={getAssetUrl(formData.mobileImage)} alt="Mobile Selected" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                    ) : (
+                                        <div style={{ textAlign: 'center' }}>
+                                            <div style={{ fontSize: '32px', color: '#ccc', display: 'flex', justifyContent: 'center' }}><Image size={32} /></div>
+                                            <span style={{ fontSize: '12px', color: '#666' }}>Upload Mobile</span>
                                         </div>
                                     )}
                                 </div>
@@ -299,7 +325,7 @@ const Slider = () => {
                 <div style={{ height: '400px' }}>
                     <FileManager
                         onClose={() => setFilemanagerOpen(false)}
-                        onSelect={(path) => setFormData({ ...formData, image: path })}
+                        onSelect={(path) => setFormData({ ...formData, [filemanagerTarget]: path })}
                     />
                 </div>
             </GenericModal>

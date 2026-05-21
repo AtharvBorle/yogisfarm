@@ -263,20 +263,20 @@ export const CorePillars = () => {
                     ))}
                 </div>
 
-                {/* Mobile Drag/Flick View */}
-                <div className="d-flex d-md-none overflow-auto auto-scroll-container" style={{ paddingBottom: '15px', WebkitOverflowScrolling: 'touch', gap: '15px' }}>
-                    {displayPillars.map((pillar, i) => (
-                        <div key={`mobile-${i}`} style={{ minWidth: '250px', maxWidth: '250px', textAlign: 'center', padding: '10px', flexShrink: 0 }}>
+                {/* Mobile 2x2 Grid View */}
+                <div className="d-flex d-md-none row" style={{ margin: '0 -5px', rowGap: '20px' }}>
+                    {pillars.map((pillar) => (
+                        <div key={`mobile-${pillar.id}`} className="col-6" style={{ padding: '0 5px', textAlign: 'center' }}>
                             {pillar.isLayered ? (
-                                <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 25px auto' }}>
+                                <div style={{ position: 'relative', width: '42px', height: '42px', margin: '0 auto 10px auto' }}>
                                     <img src={vector1} alt="Circle Background" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                                     <img src={freshLayer} alt="Always Fresh" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', objectFit: 'contain' }} />
                                 </div>
                             ) : (
-                                <img src={pillar.img} alt={pillar.title} style={{ width: '90px', marginBottom: '25px', objectFit: 'contain' }} />
+                                <img src={pillar.img} alt={pillar.title} style={{ width: '42px', height: '42px', marginBottom: '10px', objectFit: 'contain' }} />
                             )}
-                            <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>{pillar.title}</div>
-                            <p style={{ color: '#555', fontFamily: 'Poppins, sans-serif', fontSize: '13px', lineHeight: '22px', padding: '0 10px' }}>{pillar.desc}</p>
+                            <div style={{ color: '#000000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: 600, marginBottom: '6px', lineHeight: '14px', textTransform: 'capitalize' }}>{pillar.title}</div>
+                            <p style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '8px', fontWeight: 400, lineHeight: '12px', padding: '0 5px' }}>{pillar.desc}</p>
                         </div>
                     ))}
                 </div>

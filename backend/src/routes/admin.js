@@ -314,9 +314,9 @@ router.get('/sliders', requireAdmin, async (req, res) => {
 
 router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, subposition, linkType, link, image: bodyImage } = req.body;
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage, mobileImage } = req.body;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
-    const slider = await prisma.slider.create({ data: { name, image, status: status || 'active', type: type || 'web', position: position || 'main', subposition, linkType, link } });
+    const slider = await prisma.slider.create({ data: { name, image, mobileImage, status: status || 'active', type: type || 'web', position: position || 'main', subposition, linkType, link } });
     res.json({ status: true, message: 'Slider created', slider });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -325,8 +325,8 @@ router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/sliders/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, subposition, linkType, link, image: bodyImage } = req.body;
-    const data = { name, status, type, position, subposition, linkType, link };
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage, mobileImage } = req.body;
+    const data = { name, status, type, position, subposition, linkType, link, mobileImage };
     if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const slider = await prisma.slider.update({ where: { id: parseInt(req.params.id) }, data });

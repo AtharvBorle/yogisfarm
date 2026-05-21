@@ -32,35 +32,74 @@ const Footer = () => {
             }
             @media (max-width: 767px) {
                 .footer-wrapper {
-                    padding-top: 40px;
-                    padding-bottom: 40px;
+                    background-color: #EBF9C5 !important;
+                    background-image: none !important;
+                    padding-top: 30px !important;
+                    padding-bottom: 30px !important;
                 }
                 .footer-col-title {
-                    font-size: 18px !important;
-                    margin-bottom: 15px !important;
-                    border-bottom: 1px solid rgba(10, 103, 56, 0.2);
-                    padding-bottom: 10px;
+                    font-size: 16px !important;
+                    font-weight: 700 !important;
+                    margin-bottom: 12px !important;
+                    border-bottom: none !important;
+                    padding-bottom: 0 !important;
                 }
                 .footer-col-content {
                     margin-bottom: 25px;
                 }
+                .footer-col-content ul li {
+                    margin-bottom: 8px !important;
+                }
+                .footer-col-content ul li a {
+                    font-size: 10px !important;
+                    font-weight: 400 !important;
+                    color: #000000 !important;
+                }
                 .footer-logo {
-                    text-align: center;
+                    text-align: left !important;
+                }
+                .footer-logo img {
+                    height: 78px !important;
+                    width: auto !important;
                 }
                 .footer-socials {
-                    justify-content: center !important;
+                    justify-content: flex-start !important;
+                    gap: 10px !important;
+                }
+                .footer-socials img {
+                    width: 30px !important;
+                    height: 30px !important;
+                }
+                .footer-mission {
+                    font-size: 10px !important;
+                    line-height: 13px !important;
+                    font-weight: 500 !important;
+                    color: #000000 !important;
+                    margin-bottom: 15px !important;
+                }
+                .footer-contact-item {
+                    font-size: 12px !important;
+                    font-weight: 400 !important;
+                    color: #000000 !important;
+                }
+                .footer-contact-item strong {
+                    font-weight: 600 !important;
+                }
+                .footer-copyright {
+                    color: #0A6738 !important;
+                    font-size: 11px !important;
                 }
             }
         `}} />
         <footer className="footer-wrapper">
             <div className="container" style={{ position: 'relative', zIndex: 10 }}>
                 <div className="row">
-                    {/* Column 1: Logo & Mission */}
-                    <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content">
+                    {/* Column 1: Logo & Mission - Mobile order 5 (bottom) */}
+                    <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content order-5 order-lg-1">
                         <div className="logo mb-20 footer-logo">
                             <Link to="/"><img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '80px', width: 'auto' }} /></Link>
                         </div>
-                        <p style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
+                        <p className="footer-mission" style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
                             Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
                         </p>
                         <div className="social-icons footer-socials" style={{ display: 'flex', gap: '15px' }}>
@@ -76,8 +115,8 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Column 2: Legal */}
-                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                    {/* Column 2: Legal - Mobile order 1 (top left) */}
+                    <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-1 order-lg-2">
                         <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/terms" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Terms and Conditions</Link></li>
@@ -87,8 +126,8 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Column 3: Account */}
-                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                    {/* Column 3: Account - Mobile order 2 (top right) */}
+                    <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-2 order-lg-3">
                         <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to={user ? "/dashboard" : "/login"} style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Sign In</Link></li>
@@ -98,8 +137,8 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Column 4: Popular */}
-                    <div className="col-lg-2 col-md-3 col-12 mb-4 footer-col-content">
+                    {/* Column 4: Popular - Mobile order 4 (second row right) */}
+                    <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-4 order-lg-4">
                         <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/about-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>About us</Link></li>
@@ -109,21 +148,21 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Column 5: Contact */}
-                    <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content">
+                    {/* Column 5: Contact - Mobile order 3 (second row left) */}
+                    <div className="col-lg-3 col-md-6 col-6 mb-4 footer-col-content order-3 order-lg-5">
                         <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            <li className="mb-3" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                            <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
                                 <span><strong>YogisFarms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
                             </li>
-                            <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                            <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={callIcon} alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
                                 <a href="tel:+919119501177" style={{ color: '#000' }}>+91 9119501177</a>
                             </li>
-                            <li className="mb-3" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                            <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={mailIcon} alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
-                                <a href="mailto:info@yogisfarms.com" style={{ color: '#000' }}>info@yogisfarms.com</a>
+                                <a href="mailto:info@yogisfarms.in" style={{ color: '#000' }}>info@yogisfarms.in</a>
                             </li>
                         </ul>
                     </div>
@@ -132,7 +171,7 @@ const Footer = () => {
             
             {/* Copyright Bar */}
             <div style={{ width: '100%', textAlign: 'center', padding: '15px 0', marginTop: 'auto', zIndex: 10 }}>
-                <p style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
+                <p className="footer-copyright" style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
             </div>
         </footer>
         </>
