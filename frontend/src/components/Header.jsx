@@ -155,7 +155,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '55px', width: 'auto', display: 'block' }} /></Link>
+                            <Link to="/"><img className="header-logo-img" src={headerLogo} alt="YogisFarms" style={{ height: '55px', width: 'auto', display: 'block' }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}
@@ -473,7 +473,7 @@ const Header = () => {
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo d-block d-lg-none pt-1" style={{ flex: 1, maxWidth: '140px', minWidth: '100px' }}>
-                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ maxHeight: '40px', maxWidth: '100%', width: 'auto', objectFit: 'contain' }} /></Link>
+                            <Link to="/"><img className="header-logo-img" src={headerLogo} alt="YogisFarms" style={{ maxHeight: '40px', maxWidth: '100%', width: 'auto', objectFit: 'contain' }} /></Link>
                         </div>
                         <div className="header-nav d-none d-lg-flex">
                             <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
@@ -528,7 +528,7 @@ const Header = () => {
                 <div className="mobile-header-wrapper-inner">
                     <div className="mobile-header-top">
                         <div className="mobile-header-logo">
-                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '40px', width: 'auto' }} /></Link>
+                            <Link to="/"><img className="header-logo-img" src={headerLogo} alt="YogisFarms" style={{ height: '40px', width: 'auto' }} /></Link>
                         </div>
                         <div className="mobile-menu-close close-style-wrap close-style-position-inherit" onClick={() => setIsMobileMenuOpen(false)}>
                             <button className="close-style search-close">

@@ -7,6 +7,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
+import headerLogo from '../assets/figma/image_find/header_logo.svg';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -174,7 +175,7 @@ const Payment = () => {
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/icons/logo.png" alt="Loading..." style={{ width: '50px' }} /></div>;
+    if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img className="header-logo-img" src={headerLogo} alt="Loading..." style={{ width: '80px' }} /></div>;
 
     return (
         <main className="main">

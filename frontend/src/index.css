@@ -209,6 +209,14 @@ code {
   display: inline-block;
 }
 
+.header-logo-img,
+.footer-logo-img {
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  backface-visibility: hidden !important;
+  transform: translateZ(0) !important;
+}
+
 /* Custom mobile overrides for compact layout elements */
 @media (max-width: 767px) {
   /* Compact Product Small Card overrides on mobile */
