@@ -27,11 +27,32 @@ const CartBanner = () => (
     </section>
 );
 
+const MobileCartHeader = () => (
+    <section style={{ position: 'relative', background: '#0A6738', paddingTop: '25px', paddingBottom: '40px', overflow: 'hidden', textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <ShoppingCart size={18} color="#ACD140" strokeWidth={3} />
+            <span style={{ color: '#FFF', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600 }}>Your Shopping Cart</span>
+        </div>
+        <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', lineHeight: 0 }}>
+            <svg width="100%" height="15" viewBox="0 0 1440 36" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0C36 36 72 36 108 0C144 36 180 36 216 0C252 36 288 36 324 0C360 36 396 36 432 0C468 36 504 36 540 0C576 36 612 36 648 0C684 36 720 36 756 0C792 36 828 36 864 0C900 36 936 36 972 0C1008 36 1044 36 1080 0C1116 36 1152 36 1188 0C1224 36 1260 36 1296 0C1332 36 1368 36 1404 0C1440 36 1476 36 1512 0V36H0V0Z" fill="#fff"/>
+            </svg>
+        </div>
+    </section>
+);
+
 const Cart = () => {
-    const { cartItems, cartTotal, updateQuantity, removeFromCart } = useCart();
+    const { cartItems, updateQuantity, removeFromCart } = useCart();
     const [popularProducts, setPopularProducts] = React.useState([]);
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 992);
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 992);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // === USE CENTRALIZED PRICING HOOK ===
     const { subtotalBase, totalTax, shipping, loading, grandTotal } = useOrderPricing(cartItems);
@@ -50,6 +71,195 @@ const Cart = () => {
         }
     };
 
+    if (isMobile) {
+        return (
+            <main className="main" style={{ background: '#fff' }}>
+                <MobileCartHeader />
+                
+                <div className="container pb-60">
+                    {cartItems.length === 0 ? (
+                        <div className="text-center py-5" style={{ padding: '40px 15px' }}>
+                            <h4 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '18px', fontWeight: '600' }}>Your cart is empty</h4>
+                            <p style={{ fontSize: '13px', color: '#666', marginBottom: '20px' }}>Browse our products and add items to your cart</p>
+                            <Link to="/shop" className="btn" style={{ backgroundColor: '#0A6738', color: '#fff', padding: '10px 24px', borderRadius: '8px', fontSize: '14px', textTransform: 'none' }}>Continue Shopping</Link>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Mobile Cart Items List */}
+                            <div style={{ padding: '0 5px' }}>
+                                {cartItems.map((item) => {
+                                    const price = item.variant 
+                                        ? (item.variant.salePrice || item.variant.price) 
+                                        : 0;
+                                    return (
+                                        <div key={item.id}>
+                                            <div style={{ display: 'flex', gap: '15px', padding: '15px 0', alignItems: 'center', position: 'relative' }}>
+                                                
+                                                {/* Product Thumbnail */}
+                                                <img 
+                                                    src={getAssetUrl(item.product.image)} 
+                                                    alt={item.product.name} 
+                                                    style={{ width: '66px', height: '66px', borderRadius: '7px', objectFit: 'cover', border: '1px solid #f0f0f0' }} 
+                                                />
+                                                
+                                                {/* Details Column */}
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                    
+                                                    {/* Title */}
+                                                    <Link 
+                                                        to={`/product/${item.product.slug}`} 
+                                                        style={{ color: '#0A6738', fontSize: '12px', fontWeight: '600', fontFamily: 'Poppins, sans-serif', textDecoration: 'none', display: 'block', lineHeight: '1.2' }}
+                                                    >
+                                                        {item.product.name}
+                                                    </Link>
+                                                    
+                                                    {/* Weight/Variant name */}
+                                                    <div style={{ color: '#000', fontSize: '10px', fontWeight: '600', fontFamily: 'Poppins, sans-serif' }}>
+                                                        {item.variant ? item.variant.name : 'Standard'}
+                                                    </div>
+                                                    
+                                                    {/* Quantity Controller & Price Row */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
+                                                        
+                                                        {/* Minus Button */}
+                                                        <button 
+                                                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))} 
+                                                            style={{ width: '22px', height: '22px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                        >
+                                                            <Minus size={11} strokeWidth={3} />
+                                                        </button>
+                                                        
+                                                        {/* Quantity */}
+                                                        <span style={{ fontSize: '11px', fontWeight: '600', color: '#000', minWidth: '15px', textAlign: 'center' }}>
+                                                            {item.quantity}
+                                                        </span>
+                                                        
+                                                        {/* Plus Button */}
+                                                        <button 
+                                                            onClick={() => updateQuantity(item.id, item.quantity + 1)} 
+                                                            style={{ width: '22px', height: '22px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                                        >
+                                                            <Plus size={11} strokeWidth={3} />
+                                                        </button>
+                                                        
+                                                        {/* Single Item Price */}
+                                                        <span style={{ color: '#666', fontSize: '11px', fontWeight: '500', marginLeft: '10px' }}>
+                                                            ₹{parseFloat(price).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Delete Icon on the far right */}
+                                                <button 
+                                                    onClick={() => removeFromCart(item.id)} 
+                                                    style={{ border: 'none', background: 'transparent', color: '#000', cursor: 'pointer', padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >
+                                                    <Trash2 size={18} strokeWidth={2} />
+                                                </button>
+                                            </div>
+
+                                            {/* Divider Line */}
+                                            <div style={{ height: '1px', background: '#EAEAEA', margin: '0 5px' }} />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Mobile Order Summary */}
+                            <div style={{ padding: '0 5px', marginTop: '25px' }}>
+                                <div style={{ border: '1px solid #D5D5D5', borderRadius: '8px', padding: '20px 15px', background: '#fff' }}>
+                                    <h4 style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '12px', fontWeight: '700', marginBottom: '15px' }}>
+                                        Order Summary
+                                    </h4>
+                                    
+                                    {/* Subtotal Row */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>SubTotal</span>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
+                                            ₹{loading ? '...' : subtotalBase.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    {/* Tax Row */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>Tax</span>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
+                                            ₹{loading ? '...' : totalTax.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    {/* Shipping Row */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>Shipping</span>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
+                                            {loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}
+                                        </span>
+                                    </div>
+
+                                    {/* Gray Divider */}
+                                    <div style={{ height: '1px', background: '#D5D5D5', margin: '15px 0' }} />
+
+                                    {/* Total Row */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>Total</span>
+                                        <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>
+                                            ₹{loading ? '...' : grandTotal.toFixed(0)}
+                                        </span>
+                                    </div>
+
+                                    {/* Red Checkout Button */}
+                                    <button 
+                                        onClick={handleCheckout} 
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '42px', 
+                                            background: '#F00', 
+                                            border: 'none', 
+                                            borderRadius: '12px', 
+                                            color: '#FFF', 
+                                            fontFamily: 'Poppins, sans-serif', 
+                                            fontSize: '16px', 
+                                            fontWeight: '600', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            transition: '0.2s',
+                                            boxShadow: '0 2px 6px rgba(255,0,0,0.15)'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = '#e00'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = '#F00'}
+                                    >
+                                        Checkout
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Popular Products / You May Also Like */}
+                    {popularProducts.length > 0 && (
+                        <div style={{ marginTop: '50px', padding: '0 5px' }}>
+                            <h3 style={{ color: '#0A6738', fontSize: '18px', fontWeight: '700', fontFamily: 'Poppins, sans-serif', marginBottom: '20px' }}>You May Also Like</h3>
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(2, 1fr)', 
+                                gap: '15px' 
+                            }}>
+                                {popularProducts.map(p => (
+                                    <ProductCard key={p.id} product={p} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <FloatingSidebar />
+            </main>
+        );
+    }
+
+    // === DESKTOP VIEW ===
     return (
         <main className="main" style={{ background: '#fff' }}>
             <Breadcrumb items={[{ label: 'Cart' }]} />
@@ -181,4 +391,3 @@ const Cart = () => {
 };
 
 export default Cart;
-

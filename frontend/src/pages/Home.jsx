@@ -39,6 +39,13 @@ const ProductSmallCard = ({ product }) => {
     const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
     const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
 
+    const reviews = product.reviews || [];
+    const avgRatingRaw = reviews.length > 0 
+        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) 
+        : 5.0;
+    const roundedRating = Math.round(avgRatingRaw);
+    const starString = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+
     return (
         <article className="product-small-card-article" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
             <figure style={{ margin: 0, width: '80px', height: '80px', flexShrink: 0 }}>
@@ -51,8 +58,8 @@ const ProductSmallCard = ({ product }) => {
                     <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: '15px', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
                 </h6>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: '12px' }}>★★★★★</span>
-                    <span className="product-small-card-reviews-text" style={{ fontSize: '10px', color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>(113 Reviews)</span>
+                    <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: '12px' }}>{starString}</span>
+                    <span className="product-small-card-reviews-text" style={{ fontSize: '10px', color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>({reviews.length} Reviews)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="product-small-card-price" style={{ color: '#0A6738', fontWeight: 'bold', fontSize: '15px', fontFamily: 'Poppins, sans-serif' }}>₹{parseFloat(price || 0).toFixed(2)}</span>
@@ -205,6 +212,64 @@ const Home = () => {
     const dr2c1 = dealBanners.find(b => b.position === 'DR2C1');
     const dr2mid = dealBanners.find(b => b.position === 'DR2Mid');
     const dr2c2 = dealBanners.find(b => b.position === 'DR2C2');
+
+    const homeDealsScrollRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const el = homeDealsScrollRef.current;
+        if (!el || dealBanners.length === 0) return;
+
+        let isDown = false;
+        let startX;
+        let scrollLeftVal;
+
+        const onMouseDown = (e) => {
+            isDown = true;
+            startX = e.pageX - el.offsetLeft;
+            scrollLeftVal = el.scrollLeft;
+        };
+        const onMouseLeave = () => { isDown = false; };
+        const onMouseUp = () => { isDown = false; };
+        const onMouseMove = (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - el.offsetLeft;
+            const walk = (x - startX) * 2;
+            el.scrollLeft = scrollLeftVal - walk;
+        };
+
+        const onTouchStart = () => { isDown = true; };
+        const onTouchEnd = () => { isDown = false; };
+
+        el.addEventListener('mousedown', onMouseDown);
+        el.addEventListener('mouseleave', onMouseLeave);
+        el.addEventListener('mouseup', onMouseUp);
+        el.addEventListener('mousemove', onMouseMove);
+        el.addEventListener('touchstart', onTouchStart, { passive: true });
+        el.addEventListener('touchend', onTouchEnd, { passive: true });
+
+        const interval = setInterval(() => {
+            if (isDown) return;
+            const cardWidth = 312 + 16; // 328px
+            const maxScroll = el.scrollWidth - el.clientWidth;
+            if (el.scrollLeft >= maxScroll - 10) {
+                el.scrollTo({ left: 0, behavior: 'smooth' });
+            } else {
+                const nextPos = Math.floor((el.scrollLeft + cardWidth) / cardWidth) * cardWidth;
+                el.scrollTo({ left: nextPos, behavior: 'smooth' });
+            }
+        }, 3000);
+
+        return () => {
+            el.removeEventListener('mousedown', onMouseDown);
+            el.removeEventListener('mouseleave', onMouseLeave);
+            el.removeEventListener('mouseup', onMouseUp);
+            el.removeEventListener('mousemove', onMouseMove);
+            el.removeEventListener('touchstart', onTouchStart);
+            el.removeEventListener('touchend', onTouchEnd);
+            clearInterval(interval);
+        };
+    }, [dealBanners]);
 
     return (
         <>
@@ -688,7 +753,7 @@ const Home = () => {
                         <div className="section-title" style={{ margin: '0 0 12px 0' }}>
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Best Deals</h3>
                         </div>
-                        <div className="d-flex flex-nowrap overflow-auto" style={{ gap: '16px', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                        <div ref={homeDealsScrollRef} className="d-flex flex-nowrap overflow-auto" style={{ gap: '16px', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             {dealBanners.map((banner, idx) => (
                                 <div key={idx} style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', overflow: 'hidden' }}>
                                     <a href={getSliderLink(banner)}>

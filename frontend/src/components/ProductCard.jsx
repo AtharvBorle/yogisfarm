@@ -18,6 +18,13 @@ const ProductCard = ({ product }) => {
     const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
     const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
 
+    const reviews = product.reviews || [];
+    const avgRatingRaw = reviews.length > 0 
+        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) 
+        : 5.0;
+    const roundedRating = Math.round(avgRatingRaw);
+    const starString = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+
     let badgeText = null;
     if (firstStockedVariant?.salePrice && parseFloat(firstStockedVariant.price) > parseFloat(firstStockedVariant.salePrice)) {
         const numPrice = parseFloat(firstStockedVariant.price);
@@ -326,13 +333,13 @@ const ProductCard = ({ product }) => {
                     gap: '8px',
                     marginBottom: '15px'
                 }}>
-                    <span className="stars-text" style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>★★★★★</span>
+                    <span className="stars-text" style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>{starString}</span>
                     <span className="reviews-text" style={{ 
                         fontSize: '11px', 
                         color: '#B6B6B6', 
                         fontFamily: 'Poppins'
                     }}>
-                        ({product.reviews?.length || 113} Reviews)
+                        ({reviews.length} Reviews)
                     </span>
                 </div>
 
