@@ -71,6 +71,14 @@ const Slider = SliderComponent.default ? SliderComponent.default : SliderCompone
 
 const Home = () => {
     const navigate = useNavigate();
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const [mainSliders, setMainSliders] = useState([]);
     const [topSliders, setTopSliders] = useState([]);
     const [middleSliders, setMiddleSliders] = useState([]);
@@ -378,10 +386,11 @@ const Home = () => {
                                                 carouselSliders.map(slider => (
                                                     <div key={slider.id}>
                                                         <a href={getSliderLink(slider)}>
-                                                            <picture style={{ display: 'block', width: '100%', height: '100%' }}>
-                                                                {slider.mobileImage && <source media="(max-width: 767px)" srcSet={getAssetUrl(slider.mobileImage)} />}
-                                                                <img src={getAssetUrl(slider.image)} alt={slider.name || ''} className="home-slider-img" />
-                                                            </picture>
+                                                            <img 
+                                                                src={getAssetUrl((isMobile && slider.mobileImage) ? slider.mobileImage : slider.image)} 
+                                                                alt={slider.name || ''} 
+                                                                className="home-slider-img" 
+                                                            />
                                                         </a>
                                                     </div>
                                                 ))
