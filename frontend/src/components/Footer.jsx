@@ -10,7 +10,7 @@ import youtubeIcon from '../assets/figma/image_find/youtube.svg';
 import locationIcon from '../assets/figma/image_find/location.svg';
 import callIcon from '../assets/figma/image_find/call.svg';
 import mailIcon from '../assets/figma/image_find/mail.svg';
-import headerLogo from '../assets/figma/image_find/header_logo.svg';
+import footerLogo from '../assets/figma/image_find/Yogis-Farms-Logo-footer.svg';
 
 const Footer = () => {
     const { user } = useAuth();
@@ -104,7 +104,7 @@ const Footer = () => {
                     {/* Column 1: Logo & Mission - Mobile order 5 (bottom) */}
                     <div className="col-lg-3 col-md-6 col-12 mb-4 footer-col-content order-5 order-lg-1">
                         <div className="logo mb-20 footer-logo">
-                            <Link to="/"><img className="footer-logo-img" src={headerLogo} alt="YogisFarms" style={{ height: '80px', width: 'auto' }} /></Link>
+                            <Link to="/"><img src={footerLogo} alt="YogisFarms" style={{ height: '80px', width: 'auto' }} /></Link>
                         </div>
                         <p className="footer-mission" style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
                             Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import html2pdf from 'html2pdf.js';
-import headerLogo from '../assets/figma/image_find/header_logo.svg';
 
 const Invoice = () => {
     const { orderNumber: paramOrderNumber } = useParams();
@@ -157,7 +156,7 @@ const Invoice = () => {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
-                    <img className="header-logo-img" src={headerLogo} alt="YogisFarms" style={{ height: '45px', marginBottom: '10px' }} />
+                    <img src="/assets/imgs/theme/icons/logo.png" alt="YogisFarms" style={{ height: '45px', marginBottom: '10px' }} />
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <h1 style={{ color: '#046938', fontSize: '32px', fontWeight: '800', margin: '0' }}>INVOICE</h1>
