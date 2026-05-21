@@ -23,19 +23,25 @@ const Footer = () => {
                 background-position: bottom center;
                 background-repeat: no-repeat;
                 padding-top: 60px;
-                padding-bottom: 180px;
+                padding-bottom: 0px;
                 position: relative;
                 min-height: auto;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
             }
+            .footer-wrapper .container {
+                padding-bottom: 140px;
+            }
             @media (max-width: 767px) {
                 .footer-wrapper {
                     background-color: #EBF9C5 !important;
                     background-image: none !important;
                     padding-top: 30px !important;
-                    padding-bottom: 30px !important;
+                    padding-bottom: 0px !important;
+                }
+                .footer-wrapper .container {
+                    padding-bottom: 0px !important;
                 }
                 .footer-col-title {
                     font-size: 16px !important;
@@ -162,16 +168,21 @@ const Footer = () => {
                             </li>
                             <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={mailIcon} alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
-                                <a href="mailto:info@yogisfarms.in" style={{ color: '#000' }}>info@yogisfarms.in</a>
+                                <a href="mailto:info@yogisfarms.com" style={{ color: '#000' }}>info@yogisfarms.com</a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
             
+            {/* Mobile-only landscape background image block at bottom of footer */}
+            <div className="d-block d-md-none" style={{ width: '100%', overflow: 'hidden', marginTop: '20px' }}>
+                <img src={footerBg} alt="Footer Landscape" style={{ width: '100%', height: '180px', aspectRatio: '359/179', objectFit: 'cover', display: 'block' }} />
+            </div>
+
             {/* Copyright Bar */}
             <div style={{ width: '100%', textAlign: 'center', padding: '15px 0', marginTop: 'auto', zIndex: 10 }}>
-                <p className="footer-copyright" style={{ color: '#A5D6A7', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
+                <p className="footer-copyright" style={{ color: '#ffffff', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
             </div>
         </footer>
         </>

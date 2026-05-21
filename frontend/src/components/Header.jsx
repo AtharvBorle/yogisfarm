@@ -100,6 +100,55 @@ const Header = () => {
             alignItems: 'center',
             flexWrap: 'wrap'
         }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media (max-width: 767px) {
+                    .header-area.header-style-1 {
+                        min-height: 56px !important;
+                        height: 56px !important;
+                    }
+                    .header-bottom.d-lg-none {
+                        padding: 0 !important;
+                        height: 56px !important;
+                        min-height: 56px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        width: 100% !important;
+                    }
+                    .header-bottom.d-lg-none .container {
+                        padding-left: 15px !important;
+                        padding-right: 15px !important;
+                    }
+                    .header-bottom.d-lg-none .header-wrap {
+                        height: 56px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: space-between !important;
+                    }
+                    .header-bottom.d-lg-none .logo img {
+                        max-height: 32px !important;
+                    }
+                    /* Heart, Cart & Burger icons size adjustments */
+                    .header-bottom.d-lg-none .header-action-icon-2 img {
+                        width: 20px !important;
+                        height: 20px !important;
+                    }
+                    .header-bottom.d-lg-none .pro-count.white {
+                        top: -6px !important;
+                        right: -6px !important;
+                        font-size: 8px !important;
+                        width: 14px !important;
+                        height: 14px !important;
+                        line-height: 14px !important;
+                    }
+                    .burger-icon {
+                        width: 20px !important;
+                        height: 14px !important;
+                    }
+                    .burger-icon > span {
+                        height: 1.5px !important;
+                    }
+                }
+            `}} />
             {/* Header Middle */}
             <div className="header-middle d-none d-lg-block" style={{ width: '100%' }}>
                 <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 20px', width: '100%', boxSizing: 'border-box' }}>

@@ -46,7 +46,7 @@ const ProductSmallCard = ({ product }) => {
                     <img className="product-small-card-img" src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '10px', width: '80px', height: '80px', objectFit: 'cover', border: '1px solid #F0F0F0' }} />
                 </Link>
             </figure>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0px' }}>
+            <div className="product-small-card-text-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0px' }}>
                 <h6 style={{ margin: 0, lineHeight: '1' }}>
                     <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: '15px', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
                 </h6>
@@ -114,86 +114,6 @@ const Home = () => {
         }).catch(err => console.error(err));
     }, []);
 
-    // Auto-Scroll Logic for Mobile Swipe Rows
-    useEffect(() => {
-        const containers = document.querySelectorAll('.auto-scroll-container');
-        let animationFrameId;
-        let lastTime = 0;
-        const speedPerSecond = 35; // Pixels per second
-
-        const animate = (time) => {
-            if (!lastTime) lastTime = time;
-            const deltaTime = time - lastTime;
-            lastTime = time;
-
-            if (window.innerWidth <= 768) {
-                const moveAmount = (speedPerSecond * deltaTime) / 1000;
-
-                containers.forEach(container => {
-                    if (container.dataset.paused === 'true') {
-                        container._wasPaused = true;
-                        return;
-                    }
-                    
-                    if (container._wasPaused) {
-                        // Sync internal tracking with manual scroll position
-                        container._exactScrollLeft = container.scrollLeft;
-                        container._wasPaused = false;
-                    }
-                    
-                    // Track exact fractional scroll position to prevent rounding issues
-                    if (typeof container._exactScrollLeft === 'undefined') {
-                        container._exactScrollLeft = container.scrollLeft;
-                    }
-
-                    container._exactScrollLeft += moveAmount;
-                    
-                    const { scrollWidth, clientWidth } = container;
-                    // If scrolled to the end, snap back to the start to loop
-                    if (container._exactScrollLeft + clientWidth >= scrollWidth - 1) {
-                        container._exactScrollLeft = 0;
-                        container.scrollLeft = 0;
-                    } else {
-                        container.scrollLeft = container._exactScrollLeft;
-                    }
-                });
-            }
-            animationFrameId = requestAnimationFrame(animate);
-        };
-
-        animationFrameId = requestAnimationFrame(animate);
-
-        const pause = (e) => {
-            const container = e.currentTarget;
-            container.dataset.paused = 'true';
-            clearTimeout(container._resumeTimeout);
-        };
-        const resume = (e) => {
-            const container = e.currentTarget;
-            clearTimeout(container._resumeTimeout);
-            container._resumeTimeout = setTimeout(() => {
-                container.dataset.paused = 'false';
-            }, 500);
-        };
-
-        containers.forEach(container => {
-            container.addEventListener('touchstart', pause, { passive: true });
-            container.addEventListener('touchend', resume, { passive: true });
-            container.addEventListener('mouseenter', pause);
-            container.addEventListener('mouseleave', resume);
-        });
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            containers.forEach(container => {
-                clearTimeout(container._resumeTimeout);
-                container.removeEventListener('touchstart', pause);
-                container.removeEventListener('touchend', resume);
-                container.removeEventListener('mouseenter', pause);
-                container.removeEventListener('mouseleave', resume);
-            });
-        };
-    }, [categories, popularProducts, featuredProducts, dealProducts, sections]);
 
     const getSliderLink = (slider) => {
         if (!slider.linkType || slider.linkType === 'none') return '#';
@@ -304,7 +224,13 @@ const Home = () => {
                         height: 100% !important;
                         object-fit: cover !important;
                     }
-                    .home-slider,
+                    .home-slider {
+                        aspect-ratio: 312 / 190 !important;
+                        height: auto !important;
+                        min-height: unset !important;
+                        padding-top: 12px !important;
+                        padding-bottom: 10px !important;
+                    }
                     .home-slide-cover,
                     .hero-slider-1 {
                         aspect-ratio: 312 / 190 !important;
@@ -346,12 +272,98 @@ const Home = () => {
                         font-size: 14px !important;
                         line-height: 22px !important;
                     }
+                    
+                    /* 4-Column Product Small Cards Figma Styles */
+                    .product-small-card-article {
+                        gap: 9px !important;
+                        margin-bottom: 8px !important;
+                        align-items: center !important;
+                    }
+                    .product-small-card-article figure {
+                        width: 48px !important;
+                        height: 46px !important;
+                        margin: 0 !important;
+                    }
+                    .product-small-card-article figure a {
+                        display: block !important;
+                        width: 48px !important;
+                        height: 46px !important;
+                    }
+                    .product-small-card-img {
+                        width: 48px !important;
+                        height: 46px !important;
+                        border-radius: 5.176px !important;
+                        object-fit: cover !important;
+                    }
+                    .product-small-card-text-container {
+                        gap: 1px !important;
+                        justify-content: center !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        height: 46px !important;
+                    }
+                    .product-small-card-text-container h6 {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        line-height: 1.1 !important;
+                    }
+                    .product-small-card-text-container div {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        line-height: 1 !important;
+                    }
+                    .product-small-card-title {
+                        font-size: 9px !important;
+                        line-height: 11px !important;
+                    }
+                    .product-small-card-stars {
+                        font-size: 8px !important;
+                    }
+                    .product-small-card-reviews-text {
+                        font-size: 5.75px !important;
+                        white-space: nowrap !important;
+                    }
+                    .product-small-card-price {
+                        font-size: 9.2px !important;
+                    }
+                    .product-small-card-discount {
+                        font-size: 5.75px !important;
+                        white-space: nowrap !important;
+                    }
+                    .product-list-small-section-title {
+                        font-size: 12px !important;
+                        border-bottom: none !important;
+                        margin-bottom: 12px !important;
+                        padding-bottom: 0 !important;
+                    }
+                    .why-choose-logo {
+                        width: 39px !important;
+                    }
+                }
+                .why-choose-logo {
+                    width: 120px !important;
+                    height: auto !important;
+                }
+                @media (max-width: 991px) {
+                    .why-choose-logo {
+                        width: 60px !important;
+                    }
                 }
                 .home-slider-img {
                     width: 100% !important;
                     height: 361px !important;
                     object-fit: cover !important;
                     border-radius: 9px !important;
+                }
+                /* Global Small Card Desktop/Tablet Overrides to ensure center alignment */
+                .product-small-card-text-container {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    height: 80px !important;
+                }
+                .product-small-card-article {
+                    align-items: center !important;
                 }
             `}} />
             {/* 1. MAIN SLIDER */}
@@ -671,12 +683,12 @@ const Home = () => {
 
             {/* Mobile-Only Best Deals swipe carousel */}
             {dealSection && dealBanners.length > 0 && (
-                <section className="popular-categories d-block d-md-none section-padding pb-5">
-                    <div style={{ padding: '0 15px' }}>
-                        <div className="section-title">
-                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: '0 0 10px 0' }}>Best Deals</h3>
+                <section className="best-deals-mobile d-block d-md-none pb-5" style={{ background: '#F2FFD6', padding: '20px 0', marginBottom: '20px' }}>
+                    <div style={{ padding: '0 24px' }}>
+                        <div className="section-title" style={{ margin: '0 0 12px 0' }}>
+                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Best Deals</h3>
                         </div>
-                        <div className="d-flex flex-nowrap overflow-auto auto-scroll-container" style={{ gap: '16px', paddingBottom: '10px' }}>
+                        <div className="d-flex flex-nowrap overflow-auto" style={{ gap: '16px', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             {dealBanners.map((banner, idx) => (
                                 <div key={idx} style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', overflow: 'hidden' }}>
                                     <a href={getSliderLink(banner)}>
@@ -752,7 +764,7 @@ const Home = () => {
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600 }}>Upcoming Products & Categories</h3>
                         </div>
                     </div>
-                    <div className="d-flex flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ gap: '15px', paddingBottom: '15px' }}>
+                    <div className="d-flex flex-nowrap flex-md-wrap overflow-auto" style={{ gap: '15px', paddingBottom: '15px' }}>
                         {['Beauty & Grooming', 'Makeup & Fragrances', 'Toys & Stationery', 'Health Wellness', 'Hardware', 'Auto Accessories', 'FMCG'].map(cat => (
                             <span key={cat} style={{ flexShrink: 0, whiteSpace: 'nowrap', background: '#EFEFEF', padding: '14px 37px', borderRadius: '20px', color: '#030303', fontSize: '16px', fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '22px', transition: 'all 0.3s ease', cursor: 'pointer' }} onMouseOver={(e) => { e.target.style.background = '#0A6738'; e.target.style.color = '#fff'; }} onMouseOut={(e) => { e.target.style.background = '#EFEFEF'; e.target.style.color = '#030303'; }}>{cat}</span>
                         ))}
@@ -876,7 +888,7 @@ const Home = () => {
                     <div className="why-choose-banner" style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
                         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                            <img className="why-choose-logo" src={yogisLogoWhite} alt="YogisFarms Logo" style={{ width: '120px' }} />
+                            <img className="why-choose-logo" src={yogisLogoWhite} alt="YogisFarms Logo" />
                         </div>
                     </div>
 
