@@ -156,6 +156,16 @@ const TakeAction = () => {
 
     // Filter Logic
     let filteredOrders = orders.filter(order => {
+        // Exclude cancelled, returned, refunded, or failed orders completely
+        if (
+            order.orderStatus === 'cancelled' || 
+            order.orderStatus === 'returned' || 
+            order.paymentStatus === 'refunded' || 
+            order.paymentStatus === 'failed'
+        ) {
+            return false;
+        }
+
         // Date filter
         if (startDate && new Date(order.createdAt) < new Date(startDate)) return false;
         if (endDate && new Date(order.createdAt) > new Date(endDate + 'T23:59:59')) return false;
