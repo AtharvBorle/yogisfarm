@@ -93,8 +93,10 @@ router.post('/place', requireLogin, async (req, res) => {
       throw new Error('Invoice Validation Failed: Grand total mismatch');
     }
 
-    // ─── ONLINE PAYMENT: Only create Razorpay order, store data in session ───
+    // ─── ONLINE PAYMENT: Create pending order in DB immediately and return Razorpay details ───
     if (paymentMethod.toLowerCase() === 'online') {
+      const orderNumber = await generateOrderNumber();
+
       const razorpay = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID,
         key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -103,32 +105,61 @@ router.post('/place', requireLogin, async (req, res) => {
       const razorpayOrder = await razorpay.orders.create({
         amount: Math.round(pricing.total * 100),
         currency: 'INR',
-        receipt: `pending_${userId}_${Date.now()}`,
+        receipt: orderNumber,
       });
 
-      // Store all order details in session so we can create the DB order after payment
-      req.session.pendingOrder = {
-        addressId: address.id,
-        addressName: address.name, addressPhone: address.phone,
-        addressText: address.address, addressCity: address.city,
-        addressState: address.state, addressPincode: address.pincode,
-        addressType: address.addressType || 'Home',
-        subtotal: pricing.subtotal, shipping: pricing.shipping,
-        discount: pricing.discountAmount, tax: pricing.totalTax,
-        shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
-        grandTotal: pricing.grandTotal,
-        taxName: 'GST', taxRate: null,
-        total: pricing.total, couponCode: couponCode || null,
-        orderNote: orderNote || null,
-        appliedCouponId: pricing.appliedCouponId,
-        orderItems: pricing.orderItems,
-        cartItemIds: pricing.cartItemIds
-      };
+      // Create the pending order record in the database immediately
+      const order = await prisma.order.create({
+        data: {
+          userId, orderNumber,
+          addressId: address.id,
+          addressName: address.name, addressPhone: address.phone,
+          addressText: address.address, addressCity: address.city,
+          addressState: address.state, addressPincode: address.pincode,
+          addressType: address.addressType || 'Home',
+          subtotal: pricing.subtotal, shipping: pricing.shipping,
+          discount: pricing.discountAmount, tax: pricing.totalTax,
+          shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
+          grandTotal: pricing.grandTotal,
+          taxName: 'GST', taxRate: null,
+          total: pricing.total, couponCode: couponCode || null, orderNote: orderNote || null,
+          paymentMethod: 'online',
+          orderStatus: 'pending',
+          paymentStatus: 'pending',
+          paymentDescription: JSON.stringify({
+            razorpay_order_id: razorpayOrder.id,
+            cartItemIds: pricing.cartItemIds,
+            appliedCouponId: pricing.appliedCouponId
+          }),
+          items: {
+            create: pricing.orderItems.map(item => ({
+              name: item.name,
+              variant: item.variant,
+              brand: item.brand,
+              quantity: item.quantity,
+              price: item.price,
+              mrp: item.mrp,
+              productDiscount: item.productDiscount,
+              orderDiscount: item.orderDiscount,
+              taxableValue: item.taxableValue,
+              taxRate: item.gstRate,
+              gstAmount: item.gstAmount,
+              cgst: item.cgst,
+              sgst: item.sgst,
+              gst: item.gstAmount,
+              hsnCode: item.hsnCode,
+              total: item.total,
+              ...(item.productId ? { product: { connect: { id: item.productId } } } : {})
+            }))
+          }
+        }
+      });
 
       return res.json({
         status: true,
         message: 'Payment gateway ready',
         razorpayOrder,
+        orderNumber,
         key: process.env.RAZORPAY_KEY_ID
       });
     }
@@ -211,16 +242,71 @@ router.post('/place', requireLogin, async (req, res) => {
   }
 });
 
-// Verify Razorpay Payment — creates the actual DB order only after payment success
+// Helper function to complete order processing once paid successfully
+async function completePaidOrder(orderId, paymentId, details) {
+  // Update order payment status
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paymentStatus: 'completed',
+      orderStatus: 'placed',
+      paymentDescription: paymentId
+    },
+    include: { user: { select: { phone: true } } }
+  });
+
+  // Deduct stock
+  if (details && Array.isArray(details.cartItemIds)) {
+    for (const ci of details.cartItemIds) {
+      try {
+        if (ci.variantId) {
+          await prisma.productVariant.update({
+            where: { id: ci.variantId },
+            data: { stock: { decrement: ci.quantity } }
+          });
+        } else if (ci.productId) {
+          await prisma.product.update({
+            where: { id: ci.productId },
+            data: { stock: { decrement: ci.quantity } }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to deduct stock for item:', ci, err);
+      }
+    }
+  }
+
+  // Update coupon usage
+  if (details && details.appliedCouponId) {
+    try {
+      await prisma.coupon.update({
+        where: { id: details.appliedCouponId },
+        data: { usedCount: { increment: 1 } }
+      });
+    } catch (err) {
+      console.error('Failed to increment coupon usage:', err);
+    }
+  }
+
+  // Clear customer cart
+  await prisma.cart.deleteMany({ where: { userId: order.userId } });
+
+  // Send Order Confirmed SMS
+  if (order.user && order.user.phone) {
+    try {
+      sendOrderConfirmSMS(order.user.phone, order.orderNumber);
+    } catch (err) {
+      console.error('Failed to send order SMS:', err);
+    }
+  }
+
+  return order;
+}
+
+// Verify Razorpay Payment — completes the pending order record in the database
 router.post('/verify-payment', requireLogin, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    const userId = req.session.userId;
-    const pendingOrder = req.session.pendingOrder;
-
-    if (!pendingOrder) {
-      return res.json({ status: false, message: 'No pending order found. Please try again.' });
-    }
 
     // Verify Razorpay signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -233,86 +319,100 @@ router.post('/verify-payment', requireLogin, async (req, res) => {
       return res.json({ status: false, message: 'Invalid payment signature' });
     }
 
-    // Payment verified — now create the real order
-    const orderNumber = await generateOrderNumber();
-
-    // Update coupon usage
-    if (pendingOrder.appliedCouponId) {
-      await prisma.coupon.update({ where: { id: pendingOrder.appliedCouponId }, data: { usedCount: { increment: 1 } } });
-    }
-
-    const order = await prisma.order.create({
-      data: {
-        userId, orderNumber,
-        addressId: pendingOrder.addressId,
-        addressName: pendingOrder.addressName, addressPhone: pendingOrder.addressPhone,
-        addressText: pendingOrder.addressText, addressCity: pendingOrder.addressCity,
-        addressState: pendingOrder.addressState, addressPincode: pendingOrder.addressPincode,
-        addressType: pendingOrder.addressType,
-        subtotal: pendingOrder.subtotal, shipping: pendingOrder.shipping,
-        discount: pendingOrder.discount, tax: pendingOrder.tax,
-        shippingTotal: pendingOrder.shippingTotal, shippingTaxable: pendingOrder.shippingTaxable, shippingGST: pendingOrder.shippingGST,
-        grandTotal: pendingOrder.grandTotal,
-        taxName: pendingOrder.taxName, taxRate: pendingOrder.taxRate,
-        total: pendingOrder.total,
-        couponCode: pendingOrder.couponCode, orderNote: pendingOrder.orderNote,
+    // Find the pending order by razorpay_order_id
+    const order = await prisma.order.findFirst({
+      where: {
         paymentMethod: 'online',
-        orderStatus: 'placed',
-        paymentStatus: 'completed',
-        paymentDescription: razorpay_payment_id,
-        items: { 
-          create: pendingOrder.orderItems.map(item => ({
-            name: item.name,
-            variant: item.variant,
-            brand: item.brand,
-            quantity: item.quantity,
-            price: item.price,
-            mrp: item.mrp,
-            productDiscount: item.productDiscount,
-            orderDiscount: item.orderDiscount,
-            taxableValue: item.taxableValue,
-            taxRate: item.gstRate,
-            gstAmount: item.gstAmount,
-            cgst: item.cgst,
-            sgst: item.sgst,
-            gst: item.gstAmount,
-            hsnCode: item.hsnCode,
-            total: item.total,
-            ...(item.productId ? { product: { connect: { id: item.productId } } } : {})
-          }))
-        }
-      },
-      include: { items: true, user: { select: { name: true, phone: true, email: true } } }
+        paymentStatus: 'pending',
+        paymentDescription: { contains: razorpay_order_id }
+      }
     });
 
-    // Deduct stock
-    for (const ci of pendingOrder.cartItemIds) {
-      if (ci.variantId) {
-        await prisma.productVariant.update({
-          where: { id: ci.variantId },
-          data: { stock: { decrement: ci.quantity } }
-        });
-      } else {
-        await prisma.product.update({
-          where: { id: ci.productId },
-          data: { stock: { decrement: ci.quantity } }
-        });
+    if (!order) {
+      // Check if order is already marked completed (could be processed by Webhook already!)
+      const completedOrder = await prisma.order.findFirst({
+        where: { paymentDescription: razorpay_payment_id }
+      });
+      if (completedOrder) {
+        return res.json({ status: true, message: 'Payment verified and order placed successfully', orderNumber: completedOrder.orderNumber });
       }
+      return res.json({ status: false, message: 'Order not found or already verified.' });
     }
 
-    // Clear cart
-    await prisma.cart.deleteMany({ where: { userId } });
+    let details = {};
+    try {
+      details = JSON.parse(order.paymentDescription);
+    } catch (e) {
+      console.error('Failed to parse payment details JSON:', e);
+    }
 
-    // Clear pending order from session
-    delete req.session.pendingOrder;
+    // Mark as complete and deduct stock/clear cart
+    await completePaidOrder(order.id, razorpay_payment_id, details);
 
-    // Send Order Confirmed SMS
-    sendOrderConfirmSMS(order.user.phone, orderNumber);
-
-    res.json({ status: true, message: 'Payment verified and order placed successfully', orderNumber });
+    res.json({ status: true, message: 'Payment verified and order placed successfully', orderNumber: order.orderNumber });
   } catch (error) {
     console.error('Payment verification error:', error);
     res.json({ status: false, message: 'Verification process failed' });
+  }
+});
+
+// Razorpay Webhook Endpoint (Safety fallback if connection drops)
+router.post('/webhook', async (req, res) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'];
+    if (!signature) {
+      return res.status(400).json({ status: false, message: 'Missing signature' });
+    }
+
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return res.status(500).json({ status: false, message: 'Webhook secret is not configured' });
+    }
+
+    // Verify webhook signature
+    const isValid = Razorpay.validateWebhookSignature(
+      JSON.stringify(req.body),
+      signature,
+      webhookSecret
+    );
+
+    if (!isValid) {
+      return res.status(400).json({ status: false, message: 'Invalid webhook signature' });
+    }
+
+    const { event, payload } = req.body;
+
+    if (event === 'payment.captured' || event === 'order.paid') {
+      const paymentEntity = payload.payment.entity;
+      const razorpay_order_id = paymentEntity.order_id;
+      const razorpay_payment_id = paymentEntity.id;
+
+      // Find the order that is still pending and has this razorpay_order_id in paymentDescription
+      const order = await prisma.order.findFirst({
+        where: {
+          paymentMethod: 'online',
+          paymentStatus: 'pending',
+          paymentDescription: { contains: razorpay_order_id }
+        }
+      });
+
+      if (order) {
+        let details = {};
+        try {
+          details = JSON.parse(order.paymentDescription);
+        } catch (e) {
+          console.error('Failed to parse payment details JSON:', e);
+        }
+
+        await completePaidOrder(order.id, razorpay_payment_id, details);
+        console.log(`[Webhook] Order ${order.orderNumber} successfully paid and verified via Webhook.`);
+      }
+    }
+
+    res.json({ status: true, message: 'Webhook event processed successfully' });
+  } catch (error) {
+    console.error('Razorpay Webhook Error:', error);
+    res.status(500).json({ status: false, message: error.message });
   }
 });
 
