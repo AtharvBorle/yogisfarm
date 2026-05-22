@@ -4,6 +4,10 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
+// Figma Assets
+import loginBg from '../assets/login_page.png';
+import yogisLogo from '../assets/logo.png';
+
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -12,7 +16,7 @@ const Login = () => {
 
     // 2FA Verification State
     const [require2FA, setRequire2FA] = useState(false);
-    const [otp, setOtp] = useState('');
+    const [otpVals, setOtpVals] = useState(['', '', '', '', '', '']);
     const [maskedPhone, setMaskedPhone] = useState('');
     const [verifying2fa, setVerifying2fa] = useState(false);
 
@@ -32,6 +36,7 @@ const Login = () => {
                 if (res.data.require2FA) {
                     setMaskedPhone(res.data.phone);
                     setRequire2FA(true);
+                    setOtpVals(['', '', '', '', '', '']);
                     toast.success('Two-factor OTP sent to registered number');
                 } else {
                     toast.success('Login successful');
@@ -48,9 +53,13 @@ const Login = () => {
 
     const handleVerify2FA = async (e) => {
         e.preventDefault();
+        const otpCode = otpVals.join('');
+        if (otpCode.length < 6) {
+            return toast.error('Please enter the 6-digit OTP code');
+        }
         setVerifying2fa(true);
         try {
-            const res = await api.post('/login/verify-2fa', { email, otp });
+            const res = await api.post('/login/verify-2fa', { email, otp: otpCode });
             if (res.data.status) {
                 toast.success('Login successful');
                 fetchAdmin();
@@ -72,6 +81,7 @@ const Login = () => {
             if (res.data.status) {
                 setMaskedPhone(res.data.phone);
                 setOtpSent(true);
+                setOtpVals(['', '', '', '', '', '']);
                 toast.success('OTP sent to registered mobile number');
             } else {
                 toast.error(res.data.message);
@@ -84,17 +94,21 @@ const Login = () => {
 
     const handleForgotPasswordReset = async (e) => {
         e.preventDefault();
+        const otpCode = otpVals.join('');
+        if (otpCode.length < 6) {
+            return toast.error('Please enter the 6-digit OTP code');
+        }
         if (newPassword !== confirmPassword) {
             return toast.error('Passwords do not match');
         }
         setResetting(true);
         try {
-            const res = await api.post('/forgot-password/reset', { email, otp, newPassword });
+            const res = await api.post('/forgot-password/reset', { email, otp: otpCode, newPassword });
             if (res.data.status) {
                 toast.success('Password reset successfully. Please login with your new password.');
                 setMode('login');
                 setOtpSent(false);
-                setOtp('');
+                setOtpVals(['', '', '', '', '', '']);
                 setNewPassword('');
                 setConfirmPassword('');
                 setPassword('');
@@ -107,138 +121,406 @@ const Login = () => {
         setResetting(false);
     };
 
+    // Auto-shifting OTP input functions
+    const handleOtpChange = (index, value) => {
+        if (value && !/^\d+$/.test(value)) return;
+        const char = value.slice(-1);
+        const nextVals = [...otpVals];
+        nextVals[index] = char;
+        setOtpVals(nextVals);
+
+        if (char && index < 5) {
+            const nextInput = document.getElementById(`otp-input-${index + 1}`);
+            if (nextInput) nextInput.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index, e) => {
+        if (e.key === 'Backspace') {
+            if (!otpVals[index] && index > 0) {
+                const nextVals = [...otpVals];
+                nextVals[index - 1] = '';
+                setOtpVals(nextVals);
+                const prevInput = document.getElementById(`otp-input-${index - 1}`);
+                if (prevInput) prevInput.focus();
+            } else {
+                const nextVals = [...otpVals];
+                nextVals[index] = '';
+                setOtpVals(nextVals);
+            }
+        }
+    };
+
+    const handleOtpPaste = (e) => {
+        const pastedData = e.clipboardData.getData('text').trim();
+        if (/^\d{6}$/.test(pastedData)) {
+            const digits = pastedData.split('');
+            setOtpVals(digits);
+            const lastInput = document.getElementById('otp-input-5');
+            if (lastInput) lastInput.focus();
+            e.preventDefault();
+        }
+    };
+
     return (
-        <div className="admin-login-container" style={{height:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f4f5f9'}}>
-            <div className="card" style={{width:'400px', padding:'30px', boxShadow:'0 4px 6px rgba(0,0,0,0.1)', borderRadius:'8px', background:'white'}}>
-                <div className="text-center mb-4" style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ color: '#006233', margin: '0 0 5px' }}>YogisFarms Admin</h2>
-                    {require2FA && <p className="text-muted" style={{ margin: 0 }}>Two-Factor Authentication Active</p>}
-                    {!require2FA && mode === 'login' && <p className="text-muted" style={{ margin: 0 }}>Sign in to your account</p>}
-                    {!require2FA && mode === 'forgot' && <p className="text-muted" style={{ margin: 0 }}>Reset Admin Password</p>}
+        <div className="admin-login-wrapper" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F4F5F9', padding: '20px' }}>
+            <style>{`
+                .admin-login-card {
+                    width: 1026px;
+                    min-height: 680px;
+                    border-radius: 8px;
+                    border: 1px solid #D5D5D5;
+                    background: #FFF;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                    display: grid;
+                    grid-template-columns: 1fr 1.05fr;
+                    overflow: hidden;
+                    box-sizing: border-box;
+                }
+
+                .admin-login-left {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    background: #EBFFF5;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .admin-login-bg-img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    opacity: 0.95;
+                }
+
+                .admin-login-logo {
+                    position: relative;
+                    z-index: 2;
+                    width: 140px;
+                    height: auto;
+                    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+                }
+
+                .admin-login-right {
+                    padding: 50px 45px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    box-sizing: border-box;
+                }
+
+                .admin-login-title {
+                    color: #0A6738;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 25px;
+                    font-weight: 700;
+                    margin: 0 0 4px;
+                    text-transform: capitalize;
+                }
+
+                .admin-login-subtitle {
+                    color: #000;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 25px;
+                    font-weight: 500;
+                    margin: 0 0 10px;
+                    text-transform: capitalize;
+                }
+
+                .admin-login-desc {
+                    color: #898989;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 14px;
+                    font-weight: 500;
+                    margin: 0 0 25px;
+                }
+
+                .admin-login-group {
+                    margin-bottom: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                .admin-login-label {
+                    color: #333;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 13px;
+                    font-weight: 600;
+                }
+
+                .admin-login-input {
+                    width: 100%;
+                    height: 56px;
+                    border-radius: 6px;
+                    border: 1px solid #000;
+                    background: #FFF;
+                    font-size: 15px;
+                    padding: 0 16px;
+                    box-sizing: border-box;
+                    font-family: 'Poppins', sans-serif;
+                    outline: none;
+                }
+
+                .admin-login-input:focus {
+                    border-color: #0A6738;
+                    box-shadow: 0 0 0 2px rgba(10, 103, 56, 0.1);
+                }
+
+                .admin-login-otp-container {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 8px;
+                    margin-bottom: 24px;
+                }
+
+                .admin-login-otp-box {
+                    width: 52px;
+                    height: 56px;
+                    border-radius: 6px;
+                    border: 1px solid #000;
+                    background: #FFF;
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: 600;
+                    font-family: 'Poppins', sans-serif;
+                    box-sizing: border-box;
+                }
+
+                .admin-login-otp-box:focus {
+                    border-color: #0A6738;
+                    outline: none;
+                    box-shadow: 0 0 0 2px rgba(10, 103, 56, 0.1);
+                }
+
+                .admin-login-btn {
+                    width: 100%;
+                    height: 49px;
+                    border-radius: 12px;
+                    background: #FF1A00;
+                    color: #FFF;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 16px;
+                    font-weight: 600;
+                    border: none;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s ease, transform 0.1s ease;
+                }
+
+                .admin-login-btn:hover {
+                    background: #e01700;
+                }
+
+                .admin-login-btn:active {
+                    transform: scale(0.98);
+                }
+
+                .admin-login-action-link {
+                    color: #0A6738;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-decoration: underline;
+                }
+
+                @media (max-width: 991px) {
+                    .admin-login-card {
+                        grid-template-columns: 1fr;
+                        width: 100%;
+                        max-width: 500px;
+                        min-height: auto;
+                    }
+
+                    .admin-login-left {
+                        display: none;
+                    }
+
+                    .admin-login-right {
+                        padding: 40px 30px;
+                    }
+                }
+            `}</style>
+
+            <div className="admin-login-card">
+                {/* LEFT COLUMN: FIGMA BACKGROUND IMAGE & CENTRED LOGO */}
+                <div className="admin-login-left">
+                    <img src={loginBg} alt="Admin Background" className="admin-login-bg-img" />
+                    <img src={yogisLogo} alt="Yogis Farms Logo" className="admin-login-logo" />
                 </div>
 
-                {/* 2FA MODE */}
-                {require2FA && (
-                    <form onSubmit={handleVerify2FA}>
-                        <div style={{ marginBottom: '20px', padding: '10px', background: '#eafaf1', border: '1px solid #d4edda', borderRadius: '4px', fontSize: '13px', color: '#155724' }}>
-                            We have sent a verification code to registered mobile number: <strong>+91 {maskedPhone}</strong>
-                        </div>
-                        <div className="mb-4" style={{ marginBottom: '20px' }}>
-                            <label style={{ fontWeight: '500', fontSize: '14px' }}>Enter OTP</label>
-                            <input 
-                                type="text" 
-                                value={otp} 
-                                onChange={e => setOtp(e.target.value)} 
-                                className="form-control" 
-                                required 
-                                maxLength={6}
-                                placeholder="Enter 6-digit OTP"
-                                style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box', textAlign: 'center', fontSize: '18px', letterSpacing: '4px'}} 
-                            />
-                        </div>
-                        <button type="submit" disabled={verifying2fa} style={{width:'100%', padding:'12px', background:'#006233', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', fontSize:'16px', fontWeight: '500'}}>
-                            {verifying2fa ? 'Verifying...' : 'Verify & Log In'}
-                        </button>
-                        <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                            <span onClick={() => setRequire2FA(false)} style={{ color: '#666', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}>Back to Sign In</span>
-                        </div>
-                    </form>
-                )}
+                {/* RIGHT COLUMN: INTERACTIVE FORM PANELS */}
+                <div className="admin-login-right">
+                    <h2 className="admin-login-title">Welcome to Yogis farms</h2>
+                    <h3 className="admin-login-subtitle">Admin</h3>
 
-                {/* FORGOT PASSWORD MODE */}
-                {!require2FA && mode === 'forgot' && (
-                    <form onSubmit={otpSent ? handleForgotPasswordReset : handleForgotPasswordSendOtp}>
-                        {!otpSent ? (
-                            <>
-                                <div className="mb-4" style={{ marginBottom: '20px' }}>
-                                    <label style={{ fontWeight: '500', fontSize: '14px' }}>Enter Registered Admin Email</label>
-                                    <input 
-                                        type="email" 
-                                        value={email} 
-                                        onChange={e => setEmail(e.target.value)} 
-                                        className="form-control" 
-                                        required 
-                                        placeholder="admin@yogisfarm.in"
-                                        style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box'}} 
-                                    />
+                    {/* 2FA OTP MODE */}
+                    {require2FA && (
+                        <form onSubmit={handleVerify2FA}>
+                            <p className="admin-login-desc" style={{ color: '#0A6738', fontWeight: '600' }}>
+                                Two-Factor Authentication Active
+                            </p>
+                            <div style={{ marginBottom: '20px', padding: '12px', background: '#eafaf1', border: '1px solid #d4edda', borderRadius: '6px', fontSize: '13px', color: '#155724', lineHeight: '1.5' }}>
+                                We have sent a verification code to your registered mobile number: <strong>+91 {maskedPhone}</strong>
+                            </div>
+                            
+                            <div className="admin-login-group">
+                                <label className="admin-login-label" style={{ textAlign: 'center', display: 'block', marginBottom: '4px' }}>Enter 6-digit OTP</label>
+                                <div className="admin-login-otp-container" onPaste={handleOtpPaste}>
+                                    {otpVals.map((val, idx) => (
+                                        <input 
+                                            key={idx}
+                                            id={`otp-input-${idx}`}
+                                            type="text"
+                                            className="admin-login-otp-box"
+                                            maxLength={1}
+                                            value={val}
+                                            onChange={e => handleOtpChange(idx, e.target.value)}
+                                            onKeyDown={e => handleOtpKeyDown(idx, e)}
+                                            required
+                                        />
+                                    ))}
                                 </div>
-                                <button type="submit" disabled={sendingOtp} style={{width:'100%', padding:'12px', background:'#006233', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', fontSize:'16px', fontWeight: '500'}}>
-                                    {sendingOtp ? 'Sending OTP...' : 'Send OTP to Mobile'}
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <div style={{ marginBottom: '20px', padding: '10px', background: '#eafaf1', border: '1px solid #d4edda', borderRadius: '4px', fontSize: '13px', color: '#155724' }}>
-                                    OTP has been sent to registered mobile number: <strong>+91 {maskedPhone}</strong>
-                                </div>
-                                <div className="mb-3" style={{ marginBottom: '15px' }}>
-                                    <label style={{ fontWeight: '500', fontSize: '14px' }}>Enter OTP</label>
-                                    <input 
-                                        type="text" 
-                                        value={otp} 
-                                        onChange={e => setOtp(e.target.value)} 
-                                        className="form-control" 
-                                        required 
-                                        maxLength={6}
-                                        placeholder="6-digit OTP"
-                                        style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box', textAlign: 'center', fontSize: '16px', letterSpacing: '2px'}} 
-                                    />
-                                </div>
-                                <div className="mb-3" style={{ marginBottom: '15px' }}>
-                                    <label style={{ fontWeight: '500', fontSize: '14px' }}>New Password</label>
-                                    <input 
-                                        type="password" 
-                                        value={newPassword} 
-                                        onChange={e => setNewPassword(e.target.value)} 
-                                        className="form-control" 
-                                        required 
-                                        placeholder="Enter new password"
-                                        style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box'}} 
-                                    />
-                                </div>
-                                <div className="mb-4" style={{ marginBottom: '20px' }}>
-                                    <label style={{ fontWeight: '500', fontSize: '14px' }}>Confirm New Password</label>
-                                    <input 
-                                        type="password" 
-                                        value={confirmPassword} 
-                                        onChange={e => setConfirmPassword(e.target.value)} 
-                                        className="form-control" 
-                                        required 
-                                        placeholder="Confirm new password"
-                                        style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box'}} 
-                                    />
-                                </div>
-                                <button type="submit" disabled={resetting} style={{width:'100%', padding:'12px', background:'#006233', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', fontSize:'16px', fontWeight: '500'}}>
-                                    {resetting ? 'Resetting Password...' : 'Reset Password'}
-                                </button>
-                            </>
-                        )}
-                        <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                            <span onClick={() => { setMode('login'); setOtpSent(false); }} style={{ color: '#666', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline' }}>Back to Login</span>
-                        </div>
-                    </form>
-                )}
+                            </div>
 
-                {/* LOGIN MODE */}
-                {!require2FA && mode === 'login' && (
-                    <form onSubmit={handleLogin}>
-                        <div className="mb-3" style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: '500', fontSize: '14px' }}>Email Address</label>
-                            <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="form-control" required placeholder="admin@yogisfarm.in" style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box'}} />
-                        </div>
+                            <button type="submit" disabled={verifying2fa} className="admin-login-btn" style={{ marginBottom: '20px' }}>
+                                {verifying2fa ? 'Verifying...' : 'Login'}
+                            </button>
 
-                        <div className="mb-3" style={{ marginBottom: '15px' }}>
-                            <label style={{ fontWeight: '500', fontSize: '14px' }}>Password</label>
-                            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="form-control" required placeholder="••••••••" style={{width:'100%', padding:'10px', marginTop:'5px', border:'1px solid #ddd', borderRadius:'4px', boxSizing: 'border-box'}} />
-                        </div>
+                            <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                <span onClick={() => setRequire2FA(false)} className="admin-login-action-link">Back to Sign In</span>
+                            </div>
+                        </form>
+                    )}
 
-                        <div className="mb-4" style={{ marginBottom: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <span onClick={() => setMode('forgot')} style={{ color: '#006233', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}>Forgot Password?</span>
-                        </div>
+                    {/* FORGOT PASSWORD RECOVERY MODE */}
+                    {!require2FA && mode === 'forgot' && (
+                        <form onSubmit={otpSent ? handleForgotPasswordReset : handleForgotPasswordSendOtp}>
+                            <p className="admin-login-desc">Reset Admin Password</p>
 
-                        <button type="submit" style={{width:'100%', padding:'12px', background:'#006233', color:'white', border:'none', borderRadius:'4px', cursor:'pointer', fontSize:'16px', fontWeight: '500'}}>Sign In</button>
-                    </form>
-                )}
+                            {!otpSent ? (
+                                <>
+                                    <div className="admin-login-group">
+                                        <label className="admin-login-label">Enter Registered Admin Email</label>
+                                        <input 
+                                            type="email" 
+                                            value={email} 
+                                            onChange={e => setEmail(e.target.value)} 
+                                            className="admin-login-input" 
+                                            required 
+                                            placeholder="admin@yogisfarm.in" 
+                                        />
+                                    </div>
+                                    <button type="submit" disabled={sendingOtp} className="admin-login-btn" style={{ marginBottom: '20px' }}>
+                                        {sendingOtp ? 'Sending OTP...' : 'Send OTP to Mobile'}
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ marginBottom: '20px', padding: '12px', background: '#eafaf1', border: '1px solid #d4edda', borderRadius: '6px', fontSize: '13px', color: '#155724', lineHeight: '1.5' }}>
+                                        OTP sent to registered mobile number: <strong>+91 {maskedPhone}</strong>
+                                    </div>
+
+                                    <div className="admin-login-group">
+                                        <label className="admin-login-label" style={{ textAlign: 'center', display: 'block', marginBottom: '4px' }}>Enter 6-digit OTP</label>
+                                        <div className="admin-login-otp-container" onPaste={handleOtpPaste}>
+                                            {otpVals.map((val, idx) => (
+                                                <input 
+                                                    key={idx}
+                                                    id={`otp-input-${idx}`}
+                                                    type="text"
+                                                    className="admin-login-otp-box"
+                                                    maxLength={1}
+                                                    value={val}
+                                                    onChange={e => handleOtpChange(idx, e.target.value)}
+                                                    onKeyDown={e => handleOtpKeyDown(idx, e)}
+                                                    required
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="admin-login-group">
+                                        <label className="admin-login-label">New Password</label>
+                                        <input 
+                                            type="password" 
+                                            value={newPassword} 
+                                            onChange={e => setNewPassword(e.target.value)} 
+                                            className="admin-login-input" 
+                                            required 
+                                            placeholder="Enter new password" 
+                                        />
+                                    </div>
+
+                                    <div className="admin-login-group">
+                                        <label className="admin-login-label">Confirm New Password</label>
+                                        <input 
+                                            type="password" 
+                                            value={confirmPassword} 
+                                            onChange={e => setConfirmPassword(e.target.value)} 
+                                            className="admin-login-input" 
+                                            required 
+                                            placeholder="Confirm new password" 
+                                        />
+                                    </div>
+
+                                    <button type="submit" disabled={resetting} className="admin-login-btn" style={{ marginBottom: '20px' }}>
+                                        {resetting ? 'Resetting Password...' : 'Reset Password'}
+                                    </button>
+                                </>
+                            )}
+
+                            <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                <span onClick={() => { setMode('login'); setOtpSent(false); }} className="admin-login-action-link">Back to Sign In</span>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* REGULAR CREDENTIALS LOGIN MODE */}
+                    {!require2FA && mode === 'login' && (
+                        <form onSubmit={handleLogin}>
+                            <p className="admin-login-desc">Sign in to your account</p>
+
+                            <div className="admin-login-group">
+                                <label className="admin-login-label">Email ID</label>
+                                <input 
+                                    type="email" 
+                                    value={email} 
+                                    onChange={e => setEmail(e.target.value)} 
+                                    className="admin-login-input" 
+                                    required 
+                                    placeholder="Email ID" 
+                                />
+                            </div>
+
+                            <div className="admin-login-group">
+                                <label className="admin-login-label">Password</label>
+                                <input 
+                                    type="password" 
+                                    value={password} 
+                                    onChange={e => setPassword(e.target.value)} 
+                                    className="admin-login-input" 
+                                    required 
+                                    placeholder="Password" 
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '25px' }}>
+                                <span onClick={() => setMode('forgot')} style={{ color: '#0A6738', fontSize: '13px', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>Forgot Password?</span>
+                            </div>
+
+                            <button type="submit" className="admin-login-btn">
+                                Login
+                            </button>
+                        </form>
+                    )}
+                </div>
             </div>
         </div>
     );
