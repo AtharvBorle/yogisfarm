@@ -208,7 +208,7 @@ router.post('/profile/verify-otp', requireAdmin, async (req, res) => {
       // Just verifying old phone to proceed to next step
       await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
       return res.json({ status: true, message: 'Old mobile number verified successfully', step: 'old-verified' });
-    } else if (type === 'update-phone') {
+    } else if (type === 'update-phone' || type === 'verify-new-phone') {
       const { newPhone } = payload || {};
       if (!newPhone) return res.json({ status: false, message: 'New phone number required' });
       await prisma.admin.update({

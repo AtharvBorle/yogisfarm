@@ -116,8 +116,11 @@ const Profile = () => {
         }
         setVerifyingOtp(true);
         try {
+            // Translate front-end specific temporary types to backend update-phone if needed
+            const submitType = otpType === 'verify-new-phone' ? 'update-phone' : otpType;
+
             const res = await api.post('/profile/verify-otp', {
-                type: otpType,
+                type: submitType,
                 otp: otpValue,
                 payload: otpPayload
             });
@@ -137,19 +140,8 @@ const Profile = () => {
                     return;
                 }
 
-                // If type was verify-new-phone or update-phone
                 if (otpType === 'verify-new-phone' || otpType === 'update-phone') {
-                    // Call update-phone payload to backend
-                    const finalRes = await api.post('/profile/verify-otp', {
-                        type: 'update-phone',
-                        otp: otpValue,
-                        payload: otpPayload
-                    });
-                    if (finalRes.data.status) {
-                        toast.success('Mobile number updated successfully');
-                    } else {
-                        toast.error(finalRes.data.message);
-                    }
+                    toast.success('Mobile number updated successfully');
                 } else {
                     toast.success('Changes updated successfully');
                 }

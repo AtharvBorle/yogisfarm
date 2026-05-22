@@ -138,3 +138,19 @@ h1, h2, h3, h4, h5, h6, .title {
 .cart-summary-box {
   box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
+
+/* Eliminate default slick bullet dots inside pagination circles */
+.slick-dots li button:before,
+.slick-dots li a:before {
+  content: "" !important;
+  display: none !important;
+}
+
+.slick-dots li button,
+.slick-dots li a {
+  font-size: 0px !important;
+  color: transparent !important;
+  line-height: 0 !important;
+  text-indent: -9999px !important;
+}
+
