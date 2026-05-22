@@ -42,7 +42,7 @@ api.interceptors.response.use((response) => {
 });
 
 export const getAssetUrl = (path) => {
-  if (!path) return '';
+  if (!path || typeof path !== 'string') return '';
   // Already a full URL — return as-is
   if (path.startsWith('http')) return path;
   const s3Base = import.meta.env.VITE_S3_BASE_URL;

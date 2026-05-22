@@ -249,7 +249,7 @@ const Header = () => {
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
-                                            {product.images?.[0] && <img src={getAssetUrl(product.images[0])} alt="" style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '4px' }} />}
+                                            {product.images?.[0] && <img src={getAssetUrl(product.images[0]?.image || product.images[0])} alt="" style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '4px' }} />}
                                             <span>{product.name}</span>
                                         </Link>
                                     ))}
