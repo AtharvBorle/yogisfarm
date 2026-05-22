@@ -621,7 +621,19 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
     const { name, shortDescription, description, categoryId, brandId, taxId,
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
-    const slug = slugify(name, { lower: true, strict: true }) + '-' + Date.now();
+    // Generate unique SEO-friendly slug
+    const baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let count = 1;
+    while (true) {
+      const existing = await prisma.product.findUnique({ where: { slug } });
+      if (!existing) {
+        break;
+      }
+      slug = `${baseSlug}-${count}`;
+      count++;
+    }
+
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
 
     const product = await prisma.product.create({

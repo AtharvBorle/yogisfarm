@@ -11,6 +11,7 @@ const Profile = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'basic');
     const [gstNumber, setGstNumber] = useState('');
+    const [savedGstNumber, setSavedGstNumber] = useState('');
     const [savingSettings, setSavingSettings] = useState(false);
     
     // Basic Details State
@@ -44,7 +45,9 @@ const Profile = () => {
     useEffect(() => {
         api.get('/settings').then(res => {
             if (res.data.status && res.data.settings) {
-                setGstNumber(res.data.settings.gst_number || '');
+                const gst = res.data.settings.gst_number || '';
+                setGstNumber(gst);
+                setSavedGstNumber(gst);
             }
         }).catch(() => {});
     }, []);
@@ -53,7 +56,10 @@ const Profile = () => {
         setSavingSettings(true);
         try {
             const res = await api.put('/settings', { settings: { gst_number: gstNumber } });
-            if (res.data.status) toast.success('Settings saved successfully');
+            if (res.data.status) {
+                toast.success('Settings saved successfully');
+                setSavedGstNumber(gstNumber);
+            }
             else toast.error(res.data.message);
         } catch (e) { toast.error('Failed to save settings'); }
         setSavingSettings(false);
@@ -410,7 +416,18 @@ const Profile = () => {
                                     <strong>Note:</strong> These settings will appear on all generated invoices. Changes take effect on the next invoice generated.
                                 </div>
                                 <div className="admin-form-group" style={{ maxWidth: '500px' }}>
-                                    <label className="admin-label">GST Number <span className="required">*</span></label>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                        <label className="admin-label" style={{ margin: 0 }}>GST Number <span className="required">*</span></label>
+                                        {savedGstNumber ? (
+                                            <span style={{ fontSize: '12px', color: '#006233', background: '#eafaf1', padding: '2px 8px', borderRadius: '4px', fontWeight: '600' }}>
+                                                Active: {savedGstNumber}
+                                            </span>
+                                        ) : (
+                                            <span style={{ fontSize: '12px', color: '#d9534f', background: '#fdf2f2', padding: '2px 8px', borderRadius: '4px', fontWeight: '600' }}>
+                                                Not Configured
+                                            </span>
+                                        )}
+                                    </div>
                                     <input 
                                         type="text" 
                                         className="admin-input" 
