@@ -206,7 +206,7 @@ const Product = () => {
                                         <div style={{ display: 'flex', gap: '10px', marginTop: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
                                             <div 
                                                 onClick={() => setMainImage(product.image)}
-                                                style={{ border: mainImage === product.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', minWidth: '80px', height: '80px' }}
+                                                style={{ border: mainImage === product.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', width: '80px', minWidth: '80px', height: '80px', flexShrink: 0 }}
                                             >
                                                 <img src={getAssetUrl(product.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             </div>
@@ -214,7 +214,7 @@ const Product = () => {
                                                 <div 
                                                     key={img.id}
                                                     onClick={() => setMainImage(img.image)}
-                                                    style={{ border: mainImage === img.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', minWidth: '80px', height: '80px' }}
+                                                    style={{ border: mainImage === img.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', width: '80px', minWidth: '80px', height: '80px', flexShrink: 0 }}
                                                 >
                                                     <img src={getAssetUrl(img.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                 </div>
@@ -314,23 +314,23 @@ const Product = () => {
                                                     {isOutOfStock ? (
                                                         <button disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1, cursor: 'not-allowed' }}>Out of Stock</button>
                                                     ) : cartItem ? (
-                                                        <div style={{ display: 'flex', alignItems: 'center', background: '#0A6738', borderRadius: '10px', flex: 1, overflow: 'hidden' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', background: '#0A6738', borderRadius: '10px', flex: 1.3, overflow: 'hidden', height: '50px' }}>
                                                             <button 
                                                                 onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }}
-                                                                style={{ padding: '12px 20px', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                style={{ width: '45px', height: '100%', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                                             >
-                                                                <Minus size={20} />
+                                                                <Minus size={18} />
                                                             </button>
-                                                            <span style={{ color: '#fff', fontWeight: '600', fontSize: '18px', padding: '0 10px' }}>{cartItem.quantity} in Cart</span>
+                                                            <span style={{ color: '#fff', fontWeight: '600', fontSize: '15px', flex: 1, textAlign: 'center', whiteSpace: 'nowrap' }}>{cartItem.quantity} in Cart</span>
                                                             <button 
                                                                 onClick={(e) => { e.preventDefault(); cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1); }}
-                                                                style={{ padding: '12px 20px', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                style={{ width: '45px', height: '100%', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                                             >
-                                                                <Plus size={20} />
+                                                                <Plus size={18} />
                                                             </button>
                                                         </div>
                                                     ) : (
-                                                        <button onClick={handleAddToCart} style={{ background: '#E9FFF4', color: '#0A6738', border: '1px solid #0A6738', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                                        <button onClick={handleAddToCart} style={{ background: '#E9FFF4', color: '#0A6738', border: '1px solid #0A6738', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                                                             <ShoppingCart size={20} /> Add to cart
                                                         </button>
                                                     )}

@@ -116,7 +116,6 @@ const Terms = () => {
                 <div className="container">
                     <div className="breadcrumb">
                         <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
-                        <span></span> Page
                         <span></span> Terms and Conditions
                     </div>
                 </div>

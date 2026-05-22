@@ -32,7 +32,7 @@ import iconApproval from '../assets/figma/icon_approval.svg';
 import iconGears from '../assets/figma/icon_gears.svg';
 import iconVision from '../assets/figma/icon_vision.svg';
 
-const ProductSmallCard = ({ product }) => {
+const ProductSmallCard = ({ product, isMobile }) => {
 
     const variants = product.variants || [];
     const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
@@ -46,25 +46,32 @@ const ProductSmallCard = ({ product }) => {
     const roundedRating = Math.round(avgRatingRaw);
     const starString = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
+    const imgSize = isMobile ? '140px' : '80px';
+    const titleSize = isMobile ? '20px' : '15px';
+    const priceSize = isMobile ? '20px' : '15px';
+    const starsSize = isMobile ? '16px' : '12px';
+    const reviewsSize = isMobile ? '13px' : '10px';
+    const discountSize = isMobile ? '14px' : '11px';
+
     return (
-        <article className="product-small-card-article" style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '12px' }}>
-            <figure style={{ margin: 0, width: '80px', height: '80px', flexShrink: 0 }}>
+        <article className="product-small-card-article" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '12px' }}>
+            <figure style={{ margin: 0, width: imgSize, height: imgSize, flexShrink: 0 }}>
                 <Link to={`/product/${product.slug}`}>
-                    <img className="product-small-card-img" src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '10px', width: '80px', height: '80px', objectFit: 'cover', border: '1px solid #F0F0F0' }} />
+                    <img className="product-small-card-img" src={getAssetUrl(product.image)} alt={product.name} style={{ borderRadius: '10px', width: imgSize, height: imgSize, objectFit: 'cover', border: '1px solid #F0F0F0' }} />
                 </Link>
             </figure>
             <div className="product-small-card-text-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0px' }}>
-                <h6 style={{ margin: 0, lineHeight: '1' }}>
-                    <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: '15px', fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
+                <h6 style={{ margin: 0, lineHeight: '1.2' }}>
+                    <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: titleSize, fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
                 </h6>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: '12px' }}>{starString}</span>
-                    <span className="product-small-card-reviews-text" style={{ fontSize: '10px', color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>({reviews.length} Reviews)</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
+                    <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: starsSize }}>{starString}</span>
+                    <span className="product-small-card-reviews-text" style={{ fontSize: reviewsSize, color: '#B6B6B6', fontFamily: 'Poppins, sans-serif' }}>({reviews.length} Reviews)</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="product-small-card-price" style={{ color: '#0A6738', fontWeight: 'bold', fontSize: '15px', fontFamily: 'Poppins, sans-serif' }}>₹{parseFloat(price || 0).toFixed(2)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                    <span className="product-small-card-price" style={{ color: '#0A6738', fontWeight: 'bold', fontSize: priceSize, fontFamily: 'Poppins, sans-serif' }}>₹{parseFloat(price || 0).toFixed(2)}</span>
                     {oldPrice && (
-                        <span className="product-small-card-discount" style={{ color: '#FF0000', fontSize: '11px', fontFamily: 'Poppins, sans-serif' }}>
+                        <span className="product-small-card-discount" style={{ color: '#FF0000', fontSize: discountSize, fontFamily: 'Poppins, sans-serif' }}>
                             {Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off
                         </span>
                     )}
@@ -97,6 +104,10 @@ const Home = () => {
 
     const [sections, setSections] = useState([]);
 
+    const [popularPage, setPopularPage] = useState(1);
+    const [popularTotalPages, setPopularTotalPages] = useState(1);
+    const [popularSearch, setPopularSearch] = useState('');
+
     useEffect(() => {
         Promise.all([
             api.get('/sliders?position=main'),
@@ -105,21 +116,34 @@ const Home = () => {
             api.get('/sliders?position=bottom'),
             api.get('/categories?featured=true'),
             api.get('/products?featured=true&limit=10'),
-            api.get('/products?popular=true&limit=10'),
             api.get('/products?deal=true&limit=10'),
             api.get('/sections')
-        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, popularRes, dealRes, secRes]) => {
+        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, dealRes, secRes]) => {
             if (mainRes.data.status) setMainSliders(mainRes.data.sliders);
             if (topRes.data.status) setTopSliders(topRes.data.sliders);
             if (midRes.data.status) setMiddleSliders(midRes.data.sliders);
             if (bottomRes.data.status) setBottomSliders(bottomRes.data.sliders);
             if (catRes.data.status) setCategories(catRes.data.categories);
             if (featuredRes.data.status) setFeaturedProducts(featuredRes.data.products);
-            if (popularRes.data.status) setPopularProducts(popularRes.data.products);
             if (dealRes.data.status) setDealProducts(dealRes.data.products);
             if (secRes.data.status) setSections(secRes.data.sections);
         }).catch(err => console.error(err));
     }, []);
+
+    useEffect(() => {
+        let url = `/products?popular=true&page=${popularPage}&limit=8`;
+        if (popularSearch) {
+            url += `&search=${encodeURIComponent(popularSearch)}`;
+        }
+        api.get(url)
+            .then(res => {
+                if (res.data.status) {
+                    setPopularProducts(res.data.products || []);
+                    setPopularTotalPages(res.data.totalPages || 1);
+                }
+            })
+            .catch(err => console.error(err));
+    }, [popularPage, popularSearch]);
 
 
     const getSliderLink = (slider) => {
@@ -338,63 +362,7 @@ const Home = () => {
                         line-height: 22px !important;
                     }
                     
-                    /* 4-Column Product Small Cards Figma Styles */
-                    .product-small-card-article {
-                        gap: 9px !important;
-                        margin-bottom: 8px !important;
-                        align-items: center !important;
-                    }
-                    .product-small-card-article figure {
-                        width: 48px !important;
-                        height: 46px !important;
-                        margin: 0 !important;
-                    }
-                    .product-small-card-article figure a {
-                        display: block !important;
-                        width: 48px !important;
-                        height: 46px !important;
-                    }
-                    .product-small-card-img {
-                        width: 48px !important;
-                        height: 46px !important;
-                        border-radius: 5.176px !important;
-                        object-fit: cover !important;
-                    }
-                    .product-small-card-text-container {
-                        gap: 1px !important;
-                        justify-content: center !important;
-                        display: flex !important;
-                        flex-direction: column !important;
-                        height: 46px !important;
-                    }
-                    .product-small-card-text-container h6 {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        line-height: 1.1 !important;
-                    }
-                    .product-small-card-text-container div {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        line-height: 1 !important;
-                    }
-                    .product-small-card-title {
-                        font-size: 9px !important;
-                        line-height: 11px !important;
-                    }
-                    .product-small-card-stars {
-                        font-size: 8px !important;
-                    }
-                    .product-small-card-reviews-text {
-                        font-size: 5.75px !important;
-                        white-space: nowrap !important;
-                    }
-                    .product-small-card-price {
-                        font-size: 9.2px !important;
-                    }
-                    .product-small-card-discount {
-                        font-size: 5.75px !important;
-                        white-space: nowrap !important;
-                    }
+
                     .product-list-small-section-title {
                         font-size: 12px !important;
                         border-bottom: none !important;
@@ -549,7 +517,7 @@ const Home = () => {
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                         <div className="section-title">
                             <div className="title">
-                                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
+                                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
                             </div>
                         </div>
                         <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
@@ -584,13 +552,22 @@ const Home = () => {
                 <section className="section-padding pb-5">
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                         <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Popular Products</h3>
+                            <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Popular Products</h3>
 
                             {/* Search field in section header */}
                             <div className="d-none d-md-block" style={{ position: 'relative', width: '200px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '35px', padding: '0 10px' }}>
                                     <i className="fi-rs-search" style={{ color: '#0A6738', fontSize: '14px', marginRight: '8px' }}></i>
-                                    <input type="text" placeholder="Search for Product" style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#333', width: '100%', fontFamily: 'Poppins, sans-serif' }} />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search for Product" 
+                                        value={popularSearch}
+                                        onChange={(e) => {
+                                            setPopularSearch(e.target.value);
+                                            setPopularPage(1);
+                                        }}
+                                        style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#333', width: '100%', fontFamily: 'Poppins, sans-serif' }} 
+                                    />
                                     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '5px' }}>
                                         <path d="M1 1L5 5L9 1" stroke="#0A6738" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
@@ -599,38 +576,109 @@ const Home = () => {
                         </div>
 
                         <div className="row flex-wrap" style={{ paddingBottom: '20px' }}>
-                            {popularProducts.slice(0, 8).map(product => (
-                                <div key={product.id} className="col-6 col-sm-6 col-md-4 col-lg-3 mb-3 d-flex justify-content-center">
-                                    <ProductCard product={product} />
+                            {popularProducts.length > 0 ? (
+                                popularProducts.map(product => (
+                                    <div key={product.id} className="col-6 col-sm-6 col-md-4 col-lg-3 mb-3 d-flex justify-content-center">
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="col-12 text-center" style={{ padding: '40px 0', color: '#7E7E7E', fontFamily: 'Poppins, sans-serif' }}>
+                                    No popular products found matching your search.
                                 </div>
-                            ))}
+                            )}
                         </div>
 
-                        {/* Pagination */}
-                        <div className="pagination-area mt-15 mb-sm-5 mb-lg-0" style={{ display: 'flex', justifyContent: 'center' }}>
-                            <nav aria-label="Page navigation example">
-                                <ul className="pagination justify-content-start" style={{ display: 'flex', gap: '5px', listStyle: 'none', padding: 0 }}>
-                                    <li className="page-item">
-                                        <a className="page-link" href="#!" style={{ borderRadius: '4px', border: '1px solid #ECECEC', color: '#7E7E7E', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}><i className="fi-rs-angle-left"></i></a>
-                                    </li>
-                                    <li className="page-item active">
-                                        <a className="page-link" href="#!" style={{ borderRadius: '4px', border: '1px solid #ECECEC', backgroundColor: '#F2F2F2', color: '#253D4E', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>1</a>
-                                    </li>
-                                    <li className="page-item">
-                                        <a className="page-link" href="#!" style={{ borderRadius: '4px', border: '1px solid #ECECEC', color: '#253D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>2</a>
-                                    </li>
-                                    <li className="page-item">
-                                        <a className="page-link" href="#!" style={{ borderRadius: '4px', border: '1px solid #ECECEC', color: '#253D4E', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>3</a>
-                                    </li>
-                                    <li className="page-item">
-                                        <a className="page-link dot" href="#!" style={{ color: '#7E7E7E', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>...</a>
-                                    </li>
-                                    <li className="page-item">
-                                        <a className="page-link" href="#!" style={{ borderRadius: '4px', border: '1px solid #ECECEC', color: '#7E7E7E', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}><i className="fi-rs-angle-right"></i></a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
+                        {/* Dynamic Pagination */}
+                        {popularTotalPages > 1 && (
+                            <div className="pagination-area mt-15 mb-sm-5 mb-lg-0" style={{ display: 'flex', justifyContent: 'center' }}>
+                                <nav aria-label="Page navigation example">
+                                    <ul className="pagination justify-content-start" style={{ display: 'flex', gap: '5px', listStyle: 'none', padding: 0 }}>
+                                        <li className={`page-item ${popularPage === 1 ? 'disabled' : ''}`}>
+                                            <a 
+                                                className="page-link" 
+                                                href="#!" 
+                                                onClick={(e) => { 
+                                                    e.preventDefault(); 
+                                                    if (popularPage > 1) setPopularPage(popularPage - 1); 
+                                                }}
+                                                style={{ 
+                                                     borderRadius: '4px', 
+                                                     border: '1px solid #ECECEC', 
+                                                     color: '#7E7E7E', 
+                                                     display: 'flex', 
+                                                     alignItems: 'center', 
+                                                     justifyContent: 'center', 
+                                                     width: '40px', 
+                                                     height: '40px',
+                                                     cursor: popularPage === 1 ? 'not-allowed' : 'pointer',
+                                                     opacity: popularPage === 1 ? 0.5 : 1
+                                                }}
+                                             >
+                                                 <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                     <path d="M5 9L1 5L5 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                 </svg>
+                                             </a>
+                                         </li>
+                                         
+                                         {Array.from({ length: popularTotalPages }, (_, i) => i + 1).map(pageNum => (
+                                             <li key={pageNum} className={`page-item ${popularPage === pageNum ? 'active' : ''}`}>
+                                                 <a 
+                                                     className="page-link" 
+                                                     href="#!" 
+                                                     onClick={(e) => { 
+                                                         e.preventDefault(); 
+                                                         setPopularPage(pageNum); 
+                                                     }}
+                                                     style={{ 
+                                                         borderRadius: '4px', 
+                                                         border: '1px solid #ECECEC', 
+                                                         backgroundColor: popularPage === pageNum ? '#0A6738' : '#F2F2F2', 
+                                                         color: popularPage === pageNum ? '#FFF' : '#253D4E', 
+                                                         fontWeight: 'bold', 
+                                                         display: 'flex', 
+                                                         alignItems: 'center', 
+                                                         justifyContent: 'center', 
+                                                         width: '40px', 
+                                                         height: '40px',
+                                                         cursor: 'pointer'
+                                                     }}
+                                                 >
+                                                     {pageNum}
+                                                 </a>
+                                             </li>
+                                         ))}
+
+                                         <li className={`page-item ${popularPage === popularTotalPages ? 'disabled' : ''}`}>
+                                             <a 
+                                                 className="page-link" 
+                                                 href="#!" 
+                                                 onClick={(e) => { 
+                                                     e.preventDefault(); 
+                                                     if (popularPage < popularTotalPages) setPopularPage(popularPage + 1); 
+                                                 }}
+                                                 style={{ 
+                                                     borderRadius: '4px', 
+                                                     border: '1px solid #ECECEC', 
+                                                     color: '#7E7E7E', 
+                                                     display: 'flex', 
+                                                     alignItems: 'center', 
+                                                     justifyContent: 'center', 
+                                                     width: '40px', 
+                                                     height: '40px',
+                                                     cursor: popularPage === popularTotalPages ? 'not-allowed' : 'pointer',
+                                                     opacity: popularPage === popularTotalPages ? 0.5 : 1
+                                                 }}
+                                             >
+                                                 <svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                     <path d="M1 9L5 5L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                 </svg>
+                                             </a>
+                                         </li>
+                                     </ul>
+                                 </nav>
+                             </div>
+                         )}
                     </div>
                 </section>
             )}
@@ -752,7 +800,7 @@ const Home = () => {
 
             {/* Mobile-Only Best Deals swipe carousel */}
             {dealSection && dealBanners.length > 0 && (
-                <section className="best-deals-mobile d-block d-md-none pb-5" style={{ background: '#F2FFD6', padding: '20px 0', marginBottom: '20px' }}>
+                <section className="best-deals-mobile d-block d-md-none" style={{ background: '#F2FFD6', padding: '20px 0 35px 0', marginBottom: '20px' }}>
                     <div style={{ padding: '0 24px' }}>
                         <div className="section-title" style={{ margin: '0 0 12px 0' }}>
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Best Deals</h3>
@@ -776,9 +824,10 @@ const Home = () => {
             {/* 9. 4-Column Compact Products Section */}
             <section className="section-padding mb-10 mt-10">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                    <div className="row">
-                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                    {/* Desktop/Tablet Grid View */}
+                    <div className="row d-none d-md-flex">
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {popularProducts.slice(0, 3).map(p => (
                                     <div key={p.id}>
@@ -787,8 +836,8 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
-                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {dealProducts.slice(0, 3).map(p => (
                                     <div key={p.id}>
@@ -797,8 +846,8 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
-                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => (
                                     <div key={p.id}>
@@ -811,12 +860,56 @@ const Home = () => {
                                 ))}
                             </div>
                         </div>
-                        <div className="col-6 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                            <h4 className="section-title style-1 mb-30 product-list-small-section-title" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontSize: '18px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                        <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                            <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
                                 {featuredProducts.slice(0, 3).map(p => (
                                     <div key={p.id}>
                                         <ProductSmallCard product={p} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile Horizontal Scrolling Compact Product View */}
+                    <div className="d-flex d-md-none flex-column" style={{ gap: '25px' }}>
+                        <div>
+                            <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                            <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                {popularProducts.slice(0, 5).map(p => (
+                                    <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                            <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                {dealProducts.slice(0, 5).map(p => (
+                                    <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                            <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                {(popularProducts.length > 3 ? popularProducts.slice(3, 8) : dealProducts.slice(0, 5)).map(p => (
+                                    <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                            <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                {featuredProducts.slice(0, 5).map(p => (
+                                    <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                        <ProductSmallCard product={p} isMobile={true} />
                                     </div>
                                 ))}
                             </div>
@@ -830,7 +923,7 @@ const Home = () => {
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                     <div className="section-title">
                         <div className="title">
-                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600 }}>Upcoming Products & Categories</h3>
+                            <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Upcoming Products & Categories</h3>
                         </div>
                     </div>
                     <div className="d-flex flex-nowrap flex-md-wrap overflow-auto" style={{ gap: '15px', paddingBottom: '15px' }}>
@@ -952,7 +1045,7 @@ const Home = () => {
             {/* 12. Why Families Choose Section */}
             <section className="section-padding" style={{ padding: '60px 0' }}>
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                    <h3 className="why-choose-title" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
+                    <h3 className="why-choose-title global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
 
                     <div className="why-choose-banner" style={{ position: 'relative', width: '100%', borderRadius: '15px', overflow: 'hidden', marginBottom: '40px' }}>
                         <img src={whyChooseBg} alt="Why Choose Background" style={{ width: '100%', height: 'auto', display: 'block' }} />

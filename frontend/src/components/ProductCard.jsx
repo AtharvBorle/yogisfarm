@@ -128,17 +128,12 @@ const ProductCard = ({ product }) => {
                 .product-hover-actions a:hover {
                     transform: scale(1.1);
                 }
-                .product-hover-actions .action-divider {
-                    width: 1px;
-                    height: 18px;
-                    background-color: #0A6738;
-                    opacity: 0.3;
-                }
-
-                 @media (max-width: 767px) {
+                
+                @media (max-width: 767px) {
                     .product-cart-wrap {
-                        max-width: 148px !important;
-                        height: 160px !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        height: 180px !important;
                         border-radius: 5.59px !important;
                         border: 0.509px solid #D5D5D5 !important;
                         box-sizing: border-box !important;
@@ -147,8 +142,9 @@ const ProductCard = ({ product }) => {
                         padding: 3px 3px 0 3px !important;
                     }
                     .product-cart-wrap .img-wrapper {
-                        aspect-ratio: 142 / 95 !important;
-                        height: 95px !important;
+                        aspect-ratio: 160 / 102 !important;
+                        height: auto !important;
+                        width: 100% !important;
                         border-radius: 4.56px !important;
                     }
                     .product-cart-wrap .product-content {
@@ -188,7 +184,7 @@ const ProductCard = ({ product }) => {
                         justify-content: space-between !important;
                         align-items: center !important;
                         margin-top: 5px !important;
-                        height: 20px !important;
+                        height: 30px !important;
                         gap: 2px !important;
                     }
                     .product-cart-wrap .price-wrapper {
@@ -212,11 +208,11 @@ const ProductCard = ({ product }) => {
                     .product-cart-wrap .btn-buy {
                         background-color: #FF1A00 !important;
                         color: #FFFFFF !important;
-                        width: 43px !important;
-                        height: 20px !important;
-                        border-radius: 3.9px !important;
-                        font-size: 8px !important;
-                        font-weight: 600 !important;
+                        width: 72px !important;
+                        height: 30px !important;
+                        border-radius: 4px !important;
+                        font-size: 10px !important;
+                        font-weight: 700 !important;
                         display: flex !important;
                         align-items: center !important;
                         justify-content: center !important;
@@ -231,20 +227,20 @@ const ProductCard = ({ product }) => {
                         align-items: center !important;
                         background-color: #f0f9f4 !important;
                         border: 1px solid #0A6738 !important;
-                        border-radius: 3.9px !important;
-                        width: 43px !important;
-                        height: 20px !important;
+                        border-radius: 4px !important;
+                        width: 72px !important;
+                        height: 30px !important;
                         justify-content: space-between !important;
-                        padding: 0 3px !important;
+                        padding: 0 6px !important;
                     }
                     .product-cart-wrap .qty-controls a {
-                        font-size: 10px !important;
+                        font-size: 14px !important;
                         font-weight: bold !important;
                         color: #0A6738 !important;
                         line-height: 1 !important;
                     }
                     .product-cart-wrap .qty-controls span {
-                        font-size: 9px !important;
+                        font-size: 12px !important;
                         font-weight: bold !important;
                         line-height: 1 !important;
                     }

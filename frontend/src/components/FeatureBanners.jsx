@@ -56,7 +56,7 @@ export const Testimonials = () => {
             `}} />
 
             <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '40px' }}>
-                <h3 style={{ color: '#0A6738', fontFamily: "Paytone One, sans-serif", fontSize: '36px', fontWeight: 600, margin: 0, textAlign: 'center' }}>
+                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: "Paytone One, sans-serif", fontWeight: 600, margin: 0, textAlign: 'center' }}>
                     What Our Customers Say
                 </h3>
             </div>
@@ -286,10 +286,12 @@ export const CorePillars = () => {
 };
 
 export const PartnerLogos = () => {
+    return null; // Commented out "You Can Find Us On" section on all pages
+    /*
     return (
         <section className="section-padding pb-5 mb-5" style={{ background: '#FFF' }}>
             <div className="container text-center" style={{ maxWidth: '1236px' }}>
-                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '26px', fontWeight: 700, marginBottom: '50px' }}>
+                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 700, marginBottom: '50px' }}>
                     You Can Find Us On
                 </h3>
                 <div className="d-flex justify-content-center">
@@ -298,6 +300,7 @@ export const PartnerLogos = () => {
             </div>
         </section>
     );
+    */
 };
 
 const FeatureBanners = ({ showTestimonialsOnMobile = true }) => {

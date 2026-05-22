@@ -125,7 +125,7 @@ const Header = () => {
                         justify-content: space-between !important;
                     }
                     .header-bottom.d-lg-none .logo img {
-                        max-height: 32px !important;
+                        max-height: 38px !important;
                     }
                     /* Heart, Cart & Burger icons size adjustments */
                     .header-bottom.d-lg-none .header-action-icon-2 img {
@@ -155,7 +155,7 @@ const Header = () => {
                     <div className="header-wrap" style={{ display: 'flex', alignItems: 'center', height: '103px', width: '100%', gap: '25px' }}>
                         {/* Logo */}
                         <div className="logo logo-width-1" style={{ flexShrink: 0, padding: 0, margin: 0 }}>
-                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '55px', width: 'auto', minWidth: 'unset', display: 'block' }} /></Link>
+                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ height: '62px', width: 'auto', minWidth: 'unset', display: 'block' }} /></Link>
                         </div>
 
                         {/* Navigation Menu */}
@@ -474,7 +474,7 @@ const Header = () => {
                 <div className="container">
                     <div className="header-wrap header-space-between position-relative">
                         <div className="logo d-block d-lg-none pt-1" style={{ flex: 1, maxWidth: '140px', minWidth: '100px' }}>
-                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ maxHeight: '40px', maxWidth: '100%', width: 'auto', objectFit: 'contain' }} /></Link>
+                            <Link to="/"><img src={headerLogo} alt="YogisFarms" style={{ maxHeight: '46px', maxWidth: '100%', width: 'auto', objectFit: 'contain' }} /></Link>
                         </div>
                         <div className="header-nav d-none d-lg-flex">
                             <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
@@ -501,13 +501,17 @@ const Header = () => {
                             <div className="header-action-2" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                 <div className="header-action-icon-2">
                                     <Link to="/wishlist" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                                        <img className="svgInject" alt="Wishlist" src="/assets/imgs/theme/icons/icon-heart.svg" style={{ width: '22px' }} />
+                                        <svg style={{ width: '22px', height: '22px', fill: '#B2D33D' }} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                        </svg>
                                         <span className="pro-count white" style={{ position: 'absolute', top: '-8px', right: '-8px', fontSize: '10px', width: '16px', height: '16px', lineHeight: '16px' }}>{wishlist?.length || 0}</span>
                                     </Link>
                                 </div>
                                 <div className="header-action-icon-2">
                                     <Link className="mini-cart-icon" to="/cart" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                                        <img alt="Cart" src="/assets/imgs/theme/icons/icon-cart.svg" style={{ width: '22px' }} />
+                                        <svg style={{ width: '22px', height: '22px', fill: '#B2D33D' }} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+                                        </svg>
                                         <span className="pro-count white" style={{ position: 'absolute', top: '-8px', right: '-8px', fontSize: '10px', width: '16px', height: '16px', lineHeight: '16px' }}>{cartCount}</span>
                                     </Link>
                                 </div>

@@ -88,6 +88,7 @@ const Footer = () => {
                     font-size: 12px !important;
                     font-weight: 400 !important;
                     color: #000000 !important;
+                    line-height: 1.3 !important;
                 }
                 .footer-contact-item strong {
                     font-weight: 600 !important;
@@ -124,7 +125,7 @@ const Footer = () => {
 
                     {/* Column 2: Legal - Mobile order 1 (top left) */}
                     <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-1 order-lg-2">
-                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
+                        <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/terms" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Terms and Conditions</Link></li>
                             <li className="mb-2"><Link to="/return-policy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Return, Refund and cancellation Policy</Link></li>
@@ -135,7 +136,7 @@ const Footer = () => {
 
                     {/* Column 3: Account - Mobile order 2 (top right) */}
                     <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-2 order-lg-3">
-                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
+                        <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Account</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to={user ? "/dashboard" : "/login"} style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Sign In</Link></li>
                             <li className="mb-2"><Link to="/cart" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>View Cart</Link></li>
@@ -146,7 +147,7 @@ const Footer = () => {
 
                     {/* Column 4: Popular - Mobile order 4 (second row right) */}
                     <div className="col-lg-2 col-md-3 col-6 mb-4 footer-col-content order-4 order-lg-4">
-                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
+                        <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Popular</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/about-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>About us</Link></li>
                             <li className="mb-2"><Link to="/shop" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shop</Link></li>
@@ -157,7 +158,7 @@ const Footer = () => {
 
                     {/* Column 5: Contact - Mobile order 3 (second row left) */}
                     <div className="col-lg-3 col-md-6 col-6 mb-4 footer-col-content order-3 order-lg-5">
-                        <h4 className="footer-col-title" style={{ color: '#0A6738', fontSize: '20px', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
+                        <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />

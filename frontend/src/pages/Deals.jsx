@@ -273,7 +273,6 @@ const Deals = () => {
                 <div className="container">
                     <div className="breadcrumb">
                         <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
-                        <span></span> Pages
                         <span></span> Deals
                     </div>
                 </div>
@@ -281,7 +280,7 @@ const Deals = () => {
 
             <div className="page-content pt-50">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '28px', fontWeight: 700, marginBottom: '30px' }}>Best Deals</h3>
+                    <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 700, marginBottom: '30px' }}>Best Deals</h3>
                 </div>
 
                 {/* Dynamic Best Deals sets from Admin, falling back to static imports */}

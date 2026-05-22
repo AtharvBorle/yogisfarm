@@ -61,14 +61,13 @@ const Contact = () => {
                 <div className="container">
                     <div className="breadcrumb">
                         <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
-                        <span></span> Page
                         <span></span> Contact Us
                     </div>
                 </div>
             </div>
 
             <div className="page-content pt-50 pb-50">
-                <div className="container" style={{ maxWidth: '1236px', paddingRight: '50px' }}>
+                <div className="container" style={{ maxWidth: '1236px', paddingLeft: '15px', paddingRight: '15px' }}>
                     <div className="row">
                         {/* Left Column: Contact Information */}
                         <div className="col-lg-6 mb-40">
@@ -104,7 +103,7 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '40px', borderRadius: '12px', overflow: 'hidden', width: '501px', height: '226px' }}>
+                            <div style={{ marginTop: '40px', borderRadius: '12px', overflow: 'hidden', width: '100%', maxWidth: '501px', height: '226px' }}>
                                 <iframe 
                                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3167.4854637225867!2d73.80859398931439!3d18.48150936170284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bf0009c1bf1d%3A0xcad2b23eeb80c3c3!2sYogi&#39;s%20farm!5e0!3m2!1sen!2sin!4v1778935721305!5m2!1sen!2sin" 
                                     width="100%" 

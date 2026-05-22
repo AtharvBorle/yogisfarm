@@ -53,7 +53,14 @@ const TrackOrder = () => {
         if (orderCode.trim()) fetchOrder(orderCode.trim());
     };
 
-    const currentStepIndex = order ? statusSteps.indexOf(order.orderStatus) : -1;
+    let currentStepIndex = -1;
+    if (order) {
+        if (order.orderStatus === 'processing' || order.orderStatus === 'pending') {
+            currentStepIndex = 1; // Map to Confirmed step
+        } else {
+            currentStepIndex = statusSteps.indexOf(order.orderStatus);
+        }
+    }
     const isCancelled = order?.orderStatus === 'cancelled';
 
     return (
