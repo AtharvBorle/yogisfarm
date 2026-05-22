@@ -10,7 +10,8 @@ const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
-const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS, sendCancelledSMS } = require('../utils/sms');
+const crypto = require('crypto');
+const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS, sendCancelledSMS, sendOtpSMS } = require('../utils/sms');
 
 let upload;
 let s3;
@@ -62,6 +63,21 @@ router.post('/login', async (req, res) => {
     if (!admin) return res.json({ status: false, message: 'Invalid credentials' });
     const valid = await bcrypt.compare(password, admin.password);
     if (!valid) return res.json({ status: false, message: 'Invalid credentials' });
+
+    if (admin.twoFactorEnabled) {
+      if (!admin.phone) {
+        return res.json({ status: false, message: '2FA is active but no mobile number is registered. Please contact superadmin.' });
+      }
+      // Generate & Send OTP
+      const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+      const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+      await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+      
+      sendOtpSMS(admin.phone, otp);
+      const maskedPhone = admin.phone.slice(0, 2) + '******' + admin.phone.slice(-2);
+      return res.json({ status: true, require2FA: true, phone: maskedPhone, email });
+    }
+
     req.session.adminId = admin.id;
     req.session.adminRole = admin.role;
     res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
@@ -70,8 +86,152 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/login/verify-2fa', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+
+    req.session.adminId = admin.id;
+    req.session.adminRole = admin.role;
+    res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/forgot-password/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin with this email does not exist' });
+    if (!admin.phone) return res.json({ status: false, message: 'No mobile number registered to this admin account. Please contact superadmin.' });
+
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+
+    sendOtpSMS(admin.phone, otp);
+    const maskedPhone = admin.phone.slice(0, 2) + '******' + admin.phone.slice(-2);
+    res.json({ status: true, message: 'OTP sent successfully', phone: maskedPhone });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/forgot-password/reset', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.admin.update({
+      where: { id: admin.id },
+      data: { password: hashedPassword, otp: null, otpExpiry: null }
+    });
+
+    await logAdminAction(admin.id, 'Reset Password via OTP');
+    res.json({ status: true, message: 'Password reset successfully' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/profile/send-otp', requireAdmin, async (req, res) => {
+  try {
+    const { type, newPhone } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    let targetPhone = admin.phone;
+    if (type === 'verify-new-phone') {
+      if (!newPhone) return res.json({ status: false, message: 'New phone number required' });
+      targetPhone = newPhone;
+    } else {
+      if (!targetPhone) return res.json({ status: false, message: 'No mobile number registered to this admin account. Please add one first.' });
+    }
+
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+
+    sendOtpSMS(targetPhone, otp);
+    const maskedPhone = targetPhone.slice(0, 2) + '******' + targetPhone.slice(-2);
+    res.json({ status: true, message: 'OTP sent successfully', phone: maskedPhone });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/profile/verify-otp', requireAdmin, async (req, res) => {
+  try {
+    const { type, otp, payload } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    // Execute requested action on OTP success
+    if (type === 'update-profile') {
+      const { name, email } = payload || {};
+      if (!name || !email) return res.json({ status: false, message: 'Name and Email are required' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { name, email }
+      });
+      await logAdminAction(admin.id, 'Updated Profile', `Name: ${name}, Email: ${email}`);
+    } else if (type === 'change-password') {
+      const { currentPassword, newPassword } = payload || {};
+      const valid = await bcrypt.compare(currentPassword, admin.password);
+      if (!valid) return res.json({ status: false, message: 'Current password incorrect' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { password: await bcrypt.hash(newPassword, 10) }
+      });
+      await logAdminAction(admin.id, 'Changed Password');
+    } else if (type === 'toggle-2fa') {
+      const { enabled } = payload || {};
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { twoFactorEnabled: !!enabled }
+      });
+      await logAdminAction(admin.id, enabled ? 'Enabled 2FA' : 'Disabled 2FA');
+    } else if (type === 'verify-old-phone') {
+      // Just verifying old phone to proceed to next step
+      await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+      return res.json({ status: true, message: 'Old mobile number verified successfully', step: 'old-verified' });
+    } else if (type === 'update-phone') {
+      const { newPhone } = payload || {};
+      if (!newPhone) return res.json({ status: false, message: 'New phone number required' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { phone: newPhone }
+      });
+      await logAdminAction(admin.id, 'Updated Phone Number', `New Phone: ${newPhone}`);
+    } else {
+      return res.json({ status: false, message: 'Invalid verification type' });
+    }
+
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+    res.json({ status: true, message: 'Verification successful and updates saved' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 router.get('/me', requireAdmin, async (req, res) => {
-  const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId }, select: { id: true, name: true, email: true, role: true, image: true } });
+  const admin = await prisma.admin.findUnique({
+    where: { id: req.session.adminId },
+    select: { id: true, name: true, email: true, role: true, image: true, phone: true, twoFactorEnabled: true }
+  });
   res.json({ status: true, admin });
 });
 

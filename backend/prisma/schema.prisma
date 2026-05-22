@@ -18,14 +18,18 @@ model Setting {
 
 // ─── Admin Users ───
 model Admin {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  email       String   @unique @db.VarChar(150)
-  password    String   @db.VarChar(255)
-  image       String?  @db.VarChar(500)
-  role        String   @default("admin") @db.VarChar(20)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(100)
+  email            String   @unique @db.VarChar(150)
+  password         String   @db.VarChar(255)
+  phone            String?  @db.VarChar(15)
+  twoFactorEnabled Boolean  @default(false) @map("two_factor_enabled")
+  otp              String?  @db.VarChar(10)
+  otpExpiry        DateTime? @map("otp_expiry")
+  image            String?  @db.VarChar(500)
+  role             String   @default("admin") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   collections DeliveryCollection[]
   logs        AdminLog[]

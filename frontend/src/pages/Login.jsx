@@ -3,17 +3,11 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import Breadcrumb from '../components/Breadcrumb';
-import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
-
-// New Assets
-import loginBg from '../assets/figma/image_find/login_page.png';
-import yogisLogo from '../assets/figma/image_find/Yogis-Farms-Logo.png';
 
 const Login = () => {
     const [phone, setPhone] = useState('');
-    const [otp, setOtp] = useState('');
+    const [otpVals, setOtpVals] = useState(['', '', '', '', '', '']);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [step, setStep] = useState(1);
@@ -32,13 +26,17 @@ const Login = () => {
     }, [user, authLoading, navigate, redirect]);
 
     const sendOtp = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        if (!phone || phone.length < 10) {
+            return toast.error('Please enter a valid 10-digit mobile number');
+        }
         setSendingOtp(true);
         try {
             const res = await api.post('/auth/send-otp', { phone });
             if (res.data.status) {
                 toast.success(res.data.message);
                 setStep(2);
+                setOtpVals(['', '', '', '', '', '']);
             } else {
                 toast.error(res.data.message);
             }
@@ -50,16 +48,20 @@ const Login = () => {
     };
 
     const verifyOtp = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        const otpCode = otpVals.join('');
+        if (otpCode.length < 6) {
+            return toast.error('Please enter the 6-digit OTP code');
+        }
         setVerifyingOtp(true);
         try {
-            const res = await api.post('/auth/verify-otp', { phone, otp });
+            const res = await api.post('/auth/verify-otp', { phone, otp: otpCode });
             if (res.data.status) {
                 toast.success(res.data.message);
                 if (res.data.needsDetails) {
                     setStep(3);
                 } else {
-                    await fetchUser();  // Wait for user state to be set BEFORE navigating
+                    await fetchUser();
                     fetchCart();
                     navigate(redirect);
                 }
@@ -90,144 +92,315 @@ const Login = () => {
         }
     };
 
+    // Auto-shifting OTP input functions
+    const handleOtpChange = (index, value) => {
+        if (value && !/^\d+$/.test(value)) return; // numbers only
+        const char = value.slice(-1);
+        const nextVals = [...otpVals];
+        nextVals[index] = char;
+        setOtpVals(nextVals);
+
+        if (char && index < 5) {
+            const nextInput = document.getElementById(`otp-input-${index + 1}`);
+            if (nextInput) nextInput.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index, e) => {
+        if (e.key === 'Backspace') {
+            if (!otpVals[index] && index > 0) {
+                const nextVals = [...otpVals];
+                nextVals[index - 1] = '';
+                setOtpVals(nextVals);
+                const prevInput = document.getElementById(`otp-input-${index - 1}`);
+                if (prevInput) prevInput.focus();
+            } else {
+                const nextVals = [...otpVals];
+                nextVals[index] = '';
+                setOtpVals(nextVals);
+            }
+        }
+    };
+
+    const handleOtpPaste = (e) => {
+        const pastedData = e.clipboardData.getData('text').trim();
+        if (/^\d{6}$/.test(pastedData)) {
+            const digits = pastedData.split('');
+            setOtpVals(digits);
+            const lastInput = document.getElementById('otp-input-5');
+            if (lastInput) lastInput.focus();
+            e.preventDefault();
+        }
+    };
+
     return (
-        <main className="main">
-            <div className="page-header breadcrumb-wrap" style={{ margin: '0 0 20px 0' }}>
-                <div className="container">
-                    <div className="breadcrumb">
-                        <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
-                        <span></span> Login
-                    </div>
-                </div>
-            </div>
+        <main className="main" style={{ minHeight: '80vh', background: '#FFF', display: 'flex', flexDirection: 'column' }}>
+            {/* STYLES BLOCK FOR FIGMA PIXEL-PERFECT RESPONSIBILITY */}
+            <style>{`
+                .login-split-container {
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr;
+                    gap: 50px;
+                    align-items: center;
+                    max-width: 1200px;
+                    width: 100%;
+                    margin: 60px auto;
+                    padding: 0 20px;
+                    box-sizing: border-box;
+                }
 
-            <div className="container mb-80 mt-80">
-                <div className="row align-items-center">
-                    {/* Left side illustration */}
-                    <div className="col-lg-6 pr-30 d-none d-lg-block text-center position-relative">
-                        <div style={{ position: 'relative', borderRadius: '15px', overflow: 'hidden', maxWidth: '420px', margin: '0 auto' }}>
-                            <img src={loginBg} alt="Login Background" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                                <img src={yogisLogo} alt="YogisFarms Logo" style={{ width: '100px' }} />
-                            </div>
-                        </div>
-                    </div>
+                .login-illustration-card {
+                    border-radius: 28px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px;
+                    min-height: 520px;
+                    transition: background 0.3s ease;
+                }
+
+                .login-illustration-img {
+                    max-width: 100%;
+                    max-height: 420px;
+                    object-fit: contain;
+                }
+
+                .login-form-card {
+                    background: #F7F7F7;
+                    border-radius: 28px;
+                    padding: 60px 40px;
+                    max-width: 482px;
+                    width: 100%;
+                    margin: 0 auto;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.02);
+                }
+
+                .login-title {
+                    color: #0A6738;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 26px;
+                    font-weight: 700;
+                    margin: 0 0 10px;
+                    text-transform: capitalize;
+                }
+
+                .login-subtitle {
+                    color: #000;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 14px;
+                    font-weight: 500;
+                    margin: 0 0 24px;
+                    text-transform: capitalize;
+                }
+
+                .login-input-mobile {
+                    width: 100%;
+                    height: 56px;
+                    border-radius: 6px;
+                    border: 1px solid #000;
+                    background: #FFF;
+                    font-size: 15px;
+                    padding: 0 16px;
+                    box-sizing: border-box;
+                    font-family: 'Poppins', sans-serif;
+                    margin-bottom: 24px;
+                    outline: none;
+                }
+
+                .login-input-mobile:focus {
+                    border-color: #0A6738;
+                    box-shadow: 0 0 0 2px rgba(10, 103, 56, 0.1);
+                }
+
+                .login-otp-container {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 10px;
+                    margin-bottom: 24px;
+                }
+
+                .login-otp-box {
+                    width: 52px;
+                    height: 56px;
+                    border-radius: 6px;
+                    border: 1px solid #000;
+                    background: #FFF;
+                    text-align: center;
+                    font-size: 20px;
+                    font-weight: 600;
+                    font-family: 'Poppins', sans-serif;
+                    box-sizing: border-box;
+                }
+
+                .login-otp-box:focus {
+                    border-color: #0A6738;
+                    outline: none;
+                    box-shadow: 0 0 0 2px rgba(10, 103, 56, 0.1);
+                }
+
+                .login-btn-submit {
+                    width: 100%;
+                    height: 56px;
+                    border-radius: 12px;
+                    background: #0A6738;
+                    color: #FFF;
+                    font-family: 'Poppins', sans-serif;
+                    font-size: 16px;
+                    font-weight: 600;
+                    border: none;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s ease, transform 0.1s ease;
+                }
+
+                .login-btn-submit:hover {
+                    background: #08522c;
+                }
+
+                .login-btn-submit:active {
+                    transform: scale(0.98);
+                }
+
+                .login-link-action {
+                    color: #0A6738;
+                    font-weight: 600;
+                    text-decoration: underline;
+                    cursor: pointer;
+                }
+
+                @media (max-width: 991px) {
+                    .login-split-container {
+                        grid-template-columns: 1fr;
+                        gap: 30px;
+                        margin: 30px auto;
+                    }
+
+                    .login-illustration-card {
+                        min-height: auto;
+                        padding: 20px;
+                    }
+
+                    .login-illustration-img {
+                        max-height: 280px;
+                    }
+
+                    .login-form-card {
+                        padding: 40px 24px;
+                    }
+                }
+            `}</style>
+
+            <div className="login-split-container">
+                {/* LEFT SIDE ILLUSTRATION (DYNAMIC SVGs BASED ON STEP) */}
+                <div 
+                    className="login-illustration-card" 
+                    style={{ background: step === 1 ? '#FFF' : '#EBFFF5' }}
+                >
+                    <img 
+                        src={step === 1 ? "/assets/imgs/login.svg" : "/assets/imgs/Enter_OTP.svg"} 
+                        alt={step === 1 ? "Computer Login" : "Enter OTP Verification"} 
+                        className="login-illustration-img"
+                        onError={(e) => {
+                            // Fallback in case images are in assets directory instead of public
+                            e.target.src = step === 1 
+                                ? "https://api.builder.io/api/v1/image/assets/TEMP/cae29a5bf4aa55dc7ba69fa252f1eb5d1215a326"
+                                : "https://api.builder.io/api/v1/image/assets/TEMP/5b5ba67e60cbcc3d282e90c4665b6237de000e16";
+                        }}
+                    />
+                </div>
+
+                {/* RIGHT SIDE FORM CARD */}
+                <div className="login-form-card">
+                    <h2 className="login-title">Welcome Back</h2>
                     
-                    {/* Right side Form */}
-                    <div className="col-lg-6 col-md-8 offset-lg-0 offset-md-2">
-                        <div className="login_wrap widget-taber-content p-30 background-white border-radius-5">
-                            <div className="padding_eight_all bg-white" style={{ textAlign: 'center' }}>
-                                <div className="heading_s1" style={{ marginBottom: '40px' }}>
-                                    <h2 style={{ fontSize: '36px', color: '#253D4E', fontWeight: '800' }}>
-                                        {step === 1 ? 'Enter Your Mobile Number' : step === 2 ? 'Enter OTP Code' : 'Register'}
-                                    </h2>
-                                </div>
-                                
-                                {step === 1 && (
-                                    <form onSubmit={sendOtp} style={{ maxWidth: '400px', margin: '0 auto' }}>
-                                        <div className="form-group mb-30">
-                                            <input 
-                                                type="text" 
-                                                value={phone} 
-                                                onChange={(e) => setPhone(e.target.value)} 
-                                                name="phone" 
-                                                placeholder="Mobile Number" 
-                                                required 
-                                                style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0, borderBottom: '2px solid #eee', fontSize: '18px', textAlign: 'center' }}
-                                            />
-                                        </div>
-                                        <div className="form-group mb-30" style={{ textAlign: 'left' }}>
-                                            <button 
-                                                type="submit" 
-                                                disabled={sendingOtp}
-                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold', opacity: sendingOtp ? 0.7 : 1, cursor: sendingOtp ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                {sendingOtp ? 'Sending...' : 'Send OTP'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
+                    {step === 1 && (
+                        <form onSubmit={sendOtp}>
+                            <p className="login-subtitle">Enter your mobile number</p>
+                            <input 
+                                type="text"
+                                className="login-input-mobile"
+                                placeholder="mobile number"
+                                value={phone}
+                                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                required
+                            />
+                            <button type="submit" disabled={sendingOtp} className="login-btn-submit">
+                                {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                            </button>
+                        </form>
+                    )}
 
-                                {step === 2 && (
-                                    <form onSubmit={verifyOtp} style={{ maxWidth: '400px', margin: '0 auto' }}>
-                                        <div className="form-group mb-20">
-                                            <input 
-                                                type="text" 
-                                                value={phone} 
-                                                readOnly 
-                                                className="bg-light"
-                                                style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0, borderBottom: '2px solid #ececec', fontSize: '18px', textAlign: 'center', color: '#7E7E7E' }} 
-                                            />
-                                        </div>
-                                        <div className="form-group mb-30">
-                                            <input 
-                                                type="text" 
-                                                value={otp} 
-                                                onChange={(e) => setOtp(e.target.value)} 
-                                                name="otp" 
-                                                placeholder="Enter 6-digit OTP" 
-                                                required 
-                                                style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: 0, borderBottom: '2px solid #253D4E', fontSize: '18px', textAlign: 'center' }}
-                                            />
-                                        </div>
-                                        <div className="login_footer form-group mb-30" style={{ textAlign: 'left' }}>
-                                            <div className="text-muted">
-                                                Didn't receive? <a href="#!" onClick={sendOtp} style={{ color: '#046938', fontWeight: 'bold' }}>Resend OTP</a>
-                                            </div>
-                                        </div>
-                                        <div className="form-group" style={{ textAlign: 'left' }}>
-                                            <button 
-                                                type="submit" 
-                                                disabled={verifyingOtp}
-                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold', opacity: verifyingOtp ? 0.7 : 1, cursor: verifyingOtp ? 'not-allowed' : 'pointer' }}
-                                            >
-                                                {verifyingOtp ? 'Verifying...' : 'Verify & Login'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
-
-                                {step === 3 && (
-                                    <form onSubmit={submitDetails} style={{ maxWidth: '400px', margin: '0 auto', textAlign: 'left' }}>
-                                        <div className="form-group mb-30">
-                                            <input 
-                                                type="text" 
-                                                value={name} 
-                                                onChange={(e) => setName(e.target.value)} 
-                                                name="name" 
-                                                placeholder="Name" 
-                                                required 
-                                                style={{ border: '1px solid #ececec', borderRadius: '5px', height: '50px', padding: '0 20px', width: '100%', fontSize: '16px' }}
-                                            />
-                                        </div>
-                                        <div className="form-group mb-30">
-                                            <input 
-                                                type="email" 
-                                                value={email} 
-                                                onChange={(e) => setEmail(e.target.value)} 
-                                                name="email" 
-                                                placeholder="Email" 
-                                                required 
-                                                style={{ border: '1px solid #ececec', borderRadius: '5px', height: '50px', padding: '0 20px', width: '100%', fontSize: '16px' }}
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <button 
-                                                type="submit" 
-                                                style={{ backgroundColor: '#046938', color: '#fff', border: 'none', padding: '15px 40px', borderRadius: '5px', fontWeight: 'bold' }}
-                                            >
-                                                Submit
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
+                    {step === 2 && (
+                        <form onSubmit={verifyOtp}>
+                            <p className="login-subtitle">
+                                Enter code sent to +91 {phone} <span onClick={() => setStep(1)} className="login-link-action" style={{fontSize: '12px', marginLeft: '5px'}}>Change</span>
+                            </p>
+                            <div className="login-otp-container" onPaste={handleOtpPaste}>
+                                {otpVals.map((val, idx) => (
+                                    <input 
+                                        key={idx}
+                                        id={`otp-input-${idx}`}
+                                        type="text"
+                                        className="login-otp-box"
+                                        maxLength={1}
+                                        value={val}
+                                        onChange={e => handleOtpChange(idx, e.target.value)}
+                                        onKeyDown={e => handleOtpKeyDown(idx, e)}
+                                        required
+                                    />
+                                ))}
                             </div>
-                        </div>
-                    </div>
+                            <button type="submit" disabled={verifyingOtp} className="login-btn-submit" style={{marginBottom: '15px'}}>
+                                {verifyingOtp ? 'Verifying...' : 'Verify & Login'}
+                            </button>
+                            <div style={{textAlign: 'center', fontSize: '13px', color: '#666'}}>
+                                Didn't receive code? <span onClick={sendOtp} className="login-link-action">Resend OTP</span>
+                            </div>
+                        </form>
+                    )}
+
+                    {step === 3 && (
+                        <form onSubmit={submitDetails}>
+                            <p className="login-subtitle">Please complete your registration</p>
+                            
+                            <div style={{marginBottom: '15px'}}>
+                                <label style={{fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '5px'}}>Full Name</label>
+                                <input 
+                                    type="text"
+                                    className="login-input-mobile"
+                                    placeholder="Enter your name"
+                                    value={name}
+                                    onChange={e => setName(e.target.value)}
+                                    required
+                                    style={{marginBottom: 0}}
+                                />
+                            </div>
+
+                            <div style={{marginBottom: '24px'}}>
+                                <label style={{fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '5px'}}>Email Address</label>
+                                <input 
+                                    type="email"
+                                    className="login-input-mobile"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    required
+                                    style={{marginBottom: 0}}
+                                />
+                            </div>
+
+                            <button type="submit" className="login-btn-submit">
+                                Submit Details
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
-            
-            <FeatureBanners />
         </main>
     );
 };
