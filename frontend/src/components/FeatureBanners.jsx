@@ -13,7 +13,7 @@ import vegan from '../assets/figma/image_find/vegan 1.svg';
 import vector1 from '../assets/figma/image_find/Vector (1).svg';
 import freshLayer from '../assets/figma/image_find/freshlayer.svg';
 import findUs from '../assets/figma/image_find/findus.svg';
-import feedbackProfile from '../assets/figma/image_find/feedback_profile.jpg';
+const feedbackProfile = '/assets/imgs/feedback_avatar.svg';
 
 export const Testimonials = () => {
     return (
