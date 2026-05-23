@@ -162,9 +162,14 @@ const Payment = () => {
                         },
                         theme: { color: "#046938" },
                         modal: {
-                            ondismiss: function() {
+                            ondismiss: async function() {
                                 // User canceled the payment, purge razorpay and reset state
                                 setLoading(false);
+                                try {
+                                    await api.post('/orders/payment-failed', { orderNumber: res.data.orderNumber });
+                                } catch (err) {
+                                    console.error('Failed to notify backend of payment dismissal:', err);
+                                }
                                 const rzpScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
                                 if (rzpScript) rzpScript.remove();
                                 const rzpContainer = document.querySelector('.razorpay-container');
@@ -174,8 +179,13 @@ const Payment = () => {
                         }
                     };
                     const rzp = new window.Razorpay(options);
-                    rzp.on('payment.failed', function (response){
+                    rzp.on('payment.failed', async function (response){
                         toast.error(response.error.description || 'Payment Failed');
+                        try {
+                            await api.post('/orders/payment-failed', { orderNumber: res.data.orderNumber });
+                        } catch (err) {
+                            console.error('Failed to notify backend of payment failure:', err);
+                        }
                     });
                     rzp.open();
                 } else {

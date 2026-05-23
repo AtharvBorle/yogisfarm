@@ -166,11 +166,11 @@ const Dashboard = () => {
     const orderBadge = (status) => {
         const bgColors = {
             placed: '#fff4e5', pending: '#fff4e5', confirmed: '#e3f2fd', processing: '#e0d4f5',
-            shipped: '#cce5ff', out_for_delivery: '#ffe8cc', delivered: '#e6f4ea', cancelled: '#f8d7da', returned: '#e2e3e5'
+            shipped: '#cce5ff', out_for_delivery: '#ffe8cc', delivered: '#e6f4ea', cancelled: '#f8d7da', returned: '#e2e3e5', failed: '#f8d7da'
         };
         const textColors = {
             placed: '#ff9800', pending: '#ff9800', confirmed: '#007bff', processing: '#6f42c1',
-            shipped: '#0056b3', out_for_delivery: '#fd7e14', delivered: '#3BB77E', cancelled: '#dc3545', returned: '#383d41'
+            shipped: '#0056b3', out_for_delivery: '#fd7e14', delivered: '#3BB77E', cancelled: '#dc3545', returned: '#383d41', failed: '#dc3545'
         };
         return { bg: bgColors[status] || '#f0f0f0', color: textColors[status] || '#555' };
     };

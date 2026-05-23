@@ -534,4 +534,39 @@ router.post('/review', requireLogin, async (req, res) => {
   }
 });
 
+// Mark order as failed when payment is cancelled or failed on the frontend
+router.post('/payment-failed', requireLogin, async (req, res) => {
+  try {
+    const { orderNumber } = req.body;
+    const userId = req.session.userId;
+
+    const order = await prisma.order.findUnique({
+      where: { orderNumber }
+    });
+
+    if (!order) {
+      return res.json({ status: false, message: 'Order not found' });
+    }
+
+    if (order.userId !== userId) {
+      return res.json({ status: false, message: 'Unauthorized' });
+    }
+
+    // Only update if it is currently pending
+    if (order.paymentStatus === 'pending') {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          orderStatus: 'failed',
+          paymentStatus: 'failed'
+        }
+      });
+    }
+
+    res.json({ status: true, message: 'Order marked as failed' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 module.exports = router;
