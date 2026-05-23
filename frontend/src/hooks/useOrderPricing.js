@@ -18,13 +18,14 @@ export function useOrderPricing(cartItems, couponCode = null) {
     totalTax: 0,
     shipping: 0,
     discountAmount: 0,
-    grandTotal: 0
+    grandTotal: 0,
+    coupon: null
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!cartItems || cartItems.length === 0) {
-      setPricing({ offerPriceSum: 0, subtotalBase: 0, totalTax: 0, shipping: 0, discountAmount: 0, grandTotal: 0 });
+      setPricing({ offerPriceSum: 0, subtotalBase: 0, totalTax: 0, shipping: 0, discountAmount: 0, grandTotal: 0, coupon: null });
       setLoading(false);
       return;
     }
@@ -41,7 +42,8 @@ export function useOrderPricing(cartItems, couponCode = null) {
             totalTax: res.data.pricing.totalTax,
             shipping: res.data.pricing.shipping,
             discountAmount: res.data.pricing.discountAmount,
-            grandTotal: res.data.pricing.grandTotal
+            grandTotal: res.data.pricing.grandTotal,
+            coupon: res.data.pricing.coupon
           });
         }
       })

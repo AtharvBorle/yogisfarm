@@ -34,7 +34,17 @@ const Payment = () => {
     const [loading, setLoading] = useState(false);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
+    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, coupon, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
+
+    // Auto-validate and purge coupon if it expires, is deactivated, or minimum order value criteria is no longer met
+    useEffect(() => {
+        if (!pricingLoading && appliedCoupon && !coupon) {
+            setAppliedCoupon('');
+            setCouponCode('');
+            sessionStorage.removeItem('applied_coupon');
+            toast.error('The applied coupon is no longer valid or minimum order value is not met');
+        }
+    }, [coupon, pricingLoading, appliedCoupon]);
 
     useEffect(() => {
         // Cleanup Razorpay on unmount to prevent background SPA polling
