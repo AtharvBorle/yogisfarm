@@ -110,20 +110,20 @@ const Dashboard = () => {
         if (value.length === 6) {
             setLoadingPincode(true);
             try {
-                const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-                const data = await res.json();
-                if (data && data[0].Status === 'Success') {
-                    const postOffice = data[0].PostOffice[0];
+                const res = await api.get(`/addresses/pincode/${value}`);
+                if (res.data.status && res.data.data && res.data.data[0] && res.data.data[0].Status === 'Success') {
+                    const postOffice = res.data.data[0].PostOffice[0];
                     setNewAddress(prev => ({
                         ...prev,
-                        city: postOffice.District,
-                        state: postOffice.State
+                        city: postOffice.District || postOffice.Block || postOffice.Region || '',
+                        state: postOffice.State || ''
                     }));
                 } else {
                     toast.error('Invalid Pincode');
                 }
             } catch (err) {
                 console.error("Error fetching pincode data", err);
+                toast.error('Failed to auto-fetch address. Please enter City and Division manually.');
             } finally {
                 setLoadingPincode(false);
             }

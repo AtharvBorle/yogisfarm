@@ -22,10 +22,12 @@ export function useOrderPricing(cartItems, couponCode = null) {
     coupon: null
   });
   const [loading, setLoading] = useState(true);
+  const [lastCalculatedCouponCode, setLastCalculatedCouponCode] = useState(null);
 
   useEffect(() => {
     if (!cartItems || cartItems.length === 0) {
       setPricing({ offerPriceSum: 0, subtotalBase: 0, totalTax: 0, shipping: 0, discountAmount: 0, grandTotal: 0, coupon: null });
+      setLastCalculatedCouponCode(null);
       setLoading(false);
       return;
     }
@@ -49,11 +51,16 @@ export function useOrderPricing(cartItems, couponCode = null) {
       })
       .catch(console.error)
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLastCalculatedCouponCode(couponCode);
+          setLoading(false);
+        }
       });
 
     return () => { isMounted = false; };
   }, [cartItems, couponCode]);
 
-  return { ...pricing, loading };
+  const isOutofSync = couponCode !== lastCalculatedCouponCode;
+
+  return { ...pricing, loading: loading || isOutofSync };
 }

@@ -71,10 +71,9 @@ const Checkout = () => {
         if (value.length === 6) {
             setLoadingPincode(true);
             try {
-                const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-                const data = await res.json();
-                if (data && data[0] && data[0].Status === 'Success') {
-                    const postOffice = data[0].PostOffice[0];
+                const res = await api.get(`/addresses/pincode/${value}`);
+                if (res.data.status && res.data.data && res.data.data[0] && res.data.data[0].Status === 'Success') {
+                    const postOffice = res.data.data[0].PostOffice[0];
                     setNewAddress(prev => ({
                         ...prev,
                         state: postOffice.State || '',
@@ -85,6 +84,7 @@ const Checkout = () => {
                 }
             } catch (err) {
                 console.error(err);
+                toast.error('Failed to auto-fetch address. Please enter City and Division manually.');
             } finally {
                 setLoadingPincode(false);
             }

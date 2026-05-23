@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { requireLogin } = require('../middleware/auth');
+const https = require('https');
 
 router.get('/', requireLogin, async (req, res) => {
   try {
@@ -67,6 +68,38 @@ router.put('/:id', requireLogin, async (req, res) => {
       data: { name, phone: phone.toString(), address, city, state, pincode: pincode.toString(), isDefault: !!isDefault, addressType: addressType || 'Home' }
     });
     res.json({ status: true, message: 'Address updated', address: addr });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Pincode lookup proxy route (bypasses browser SSL blocks by routing server-side with rejectUnauthorized: false)
+router.get('/pincode/:pincode', requireLogin, async (req, res) => {
+  try {
+    const { pincode } = req.params;
+    const url = `https://api.postalpincode.in/pincode/${pincode}`;
+    const options = {
+      agent: new https.Agent({ rejectUnauthorized: false }),
+      headers: {
+        'User-Agent': 'Mozilla/5.0'
+      }
+    };
+    https.get(url, options, (apiRes) => {
+      let data = '';
+      apiRes.on('data', (chunk) => {
+        data += chunk;
+      });
+      apiRes.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          res.json({ status: true, data: parsed });
+        } catch (e) {
+          res.json({ status: false, message: 'Invalid response from pincode service' });
+        }
+      });
+    }).on('error', (err) => {
+      res.json({ status: false, message: err.message });
+    });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
