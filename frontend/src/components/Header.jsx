@@ -159,7 +159,7 @@ const Header = () => {
                         </div>
 
                         {/* Navigation Menu */}
-                        <div className="header-nav d-none d-xl-flex" style={{ flexShrink: 1, marginRight: 'auto', padding: 0, margin: 0 }}>
+                        <div className="header-nav d-none d-lg-flex" style={{ flexShrink: 1, marginRight: 'auto', padding: 0, margin: 0 }}>
                             <style dangerouslySetInnerHTML={{
                                 __html: `
                                 .logo.logo-width-1 { padding: 0 !important; margin: 0 !important; }
@@ -184,8 +184,12 @@ const Header = () => {
                                 .search-btn-no-radius {
                                     border-radius: 0 !important;
                                 }
+                                .header-middle .header-action-right {
+                                    display: flex !important;
+                                    align-items: center !important;
+                                }
                             `}} />
-                            <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-xl-block font-heading">
+                            <div className="main-menu main-menu-padding-1 main-menu-lh-2 d-none d-lg-block font-heading">
                                 <nav>
                                     <ul style={{ display: 'flex', gap: '6px', margin: 0, padding: 0, listStyle: 'none', whiteSpace: 'nowrap' }}>
                                         <li><Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`} style={{ fontSize: '12px', fontFamily: 'Poppins, sans-serif', textTransform: 'uppercase', fontWeight: 600 }}>Home</Link></li>
@@ -463,7 +467,7 @@ const Header = () => {
                                         </div>
                                     )}
                                 </div>
-                                <div className="header-action-icon-2 d-xl-none" style={{ marginLeft: '10px' }}>
+                                <div className="header-action-icon-2 d-lg-none" style={{ marginLeft: '10px' }}>
                                     <div className="burger-icon" onClick={() => setIsMobileMenuOpen(true)}>
                                         <span className="burger-icon-top" style={{ backgroundColor: '#0A6738' }}></span>
                                         <span className="burger-icon-mid" style={{ backgroundColor: '#0A6738' }}></span>
