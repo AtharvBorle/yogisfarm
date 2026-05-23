@@ -102,6 +102,12 @@ const Home = () => {
     const [popularProducts, setPopularProducts] = useState([]);
     const [dealProducts, setDealProducts] = useState([]);
 
+    // Automated Compact Dynamic Lists
+    const [topSellingList, setTopSellingList] = useState([]);
+    const [trendingList, setTrendingList] = useState([]);
+    const [recentlyAddedList, setRecentlyAddedList] = useState([]);
+    const [topRatedList, setTopRatedList] = useState([]);
+
     const [sections, setSections] = useState([]);
 
     const [popularPage, setPopularPage] = useState(1);
@@ -117,8 +123,9 @@ const Home = () => {
             api.get('/categories?featured=true'),
             api.get('/products?featured=true&limit=10'),
             api.get('/products?deal=true&limit=10'),
-            api.get('/sections')
-        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, dealRes, secRes]) => {
+            api.get('/sections'),
+            api.get('/products/homepage-lists?limit=3')
+        ]).then(([mainRes, topRes, midRes, bottomRes, catRes, featuredRes, dealRes, secRes, listRes]) => {
             if (mainRes.data.status) setMainSliders(mainRes.data.sliders);
             if (topRes.data.status) setTopSliders(topRes.data.sliders);
             if (midRes.data.status) setMiddleSliders(midRes.data.sliders);
@@ -127,6 +134,12 @@ const Home = () => {
             if (featuredRes.data.status) setFeaturedProducts(featuredRes.data.products);
             if (dealRes.data.status) setDealProducts(dealRes.data.products);
             if (secRes.data.status) setSections(secRes.data.sections);
+            if (listRes && listRes.data.status) {
+                setTopSellingList(listRes.data.topSelling || []);
+                setTrendingList(listRes.data.trending || []);
+                setRecentlyAddedList(listRes.data.recentlyAdded || []);
+                setTopRatedList(listRes.data.topRated || []);
+            }
         }).catch(err => console.error(err));
     }, []);
 
@@ -829,7 +842,7 @@ const Home = () => {
                         <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
                             <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                {popularProducts.slice(0, 3).map(p => (
+                                {topSellingList.map(p => (
                                     <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
@@ -839,7 +852,7 @@ const Home = () => {
                         <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
                             <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                {dealProducts.slice(0, 3).map(p => (
+                                {trendingList.map(p => (
                                     <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
@@ -849,11 +862,7 @@ const Home = () => {
                         <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
                             <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                {popularProducts.length > 3 ? popularProducts.slice(3, 6).map(p => (
-                                    <div key={p.id}>
-                                        <ProductSmallCard product={p} />
-                                    </div>
-                                )) : dealProducts.slice(0, 3).map(p => (
+                                {recentlyAddedList.map(p => (
                                     <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
@@ -863,7 +872,7 @@ const Home = () => {
                         <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
                             <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
                             <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                {featuredProducts.slice(0, 3).map(p => (
+                                {topRatedList.map(p => (
                                     <div key={p.id}>
                                         <ProductSmallCard product={p} />
                                     </div>
@@ -872,12 +881,12 @@ const Home = () => {
                         </div>
                     </div>
 
-                    {/* Mobile Horizontal Scrolling Compact Product View */}
+                    {/* Mobile Horizontal Scrolling Compact Product View (Dynamic & limited to 3 items) */}
                     <div className="d-flex d-md-none flex-column" style={{ gap: '25px' }}>
                         <div>
                             <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
                             <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                {popularProducts.slice(0, 5).map(p => (
+                                {topSellingList.map(p => (
                                     <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
                                         <ProductSmallCard product={p} isMobile={true} />
                                     </div>
@@ -887,7 +896,7 @@ const Home = () => {
                         <div>
                             <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
                             <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                {dealProducts.slice(0, 5).map(p => (
+                                {trendingList.map(p => (
                                     <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
                                         <ProductSmallCard product={p} isMobile={true} />
                                     </div>
@@ -897,7 +906,7 @@ const Home = () => {
                         <div>
                             <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
                             <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                {(popularProducts.length > 3 ? popularProducts.slice(3, 8) : dealProducts.slice(0, 5)).map(p => (
+                                {recentlyAddedList.map(p => (
                                     <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
                                         <ProductSmallCard product={p} isMobile={true} />
                                     </div>
@@ -907,7 +916,7 @@ const Home = () => {
                         <div>
                             <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
                             <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                {featuredProducts.slice(0, 5).map(p => (
+                                {topRatedList.map(p => (
                                     <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
                                         <ProductSmallCard product={p} isMobile={true} />
                                     </div>

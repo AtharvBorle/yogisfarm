@@ -91,7 +91,42 @@ const Checkout = () => {
         }
     };
 
+    const validateAddressText = (addressText) => {
+        const trimmed = (addressText || '').trim();
+        
+        if (trimmed.length < 10) {
+            return {
+                isValid: false,
+                message: 'Address must be at least 10 characters long to be meaningful.'
+            };
+        }
+
+        const words = trimmed.split(/\s+/).filter(w => w.length > 0);
+        if (words.length < 2) {
+            return {
+                isValid: false,
+                message: 'Address must contain at least 2 words (e.g., street name and landmark).'
+            };
+        }
+
+        const hasNumber = /\d/.test(trimmed);
+        const hasComma = trimmed.includes(',');
+        if (!hasNumber && !hasComma) {
+            return {
+                isValid: false,
+                message: 'Please provide a more specific address with details like flat/lane number or use commas to separate parts (e.g. MG Road, Pune).'
+            };
+        }
+
+        return { isValid: true };
+    };
+
     const handleSaveAddress = async () => {
+        const validation = validateAddressText(newAddress.address);
+        if (!validation.isValid) {
+            toast.error(validation.message);
+            return;
+        }
         try {
             const payload = { ...newAddress, isDefault: addresses.length === 0 || newAddress.isDefault };
             const res = await api.post('/addresses', payload);
