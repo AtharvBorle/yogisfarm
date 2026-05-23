@@ -27,8 +27,13 @@ const BulkInvoice = () => {
                 try {
                     const settingsRes = await api.get('/settings');
                     if (settingsRes.data.status && settingsRes.data.settings) {
-                        const gstObj = settingsRes.data.settings.find(s => s.key === 'gst_number');
-                        if (gstObj) setGstNumber(gstObj.value);
+                        const settings = settingsRes.data.settings;
+                        if (Array.isArray(settings)) {
+                            const gstObj = settings.find(s => s.key === 'gst_number');
+                            if (gstObj) setGstNumber(gstObj.value);
+                        } else if (settings && typeof settings === 'object') {
+                            if (settings.gst_number) setGstNumber(settings.gst_number);
+                        }
                     }
                 } catch (e) {}
 

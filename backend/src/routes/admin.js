@@ -1380,24 +1380,6 @@ router.delete('/coupons/:id', requireAdmin, async (req, res) => {
   res.json({ status: true, message: 'Coupon deleted' });
 });
 
-// ─── Settings ───
-router.get('/settings', requireAdmin, async (req, res) => {
-  const settings = await prisma.setting.findMany();
-  res.json({ status: true, settings });
-});
-
-router.put('/settings', requireAdmin, async (req, res) => {
-  try {
-    const { settings } = req.body;
-    for (const [key, value] of Object.entries(settings)) {
-      await prisma.setting.upsert({ where: { key }, create: { key, value }, update: { value } });
-    }
-    res.json({ status: true, message: 'Settings updated' });
-  } catch (e) {
-    res.json({ status: false, message: e.message });
-  }
-});
-
 // ─── Sections CRUD ───
 router.get('/sections', requireAdmin, async (req, res) => {
   const sections = await prisma.section.findMany({ include: { category: true }, orderBy: { sortOrder: 'asc' } });
