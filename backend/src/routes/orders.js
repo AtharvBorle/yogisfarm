@@ -501,8 +501,22 @@ router.post('/review', requireLogin, async (req, res) => {
     const { productId, rating, comment } = req.body;
     const userId = req.session.userId;
 
+    const pId = parseInt(productId);
+    if (!productId || isNaN(pId)) {
+      return res.json({ status: false, message: 'Product not found' });
+    }
+
+    const productExists = await prisma.product.findUnique({ where: { id: pId } });
+    if (!productExists) {
+      return res.json({ status: false, message: 'Product not found' });
+    }
+
+    if (comment && comment.length > 200) {
+      return res.json({ status: false, message: 'Review comment cannot exceed 200 characters' });
+    }
+
     // Check if user already reviewed this product
-    const existing = await prisma.review.findFirst({ where: { userId, productId: parseInt(productId) } });
+    const existing = await prisma.review.findFirst({ where: { userId, productId: pId } });
     if (existing) {
       await prisma.review.update({
         where: { id: existing.id },
@@ -512,7 +526,7 @@ router.post('/review', requireLogin, async (req, res) => {
     }
 
     await prisma.review.create({
-      data: { userId, productId: parseInt(productId), rating: parseInt(rating), comment }
+      data: { userId, productId: pId, rating: parseInt(rating), comment }
     });
     res.json({ status: true, message: 'Review submitted' });
   } catch (e) {

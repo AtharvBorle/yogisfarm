@@ -86,6 +86,10 @@ const Product = () => {
             toast.error('Please enter a review comment');
             return;
         }
+        if (newComment.length > 200) {
+            toast.error('Review comment cannot exceed 200 characters');
+            return;
+        }
         try {
             const res = await api.post('/reviews', { 
                 productId: product.id, 
@@ -523,13 +527,17 @@ const Product = () => {
                                                                 <textarea 
                                                                     className="form-control" 
                                                                     value={newComment} 
-                                                                    onChange={e => setNewComment(e.target.value)} 
+                                                                    onChange={e => setNewComment(e.target.value.slice(0, 200))} 
                                                                     cols="30" 
                                                                     rows="6" 
                                                                     placeholder="Write your review here..." 
+                                                                    maxLength="200"
                                                                     style={{ padding: '15px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff', fontSize: '14px' }}
                                                                     required
                                                                 ></textarea>
+                                                                <div style={{ fontSize: '11px', color: newComment.length >= 200 ? '#ff0000' : '#777', textAlign: 'right', marginTop: '4px' }}>
+                                                                    {newComment.length}/200 characters
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="form-group">

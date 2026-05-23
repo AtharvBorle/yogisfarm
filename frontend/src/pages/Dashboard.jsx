@@ -131,6 +131,10 @@ const Dashboard = () => {
     };
 
     const handleSubmitReview = async () => {
+        if (reviewForm.comment.length > 200) {
+            toast.error('Review comment cannot exceed 200 characters');
+            return;
+        }
         try {
             const res = await api.post('/orders/review', { productId: reviewModal.productId, ...reviewForm });
             if (res.data.status) { toast.success(res.data.message); setReviewModal(null); setReviewForm({ rating: 5, comment: '' }); }
@@ -555,9 +559,13 @@ const Dashboard = () => {
                         </div>
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Comment</label>
-                            <textarea value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})}
+                            <textarea value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value.slice(0, 200)})}
+                                maxLength="200"
                                 style={{ width: '100%', border: '1px solid #e6e6e6', borderRadius: '6px', padding: '10px', minHeight: '80px', resize: 'vertical' }}
                                 placeholder="Write your review..." />
+                            <div style={{ fontSize: '11px', color: reviewForm.comment.length >= 200 ? '#ff0000' : '#777', textAlign: 'right', marginTop: '4px' }}>
+                                {reviewForm.comment.length}/200 characters
+                            </div>
                         </div>
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button onClick={() => setReviewModal(null)} style={{ padding: '8px 20px', border: '1px solid #ccc', borderRadius: '5px', background: '#fff', cursor: 'pointer' }}>Cancel</button>

@@ -19,8 +19,23 @@ router.get('/:productId', async (req, res) => {
 router.post('/', requireLogin, async (req, res) => {
   try {
     const { productId, rating, comment } = req.body;
+    
+    const pId = parseInt(productId);
+    if (!productId || isNaN(pId)) {
+      return res.json({ status: false, message: 'Product not found' });
+    }
+
+    const productExists = await prisma.product.findUnique({ where: { id: pId } });
+    if (!productExists) {
+      return res.json({ status: false, message: 'Product not found' });
+    }
+
+    if (comment && comment.length > 200) {
+      return res.json({ status: false, message: 'Review comment cannot exceed 200 characters' });
+    }
+
     const review = await prisma.review.create({
-      data: { userId: req.session.userId, productId: parseInt(productId), rating: parseInt(rating), comment }
+      data: { userId: req.session.userId, productId: pId, rating: parseInt(rating), comment }
     });
     res.json({ status: true, message: 'Review submitted', review });
   } catch (e) {

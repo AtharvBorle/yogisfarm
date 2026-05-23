@@ -24,8 +24,19 @@ const Contact = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!formData.name || !formData.phone || !formData.message || !formData.captcha) {
+        if (!formData.name || !formData.phone || !formData.subject || !formData.message || !formData.captcha) {
             toast.error("Please fill in all required fields");
+            return;
+        }
+
+        const subjectWords = formData.subject.trim().split(/\s+/).filter(Boolean);
+        if (subjectWords.length > 20) {
+            toast.error("Subject cannot exceed 20 words");
+            return;
+        }
+
+        if (formData.message.length > 200) {
+            toast.error("Message cannot exceed 200 characters");
             return;
         }
 
@@ -53,6 +64,8 @@ const Contact = () => {
             setIsSubmitting(false);
         }
     };
+
+    const subjectWords = formData.subject.trim().split(/\s+/).filter(Boolean);
 
     return (
         <main className="main" style={{ fontFamily: 'Poppins, sans-serif' }}>
@@ -158,18 +171,25 @@ const Contact = () => {
                                             name="subject" 
                                             value={formData.subject} 
                                             onChange={handleChange} 
-                                            placeholder="Subject" 
+                                            placeholder="Subject *" 
                                             style={{ width: '100%', height: '57px', borderRadius: '11px', border: '1px solid #000', padding: '0 20px', fontSize: '14px' }} 
                                         />
+                                        <div style={{ fontSize: '11px', color: subjectWords.length > 20 ? '#ff0000' : '#777', textAlign: 'right', marginTop: '4px', paddingRight: '5px' }}>
+                                            {subjectWords.length}/20 words
+                                        </div>
                                     </div>
                                     <div className="col-12 mb-20">
                                         <textarea 
                                             name="message" 
                                             value={formData.message} 
                                             onChange={handleChange} 
-                                            placeholder="Message" 
+                                            placeholder="Message *" 
+                                            maxLength="200"
                                             style={{ width: '100%', height: '134px', borderRadius: '11px', border: '1px solid #000', padding: '20px', fontSize: '14px', resize: 'none' }}
                                         ></textarea>
+                                        <div style={{ fontSize: '11px', color: formData.message.length >= 200 ? '#ff0000' : '#777', textAlign: 'right', marginTop: '4px', paddingRight: '5px' }}>
+                                            {formData.message.length}/200 characters
+                                        </div>
                                     </div>
                                     <div className="col-md-6 mb-30">
                                         <input 
