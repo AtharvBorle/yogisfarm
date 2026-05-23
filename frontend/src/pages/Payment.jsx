@@ -24,8 +24,8 @@ const Payment = () => {
         }
     }, [stateAddressId, navigate, authLoading]);
     const [selectedAddress, setSelectedAddress] = useState(null);
-    const [couponCode, setCouponCode] = useState('');
-    const [appliedCoupon, setAppliedCoupon] = useState('');
+    const [couponCode, setCouponCode] = useState(() => sessionStorage.getItem('applied_coupon') || '');
+    const [appliedCoupon, setAppliedCoupon] = useState(() => sessionStorage.getItem('applied_coupon') || '');
     const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -74,9 +74,14 @@ const Payment = () => {
             if (res.data.status) { 
                 toast.success('Coupon applied'); 
                 setAppliedCoupon(couponCode); 
+                sessionStorage.setItem('applied_coupon', couponCode);
             }
             else { toast.error(res.data.message); }
-        } catch (err) { toast.error(err.response?.data?.message || 'Invalid coupon'); setAppliedCoupon(''); }
+        } catch (err) { 
+            toast.error(err.response?.data?.message || 'Invalid coupon'); 
+            setAppliedCoupon(''); 
+            sessionStorage.removeItem('applied_coupon');
+        }
     };
 
     const loadRazorpay = () => {
@@ -131,6 +136,7 @@ const Payment = () => {
                                 if (verifyRes.data.status) {
                                     toast.success('Payment successful!');
                                     fetchCart();
+                                    sessionStorage.removeItem('applied_coupon');
                                     navigate(`/order-success/${verifyRes.data.orderNumber}`);
                                 } else {
                                     toast.error(verifyRes.data.message || 'Payment verification failed');
@@ -165,6 +171,7 @@ const Payment = () => {
                 } else {
                     toast.success(res.data.message);
                     fetchCart();
+                    sessionStorage.removeItem('applied_coupon');
                     navigate(`/order-success/${res.data.orderNumber}`);
                 }
             } else { toast.error(res.data.message); }
@@ -258,7 +265,7 @@ const Payment = () => {
                                         <i className="fi-rs-label" style={{ color: '#046938', marginRight: '8px' }}></i>
                                         <span style={{ fontWeight: '600', color: '#046938' }}>{appliedCoupon}</span> applied!
                                     </div>
-                                    <button onClick={() => { setAppliedCoupon(''); setCouponCode(''); toast.success('Coupon removed'); }}
+                                    <button onClick={() => { setAppliedCoupon(''); setCouponCode(''); sessionStorage.removeItem('applied_coupon'); toast.success('Coupon removed'); }}
                                         style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <i className="fi-rs-cross-small"></i> Remove
                                     </button>
