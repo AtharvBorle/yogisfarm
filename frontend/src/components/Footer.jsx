@@ -90,6 +90,14 @@ const Footer = () => {
                     color: #000000 !important;
                     line-height: 1.3 !important;
                 }
+                .footer-address-item {
+                    font-size: 10px !important;
+                    line-height: 1.35 !important;
+                }
+                .footer-policy-link-tight {
+                    display: inline-block !important;
+                    line-height: 1.15 !important;
+                }
                 .footer-contact-item strong {
                     font-weight: 600 !important;
                 }
@@ -128,7 +136,7 @@ const Footer = () => {
                         <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Legal</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             <li className="mb-2"><Link to="/terms" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Terms and Conditions</Link></li>
-                            <li className="mb-2"><Link to="/return-policy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Return, Refund and cancellation Policy</Link></li>
+                            <li className="mb-2"><Link to="/return-policy" className="footer-policy-link-tight" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Return, Refund and cancellation Policy</Link></li>
                             <li className="mb-2"><Link to="/privacy" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Privacy Policy</Link></li>
                             <li className="mb-2"><Link to="/shipping" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shipping Policy</Link></li>
                         </ul>
@@ -160,7 +168,7 @@ const Footer = () => {
                     <div className="col-lg-3 col-md-6 col-6 mb-4 footer-col-content order-3 order-lg-5">
                         <h4 className="footer-col-title global-heading-style" style={{ color: '#0A6738', fontWeight: 700, marginBottom: '20px' }}>Contact</h4>
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                            <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
+                            <li className="mb-3 footer-contact-item footer-address-item" style={{ display: 'flex', alignItems: 'flex-start', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={locationIcon} alt="Location" style={{ width: '18px', marginRight: '10px', marginTop: '2px', flexShrink: 0 }} />
                                 <span><strong>YogisFarms</strong><br />S.No 18, Saikrupa Bunglow,<br />Sudarshan Park society,<br />Ingale Nagar, Warje, Pune 411058</span>
                             </li>
