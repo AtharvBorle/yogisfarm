@@ -568,6 +568,16 @@ const Header = () => {
                                     <li><Link to="/shop" onClick={() => setIsMobileMenuOpen(false)}>Shop</Link></li>
                                     <li><Link to="/deals" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link></li>
                                     <li><Link to="/contact-us" onClick={() => setIsMobileMenuOpen(false)}>Contact Us</Link></li>
+                                    {!user ? (
+                                        <li><Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link></li>
+                                    ) : (
+                                        <li><Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>My Account</Link></li>
+                                    )}
+                                    <li><Link to="/track-order" onClick={() => setIsMobileMenuOpen(false)}>Track Order</Link></li>
+                                    <li><a href="tel:9119501177" onClick={() => setIsMobileMenuOpen(false)}>9119501177</a></li>
+                                    {user && (
+                                        <li><a href="#!" onClick={(e) => { setIsMobileMenuOpen(false); handleLogout(e); }}>Signout</a></li>
+                                    )}
                                 </ul>
                             </nav>
                         </div>
@@ -584,7 +594,7 @@ const Header = () => {
                             {user && (
                                 <div className="single-mobile-header-info">
                                     <a href="#!" onClick={(e) => { setIsMobileMenuOpen(false); handleLogout(e); }}>
-                                        <i className="fi-rs-sign-out"></i> Logout
+                                        <i className="fi-rs-sign-out"></i> Signout
                                     </a>
                                 </div>
                             )}
