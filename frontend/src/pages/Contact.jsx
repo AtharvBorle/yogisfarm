@@ -18,14 +18,33 @@ const Contact = () => {
     }, []);
 
     const handleChange = (e) => {
+        if (e.target.name === 'phone') {
+            const val = e.target.value.replace(/\D/g, '');
+            if (val.length <= 10) {
+                setFormData({ ...formData, phone: val });
+            }
+            return;
+        }
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!formData.name || !formData.phone || !formData.subject || !formData.message || !formData.captcha) {
+        if (!formData.name || !formData.email || !formData.phone || !formData.subject || !formData.message || !formData.captcha) {
             toast.error("Please fill in all required fields");
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            toast.error("Please enter a valid email address");
+            return;
+        }
+
+        const phoneRegex = /^\d{10}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            toast.error("Phone number must be exactly 10 digits");
             return;
         }
 
@@ -144,7 +163,7 @@ const Contact = () => {
                                             name="name" 
                                             value={formData.name} 
                                             onChange={handleChange} 
-                                            placeholder="Full Name" 
+                                            placeholder="Full Name *" 
                                             style={{ width: '100%', height: '57px', borderRadius: '11px', border: '1px solid #000', padding: '0 20px', fontSize: '14px' }} 
                                         />
                                     </div>
@@ -153,7 +172,7 @@ const Contact = () => {
                                             name="email" 
                                             value={formData.email} 
                                             onChange={handleChange} 
-                                            placeholder="Email Address" 
+                                            placeholder="Email Address *" 
                                             style={{ width: '100%', height: '57px', borderRadius: '11px', border: '1px solid #000', padding: '0 20px', fontSize: '14px' }} 
                                         />
                                     </div>
@@ -162,7 +181,7 @@ const Contact = () => {
                                             name="phone" 
                                             value={formData.phone} 
                                             onChange={handleChange} 
-                                            placeholder="Phone Number" 
+                                            placeholder="Phone Number *" 
                                             style={{ width: '100%', height: '57px', borderRadius: '11px', border: '1px solid #000', padding: '0 20px', fontSize: '14px' }} 
                                         />
                                     </div>
@@ -196,12 +215,12 @@ const Contact = () => {
                                             name="captcha" 
                                             value={formData.captcha} 
                                             onChange={handleChange} 
-                                            placeholder="Captcha" 
+                                            placeholder="Captcha *" 
                                             style={{ width: '100%', height: '57px', borderRadius: '11px', border: '1px solid #000', padding: '0 20px', fontSize: '14px' }} 
                                         />
                                     </div>
                                     <div className="col-md-6 mb-30 d-flex align-items-center">
-                                        <div style={{ width: '186px', height: '57px', borderRadius: '11px', border: '1px solid #9B9B9B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 600, fontStyle: 'italic', color: '#000', letterSpacing: '8px', background: '#f9f9f9' }}>
+                                        <div style={{ width: '186px', height: '57px', borderRadius: '11px', border: '1px solid #9B9B9B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 600, fontStyle: 'italic', color: '#000', letterSpacing: '8px', background: '#f9f9f9', userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }} onCopy={(e) => e.preventDefault()} onCut={(e) => e.preventDefault()}>
                                             {captchaCode}
                                         </div>
                                     </div>

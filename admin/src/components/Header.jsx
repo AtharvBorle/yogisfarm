@@ -10,11 +10,12 @@ import {
   Settings, 
   Lock, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Timer
 } from 'lucide-react';
 
 const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
-    const { admin, logout } = useAuth();
+    const { admin, logout, sessionTimeLeft } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileRef = useRef(null);
 
@@ -27,6 +28,19 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const formatTime = (ms) => {
+        if (!ms || ms <= 0) return '00:00:00';
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [
+            String(hours).padStart(2, '0'),
+            String(minutes).padStart(2, '0'),
+            String(seconds).padStart(2, '0')
+        ].join(':');
+    };
 
     return (
         <header style={{
@@ -53,6 +67,31 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+                {admin && sessionTimeLeft !== null && (
+                    <div 
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            background: sessionTimeLeft < 30 * 60 * 1000 
+                                ? (isDarkMode ? 'rgba(255, 77, 79, 0.15)' : 'rgba(255, 77, 79, 0.1)') 
+                                : (isDarkMode ? 'rgba(59, 183, 126, 0.15)' : 'rgba(59, 183, 126, 0.1)'),
+                            color: sessionTimeLeft < 30 * 60 * 1000 
+                                ? '#ff4d4f' 
+                                : (isDarkMode ? '#3BB77E' : '#2aa36b'),
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            fontFamily: 'monospace',
+                            border: `1px solid ${sessionTimeLeft < 30 * 60 * 1000 ? 'rgba(255, 77, 79, 0.3)' : 'rgba(59, 183, 126, 0.3)'}`
+                        }}
+                        title="Session expiry countdown"
+                    >
+                        <Timer size={14} />
+                        <span>{formatTime(sessionTimeLeft)}</span>
+                    </div>
+                )}
                 <Link to="/" style={{ color: isDarkMode ? '#ccc' : '#7E7E7E' }}><Home size={20} /></Link>
                 <div onClick={toggleDarkMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                     {isDarkMode ? <Sun size={20} color="#ffc107" /> : <Moon size={20} color="#7E7E7E" />}
