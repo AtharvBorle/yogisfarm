@@ -368,14 +368,15 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       recentOrders,
       topProductsRaw
     ] = await Promise.all([
-      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' } } }),
-      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
-      prisma.order.count(),
-      prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { notIn: ['cancelled', 'failed'] } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { notIn: ['cancelled', 'failed'] }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
+      prisma.order.count({ where: { orderStatus: { notIn: ['cancelled', 'failed'] } } }),
+      prisma.order.count({ where: { orderStatus: { notIn: ['cancelled', 'failed'] }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.user.count(),
       prisma.user.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.product.count(),
       prisma.order.findMany({
+        where: { orderStatus: { notIn: ['cancelled', 'failed'] } },
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true, phone: true } } }
@@ -398,7 +399,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
             const end = new Date(d.setHours(23, 59, 59, 999));
             const daySales = await prisma.order.aggregate({
                 _sum: { total: true },
-                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lte: end } }
+                where: { orderStatus: { notIn: ['cancelled', 'failed'] }, createdAt: { gte: start, lte: end } }
             });
             salesTrend.push({
                 month: start.toLocaleDateString('default', { weekday: 'short' }),
@@ -412,7 +413,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
             const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
             const monthSales = await prisma.order.aggregate({
                 _sum: { total: true },
-                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+                where: { orderStatus: { notIn: ['cancelled', 'failed'] }, createdAt: { gte: start, lt: end } }
             });
             salesTrend.push({
                 month: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
@@ -427,7 +428,7 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
             const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
             const monthSales = await prisma.order.aggregate({
                 _sum: { total: true },
-                where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
+                where: { orderStatus: { notIn: ['cancelled', 'failed'] }, createdAt: { gte: start, lt: end } }
             });
             salesTrend.push({
                 month: d.toLocaleString('default', { month: 'short' }),

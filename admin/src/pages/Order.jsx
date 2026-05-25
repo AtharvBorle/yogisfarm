@@ -12,9 +12,68 @@ const Order = () => {
     const [orders, setOrders] = useState([]);
     const [deliveryBoys, setDeliveryBoys] = useState([]);
     const [filters, setFilters] = useState({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
+    const [dateType, setDateType] = useState('created');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [isViewOpen, setViewOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    const filteredOrders = orders.filter(order => {
+        // 1. Search Query Filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = (
+                (order.orderNumber?.toLowerCase().includes(query)) ||
+                (order.user?.name?.toLowerCase().includes(query)) ||
+                (order.user?.email?.toLowerCase().includes(query)) ||
+                (order.user?.phone?.toLowerCase().includes(query))
+            );
+            if (!matchesSearch) return false;
+        }
+
+        // 2. Date Range Filter
+        if (startDate || endDate) {
+            const start = startDate ? new Date(startDate) : null;
+            if (start) start.setHours(0, 0, 0, 0);
+
+            const end = endDate ? new Date(endDate) : null;
+            if (end) end.setHours(23, 59, 59, 999);
+
+            const createdTime = new Date(order.createdAt).getTime();
+            const deliveredTime = order.orderStatus === 'delivered' ? new Date(order.updatedAt).getTime() : null;
+
+            let inCreatedRange = false;
+            if (start && end) {
+                inCreatedRange = createdTime >= start.getTime() && createdTime <= end.getTime();
+            } else if (start) {
+                inCreatedRange = createdTime >= start.getTime();
+            } else if (end) {
+                inCreatedRange = createdTime <= end.getTime();
+            }
+
+            let inDeliveredRange = false;
+            if (deliveredTime) {
+                if (start && end) {
+                    inDeliveredRange = deliveredTime >= start.getTime() && deliveredTime <= end.getTime();
+                } else if (start) {
+                    inDeliveredRange = deliveredTime >= start.getTime();
+                } else if (end) {
+                    inDeliveredRange = deliveredTime <= end.getTime();
+                }
+            }
+
+            if (dateType === 'created') {
+                return inCreatedRange;
+            } else if (dateType === 'delivered') {
+                return inDeliveredRange;
+            } else if (dateType === 'both') {
+                return inCreatedRange || inDeliveredRange;
+            }
+        }
+
+        return true;
+    });
 
     const fetchOrders = async () => {
         try {
@@ -168,7 +227,7 @@ const Order = () => {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ color: 'var(--text)' }}>Order Management</h2>
-                <div style={{ fontSize: '14px', color: 'var(--text)' }}>Total: {orders.length} orders</div>
+                <div style={{ fontSize: '14px', color: 'var(--text)' }}>Total: {filteredOrders.length} orders</div>
             </div>
 
             {/* Filters */}
@@ -205,6 +264,22 @@ const Order = () => {
                         <option value="refunded">Refunded</option>
                     </select>
                 </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Date Filter Type</label>
+                    <select value={dateType} onChange={e => setDateType(e.target.value)} style={inputStyle}>
+                        <option value="created">Created Date</option>
+                        <option value="delivered">Delivered Date</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Start Date</label>
+                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>End Date</label>
+                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={inputStyle} />
+                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', flex: 1 }}>
                     <div style={{ marginRight: 'auto', width: '100%', maxWidth: '300px' }}>
                         <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Search Order</label>
@@ -218,23 +293,20 @@ const Order = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button onClick={() => { setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' }); setSearchQuery(''); }}
+                    <button onClick={() => {
+                        setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
+                        setDateType('created');
+                        setStartDate('');
+                        setEndDate('');
+                        setSearchQuery('');
+                    }}
                         style={{ padding: '8px 15px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                         Clear Filters
                     </button>
                 </div>
             </div>
 
-            <DataTable columns={columns} data={orders.filter(order => {
-                if (!searchQuery) return true;
-                const query = searchQuery.toLowerCase();
-                return (
-                    (order.orderNumber?.toLowerCase().includes(query)) ||
-                    (order.user?.name?.toLowerCase().includes(query)) ||
-                    (order.user?.email?.toLowerCase().includes(query)) ||
-                    (order.user?.phone?.toLowerCase().includes(query))
-                );
-            })} />
+            <DataTable columns={columns} data={filteredOrders} />
 
             {/* Quick View Modal */}
             <GenericModal isOpen={isViewOpen} title={`Order Details`} onClose={() => setViewOpen(false)}>
