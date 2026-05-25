@@ -80,6 +80,10 @@ const Slider = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select a desktop image');
+            return;
+        }
         try {
             let res;
             if (editingId) res = await api.put(`/sliders/${editingId}`, formData);

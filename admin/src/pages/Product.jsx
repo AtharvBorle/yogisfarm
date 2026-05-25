@@ -94,6 +94,10 @@ const Product = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select a product image');
+            return;
+        }
         try {
             const payload = {
                 name: formData.name, shortDescription: formData.shortDescription,

@@ -47,6 +47,10 @@ const Category = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select an image for the category');
+            return;
+        }
         try {
             const payload = { ...formData, featured: formData.featured.toString() };
             if (!payload.parentId) delete payload.parentId; // If empty, don't send to backend or send null equivalent

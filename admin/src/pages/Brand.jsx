@@ -49,6 +49,10 @@ const Brand = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select an image for the brand');
+            return;
+        }
         try {
             let res;
             if (editingId) res = await api.put(`/brands/${editingId}`, { ...formData, showHome: formData.showHome.toString() });
