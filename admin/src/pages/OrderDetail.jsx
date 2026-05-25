@@ -186,8 +186,15 @@ const OrderDetail = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button onClick={openDeliveryOptionModal}
-                        style={{ padding: '8px 18px', background: '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button 
+                        onClick={() => {
+                            if (order.paymentStatus !== 'failed') {
+                                openDeliveryOptionModal();
+                            }
+                        }}
+                        disabled={order.paymentStatus === 'failed'}
+                        title={order.paymentStatus === 'failed' ? "Delivery option disabled for failed payments" : "Delivery Option"}
+                        style={{ padding: '8px 18px', background: order.paymentStatus === 'failed' ? '#ccc' : '#28a745', color: '#fff', border: 'none', borderRadius: '6px', cursor: order.paymentStatus === 'failed' ? 'not-allowed' : 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Truck size={16} /> Delivery Option
                     </button>
                     <button onClick={() => { setManageType('delivery_boy'); setEditingId(null); setManageOpen(true); }}
@@ -267,13 +274,29 @@ const OrderDetail = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
                         <h5 style={{ fontWeight: '700', fontSize: '16px', color: 'var(--text)', margin: 0 }}>Order Details</h5>
                         <div style={{ display: 'flex', gap: '6px' }}>
-                            <button onClick={() => { setPaymentForm({ paymentStatus: order.paymentStatus, paymentDescription: order.paymentDescription || '' }); setPaymentOpen(true); }}
-                                style={{ padding: '4px 10px', background: '#ffc107', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
+                            <button 
+                                onClick={() => {
+                                    if (order.paymentStatus !== 'failed') {
+                                        setPaymentForm({ paymentStatus: order.paymentStatus, paymentDescription: order.paymentDescription || '' });
+                                        setPaymentOpen(true);
+                                    }
+                                }}
+                                disabled={order.paymentStatus === 'failed'}
+                                title={order.paymentStatus === 'failed' ? "Payment edit disabled for failed payments" : "Edit Payment"}
+                                style={{ padding: '4px 10px', background: order.paymentStatus === 'failed' ? '#ccc' : '#ffc107', color: '#fff', border: 'none', borderRadius: '4px', cursor: order.paymentStatus === 'failed' ? 'not-allowed' : 'pointer', fontSize: '11px', fontWeight: '600' }}>
                                 <Edit size={16} /> Edit Payment
                             </button>
                             {!['delivered', 'cancelled', 'returned'].includes(order.orderStatus) && (
-                                <button onClick={() => { setStatusForm(''); setStatusOpen(true); }}
-                                    style={{ padding: '4px 10px', background: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}>
+                                <button 
+                                    onClick={() => {
+                                        if (order.paymentStatus !== 'failed') {
+                                            setStatusForm('');
+                                            setStatusOpen(true);
+                                        }
+                                    }}
+                                    disabled={order.paymentStatus === 'failed'}
+                                    title={order.paymentStatus === 'failed' ? "Order edit disabled for failed payments" : "Edit Order"}
+                                    style={{ padding: '4px 10px', background: order.paymentStatus === 'failed' ? '#ccc' : '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: order.paymentStatus === 'failed' ? 'not-allowed' : 'pointer', fontSize: '11px', fontWeight: '600' }}>
                                     <Edit size={16} /> Edit Order
                                 </button>
                             )}

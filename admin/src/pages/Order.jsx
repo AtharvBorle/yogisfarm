@@ -112,8 +112,30 @@ const Order = () => {
             header: 'ACTIONS',
             render: (row) => (
                 <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => navigate(`/orders/detail/${row.orderNumber}`)} title="Edit"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#28a745', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit size={16} /></button>
+                    <button 
+                        onClick={() => {
+                            if (row.paymentStatus !== 'failed') {
+                                navigate(`/orders/detail/${row.orderNumber}`);
+                            }
+                        }} 
+                        title={row.paymentStatus === 'failed' ? "Edit Disabled (Payment Failed)" : "Edit"}
+                        disabled={row.paymentStatus === 'failed'}
+                        style={{ 
+                            width: '28px', 
+                            height: '28px', 
+                            borderRadius: '4px', 
+                            border: 'none', 
+                            background: row.paymentStatus === 'failed' ? '#ccc' : '#28a745', 
+                            color: '#fff', 
+                            cursor: row.paymentStatus === 'failed' ? 'not-allowed' : 'pointer', 
+                            fontSize: '12px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center' 
+                        }}
+                    >
+                        <Edit size={16} />
+                    </button>
                     <button onClick={() => openViewModal(row)} title="View"
                         style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Eye size={16} /></button>
                     <button onClick={() => {
