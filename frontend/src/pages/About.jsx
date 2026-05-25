@@ -70,7 +70,7 @@ const About = () => {
                             </div>
                         </div>
 
-                        <div className="row text-start why-choose-points-grid flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                        <div className="row text-start why-choose-points-grid flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '0px' }}>
                             <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

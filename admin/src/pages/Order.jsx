@@ -105,8 +105,19 @@ const Order = () => {
             )
         },
         {
-            header: 'CREATED ON',
-            render: (row) => <span style={{ fontSize: '12px', color: '#888' }}>{formatDateTime(row.createdAt)}</span>
+            header: 'CREATED-DELIVERED',
+            render: (row) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', lineHeight: '1.2' }}>
+                    <span style={{ fontSize: '12px', color: '#555' }}>
+                        {formatDateTime(row.createdAt)}
+                    </span>
+                    {row.orderStatus === 'delivered' && (
+                        <span style={{ fontSize: '12px', color: '#28a745', fontWeight: '500' }}>
+                            {formatDateTime(row.updatedAt)}
+                        </span>
+                    )}
+                </div>
+            )
         },
         {
             header: 'ACTIONS',

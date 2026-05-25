@@ -17,7 +17,7 @@ const feedbackProfile = '/assets/imgs/feedback_avatar.svg';
 
 export const Testimonials = () => {
     return (
-        <section style={{ background: '#ECFFBE', overflow: 'hidden', padding: '80px 0' }}>
+        <section style={{ background: '#ECFFBE', overflow: 'hidden', padding: '40px 0' }}>
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @keyframes marquee-left { 

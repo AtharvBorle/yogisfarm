@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SliderComponent from 'react-slick';
 import api, { getAssetUrl } from '../api';
@@ -113,6 +113,44 @@ const Home = () => {
     const [popularPage, setPopularPage] = useState(1);
     const [popularTotalPages, setPopularTotalPages] = useState(1);
     const [popularSearch, setPopularSearch] = useState('');
+    const [popularInputVal, setPopularInputVal] = useState('');
+    const [popularSuggestions, setPopularSuggestions] = useState([]);
+    const [isPopularSuggestionsOpen, setIsPopularSuggestionsOpen] = useState(false);
+    const popularSearchRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (popularSearchRef.current && !popularSearchRef.current.contains(event.target)) {
+                setIsPopularSuggestionsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (popularInputVal.length > 1) {
+            const delayDebounceFn = setTimeout(() => {
+                api.get(`/products?search=${encodeURIComponent(popularInputVal)}&limit=7`).then(res => {
+                    if (res.data.status) {
+                        setPopularSuggestions(res.data.products || []);
+                        setIsPopularSuggestionsOpen(true);
+                    }
+                });
+            }, 300);
+            return () => clearTimeout(delayDebounceFn);
+        } else {
+            setPopularSuggestions([]);
+            setIsPopularSuggestionsOpen(false);
+        }
+    }, [popularInputVal]);
+
+    const handlePopularSearchSubmit = (e) => {
+        if (e) e.preventDefault();
+        setPopularSearch(popularInputVal);
+        setPopularPage(1);
+        setIsPopularSuggestionsOpen(false);
+    };
 
     useEffect(() => {
         Promise.all([
@@ -561,30 +599,52 @@ const Home = () => {
 
 
             {/* 5. Popular Products (Figma Layout: Grid with Search and Pagination) */}
-            {popularProducts.length > 0 && (
+            {(popularProducts.length > 0 || popularSearch) && (
                 <section className="section-padding pb-5">
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                         <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
                             <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Popular Products</h3>
 
                             {/* Search field in section header */}
-                            <div className="d-none d-md-block" style={{ position: 'relative', width: '200px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '35px', padding: '0 10px' }}>
-                                    <i className="fi-rs-search" style={{ color: '#0A6738', fontSize: '14px', marginRight: '8px' }}></i>
+                            <div ref={popularSearchRef} className="d-none d-md-block" style={{ position: 'relative', width: '200px' }}>
+                                <form onSubmit={handlePopularSearchSubmit} style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F2', borderRadius: '5px', height: '35px', padding: '0 10px' }}>
+                                    <button type="submit" style={{ border: 'none', background: 'transparent', padding: 0, display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                        <i className="fi-rs-search" style={{ color: '#0A6738', fontSize: '14px', marginRight: '8px' }}></i>
+                                    </button>
                                     <input 
                                         type="text" 
                                         placeholder="Search for Product" 
-                                        value={popularSearch}
+                                        value={popularInputVal}
                                         onChange={(e) => {
-                                            setPopularSearch(e.target.value);
-                                            setPopularPage(1);
+                                            setPopularInputVal(e.target.value);
                                         }}
                                         style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#333', width: '100%', fontFamily: 'Poppins, sans-serif' }} 
                                     />
                                     <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginLeft: '5px' }}>
                                         <path d="M1 1L5 5L9 1" stroke="#0A6738" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
-                                </div>
+                                </form>
+                                {/* Search Suggestions Dropdown */}
+                                {isPopularSuggestionsOpen && popularSuggestions.length > 0 && (
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#fff', boxShadow: '0 8px 20px rgba(0,0,0,0.15)', borderRadius: '0 0 8px 8px', zIndex: 9999, padding: '8px 0', maxHeight: '350px', overflowY: 'auto', marginTop: '2px' }}>
+                                        {popularSuggestions.map(product => (
+                                            <Link
+                                                key={product.id}
+                                                to={`/product/${product.slug}`}
+                                                onClick={() => {
+                                                    setIsPopularSuggestionsOpen(false);
+                                                    setPopularInputVal('');
+                                                }}
+                                                style={{ display: 'flex', alignItems: 'center', padding: '8px 15px', color: '#333', fontSize: '13px', textDecoration: 'none', gap: '10px', fontFamily: 'Poppins, sans-serif', transition: 'background-color 0.2s', borderBottom: '1px solid #f9f9f9' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            >
+                                                {product.images?.[0] && <img src={getAssetUrl(product.images[0]?.image || product.images[0])} alt="" style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '4px' }} />}
+                                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -1052,7 +1112,7 @@ const Home = () => {
             })}
 
             {/* 12. Why Families Choose Section */}
-            <section className="section-padding" style={{ padding: '60px 0' }}>
+            <section className="section-padding" style={{ paddingTop: '40px', paddingBottom: '0px' }}>
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                     <h3 className="why-choose-title global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 700, marginBottom: '30px' }}>Why Families Choose Yogi’s Farms</h3>
 
@@ -1076,7 +1136,7 @@ const Home = () => {
                         </div>
                     </div>
 
-                    <div className="row text-start why-choose-points-grid flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '15px' }}>
+                    <div className="row text-start why-choose-points-grid flex-nowrap flex-md-wrap overflow-auto auto-scroll-container" style={{ paddingBottom: '0px' }}>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

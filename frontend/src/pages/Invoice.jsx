@@ -197,7 +197,10 @@ const Invoice = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
                 <thead>
                     <tr>
-                        {['#', 'Product', 'Qty', 'MRP', 'Gross Amt', 'Discount', 'Total'
+                        {['#', 'Product', 'Unit', 'MRP', 'Gross Amt', 'Discount', 'Taxable Val', 
+                          isMaharashtra ? 'CGST' : 'IGST', 
+                          isMaharashtra ? 'SGST' : null, 
+                          'Total'
                         ].filter(Boolean).map(h => (
                             <th key={h} style={thStyle}>{h}</th>
                         ))}
@@ -208,8 +211,13 @@ const Invoice = () => {
                         const mrp = Number(item.mrp) || Number(item.price) || 0;
                         const pd = Number(item.productDiscount) || 0;
                         const od = Number(item.orderDiscount) || 0;
-                        const totalDiscount = pd + od;
+                        const taxableVal = Number(item.taxableValue) || 0;
+                        const cgst = Number(item.cgst) || 0;
+                        const sgst = Number(item.sgst) || 0;
+                        const igst = Number(item.gstAmount) || 0;
+                        const gstPercent = Number(item.taxRate) || 0;
                         const lineTotal = Number(item.total) || 0;
+                        const hsn = item.hsnCode || '—';
 
                         return (
                             <React.Fragment key={item.id}>
@@ -217,28 +225,38 @@ const Invoice = () => {
                                     <td style={tdStyle}>{i + 1}</td>
                                     <td style={{ ...tdStyle, textAlign: 'left' }}>
                                         <div>{item.name}</div>
+                                        {hsn !== '—' && <div style={{ color: '#666', fontSize: '10px', marginTop: '2px' }}>HSN: {hsn}</div>}
                                     </td>
-                                    <td style={{ ...tdStyle, textAlign: 'center' }}>{item.quantity}</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right' }}>₹{mrp.toFixed(2)}</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right' }}>₹{(mrp * item.quantity).toFixed(2)}</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right', fontSize: '12px' }}>
+                                    <td style={tdStyle}>{item.variant || '1 Unit'} ×{item.quantity}</td>
+                                    <td style={tdStyle}>₹{mrp.toFixed(2)}</td>
+                                    <td style={tdStyle}>₹{(mrp * item.quantity).toFixed(2)}</td>
+                                    <td style={{ ...tdStyle, fontSize: '11px' }}>
                                         {pd > 0 && <div>PD: ₹{pd.toFixed(2)}</div>}
                                         {od > 0 && <div>OD: ₹{od.toFixed(2)}</div>}
-                                        {totalDiscount === 0 && '₹0.00'}
+                                        {pd === 0 && od === 0 && '—'}
                                     </td>
-                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>₹{lineTotal.toFixed(2)}</td>
+                                    <td style={tdStyle}>₹{taxableVal.toFixed(2)}</td>
+                                    {isMaharashtra ? (
+                                        <>
+                                            <td style={tdStyle}>₹{cgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
+                                            <td style={tdStyle}>₹{sgst.toFixed(2)}<br /><small>({gstPercent/2}%)</small></td>
+                                        </>
+                                    ) : (
+                                        <td style={tdStyle}>₹{igst.toFixed(2)}<br /><small>({gstPercent}%)</small></td>
+                                    )}
+                                    <td style={{ ...tdStyle, fontWeight: '700' }}>₹{lineTotal.toFixed(2)}</td>
                                 </tr>
                                 {i === order.items.length - 1 && (
                                     <>
                                         <tr>
-                                            <td colSpan="5" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
+                                            <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
                                                 Shipping and charges : {Number(order.shippingTaxable || (order.shipping / 1.18)).toFixed(2)} | shipping gst 18% : {Number(order.shippingGST || (order.shipping - (order.shipping / 1.18))).toFixed(2)}
                                             </td>
-                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
+                                            <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
                                         <tr>
                                             <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
-                                            <td colSpan="3" style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
+                                            <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold', fontSize: '16px' }}>₹{Number(order.total).toFixed(2)}</td>
                                         </tr>
                                     </>
