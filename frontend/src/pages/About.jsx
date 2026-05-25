@@ -65,7 +65,7 @@ const About = () => {
                             </div>
                             <div className="col-md-7">
                                 <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
-                                    In a world driven by speed and mass production, we choose honesty over shortcuts. At Yogi’s Farm, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
+                                    In a world driven by speed and mass production, we choose honesty over shortcuts. At YogisFarms, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
                                 </p>
                             </div>
                         </div>

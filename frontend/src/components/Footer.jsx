@@ -116,7 +116,7 @@ const Footer = () => {
                             <Link to="/"><img src={footerLogo} alt="YogisFarms" style={{ height: '80px', width: 'auto' }} /></Link>
                         </div>
                         <p className="footer-mission" style={{ color: '#000', fontSize: '13px', lineHeight: '24px', fontWeight: 500, marginBottom: '20px' }}>
-                            Welcome to YogisFarm Solutions, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
+                            Welcome to YogisFarms, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
                         </p>
                         <div className="social-icons footer-socials" style={{ display: 'flex', gap: '15px' }}>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
