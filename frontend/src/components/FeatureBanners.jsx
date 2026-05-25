@@ -243,7 +243,7 @@ export const CorePillars = () => {
     const displayPillars = [...pillars, ...pillars];
 
     return (
-        <section className="section-padding pb-5" style={{ background: '#FFF', overflow: 'hidden', paddingTop: '80px' }}>
+        <section style={{ background: '#FFF', overflow: 'hidden', paddingTop: '40px', paddingBottom: '40px' }}>
             <div className="container" style={{ maxWidth: '1236px' }}>
                 {/* Desktop Grid View */}
                 <div className="row text-center d-none d-md-flex">

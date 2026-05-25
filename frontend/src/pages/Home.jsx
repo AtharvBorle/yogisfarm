@@ -528,9 +528,9 @@ const Home = () => {
             {categories.length > 0 && (
                 <section className="popular-categories section-padding">
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
-                        <div className="section-title" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '30px' }}>
+                        <div className="section-title">
                             <div className="title">
-                                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600, margin: 0 }}>Featured Categories</h3>
+                                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
                             </div>
                         </div>
                         <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
@@ -930,9 +930,9 @@ const Home = () => {
             {/* 10. Upcoming Product Categories */}
             <section className="popular-categories section-padding pb-5">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
-                    <div className="section-title" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '30px' }}>
+                    <div className="section-title">
                         <div className="title">
-                            <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600, margin: 0 }}>Upcoming Products & Categories</h3>
+                            <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Upcoming Products & Categories</h3>
                         </div>
                     </div>
                     <div className="d-flex flex-nowrap flex-md-wrap overflow-auto justify-content-center" style={{ gap: '15px', paddingBottom: '15px' }}>
