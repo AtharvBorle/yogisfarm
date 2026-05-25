@@ -19,6 +19,44 @@ const Login = () => {
     const [searchParams] = useSearchParams();
     const redirect = searchParams.get('redirect') || '/dashboard';
 
+    const [resendTimer, setResendTimer] = useState(0);
+
+    React.useEffect(() => {
+        let interval;
+        if (resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [resendTimer]);
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Restore timer state on page mount
+    React.useEffect(() => {
+        const savedPhone = localStorage.getItem('yogisfarm_login_phone');
+        const savedTime = localStorage.getItem('yogisfarm_login_otp_sent_time');
+        const savedStep = localStorage.getItem('yogisfarm_login_step');
+
+        if (savedPhone && savedTime && savedStep === '2') {
+            const elapsed = Math.floor((Date.now() - Number(savedTime)) / 1000);
+            if (elapsed < 120) {
+                setPhone(savedPhone);
+                setStep(2);
+                setResendTimer(120 - elapsed);
+            } else {
+                setPhone(savedPhone);
+                setStep(2);
+                setResendTimer(0);
+            }
+        }
+    }, []);
+
     React.useEffect(() => {
         if (!authLoading && user) {
             navigate(redirect);
@@ -27,6 +65,7 @@ const Login = () => {
 
     const sendOtp = async (e) => {
         if (e) e.preventDefault();
+        if (resendTimer > 0) return;
         if (!phone || phone.length < 10) {
             return toast.error('Please enter a valid 10-digit mobile number');
         }
@@ -35,8 +74,15 @@ const Login = () => {
             const res = await api.post('/auth/send-otp', { phone });
             if (res.data.status) {
                 toast.success(res.data.message);
+                
+                // Save to localStorage
+                localStorage.setItem('yogisfarm_login_phone', phone);
+                localStorage.setItem('yogisfarm_login_otp_sent_time', String(Date.now()));
+                localStorage.setItem('yogisfarm_login_step', '2');
+
                 setStep(2);
                 setOtpVals(['', '', '', '', '', '']);
+                setResendTimer(120); // 2 minutes countdown
             } else {
                 toast.error(res.data.message);
             }
@@ -58,6 +104,12 @@ const Login = () => {
             const res = await api.post('/auth/verify-otp', { phone, otp: otpCode });
             if (res.data.status) {
                 toast.success(res.data.message);
+                
+                // Clear localStorage
+                localStorage.removeItem('yogisfarm_login_phone');
+                localStorage.removeItem('yogisfarm_login_otp_sent_time');
+                localStorage.removeItem('yogisfarm_login_step');
+
                 if (res.data.needsDetails) {
                     setStep(3);
                 } else {
@@ -81,6 +133,12 @@ const Login = () => {
             const res = await api.post('/auth/submit-details', { name, email });
             if (res.data.status) {
                 toast.success('Registration successful!');
+
+                // Clear localStorage
+                localStorage.removeItem('yogisfarm_login_phone');
+                localStorage.removeItem('yogisfarm_login_otp_sent_time');
+                localStorage.removeItem('yogisfarm_login_step');
+
                 await fetchUser();
                 fetchCart();
                 navigate(redirect);
@@ -90,6 +148,15 @@ const Login = () => {
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to save details');
         }
+    };
+
+    const handleBackToStep1 = () => {
+        localStorage.removeItem('yogisfarm_login_phone');
+        localStorage.removeItem('yogisfarm_login_otp_sent_time');
+        localStorage.removeItem('yogisfarm_login_step');
+        setStep(1);
+        setResendTimer(0);
+        setOtpVals(['', '', '', '', '', '']);
     };
 
     // Auto-shifting OTP input functions
@@ -338,7 +405,7 @@ const Login = () => {
                     {step === 2 && (
                         <form onSubmit={verifyOtp}>
                             <p className="login-subtitle">
-                                Enter code sent to +91 {phone} <span onClick={() => setStep(1)} className="login-link-action" style={{fontSize: '12px', marginLeft: '5px'}}>Change</span>
+                                Enter code sent to +91 {phone} <span onClick={handleBackToStep1} className="login-link-action" style={{fontSize: '12px', marginLeft: '5px'}}>Change</span>
                             </p>
                             <div className="login-otp-container" onPaste={handleOtpPaste}>
                                 {otpVals.map((val, idx) => (
@@ -359,7 +426,16 @@ const Login = () => {
                                 {verifyingOtp ? 'Verifying...' : 'Verify & Login'}
                             </button>
                             <div style={{textAlign: 'center', fontSize: '13px', color: '#666'}}>
-                                Didn't receive code? <span onClick={sendOtp} className="login-link-action">Resend OTP</span>
+                                Didn't receive code?{' '}
+                                {resendTimer > 0 ? (
+                                    <span style={{ fontWeight: '600', color: '#888' }}>
+                                        Resend OTP in {formatTime(resendTimer)}
+                                    </span>
+                                ) : (
+                                    <span onClick={sendOtp} className="login-link-action">
+                                        Resend OTP
+                                    </span>
+                                )}
                             </div>
                         </form>
                     )}

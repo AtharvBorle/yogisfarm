@@ -1015,12 +1015,12 @@ const Home = () => {
                 return (
                     <section key={section.id} className="section-padding d-none d-md-block" style={{ background: '#F2FFD6', margin: '20px 0', padding: '30px 0' }}>
                         <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
-                            <div className="section-title text-center">
-                                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '30px', textTransform: 'capitalize' }}>
+                            <div className="section-title text-center" style={{ marginBottom: '10px', display: 'block' }}>
+                                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '32px', fontWeight: 600, lineHeight: '40px', marginBottom: '10px', textTransform: 'capitalize' }}>
                                     {section.name}
                                 </h3>
                             </div>
-                            <div className="row justify-content-center g-4 mb-2">
+                            <div className="d-flex flex-nowrap overflow-auto mb-2" style={{ gap: '20px', paddingBottom: '15px', justifyContent: items.length * 311 - 20 > 1200 ? 'flex-start' : 'center' }}>
                                 {items.map((item, idx) => {
                                     const cardContent = (
                                         <div className="position-relative overflow-hidden hover-zoom-container" style={{ borderRadius: '12px', width: '291px', height: '200px', flexShrink: 0, border: '1px solid #e0e0e0', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', position: 'relative' }}>
@@ -1038,7 +1038,7 @@ const Home = () => {
                                     );
 
                                     return (
-                                        <div key={idx} className="col-auto">
+                                        <div key={idx} style={{ flexShrink: 0 }}>
                                             {item.linkType && item.linkType !== 'none' ? (
                                                 <a href={getSliderLink(item)} style={{ display: 'block' }}>
                                                     {cardContent}
@@ -1065,7 +1065,7 @@ const Home = () => {
                 return (
                     <section key={`mobile-${section.id}`} className="d-block d-md-none section-padding" style={{ background: '#F2FFD6', padding: '20px 0 15px 0', margin: '15px 0' }}>
                         <div style={{ padding: '0 15px' }}>
-                            <div className="section-title text-center" style={{ marginBottom: '15px' }}>
+                            <div className="section-title text-center" style={{ marginBottom: '10px', display: 'block' }}>
                                 <h4 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '13px', fontWeight: 600, textTransform: 'capitalize', margin: 0 }}>
                                     {section.name}
                                 </h4>
