@@ -1343,18 +1343,32 @@ router.get('/coupons', requireAdmin, async (req, res) => {
 
 router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn } = req.body;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : null;
+    
+    let startDate = null;
+    if (startOn) {
+      startDate = new Date(startOn);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    let expireDate = null;
+    if (expireOn) {
+      expireDate = new Date(expireOn);
+      expireDate.setHours(23, 59, 59, 999);
+    }
+
     const coupon = await prisma.coupon.create({
       data: { name, code, image, status: status || 'active', amountType: amountType || 'percent',
         amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
         maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
         usageLimit: usageLimit ? parseInt(usageLimit) : null,
-        description, expireOn: expireOn ? new Date(expireOn) : null }
+        description, startOn: startDate, expireOn: expireDate }
     });
-    const expiryStr = expireOn ? new Date(expireOn).toLocaleDateString() : 'Never';
+    const startStr = startDate ? startDate.toLocaleDateString() : 'Immediate';
+    const expiryStr = expireDate ? expireDate.toLocaleDateString() : 'Never';
     const amountStr = amountType === 'percent' ? `${amount}%` : `₹${amount}`;
-    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}, Type: ${amountType}, Value: ${amountStr}, Min Order: ₹${minOrderAmount || 0}, Expiry: ${expiryStr}, Status: ${status || 'active'}`);
+    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}, Type: ${amountType}, Value: ${amountStr}, Min Order: ₹${minOrderAmount || 0}, Start: ${startStr}, Expiry: ${expiryStr}, Status: ${status || 'active'}`);
     res.json({ status: true, message: 'Coupon created', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1363,17 +1377,31 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn } = req.body;
+    
+    let startDate = null;
+    if (startOn) {
+      startDate = new Date(startOn);
+      startDate.setHours(0, 0, 0, 0);
+    }
+    
+    let expireDate = null;
+    if (expireOn) {
+      expireDate = new Date(expireOn);
+      expireDate.setHours(23, 59, 59, 999);
+    }
+
     const data = { name, code, status, amountType, amount: parseFloat(amount),
       minOrderAmount: parseFloat(minOrderAmount || 0),
       maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
       usageLimit: usageLimit ? parseInt(usageLimit) : null,
-      description, expireOn: expireOn ? new Date(expireOn) : null };
+      description, startOn: startDate, expireOn: expireDate };
     if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
+    const startStr = coupon.startOn ? new Date(coupon.startOn).toLocaleDateString() : 'Immediate';
     const expiryStr = coupon.expireOn ? new Date(coupon.expireOn).toLocaleDateString() : 'Never';
     const amountStr = coupon.amountType === 'percent' ? `${coupon.amount}%` : `₹${coupon.amount}`;
-    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}, Type: ${coupon.amountType}, Value: ${amountStr}, Min Order: ₹${coupon.minOrderAmount}, Expiry: ${expiryStr}, Status: ${coupon.status}`);
+    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}, Type: ${coupon.amountType}, Value: ${amountStr}, Min Order: ₹${coupon.minOrderAmount}, Start: ${startStr}, Expiry: ${expiryStr}, Status: ${coupon.status}`);
     res.json({ status: true, message: 'Coupon updated', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });

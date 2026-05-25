@@ -10,7 +10,7 @@ const Coupon = () => {
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ 
         name: '', code: '', status: 'active', amountType: 'percent', 
-        amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', expireOn: '' 
+        amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', startOn: '', expireOn: '' 
     });
 
     const fetchCoupons = async () => {
@@ -38,7 +38,7 @@ const Coupon = () => {
     const openAddModal = () => {
         setFormData({ 
             name: '', code: '', status: 'active', amountType: 'percent', 
-            amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', expireOn: '' 
+            amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', startOn: '', expireOn: '' 
         });
         setEditingId(null);
         setModalOpen(true);
@@ -51,6 +51,7 @@ const Coupon = () => {
             minOrderAmount: row.minOrderAmount, 
             maxDiscount: row.maxDiscount || '', usageLimit: row.usageLimit || '',
             description: row.description || '', 
+            startOn: row.startOn ? new Date(row.startOn).toISOString().split('T')[0] : '',
             expireOn: row.expireOn ? new Date(row.expireOn).toISOString().split('T')[0] : '' 
         });
         setEditingId(row.id);
@@ -115,7 +116,8 @@ const Coupon = () => {
         { header: 'Usage', render: (row) => (
             <span>{row.usedCount || 0}{row.usageLimit ? ` / ${row.usageLimit}` : ' / ∞'}</span>
         )},
-        { header: 'Expiry', render: (row) => row.expireOn ? new Date(row.expireOn).toLocaleDateString() : 'Never' },
+        { header: 'Start Date', render: (row) => row.startOn ? new Date(row.startOn).toLocaleDateString() : 'Immediate' },
+        { header: 'Expiry Date', render: (row) => row.expireOn ? new Date(row.expireOn).toLocaleDateString() : 'Never' },
         { 
             header: 'Status', 
             render: (row) => (
@@ -205,17 +207,23 @@ const Coupon = () => {
                             <input type="number" min="1" placeholder="Unlimited" value={formData.usageLimit} onChange={e => setFormData({...formData, usageLimit: e.target.value})} className="admin-input" />
                         </div>
                         <div className="admin-form-group">
-                            <label className="admin-label">Expire On</label>
-                            <input type="date" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
+                            <label className="admin-label">Status *</label>
+                            <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="admin-select">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div className="admin-form-group">
-                        <label className="admin-label">Status *</label>
-                        <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="admin-select">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
+                    <div className="admin-form-row">
+                        <div className="admin-form-group">
+                            <label className="admin-label">Start On</label>
+                            <input type="date" value={formData.startOn} onChange={e => setFormData({...formData, startOn: e.target.value})} className="admin-input" />
+                        </div>
+                        <div className="admin-form-group">
+                            <label className="admin-label">Expire On</label>
+                            <input type="date" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
+                        </div>
                     </div>
                     
                     <div className="admin-form-group">

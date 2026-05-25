@@ -362,6 +362,7 @@ model Coupon {
   minOrderAmount Decimal  @default(0) @map("min_order_amount") @db.Decimal(18, 2)
   maxDiscount    Decimal? @map("max_discount") @db.Decimal(18, 2)
   description    String?  @db.Text
+  startOn        DateTime? @map("start_on")
   expireOn       DateTime? @map("expire_on")
   usageLimit     Int?     @map("usage_limit")
   usedCount      Int      @default(0) @map("used_count")
