@@ -80,7 +80,10 @@ router.post('/login', async (req, res) => {
 
     req.session.adminId = admin.id;
     req.session.adminRole = admin.role;
-    req.session.cookie.maxAge = 10 * 60 * 60 * 1000; // 10 hours session timeout for admin
+    const expiry = Date.now() + 10 * 60 * 60 * 1000;
+    req.session.adminExpiry = expiry;
+    req.session.cookie.expires = new Date(expiry);
+    req.session.cookie.maxAge = 10 * 60 * 60 * 1000;
     res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -99,7 +102,10 @@ router.post('/login/verify-2fa', async (req, res) => {
 
     req.session.adminId = admin.id;
     req.session.adminRole = admin.role;
-    req.session.cookie.maxAge = 10 * 60 * 60 * 1000; // 10 hours session timeout for admin
+    const expiry = Date.now() + 10 * 60 * 60 * 1000;
+    req.session.adminExpiry = expiry;
+    req.session.cookie.expires = new Date(expiry);
+    req.session.cookie.maxAge = 10 * 60 * 60 * 1000;
     res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (e) {
     res.json({ status: false, message: e.message });

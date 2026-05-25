@@ -53,6 +53,24 @@ app.use(session({
   }
 }));
 
+// Enforce admin absolute session expiration
+app.use((req, res, next) => {
+  if (req.session && req.session.adminExpiry) {
+    const timeLeft = req.session.adminExpiry - Date.now();
+    if (timeLeft <= 0) {
+      req.session.destroy((err) => {
+        if (err) console.error('Failed to destroy expired session:', err);
+        return res.status(401).json({ status: false, message: 'Session expired' });
+      });
+      return;
+    } else {
+      req.session.cookie.expires = new Date(req.session.adminExpiry);
+      req.session.cookie.maxAge = timeLeft;
+    }
+  }
+  next();
+});
+
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 

@@ -62,10 +62,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    setAdmin(null);
+    setSessionTimeLeft(null);
     try {
       await api.get('/logout');
-      setAdmin(null);
-      setSessionTimeLeft(null);
     } catch (error) {
       console.error('Logout failed:', error);
     }

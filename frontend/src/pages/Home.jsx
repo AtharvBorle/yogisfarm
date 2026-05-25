@@ -1020,7 +1020,7 @@ const Home = () => {
                                     {section.name}
                                 </h3>
                             </div>
-                            <div className="row flex-nowrap overflow-auto justify-content-md-center mb-2 auto-scroll-container" style={{ paddingBottom: '15px', gap: '20px' }}>
+                            <div className="row justify-content-center g-4 mb-2">
                                 {items.map((item, idx) => {
                                     const cardContent = (
                                         <div className="position-relative overflow-hidden hover-zoom-container" style={{ borderRadius: '12px', width: '291px', height: '200px', flexShrink: 0, border: '1px solid #e0e0e0', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', position: 'relative' }}>
@@ -1038,7 +1038,7 @@ const Home = () => {
                                     );
 
                                     return (
-                                        <div key={idx} style={{ flexShrink: 0 }}>
+                                        <div key={idx} className="col-auto">
                                             {item.linkType && item.linkType !== 'none' ? (
                                                 <a href={getSliderLink(item)} style={{ display: 'block' }}>
                                                     {cardContent}
@@ -1097,14 +1097,6 @@ const Home = () => {
                                         </div>
                                     );
                                 })}
-                            </div>
-                            
-                            {/* Figma Play CTA button centered below list */}
-                            <div className="text-center mt-10">
-                                <a href="/deals" className="btn btn-sm" style={{ display: 'inline-flex', padding: '4px 15px', background: '#0A6738', color: '#fff', fontSize: '10px', fontWeight: 600, fontFamily: 'Poppins, sans-serif', borderRadius: '9px', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                                    Participate Now
-                                    <ArrowRight size={10} />
-                                </a>
                             </div>
                         </div>
                     </section>
