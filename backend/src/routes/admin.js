@@ -751,7 +751,13 @@ router.get('/orders', requireAdmin, async (req, res) => {
     const where = {};
     if (orderStatus) where.orderStatus = orderStatus;
     if (paymentMethod) where.paymentMethod = paymentMethod;
-    if (paymentStatus) where.paymentStatus = paymentStatus;
+    if (paymentStatus) {
+      if (paymentStatus === 'verified') {
+        where.paymentStatus = { in: ['completed', 'paid'] };
+      } else {
+        where.paymentStatus = paymentStatus;
+      }
+    }
 
     const orders = await prisma.order.findMany({
       where, orderBy: { createdAt: 'desc' },
@@ -1629,7 +1635,11 @@ router.get('/accounts/orders', requireAdmin, async (req, res) => {
     const where = {};
 
     if (paymentStatus && paymentStatus !== 'all') {
-      where.paymentStatus = paymentStatus;
+      if (paymentStatus === 'verified') {
+        where.paymentStatus = { in: ['completed', 'paid'] };
+      } else {
+        where.paymentStatus = paymentStatus;
+      }
     }
 
     if (orderStatus && orderStatus !== 'all') {
