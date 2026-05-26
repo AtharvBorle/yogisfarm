@@ -22,6 +22,7 @@ import TakeAction from './pages/TakeAction';
 import Review from './pages/Review';
 import Collections from './pages/Collections';
 import Logs from './pages/Logs';
+import Accounts from './pages/Accounts';
 
 function App() {
   const { admin, loading } = useAuth();
@@ -50,6 +51,7 @@ function App() {
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/reviews" element={admin ? <AdminLayout><Review /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/logs" element={admin ? <AdminLayout><Logs /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/accounts" element={admin ? <AdminLayout><Accounts /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/profile" element={admin ? <AdminLayout><Profile /></AdminLayout> : <Navigate to="/login" />} />
     </Routes>
   );

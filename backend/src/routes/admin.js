@@ -1621,4 +1621,129 @@ router.put('/settings', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Accounts Section Endpoints ───
+router.get('/accounts/orders', requireAdmin, async (req, res) => {
+  try {
+    const { paymentStatus, orderStatus, startDate, endDate } = req.query;
+
+    const where = {};
+
+    if (paymentStatus && paymentStatus !== 'all') {
+      where.paymentStatus = paymentStatus;
+    }
+
+    if (orderStatus && orderStatus !== 'all') {
+      where.orderStatus = orderStatus;
+    }
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        where.createdAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        items: true,
+        user: {
+          select: {
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    const rows = [];
+    for (const order of orders) {
+      const orderDate = order.createdAt;
+      const orderNo = order.orderNumber;
+      const invoiceDate = order.createdAt;
+      const invoiceNo = order.orderNumber;
+      
+      const customerName = order.addressName || order.user?.name || 'N/A';
+      
+      const addressParts = [
+        order.addressText,
+        order.addressCity,
+        order.addressState,
+        order.addressPincode ? `India - ${order.addressPincode}` : ''
+      ].filter(Boolean);
+      const customerAddress = addressParts.join(', ');
+
+      const shippingCharges = Number(order.shippingTotal || order.shipping || 0);
+      const shippingGst = Number(order.shippingGST || 0);
+      const grandTotal = Number(order.grandTotal || order.total || 0);
+
+      // Determine state for GST split
+      const orderState = (order.addressState || '').toLowerCase().trim();
+      const isIntrastate = orderState === 'maharashtra' || orderState === '';
+
+      for (const item of order.items) {
+        const productName = item.name + (item.variant ? ` (${item.variant})` : '');
+        const qty = item.quantity;
+        const productDiscount = Number(item.productDiscount || 0);
+        const orderDiscount = Number(item.orderDiscount || 0);
+        const taxableAmount = Number(item.taxableValue || 0);
+        const taxPercent = Number(item.taxRate || 0);
+        const total = Number(item.total || 0);
+
+        let cgst = 0;
+        let sgst = 0;
+        let igst = 0;
+
+        const itemGstAmount = Number(item.gstAmount || item.gst || 0);
+
+        if (isIntrastate) {
+          cgst = Number(item.cgst || (itemGstAmount / 2).toFixed(2));
+          sgst = Number(item.sgst || (itemGstAmount - cgst).toFixed(2));
+          igst = 0;
+        } else {
+          cgst = 0;
+          sgst = 0;
+          igst = itemGstAmount;
+        }
+
+        rows.push({
+          orderDate,
+          orderNo,
+          invoiceDate,
+          invoiceNo,
+          customerName,
+          customerAddress,
+          productName,
+          qty,
+          productDiscount,
+          orderDiscount,
+          taxableAmount,
+          taxPercent,
+          cgst,
+          sgst,
+          igst,
+          total,
+          shippingCharges,
+          shippingGst,
+          grandTotal
+        });
+      }
+    }
+
+    res.json({ status: true, rows });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 module.exports = router;
