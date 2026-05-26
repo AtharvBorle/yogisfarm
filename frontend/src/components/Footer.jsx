@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,6 +14,13 @@ import footerLogo from '../assets/figma/image_find/Yogis-Farms-Logo-footer.svg';
 
 const Footer = () => {
     const { user } = useAuth();
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
     
     return (
         <>
@@ -186,13 +193,15 @@ const Footer = () => {
             </div>
             
             {/* Mobile-only landscape background image block at bottom of footer */}
-            <div className="d-block d-md-none" style={{ width: '100%', overflow: 'hidden', marginTop: '20px' }}>
-                <img src={footerBg} alt="Footer Landscape" style={{ width: '100%', height: '180px', aspectRatio: '359/179', objectFit: 'cover', display: 'block' }} />
-            </div>
+            {isMobile && (
+                <div style={{ width: '100%', overflow: 'hidden', marginTop: '20px' }}>
+                    <img src={footerBg} alt="Footer Landscape" style={{ width: '100%', height: '180px', aspectRatio: '359/179', objectFit: 'cover', display: 'block' }} />
+                </div>
+            )}
 
             {/* Copyright Bar */}
             <div style={{ width: '100%', textAlign: 'center', padding: '15px 0', marginTop: 'auto', zIndex: 10 }}>
-                <p className="footer-copyright" style={{ color: '#ffffff', fontSize: '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
+                <p className="footer-copyright" style={{ color: isMobile ? '#0A6738' : '#ffffff', fontSize: isMobile ? '11px' : '14px', margin: 0 }}>Copyright © 2026 YogisFarms</p>
             </div>
         </footer>
         </>
