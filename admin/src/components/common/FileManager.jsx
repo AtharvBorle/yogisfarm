@@ -167,7 +167,7 @@ const FileManager = ({ onSelect, onClose }) => {
                                     }}
                                     style={{ 
                                         height: '80px', 
-                                        background: `url(${getAssetUrl(file.path)}) center/cover`, 
+                                        background: `url("${encodeURI(getAssetUrl(file.path))}") center/cover`, 
                                         border: '1px solid var(--border)',
                                         borderRadius: '4px',
                                         marginBottom: '5px'
