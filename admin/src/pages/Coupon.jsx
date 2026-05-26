@@ -35,6 +35,13 @@ const Coupon = () => {
         setFormData({ ...formData, code });
     };
 
+    const toLocalDatetimeString = (dateVal) => {
+        if (!dateVal) return '';
+        const date = new Date(dateVal);
+        const offset = date.getTimezoneOffset() * 60000;
+        return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+    };
+
     const openAddModal = () => {
         setFormData({ 
             name: '', code: '', status: 'active', amountType: 'percent', 
@@ -51,8 +58,8 @@ const Coupon = () => {
             minOrderAmount: row.minOrderAmount, 
             maxDiscount: row.maxDiscount || '', usageLimit: row.usageLimit || '',
             description: row.description || '', 
-            startOn: row.startOn ? new Date(row.startOn).toISOString().split('T')[0] : '',
-            expireOn: row.expireOn ? new Date(row.expireOn).toISOString().split('T')[0] : '' 
+            startOn: toLocalDatetimeString(row.startOn),
+            expireOn: toLocalDatetimeString(row.expireOn)
         });
         setEditingId(row.id);
         setModalOpen(true);
@@ -116,8 +123,8 @@ const Coupon = () => {
         { header: 'Usage', render: (row) => (
             <span>{row.usedCount || 0}{row.usageLimit ? ` / ${row.usageLimit}` : ' / ∞'}</span>
         )},
-        { header: 'Start Date', render: (row) => row.startOn ? new Date(row.startOn).toLocaleDateString() : 'Immediate' },
-        { header: 'Expiry Date', render: (row) => row.expireOn ? new Date(row.expireOn).toLocaleDateString() : 'Never' },
+        { header: 'Start Date', render: (row) => row.startOn ? new Date(row.startOn).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Immediate' },
+        { header: 'Expiry Date', render: (row) => row.expireOn ? new Date(row.expireOn).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : 'Never' },
         { 
             header: 'Status', 
             render: (row) => (
@@ -218,11 +225,11 @@ const Coupon = () => {
                     <div className="admin-form-row">
                         <div className="admin-form-group">
                             <label className="admin-label">Start On</label>
-                            <input type="date" value={formData.startOn} onChange={e => setFormData({...formData, startOn: e.target.value})} className="admin-input" />
+                            <input type="datetime-local" value={formData.startOn} onChange={e => setFormData({...formData, startOn: e.target.value})} className="admin-input" />
                         </div>
                         <div className="admin-form-group">
                             <label className="admin-label">Expire On</label>
-                            <input type="date" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
+                            <input type="datetime-local" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
                         </div>
                     </div>
                     

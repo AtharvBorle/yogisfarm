@@ -506,36 +506,38 @@ const Home = () => {
                                 </div>
 
                                 {/* Mobile-Only Banner Grid Row (c1r1, c1r2, c2r1, c2r2) */}
-                                <div className="d-flex d-md-none justify-content-between" style={{ marginTop: '12px', gap: '8px' }}>
-                                    {/* Box 1: c1r1 / R1C1 */}
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '6.158px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
-                                        <a href={r1c1Slider ? getSliderLink(r1c1Slider) : '#'}>
-                                            <img src={r1c1Slider ? getAssetUrl(r1c1Slider.image) : mainR1Left} alt="R1C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </a>
+                                {isMobile && (
+                                    <div className="d-flex d-md-none justify-content-between" style={{ marginTop: '12px', gap: '8px' }}>
+                                        {/* Box 1: c1r1 / R1C1 */}
+                                        <div style={{ width: '72px', height: '72px', borderRadius: '6.158px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                            <a href={r1c1Slider ? getSliderLink(r1c1Slider) : '#'}>
+                                                <img src={r1c1Slider ? getAssetUrl(r1c1Slider.image) : mainR1Left} alt="R1C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </a>
+                                        </div>
+                                        {/* Box 2: c1r2 / R2C1 */}
+                                        <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                            <a href={r2c1Slider ? getSliderLink(r2c1Slider) : '#'}>
+                                                <img src={r2c1Slider ? getAssetUrl(r2c1Slider.image) : mainR2Left} alt="R2C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </a>
+                                        </div>
+                                        {/* Box 3: c2r1 / R1C2 */}
+                                        <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
+                                            <a href={r1c2Slider ? getSliderLink(r1c2Slider) : '#'}>
+                                                <img src={r1c2Slider ? getAssetUrl(r1c2Slider.image) : mainR1Right} alt="R1C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </a>
+                                        </div>
+                                        {/* Box 4: c2r2 / R2C2 with Video Icon */}
+                                        <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1', position: 'relative' }}>
+                                            <a href={r2c2Slider ? getSliderLink(r2c2Slider) : '#'}>
+                                                <img src={r2c2Slider ? getAssetUrl(r2c2Slider.image) : mainR2Right} alt="R2C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                {/* Video Play Icon Overlay */}
+                                                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '22px', height: '22px', background: 'rgba(255,255,255,0.85)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                                    <svg width="10" height="10" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
+                                                </div>
+                                            </a>
+                                        </div>
                                     </div>
-                                    {/* Box 2: c1r2 / R2C1 */}
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
-                                        <a href={r2c1Slider ? getSliderLink(r2c1Slider) : '#'}>
-                                            <img src={r2c1Slider ? getAssetUrl(r2c1Slider.image) : mainR2Left} alt="R2C1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </a>
-                                    </div>
-                                    {/* Box 3: c2r1 / R1C2 */}
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1' }}>
-                                        <a href={r1c2Slider ? getSliderLink(r1c2Slider) : '#'}>
-                                            <img src={r1c2Slider ? getAssetUrl(r1c2Slider.image) : mainR1Right} alt="R1C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </a>
-                                    </div>
-                                    {/* Box 4: c2r2 / R2C2 with Video Icon */}
-                                    <div style={{ width: '72px', height: '72px', borderRadius: '9.237px', overflow: 'hidden', flex: 1, aspectRatio: '1/1', position: 'relative' }}>
-                                        <a href={r2c2Slider ? getSliderLink(r2c2Slider) : '#'}>
-                                            <img src={r2c2Slider ? getAssetUrl(r2c2Slider.image) : mainR2Right} alt="R2C2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            {/* Video Play Icon Overlay */}
-                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '22px', height: '22px', background: 'rgba(255,255,255,0.85)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                                <svg width="10" height="10" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="#0A6738" /></svg>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
+                                )}
                             </div>
 
                             {/* Right Banners — Figma: 173x173 stacked */}
