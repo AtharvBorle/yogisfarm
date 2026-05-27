@@ -60,7 +60,14 @@ const Login = () => {
 
     React.useEffect(() => {
         if (!authLoading && user) {
-            navigate(redirect);
+            if (!user.name || !user.email) {
+                setStep(3);
+                if (user.phone) {
+                    setPhone(user.phone);
+                }
+            } else {
+                navigate(redirect);
+            }
         }
     }, [user, authLoading, navigate, redirect]);
 

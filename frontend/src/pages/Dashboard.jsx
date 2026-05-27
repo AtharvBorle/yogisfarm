@@ -36,6 +36,7 @@ const Dashboard = () => {
     useEffect(() => {
         if (authLoading) return;
         if (!user) { navigate('/login'); return; }
+        if (!user.name || !user.email) { navigate('/login'); return; }
         const fetchData = async () => {
             try {
                 if (tab === 'orders' || tab === 'dashboard') {

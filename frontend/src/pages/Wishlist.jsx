@@ -29,7 +29,7 @@ const Wishlist = () => {
         fetchWishlist();
     }, [user]);
 
-    if (!user) {
+    if (!user || !user.name || !user.email) {
         return <Navigate to="/login?redirect=/wishlist" />;
     }
 
