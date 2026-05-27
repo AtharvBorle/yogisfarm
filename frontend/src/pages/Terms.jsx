@@ -36,7 +36,7 @@ const Terms = () => {
             id: 4,
             title: "4. Orders",
             content: [
-                "Once you place an order, you will receive a confirmation email.",
+                "Once an order is placed, you will receive a confirmation on the platform and/or via notifications such as SMS or email.",
                 "This does not guarantee acceptance of your order.",
                 "We reserve the right to cancel or refuse any order at our discretion.",
                 "Orders may be declined for reasons including product unavailability, payment issues, or suspicion of fraud."

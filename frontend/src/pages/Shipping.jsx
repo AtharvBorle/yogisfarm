@@ -10,14 +10,14 @@ const Shipping = () => {
             title: "1. General Information",
             content: [
                 "We process and ship orders on all business days, which are Monday through Friday, excluding public holidays.",
-                "All orders are subject to product availability and order verification. Once an order is placed, you will receive a confirmation email."
+                "All orders are subject to product availability and order verification. Once an order is placed, you will receive a confirmation on the platform and/or via notifications such as SMS or email."
             ]
         },
         {
             id: 2,
             title: "2. Order Processing Time",
             content: [
-                "We strive to process all orders within 1-3 business days of receiving your order confirmation email.",
+                "We strive to process all orders within 1-3 business days of receiving your order confirmation.",
                 "During peak seasons, festivals, or special promotions, processing times may be slightly longer. We appreciate your patience during these times."
             ]
         },
@@ -27,7 +27,7 @@ const Shipping = () => {
             content: [
                 "We use trusted local and national courier services to ensure your products arrive fresh and in excellent condition.",
                 "Due to the perishable nature of our products, our delivery partners are trained to handle your package with care.",
-                "Once your order has been dispatched, you will receive a shipping confirmation email that includes a tracking number and a link to track your order's journey."
+                "Once your order has been dispatched, you will receive a shipping confirmation on the platform and/or via SMS or email, including a tracking number and a link to track your order."
             ]
         },
         {
@@ -62,7 +62,7 @@ const Shipping = () => {
             id: 7,
             title: "7. Order Tracking",
             content: [
-                "You can track the status of your order using the tracking number provided in your shipping confirmation email.",
+                "You can track your order status directly on the platform using the tracking number shared via SMS, email, or platform notification.",
                 "If you have any issues with tracking your order, please contact our customer support team for assistance."
             ]
         },
