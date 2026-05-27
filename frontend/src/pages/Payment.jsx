@@ -32,8 +32,6 @@ const Payment = () => {
     const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('cod');
-    const [agreeTerms, setAgreeTerms] = useState(false);
-    const [termsError, setTermsError] = useState('');
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
 
@@ -129,8 +127,6 @@ const Payment = () => {
 
     const handlePlaceOrder = async () => {
         if (!selectedAddress) { toast.error('Please select a delivery address'); return; }
-        if (!agreeTerms) { setTermsError('This value is required.'); return; }
-        setTermsError('');
         setLoading(true);
         try {
             const res = await api.post('/orders/place', {
@@ -413,15 +409,7 @@ const Payment = () => {
 
                 </div>
 
-                {/* Terms */}
-                <div style={{ marginBottom: '5px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', color: '#253D4E' }}>
-                        <input type="checkbox" checked={agreeTerms} onChange={e => { setAgreeTerms(e.target.checked); if (e.target.checked) setTermsError(''); }}
-                            style={{ width: '16px', height: '16px', accentColor: '#046938', flexShrink: 0 }} />
-                        <span>I Agree To The <a href="#" style={{ color: '#046938' }}>Terms & Conditions</a> <a href="#" style={{ color: '#046938' }}>Return, Refund And Cancellation Policy</a> & <a href="#" style={{ color: '#046938' }}>Privacy Policy</a></span>
-                    </label>
-                    {termsError && <div style={{ color: '#dc3545', fontSize: '13px', marginTop: '3px', marginLeft: '24px' }}>{termsError}</div>}
-                </div>
+
 
                 {/* Additional Notes */}
                 <h5 style={{ fontSize: '16px', fontWeight: '700', color: '#253D4E', marginBottom: '10px', marginTop: '15px' }}>Additional Notes:</h5>

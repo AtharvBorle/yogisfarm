@@ -63,7 +63,8 @@ router.post('/place', requireLogin, async (req, res) => {
     const { addressId, paymentMethod = 'cod', couponCode, orderNote, agreeTerms } = req.body;
     const userId = req.session.userId;
 
-    if (!agreeTerms) {
+    const finalAgreeTerms = agreeTerms !== undefined ? agreeTerms : true;
+    if (!finalAgreeTerms) {
       return res.json({ status: false, message: 'You must agree to Terms & Conditions' });
     }
 
