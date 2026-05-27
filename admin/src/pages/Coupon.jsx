@@ -158,6 +158,91 @@ const MultiSelect = ({ label, options, selectedIds, onChange }) => {
         </div>
     );
 };
+const DateTimePicker12hr = ({ value, onChange, label }) => {
+    let datePart = '';
+    let hourPart = '12';
+    let minutePart = '00';
+    let periodPart = 'AM';
+    
+    if (value && value.includes('T')) {
+        const [d, t] = value.split('T');
+        datePart = d;
+        if (t) {
+            const [hStr, mStr] = t.split(':');
+            let h = parseInt(hStr, 10);
+            const m = mStr || '00';
+            minutePart = m.slice(0, 2);
+            
+            if (h >= 12) {
+                periodPart = 'PM';
+                if (h > 12) h = h - 12;
+            } else {
+                periodPart = 'AM';
+                if (h === 0) h = 12;
+            }
+            hourPart = String(h);
+        }
+    }
+    
+    const updateValue = (newDate, newHour, newMin, newPeriod) => {
+        if (!newDate) {
+            onChange('');
+            return;
+        }
+        let h = parseInt(newHour, 10);
+        if (newPeriod === 'PM' && h < 12) h += 12;
+        if (newPeriod === 'AM' && h === 12) h = 0;
+        
+        const hStr = String(h).padStart(2, '0');
+        const mStr = String(newMin).padStart(2, '0');
+        onChange(`${newDate}T${hStr}:${mStr}`);
+    };
+    
+    return (
+        <div className="admin-form-group" style={{ flex: 1 }}>
+            <label className="admin-label">{label}</label>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <input 
+                    type="date" 
+                    value={datePart} 
+                    onChange={e => updateValue(e.target.value, hourPart, minutePart, periodPart)} 
+                    className="admin-input" 
+                    style={{ flex: 2, minWidth: '120px' }}
+                />
+                <select 
+                    value={hourPart} 
+                    onChange={e => updateValue(datePart, e.target.value, minutePart, periodPart)} 
+                    className="admin-select"
+                    style={{ flex: 1, minWidth: '55px', padding: '8px' }}
+                >
+                    {Array.from({ length: 12 }, (_, i) => String(i + 1)).map(h => (
+                        <option key={h} value={h}>{h.padStart(2, '0')}</option>
+                    ))}
+                </select>
+                <span style={{ fontWeight: 'bold' }}>:</span>
+                <select 
+                    value={minutePart} 
+                    onChange={e => updateValue(datePart, hourPart, e.target.value, periodPart)} 
+                    className="admin-select"
+                    style={{ flex: 1, minWidth: '55px', padding: '8px' }}
+                >
+                    {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map(m => (
+                        <option key={m} value={m}>{m}</option>
+                    ))}
+                </select>
+                <select 
+                    value={periodPart} 
+                    onChange={e => updateValue(datePart, hourPart, minutePart, e.target.value)} 
+                    className="admin-select"
+                    style={{ flex: 1, minWidth: '65px', padding: '8px' }}
+                >
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
+                </select>
+            </div>
+        </div>
+    );
+};
 
 const Coupon = () => {
     const [coupons, setCoupons] = useState([]);
@@ -440,14 +525,16 @@ const Coupon = () => {
                     </div>
 
                     <div className="admin-form-row">
-                        <div className="admin-form-group">
-                            <label className="admin-label">Start On</label>
-                            <input type="datetime-local" value={formData.startOn} onChange={e => setFormData({...formData, startOn: e.target.value})} className="admin-input" />
-                        </div>
-                        <div className="admin-form-group">
-                            <label className="admin-label">Expire On</label>
-                            <input type="datetime-local" value={formData.expireOn} onChange={e => setFormData({...formData, expireOn: e.target.value})} className="admin-input" />
-                        </div>
+                        <DateTimePicker12hr 
+                            label="Start On" 
+                            value={formData.startOn} 
+                            onChange={val => setFormData({ ...formData, startOn: val })} 
+                        />
+                        <DateTimePicker12hr 
+                            label="Expire On" 
+                            value={formData.expireOn} 
+                            onChange={val => setFormData({ ...formData, expireOn: val })} 
+                        />
                     </div>
 
                     <div style={{ margin: '20px 0', borderTop: '1px solid #eee', paddingTop: '15px' }}>
