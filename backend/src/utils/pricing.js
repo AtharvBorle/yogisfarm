@@ -86,6 +86,7 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   let discountAmount = 0;
   let appliedCouponId = null;
   let coupon = null;
+  const lineDiscounts = Array(cartItems.length).fill(0);
 
   if (couponCode) {
     coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
@@ -93,16 +94,210 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
       const now = new Date();
       const isStarted = !coupon.startOn || new Date(coupon.startOn) <= now;
       const isNotExpired = !coupon.expireOn || new Date(coupon.expireOn) > now;
-      if (isStarted && isNotExpired) {
-        if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
-          discountAmount = coupon.amountType === 'percent'
-            ? (offerPriceSum * parseFloat(coupon.amount)) / 100
-            : parseFloat(coupon.amount);
-          if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
-          appliedCouponId = coupon.id;
+      
+      let isValid = isStarted && isNotExpired;
+
+      // Validate User Constraints if logged in
+      if (isValid && type === 'userId') {
+        if (coupon.firstOrdersLimit) {
+          const orderCount = await prisma.order.count({
+            where: {
+              userId: identifier,
+              orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }
+            }
+          });
+          if (orderCount >= coupon.firstOrdersLimit) {
+            isValid = false;
+          }
+        }
+        if (isValid && coupon.userLimit) {
+          const userUsageCount = await prisma.order.count({
+            where: {
+              userId: identifier,
+              couponCode: coupon.code,
+              orderStatus: { notIn: ['cancelled', 'failed'] }
+            }
+          });
+          if (userUsageCount >= coupon.userLimit) {
+            isValid = false;
+          }
+        }
+      }
+
+      if (isValid) {
+        const parseIds = (str) => {
+          if (!str || str.trim() === '') return [];
+          return str.split(',').map(id => parseInt(id.trim())).filter(Boolean);
+        };
+
+        const matchesCriteria = (item, productIds, categoryIds, brandIds) => {
+          const hasProductCriteria = productIds && productIds.length > 0;
+          const hasCategoryCriteria = categoryIds && categoryIds.length > 0;
+          const hasBrandCriteria = brandIds && brandIds.length > 0;
+          
+          if (!hasProductCriteria && !hasCategoryCriteria && !hasBrandCriteria) {
+            return true;
+          }
+          if (hasProductCriteria && productIds.includes(item.productId)) return true;
+          if (hasCategoryCriteria && item.product.categoryId && categoryIds.includes(item.product.categoryId)) return true;
+          if (hasBrandCriteria && item.product.brandId && brandIds.includes(item.product.brandId)) return true;
+          return false;
+        };
+
+        if (coupon.isBogo) {
+          const buyProductIds = parseIds(coupon.buyProductIds);
+          const buyCategoryIds = parseIds(coupon.buyCategoryIds);
+          const buyBrandIds = parseIds(coupon.buyBrandIds);
+          
+          const getProductIds = parseIds(coupon.getProductIds);
+          const getCategoryIds = parseIds(coupon.getCategoryIds);
+          const getBrandIds = parseIds(coupon.getBrandIds);
+          
+          const buyQuantity = coupon.buyQuantity || 1;
+          const getQuantity = coupon.getQuantity || 1;
+          
+          const isGetEmpty = getProductIds.length === 0 && getCategoryIds.length === 0 && getBrandIds.length === 0;
+
+          if (isGetEmpty) {
+            // Case B1: Same-pool BOGO
+            const poolItems = cartItems.filter(item => matchesCriteria(item, buyProductIds, buyCategoryIds, buyBrandIds));
+            let totalPoolQty = 0;
+            poolItems.forEach(item => { totalPoolQty += item.quantity; });
+
+            if (totalPoolQty >= buyQuantity) {
+              const groupCount = Math.floor(totalPoolQty / (buyQuantity + getQuantity));
+              const freeQty = groupCount * getQuantity;
+
+              if (freeQty > 0) {
+                const units = [];
+                poolItems.forEach(item => {
+                  const originalIndex = cartItems.indexOf(item);
+                  const offerPrice = item.variant
+                    ? parseFloat(item.variant.salePrice || item.variant.price)
+                    : parseFloat(item.product.salePrice || item.product.price);
+                  for (let i = 0; i < item.quantity; i++) {
+                    units.push({ price: offerPrice, cartItemIndex: originalIndex });
+                  }
+                });
+
+                units.sort((a, b) => a.price - b.price);
+                const selectedFreeUnits = units.slice(0, freeQty);
+                selectedFreeUnits.forEach(u => {
+                  lineDiscounts[u.cartItemIndex] += u.price;
+                });
+                discountAmount = selectedFreeUnits.reduce((sum, u) => sum + u.price, 0);
+                appliedCouponId = coupon.id;
+              }
+            }
+          } else {
+            // Case B2: Cross-pool BOGO
+            const buyItems = cartItems.filter(item => matchesCriteria(item, buyProductIds, buyCategoryIds, buyBrandIds));
+            let totalBuyQty = 0;
+            buyItems.forEach(item => { totalBuyQty += item.quantity; });
+
+            if (totalBuyQty >= buyQuantity) {
+              const multiplier = Math.floor(totalBuyQty / buyQuantity);
+              const freeQty = multiplier * getQuantity;
+
+              if (freeQty > 0) {
+                const getItems = cartItems.filter(item => matchesCriteria(item, getProductIds, getCategoryIds, getBrandIds));
+                const units = [];
+                getItems.forEach(item => {
+                  const originalIndex = cartItems.indexOf(item);
+                  const offerPrice = item.variant
+                    ? parseFloat(item.variant.salePrice || item.variant.price)
+                    : parseFloat(item.product.salePrice || item.product.price);
+                  for (let i = 0; i < item.quantity; i++) {
+                    units.push({ price: offerPrice, cartItemIndex: originalIndex });
+                  }
+                });
+
+                units.sort((a, b) => a.price - b.price);
+                const selectedFreeUnits = units.slice(0, freeQty);
+                selectedFreeUnits.forEach(u => {
+                  lineDiscounts[u.cartItemIndex] += u.price;
+                });
+                discountAmount = selectedFreeUnits.reduce((sum, u) => sum + u.price, 0);
+                appliedCouponId = coupon.id;
+              }
+            }
+          }
+        } else {
+          // Standard targeted or general discount coupon
+          const targetProductIds = parseIds(coupon.buyProductIds);
+          const targetCategoryIds = parseIds(coupon.buyCategoryIds);
+          const targetBrandIds = parseIds(coupon.buyBrandIds);
+          
+          const hasBuyRestrictions = targetProductIds.length > 0 || targetCategoryIds.length > 0 || targetBrandIds.length > 0;
+
+          if (hasBuyRestrictions) {
+            const matchingItems = cartItems.filter(item => matchesCriteria(item, targetProductIds, targetCategoryIds, targetBrandIds));
+            let matchingSum = 0;
+            matchingItems.forEach(item => {
+              const offerPrice = item.variant
+                ? parseFloat(item.variant.salePrice || item.variant.price)
+                : parseFloat(item.product.salePrice || item.product.price);
+              matchingSum += offerPrice * item.quantity;
+            });
+
+            if (matchingSum >= parseFloat(coupon.minOrderAmount)) {
+              discountAmount = coupon.amountType === 'percent'
+                ? (matchingSum * parseFloat(coupon.amount)) / 100
+                : parseFloat(coupon.amount);
+              if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
+              
+              if (discountAmount > 0) {
+                cartItems.forEach((item, index) => {
+                  if (matchesCriteria(item, targetProductIds, targetCategoryIds, targetBrandIds)) {
+                    const offerPrice = item.variant
+                      ? parseFloat(item.variant.salePrice || item.variant.price)
+                      : parseFloat(item.product.salePrice || item.product.price);
+                    const itemTotal = offerPrice * item.quantity;
+                    lineDiscounts[index] = (itemTotal / matchingSum) * discountAmount;
+                  }
+                });
+              }
+              appliedCouponId = coupon.id;
+            }
+          } else {
+            // General discount coupon
+            if (offerPriceSum >= parseFloat(coupon.minOrderAmount)) {
+              discountAmount = coupon.amountType === 'percent'
+                ? (offerPriceSum * parseFloat(coupon.amount)) / 100
+                : parseFloat(coupon.amount);
+              if (coupon.maxDiscount) discountAmount = Math.min(discountAmount, parseFloat(coupon.maxDiscount));
+              
+              if (discountAmount > 0) {
+                cartItems.forEach((item, index) => {
+                  const offerPrice = item.variant
+                    ? parseFloat(item.variant.salePrice || item.variant.price)
+                    : parseFloat(item.product.salePrice || item.product.price);
+                  const itemTotal = offerPrice * item.quantity;
+                  lineDiscounts[index] = (itemTotal / offerPriceSum) * discountAmount;
+                });
+              }
+              appliedCouponId = coupon.id;
+            }
+          }
+        }
+
+        // Clean and round allocated line discounts to prevent float issues
+        if (discountAmount > 0) {
+          let totalAllocated = 0;
+          lineDiscounts.forEach((val, index) => {
+            lineDiscounts[index] = parseFloat(val.toFixed(2));
+            totalAllocated += lineDiscounts[index];
+          });
+          
+          let diff = parseFloat((discountAmount - totalAllocated).toFixed(2));
+          if (diff !== 0) {
+            const firstDiscountIdx = lineDiscounts.findIndex(val => val > 0);
+            if (firstDiscountIdx !== -1) {
+              lineDiscounts[firstDiscountIdx] = parseFloat((lineDiscounts[firstDiscountIdx] + diff).toFixed(2));
+            }
+          }
         }
       } else {
-        // Coupon not active yet or expired
         coupon = null;
       }
     }
@@ -112,7 +307,7 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   let totalTaxAmount = 0;
   let subtotal = 0; // Sum of taxable values
   
-  const orderItems = cartItems.map(item => {
+  const orderItems = cartItems.map((item, index) => {
     const offerPrice = item.variant
       ? parseFloat(item.variant.salePrice || item.variant.price)
       : parseFloat(item.product.salePrice || item.product.price);
@@ -124,7 +319,7 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     const productDiscount = (originalPrice - offerPrice) * item.quantity;
 
     // Allocate order discount proportionally
-    const odForLine = allocateOrderDiscount(itemTotal, offerPriceSum, discountAmount);
+    const odForLine = lineDiscounts[index];
     const finalItemTotal = itemTotal - odForLine;
     
     const itemTaxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;

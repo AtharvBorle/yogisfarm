@@ -353,22 +353,37 @@ model CourierPartner {
 
 // ─── Coupons ───
 model Coupon {
-  id             Int      @id @default(autoincrement())
-  name           String   @db.VarChar(100)
-  code           String   @unique @db.VarChar(50)
-  image          String?  @db.VarChar(500)
-  amountType     String   @default("percent") @map("amount_type") @db.VarChar(20)
-  amount         Decimal  @default(0) @db.Decimal(18, 2)
-  minOrderAmount Decimal  @default(0) @map("min_order_amount") @db.Decimal(18, 2)
-  maxDiscount    Decimal? @map("max_discount") @db.Decimal(18, 2)
-  description    String?  @db.Text
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  code           String    @unique @db.VarChar(50)
+  image          String?   @db.VarChar(500)
+  amountType     String    @default("percent") @map("amount_type") @db.VarChar(20)
+  amount         Decimal   @default(0) @db.Decimal(18, 2)
+  minOrderAmount Decimal   @default(0) @map("min_order_amount") @db.Decimal(18, 2)
+  maxDiscount    Decimal?  @map("max_discount") @db.Decimal(18, 2)
+  description    String?   @db.Text
   startOn        DateTime? @map("start_on")
   expireOn       DateTime? @map("expire_on")
-  usageLimit     Int?     @map("usage_limit")
-  usedCount      Int      @default(0) @map("used_count")
-  status         String   @default("active") @db.VarChar(20)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  usageLimit     Int?      @map("usage_limit")
+  usedCount      Int       @default(0) @map("used_count")
+  status         String    @default("active") @db.VarChar(20)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Targeting and Limits
+  firstOrdersLimit Int?      @map("first_orders_limit")
+  userLimit        Int?      @map("user_limit")
+  buyProductIds    String?   @map("buy_product_ids") @db.Text
+  buyCategoryIds   String?   @map("buy_category_ids") @db.Text
+  buyBrandIds      String?   @map("buy_brand_ids") @db.Text
+
+  // BXGY (BOGO) Options
+  isBogo           Boolean   @default(false) @map("is_bogo")
+  buyQuantity      Int?      @map("buy_quantity")
+  getQuantity      Int?      @map("get_quantity")
+  getProductIds    String?   @map("get_product_ids") @db.Text
+  getCategoryIds   String?   @map("get_category_ids") @db.Text
+  getBrandIds      String?   @map("get_brand_ids") @db.Text
 
   @@map("coupons")
 }

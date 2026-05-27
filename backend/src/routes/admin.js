@@ -1350,18 +1350,33 @@ router.get('/coupons', requireAdmin, async (req, res) => {
 
 router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn,
+      firstOrdersLimit, userLimit, buyProductIds, buyCategoryIds, buyBrandIds,
+      isBogo, buyQuantity, getQuantity, getProductIds, getCategoryIds, getBrandIds } = req.body;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : null;
     
     const startDate = startOn ? new Date(startOn) : null;
     const expireDate = expireOn ? new Date(expireOn) : null;
 
     const coupon = await prisma.coupon.create({
-      data: { name, code, image, status: status || 'active', amountType: amountType || 'percent',
-        amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
+      data: { 
+        name, code, image, status: status || 'active', amountType: amountType || 'percent',
+        amount: parseFloat(amount || 0), minOrderAmount: parseFloat(minOrderAmount || 0),
         maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
         usageLimit: usageLimit ? parseInt(usageLimit) : null,
-        description, startOn: startDate, expireOn: expireDate }
+        description, startOn: startDate, expireOn: expireDate,
+        firstOrdersLimit: firstOrdersLimit ? parseInt(firstOrdersLimit) : null,
+        userLimit: userLimit ? parseInt(userLimit) : null,
+        buyProductIds: buyProductIds || null,
+        buyCategoryIds: buyCategoryIds || null,
+        buyBrandIds: buyBrandIds || null,
+        isBogo: isBogo === true || isBogo === 'true',
+        buyQuantity: buyQuantity ? parseInt(buyQuantity) : null,
+        getQuantity: getQuantity ? parseInt(getQuantity) : null,
+        getProductIds: getProductIds || null,
+        getCategoryIds: getCategoryIds || null,
+        getBrandIds: getBrandIds || null
+      }
     });
     const startStr = startDate ? startDate.toLocaleString() : 'Immediate';
     const expiryStr = expireDate ? expireDate.toLocaleString() : 'Never';
@@ -1375,16 +1390,31 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn } = req.body;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn,
+      firstOrdersLimit, userLimit, buyProductIds, buyCategoryIds, buyBrandIds,
+      isBogo, buyQuantity, getQuantity, getProductIds, getCategoryIds, getBrandIds } = req.body;
     
     const startDate = startOn ? new Date(startOn) : null;
     const expireDate = expireOn ? new Date(expireOn) : null;
 
-    const data = { name, code, status, amountType, amount: parseFloat(amount),
+    const data = { 
+      name, code, status, amountType, amount: parseFloat(amount || 0),
       minOrderAmount: parseFloat(minOrderAmount || 0),
       maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
       usageLimit: usageLimit ? parseInt(usageLimit) : null,
-      description, startOn: startDate, expireOn: expireDate };
+      description, startOn: startDate, expireOn: expireDate,
+      firstOrdersLimit: firstOrdersLimit ? parseInt(firstOrdersLimit) : null,
+      userLimit: userLimit ? parseInt(userLimit) : null,
+      buyProductIds: buyProductIds || null,
+      buyCategoryIds: buyCategoryIds || null,
+      buyBrandIds: buyBrandIds || null,
+      isBogo: isBogo === true || isBogo === 'true',
+      buyQuantity: buyQuantity ? parseInt(buyQuantity) : null,
+      getQuantity: getQuantity ? parseInt(getQuantity) : null,
+      getProductIds: getProductIds || null,
+      getCategoryIds: getCategoryIds || null,
+      getBrandIds: getBrandIds || null
+    };
     if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
     const startStr = coupon.startOn ? new Date(coupon.startOn).toLocaleString() : 'Immediate';
