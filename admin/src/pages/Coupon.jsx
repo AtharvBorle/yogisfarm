@@ -279,22 +279,30 @@ const Coupon = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            let res;
-            if (editingId) {
-                res = await api.put(`/coupons/${editingId}`, formData);
+            const payload = { ...formData };
+            if (payload.startOn && typeof payload.startOn === 'string' && payload.startOn.trim() !== '') {
+                payload.startOn = new Date(payload.startOn).toISOString();
             } else {
-                res = await api.post('/coupons', formData);
+                payload.startOn = null;
             }
-            
+            if (payload.expireOn && typeof payload.expireOn === 'string' && payload.expireOn.trim() !== '') {
+                payload.expireOn = new Date(payload.expireOn).toISOString();
+            } else {
+                payload.expireOn = null;
+            }
+
+            const url = editingId ? `/coupons/${editingId}` : '/coupons';
+            const method = editingId ? 'put' : 'post';
+            const res = await api[method](url, payload);
             if (res.data.status) {
-                toast.success(`Coupon ${editingId ? 'updated' : 'added'} successfully`);
+                toast.success(editingId ? 'Coupon updated' : 'Coupon created');
                 setModalOpen(false);
                 fetchCoupons();
             } else {
                 toast.error(res.data.message);
             }
         } catch (error) {
-            toast.error(`Failed to ${editingId ? 'update' : 'add'} coupon`);
+            toast.error('Failed to save coupon');
         }
     };
 
