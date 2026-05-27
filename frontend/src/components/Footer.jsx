@@ -126,10 +126,10 @@ const Footer = () => {
                             Welcome to YogisFarms, where we're revolutionizing agriculture for a brighter tomorrow. Our mission is simple: to cultivate a sustainable future through innovative farming practices.
                         </p>
                         <div className="social-icons footer-socials" style={{ display: 'flex', gap: '15px' }}>
-                            <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <a href="https://www.instagram.com/yogisfarms/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <img src={instagramIcon} alt="Instagram" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
-                            <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <a href="https://www.facebook.com/profile.php?id=61589239487950" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <img src={facebookIcon} alt="Facebook" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                             </a>
                             <a href="#" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
