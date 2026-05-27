@@ -158,69 +158,82 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
           
           const isGetEmpty = getProductIds.length === 0 && getCategoryIds.length === 0 && getBrandIds.length === 0;
 
+          let effectiveGetProductIds = getProductIds;
+          let effectiveGetCategoryIds = getCategoryIds;
+          let effectiveGetBrandIds = getBrandIds;
           if (isGetEmpty) {
-            // Case B1: Same-pool BOGO
-            const poolItems = cartItems.filter(item => matchesCriteria(item, buyProductIds, buyCategoryIds, buyBrandIds));
-            let totalPoolQty = 0;
-            poolItems.forEach(item => { totalPoolQty += item.quantity; });
+            effectiveGetProductIds = buyProductIds;
+            effectiveGetCategoryIds = buyCategoryIds;
+            effectiveGetBrandIds = buyBrandIds;
+          }
 
-            if (totalPoolQty >= buyQuantity) {
-              const groupCount = Math.floor(totalPoolQty / (buyQuantity + getQuantity));
-              const freeQty = groupCount * getQuantity;
+          // Build flat list of all units in the cart
+          const allUnits = [];
+          cartItems.forEach((item, index) => {
+            const offerPrice = item.variant
+              ? parseFloat(item.variant.salePrice || item.variant.price)
+              : parseFloat(item.product.salePrice || item.product.price);
+            for (let i = 0; i < item.quantity; i++) {
+              allUnits.push({
+                price: offerPrice,
+                cartItemIndex: index,
+                matchesBuy: matchesCriteria(item, buyProductIds, buyCategoryIds, buyBrandIds),
+                matchesGet: matchesCriteria(item, effectiveGetProductIds, effectiveGetCategoryIds, effectiveGetBrandIds),
+                role: null
+              });
+            }
+          });
 
-              if (freeQty > 0) {
-                const units = [];
-                poolItems.forEach(item => {
-                  const originalIndex = cartItems.indexOf(item);
-                  const offerPrice = item.variant
-                    ? parseFloat(item.variant.salePrice || item.variant.price)
-                    : parseFloat(item.product.salePrice || item.product.price);
-                  for (let i = 0; i < item.quantity; i++) {
-                    units.push({ price: offerPrice, cartItemIndex: originalIndex });
-                  }
-                });
+          // Sort units by price ascending so that the cheapest eligible units are discounted first
+          allUnits.sort((a, b) => a.price - b.price);
 
-                units.sort((a, b) => a.price - b.price);
-                const selectedFreeUnits = units.slice(0, freeQty);
-                selectedFreeUnits.forEach(u => {
-                  lineDiscounts[u.cartItemIndex] += u.price;
-                });
-                discountAmount = selectedFreeUnits.reduce((sum, u) => sum + u.price, 0);
-                appliedCouponId = coupon.id;
+          let groupsFormed = 0;
+          while (true) {
+            // Find getQuantity available units for 'get' role
+            const candidateGetIndices = [];
+            for (let i = 0; i < allUnits.length; i++) {
+              if (allUnits[i].role === null && allUnits[i].matchesGet) {
+                candidateGetIndices.push(i);
+                if (candidateGetIndices.length === getQuantity) break;
               }
             }
-          } else {
-            // Case B2: Cross-pool BOGO
-            const buyItems = cartItems.filter(item => matchesCriteria(item, buyProductIds, buyCategoryIds, buyBrandIds));
-            let totalBuyQty = 0;
-            buyItems.forEach(item => { totalBuyQty += item.quantity; });
 
-            if (totalBuyQty >= buyQuantity) {
-              const multiplier = Math.floor(totalBuyQty / buyQuantity);
-              const freeQty = multiplier * getQuantity;
+            if (candidateGetIndices.length < getQuantity) {
+              break;
+            }
 
-              if (freeQty > 0) {
-                const getItems = cartItems.filter(item => matchesCriteria(item, getProductIds, getCategoryIds, getBrandIds));
-                const units = [];
-                getItems.forEach(item => {
-                  const originalIndex = cartItems.indexOf(item);
-                  const offerPrice = item.variant
-                    ? parseFloat(item.variant.salePrice || item.variant.price)
-                    : parseFloat(item.product.salePrice || item.product.price);
-                  for (let i = 0; i < item.quantity; i++) {
-                    units.push({ price: offerPrice, cartItemIndex: originalIndex });
-                  }
-                });
+            // Temporarily mark them to avoid selecting them for 'buy' role in this group
+            candidateGetIndices.forEach(idx => { allUnits[idx].role = 'temp_get'; });
 
-                units.sort((a, b) => a.price - b.price);
-                const selectedFreeUnits = units.slice(0, freeQty);
-                selectedFreeUnits.forEach(u => {
-                  lineDiscounts[u.cartItemIndex] += u.price;
-                });
-                discountAmount = selectedFreeUnits.reduce((sum, u) => sum + u.price, 0);
-                appliedCouponId = coupon.id;
+            // Find buyQuantity available units for 'buy' role (scan right-to-left: most expensive first)
+            const candidateBuyIndices = [];
+            for (let i = allUnits.length - 1; i >= 0; i--) {
+              if (allUnits[i].role === null && allUnits[i].matchesBuy) {
+                candidateBuyIndices.push(i);
+                if (candidateBuyIndices.length === buyQuantity) break;
               }
             }
+
+            if (candidateBuyIndices.length < buyQuantity) {
+              // Rollback temporary roles and exit
+              candidateGetIndices.forEach(idx => { allUnits[idx].role = null; });
+              break;
+            }
+
+            // Permanently commit roles
+            candidateGetIndices.forEach(idx => { allUnits[idx].role = 'get'; });
+            candidateBuyIndices.forEach(idx => { allUnits[idx].role = 'buy'; });
+            groupsFormed++;
+          }
+
+          // Apply discounts for units that got the 'get' role
+          const selectedFreeUnits = allUnits.filter(u => u.role === 'get');
+          if (selectedFreeUnits.length > 0) {
+            selectedFreeUnits.forEach(u => {
+              lineDiscounts[u.cartItemIndex] += u.price;
+            });
+            discountAmount = selectedFreeUnits.reduce((sum, u) => sum + u.price, 0);
+            appliedCouponId = coupon.id;
           }
         } else {
           // Standard targeted or general discount coupon
