@@ -201,19 +201,19 @@ const Checkout = () => {
                             })}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', padding: '10px 0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Subtotal :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{loading ? '...' : subtotalBase.toFixed(2)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '18px' }}>₹{loading ? '...' : (subtotalBase || 0).toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Total Applicable GST :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{loading ? '...' : totalTax.toFixed(2)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>₹{loading ? '...' : (totalTax || 0).toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
                                 <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping :</span>
-                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}</span>
+                                <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${(shipping || 0).toFixed(2)}`)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0 0 0', marginTop: '5px' }}>
                                 <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>
-                                <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{loading ? '...' : grandTotal.toFixed(0)}</span>
+                                <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{loading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                             </div>
                         </div>
                     </div>

@@ -176,7 +176,7 @@ const Cart = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>SubTotal</span>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
-                                            ₹{loading ? '...' : subtotalBase.toFixed(2)}
+                                            ₹{loading ? '...' : (subtotalBase || 0).toFixed(2)}
                                         </span>
                                     </div>
 
@@ -184,7 +184,7 @@ const Cart = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>Tax</span>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
-                                            ₹{loading ? '...' : totalTax.toFixed(2)}
+                                            ₹{loading ? '...' : (totalTax || 0).toFixed(2)}
                                         </span>
                                     </div>
 
@@ -192,7 +192,7 @@ const Cart = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>Shipping</span>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '10px', fontWeight: '600' }}>
-                                            {loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}
+                                            {loading ? '...' : (shipping === 0 ? 'Free' : `₹${(shipping || 0).toFixed(2)}`)}
                                         </span>
                                     </div>
 
@@ -203,7 +203,7 @@ const Cart = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>Total</span>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>
-                                            ₹{loading ? '...' : grandTotal.toFixed(0)}
+                                            ₹{loading ? '...' : (grandTotal || 0).toFixed(0)}
                                         </span>
                                     </div>
 
@@ -345,20 +345,20 @@ const Cart = () => {
                                 <h4 className="mb-30" style={{ color: '#0A6738', fontSize: '20px', fontWeight: '700' }}>Order Summary</h4>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Subtotal</span>
-                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : subtotalBase.toFixed(2)}</span>
+                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : (subtotalBase || 0).toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Total Applicable GST</span>
-                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : totalTax.toFixed(2)}</span>
+                                    <span style={{ color: '#333', fontWeight: '600' }}>₹{loading ? '...' : (totalTax || 0).toFixed(2)}</span>
                                 </div>
                                 <div className="d-flex justify-content-between mb-15">
                                     <span style={{ color: '#666' }}>Shipping</span>
-                                    <span style={{ color: '#0A6738', fontWeight: '600' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`)}</span>
+                                    <span style={{ color: '#0A6738', fontWeight: '600' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${(shipping || 0).toFixed(2)}`)}</span>
                                 </div>
                                 <div style={{ height: '1px', background: '#eee', margin: '20px 0' }}></div>
                                 <div className="d-flex justify-content-between mb-30">
                                     <span style={{ color: '#333', fontWeight: '700', fontSize: '18px' }}>Total</span>
-                                    <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : grandTotal.toFixed(0)}</span>
+                                    <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                                 </div>
                                 <button onClick={handleCheckout} className="btn btn-checkout w-100">
                                     Proceed To Checkout

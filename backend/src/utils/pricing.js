@@ -314,9 +314,10 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   // 2. First pass: find offerPriceSum
   let offerPriceSum = 0;
   cartItems.forEach(item => {
-    const offerPrice = item.variant
+    let offerPrice = item.variant
       ? parseFloat(item.variant.salePrice || item.variant.price)
       : parseFloat(item.product.salePrice || item.product.price);
+    if (isNaN(offerPrice) || !offerPrice) offerPrice = 0;
     offerPriceSum += offerPrice * item.quantity;
   });
 
@@ -370,12 +371,15 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   let subtotal = 0; // Sum of taxable values
   
   const orderItems = cartItems.map((item, index) => {
-    const offerPrice = item.variant
+    let offerPrice = item.variant
       ? parseFloat(item.variant.salePrice || item.variant.price)
       : parseFloat(item.product.salePrice || item.product.price);
-    const originalPrice = item.variant
+    if (isNaN(offerPrice) || !offerPrice) offerPrice = 0;
+
+    let originalPrice = item.variant
       ? parseFloat(item.variant.price)
       : parseFloat(item.product.price);
+    if (isNaN(originalPrice) || !originalPrice) originalPrice = 0;
 
     const itemTotal = offerPrice * item.quantity;
     const productDiscount = (originalPrice - offerPrice) * item.quantity;
