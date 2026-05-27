@@ -483,7 +483,7 @@ const Login = () => {
                                         required
                                         style={{ width: '16px', height: '16px', accentColor: '#0A6738', flexShrink: 0, marginTop: '2px' }} 
                                     />
-                                    <span>I Agree To The <Link to="/terms" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Terms & Conditions</Link>, <Link to="/return-policy" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Return, Refund And Cancellation Policy</Link> & <Link to="/privacy" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Privacy Policy</Link></span>
+                                    <span>I Agree To The <Link to="/terms" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Terms & Conditions</Link>, <Link to="/shipping" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Shipping Policy</Link>, <Link to="/return-policy" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Return, Refund And Cancellation Policy</Link> & <Link to="/privacy" target="_blank" style={{ color: '#0A6738', textDecoration: 'underline' }}>Privacy Policy</Link></span>
                                 </label>
                             </div>
 
