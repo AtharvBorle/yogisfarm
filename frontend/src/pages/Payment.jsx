@@ -23,8 +23,11 @@ const Payment = () => {
             navigate('/checkout');
         }
     }, [stateAddressId, navigate, authLoading]);
-    const [selectedAddress, setSelectedAddress] = useState(null);
-    const [couponCode, setCouponCode] = useState(() => sessionStorage.getItem('applied_coupon') || '');
+        const [selectedAddress, setSelectedAddress] = useState(null);
+    const [couponCode, setCouponCode] = useState(() => {
+        const val = sessionStorage.getItem('applied_coupon');
+        return (val && val !== 'NONE') ? val : '';
+    });
     const [appliedCoupon, setAppliedCoupon] = useState(() => sessionStorage.getItem('applied_coupon') || '');
     const [discount, setDiscount] = useState(0);
     const [notes, setNotes] = useState('');
@@ -32,13 +35,29 @@ const Payment = () => {
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [termsError, setTermsError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
 
     // === USE CENTRALIZED PRICING HOOK ===
     const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, coupon, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
 
+    // Fetch suggested coupons
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            try {
+                const res = await api.get('/coupons/suggestions');
+                if (res.data.status) {
+                    setSuggestions(res.data.suggestions);
+                }
+            } catch (err) {
+                console.error('Failed to fetch coupon suggestions:', err);
+            }
+        };
+        fetchSuggestions();
+    }, [cartItems]);
+
     // Auto-validate and purge coupon if it expires, is deactivated, or minimum order value criteria is no longer met
     useEffect(() => {
-        if (!pricingLoading && appliedCoupon && !coupon) {
+        if (!pricingLoading && appliedCoupon && appliedCoupon !== 'NONE' && !coupon) {
             setAppliedCoupon('');
             setCouponCode('');
             sessionStorage.removeItem('applied_coupon');
@@ -279,25 +298,93 @@ const Payment = () => {
                                 <span>Delivery Address : {selectedAddress ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state},India` : 'No address'}</span>
                                 <Link to="/checkout" style={{ color: '#046938', fontSize: '14px' }}>Change</Link>
                             </div>
-                            {appliedCoupon ? (
+                            {coupon ? (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8f9fa' }}>
                                     <div>
                                         <i className="fi-rs-label" style={{ color: '#046938', marginRight: '8px' }}></i>
-                                        <span style={{ fontWeight: '600', color: '#046938' }}>{appliedCoupon}</span> applied!
+                                        <span style={{ fontWeight: '600', color: '#046938' }}>{coupon.code}</span>
+                                        {appliedCoupon === '' || appliedCoupon === null ? ' (Auto-applied)' : ' applied!'}
                                     </div>
-                                    <button onClick={() => { setAppliedCoupon(''); setCouponCode(''); sessionStorage.removeItem('applied_coupon'); toast.success('Coupon removed'); }}
+                                    <button onClick={() => { setAppliedCoupon('NONE'); setCouponCode(''); sessionStorage.setItem('applied_coupon', 'NONE'); toast.success('Coupon removed'); }}
                                         style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <i className="fi-rs-cross-small"></i> Remove
                                     </button>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', padding: '15px 20px', gap: '10px' }}>
-                                    <input type="text" placeholder="Enter Your Coupon" value={couponCode} onChange={e => setCouponCode(e.target.value)}
-                                        style={{ flex: 1, border: '1px solid #e6e6e6', borderRadius: '5px', padding: '10px 15px', fontSize: '14px', outline: 'none' }} />
-                                    <button onClick={handleApplyCoupon}
-                                        style={{ background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <i className="fi-rs-label" style={{ fontSize: '14px' }}></i> Apply
-                                    </button>
+                                <div style={{ padding: '0 0 15px 0' }}>
+                                    <div style={{ display: 'flex', padding: '15px 20px 5px 20px', gap: '10px' }}>
+                                        <input type="text" placeholder="Enter Your Coupon" value={couponCode} onChange={e => setCouponCode(e.target.value)}
+                                            style={{ flex: 1, border: '1px solid #e6e6e6', borderRadius: '5px', padding: '10px 15px', fontSize: '14px', outline: 'none' }} />
+                                        <button onClick={handleApplyCoupon}
+                                            style={{ background: '#046938', color: '#fff', border: 'none', borderRadius: '5px', padding: '10px 20px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <i className="fi-rs-label" style={{ fontSize: '14px' }}></i> Apply
+                                        </button>
+                                    </div>
+                                    
+                                    {suggestions.length > 0 && (
+                                        <div style={{ padding: '0 20px' }}>
+                                            <div style={{ fontSize: '12px', fontWeight: '700', color: '#7E7E7E', margin: '10px 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Available Coupons</div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '5px' }}>
+                                                {suggestions.map(s => {
+                                                    const isApplicable = s.status === 'applicable';
+                                                    const isNearly = s.status === 'nearly_applicable';
+                                                    
+                                                    let borderColor = '#e6e6e6';
+                                                    let bgColor = '#fff';
+                                                    if (isApplicable) {
+                                                        borderColor = '#046938';
+                                                        bgColor = '#f4faf6';
+                                                    } else if (isNearly) {
+                                                        borderColor = '#e37400';
+                                                        bgColor = '#fefcf5';
+                                                    }
+
+                                                    return (
+                                                        <div key={s.id} 
+                                                            onClick={() => {
+                                                                if (isApplicable || s.status === 'available') {
+                                                                    setAppliedCoupon(s.code);
+                                                                    setCouponCode(s.code);
+                                                                    sessionStorage.setItem('applied_coupon', s.code);
+                                                                    toast.success(`Applying coupon ${s.code}`);
+                                                                } else {
+                                                                    toast.info(s.message);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                border: `1px dashed ${borderColor}`,
+                                                                borderRadius: '8px',
+                                                                padding: '10px 12px',
+                                                                background: bgColor,
+                                                                cursor: (isApplicable || s.status === 'available') ? 'pointer' : 'default',
+                                                                position: 'relative',
+                                                                transition: 'transform 0.2s',
+                                                            }}
+                                                            onMouseEnter={(e) => { if (isApplicable || s.status === 'available') e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                                            onMouseLeave={(e) => { if (isApplicable || s.status === 'available') e.currentTarget.style.transform = 'none'; }}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                                <span style={{
+                                                                    background: isApplicable ? '#046938' : '#888',
+                                                                    color: '#fff',
+                                                                    fontWeight: '700',
+                                                                    fontSize: '11px',
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: '4px',
+                                                                    textTransform: 'uppercase'
+                                                                }}>{s.code}</span>
+                                                                {(isApplicable || s.status === 'available') && (
+                                                                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#046938' }}>APPLY</span>
+                                                                )}
+                                                            </div>
+                                                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#253D4E', marginBottom: '2px' }}>{s.description || 'No description provided'}</div>
+                                                            <div style={{ fontSize: '11px', color: isApplicable ? '#046938' : (isNearly ? '#e37400' : '#7E7E7E'), fontWeight: '500' }}>{s.message}</div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

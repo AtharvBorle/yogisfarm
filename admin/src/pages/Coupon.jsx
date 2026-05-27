@@ -173,7 +173,8 @@ const Coupon = () => {
         name: '', code: '', status: 'active', amountType: 'percent', 
         amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', startOn: '', expireOn: '',
         firstOrdersLimit: '', userLimit: '', buyProductIds: '', buyCategoryIds: '', buyBrandIds: '',
-        isBogo: false, buyQuantity: 1, getQuantity: 1, getProductIds: '', getCategoryIds: '', getBrandIds: ''
+        isBogo: false, buyQuantity: 1, getQuantity: 1, getProductIds: '', getCategoryIds: '', getBrandIds: '',
+        showOnCart: false, autoApply: false
     });
 
     const fetchCoupons = async () => {
@@ -226,7 +227,8 @@ const Coupon = () => {
             name: '', code: '', status: 'active', amountType: 'percent', 
             amount: 0, minOrderAmount: 0, maxDiscount: '', usageLimit: '', description: '', startOn: '', expireOn: '',
             firstOrdersLimit: '', userLimit: '', buyProductIds: '', buyCategoryIds: '', buyBrandIds: '',
-            isBogo: false, buyQuantity: 1, getQuantity: 1, getProductIds: '', getCategoryIds: '', getBrandIds: ''
+            isBogo: false, buyQuantity: 1, getQuantity: 1, getProductIds: '', getCategoryIds: '', getBrandIds: '',
+            showOnCart: false, autoApply: false
         });
         setEditingId(null);
         setModalOpen(true);
@@ -251,7 +253,9 @@ const Coupon = () => {
             getQuantity: row.getQuantity || 1,
             getProductIds: row.getProductIds || '',
             getCategoryIds: row.getCategoryIds || '',
-            getBrandIds: row.getBrandIds || ''
+            getBrandIds: row.getBrandIds || '',
+            showOnCart: row.showOnCart || false,
+            autoApply: row.autoApply || false
         });
         setEditingId(row.id);
         setModalOpen(true);
@@ -514,6 +518,29 @@ const Coupon = () => {
                                 </div>
                             </div>
                         )}
+                    </div>
+                    
+                    <div style={{ margin: '15px 0', display: 'flex', gap: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input 
+                                type="checkbox" 
+                                id="showOnCart" 
+                                checked={formData.showOnCart} 
+                                onChange={e => setFormData({...formData, showOnCart: e.target.checked})} 
+                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="showOnCart" style={{ fontWeight: '600', color: '#333', cursor: 'pointer', fontSize: '13px' }}>Show on Cart / Suggestion</label>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input 
+                                type="checkbox" 
+                                id="autoApply" 
+                                checked={formData.autoApply} 
+                                onChange={e => setFormData({...formData, autoApply: e.target.checked})} 
+                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            <label htmlFor="autoApply" style={{ fontWeight: '600', color: '#333', cursor: 'pointer', fontSize: '13px' }}>Auto Apply when criteria met</label>
+                        </div>
                     </div>
                     
                     <div className="admin-form-group">

@@ -377,6 +377,10 @@ model Coupon {
   buyCategoryIds   String?   @map("buy_category_ids") @db.Text
   buyBrandIds      String?   @map("buy_brand_ids") @db.Text
 
+  // Suggestions and Auto-Apply
+  showOnCart       Boolean   @default(false) @map("show_on_cart")
+  autoApply        Boolean   @default(false) @map("auto_apply")
+
   // BXGY (BOGO) Options
   isBogo           Boolean   @default(false) @map("is_bogo")
   buyQuantity      Int?      @map("buy_quantity")
