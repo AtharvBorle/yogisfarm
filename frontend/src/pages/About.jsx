@@ -60,12 +60,12 @@ const About = () => {
                         <div className="row" style={{ marginBottom: '50px' }}>
                             <div className="col-md-5">
                                 <p style={{ color: '#0A6738', fontSize: '16px', fontWeight: 600, lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
-                                    We believe food should nourish your body, support your lifestyle, and earn your trust every single day. That’s why we follow traditional methods, maintain strict quality standards, and ensure every batch reflects consistency and freshness.
+                                    At Yogi’s Farms, we believe food should do more than simply fill your plate it should nourish your body, support your lifestyle, and earn your trust every day. Every product we create reflects our commitment to purity, authenticity, and mindful farming practices.
                                 </p>
                             </div>
                             <div className="col-md-7">
                                 <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.6', fontFamily: 'Poppins, sans-serif' }}>
-                                    In a world driven by speed and mass production, we choose honesty over shortcuts. At YogisFarms, every product begins at the source with carefully selected farms, natural growing practices, and a commitment to preserving what truly matters. We don't believe in over processing or refining away the goodness; instead, we retain the natural taste, nutrition, and purity that real food is meant to have. What reaches your kitchen isn’t just a product it’s a process rooted in care, transparency, and intention.
+                                    In a world where convenience often compromises quality, we choose a different path. From carefully selected farms to traditional processing methods, every step is guided by transparency, care, and responsibility. We don’t believe in unnecessary shortcuts or excessive processing we believe in food the way nature intended.
                                 </p>
                             </div>
                         </div>
