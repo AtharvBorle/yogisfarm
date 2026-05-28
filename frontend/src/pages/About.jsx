@@ -9,6 +9,9 @@ import yogisLogoWhite from '../assets/figma/image_find/Yogis-Farms-Logo-white.sv
 import iconApproval from '../assets/figma/icon_approval.svg';
 import iconGears from '../assets/figma/icon_gears.svg';
 import iconVision from '../assets/figma/icon_vision.svg';
+import iconQuality from '../assets/figma/image_find/4-quality.svg';
+import iconHome from '../assets/figma/image_find/5-home.svg';
+import iconValues from '../assets/figma/image_find/6-values.svg';
 
 const About = () => {
     return (
@@ -104,7 +107,7 @@ const About = () => {
                             <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <img src={iconApproval} alt="Quality" style={{ width: '30px' }} />
+                                        <img src={iconQuality} alt="Quality" style={{ width: '30px' }} />
                                     </div>
                                     <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>No Compromise on Quality</h4>
                                     <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Crafted With Care</p>
@@ -114,7 +117,7 @@ const About = () => {
                             <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <img src={iconGears} alt="Everyday Homes" style={{ width: '30px' }} />
+                                        <img src={iconHome} alt="Everyday Homes" style={{ width: '30px' }} />
                                     </div>
                                     <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Made for Everyday Homes</h4>
                                     <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Simple, Healthy Living</p>
@@ -124,7 +127,7 @@ const About = () => {
                             <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <img src={iconVision} alt="Honest Value" style={{ width: '30px' }} />
+                                        <img src={iconValues} alt="Honest Value" style={{ width: '30px' }} />
                                     </div>
                                     <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Honest Value</h4>
                                     <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Pay for Purity, Not Promotions</p>
