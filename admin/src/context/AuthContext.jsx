@@ -8,6 +8,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sessionExpiry, setSessionExpiry] = useState(null);
   const [sessionTimeLeft, setSessionTimeLeft] = useState(null);
 
   const fetchAdmin = async () => {
@@ -16,14 +17,17 @@ export const AuthProvider = ({ children }) => {
       if (data.status && data.admin) {
         setAdmin(data.admin);
         if (data.remainingTime) {
+          setSessionExpiry(Date.now() + data.remainingTime);
           setSessionTimeLeft(data.remainingTime);
         }
       } else {
         setAdmin(null);
+        setSessionExpiry(null);
         setSessionTimeLeft(null);
       }
     } catch (error) {
       setAdmin(null);
+      setSessionExpiry(null);
       setSessionTimeLeft(null);
     } finally {
       setLoading(false);
@@ -35,34 +39,44 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (!admin || sessionTimeLeft === null) return;
+    if (!admin || !sessionExpiry) return;
 
-    if (sessionTimeLeft <= 0) {
-      logout();
-      return;
-    }
+    const tick = () => {
+      const timeLeft = sessionExpiry - Date.now();
+      if (timeLeft <= 0) {
+        setSessionTimeLeft(0);
+        logout();
+      } else {
+        setSessionTimeLeft(timeLeft);
+      }
+    };
 
-    const timer = setInterval(() => {
-      setSessionTimeLeft((prev) => {
-        if (prev <= 1000) {
-          clearInterval(timer);
-          logout();
-          return 0;
-        }
-        return prev - 1000;
-      });
-    }, 1000);
+    tick();
+    const timer = setInterval(tick, 1000);
 
-    return () => clearInterval(timer);
-  }, [admin, sessionTimeLeft]);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        tick();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [admin, sessionExpiry]);
 
   const login = (adminData) => {
     setAdmin(adminData);
-    setSessionTimeLeft(10 * 60 * 60 * 1000); // 10 hours
+    const tenHours = 10 * 60 * 60 * 1000;
+    setSessionExpiry(Date.now() + tenHours); // 10 hours
+    setSessionTimeLeft(tenHours);
   };
 
   const logout = async () => {
     setAdmin(null);
+    setSessionExpiry(null);
     setSessionTimeLeft(null);
     try {
       await api.get('/logout');
