@@ -998,7 +998,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* 10. Upcoming Product Categories */}
+            {/* 10. Upcoming Product Categories - Commented out
             <section className="popular-categories section-padding pb-5">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                     <div className="section-title">
@@ -1013,6 +1013,7 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+            */}
 
             {/* 11. Dynamic Cooking Challenges Sections */}
             {!isMobile && sections.filter(s => s.position === 'cooking_challenge').map(section => {
