@@ -1145,50 +1145,49 @@ const Home = () => {
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconApproval} alt="Real Sourcing" style={{ width: '30px' }} />
                                 </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Real Sourcing, Not Market Buying</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Grown with intent, not sourced in bulk</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We work directly with farmers who follow natural practices not middlemen or mass suppliers. Every grain has a known origin, not an unknown journey.</p>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Real Sourcing, Never Bulk Trading</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Directly From Trusted Farms</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We work closely with responsible farmers who follow sustainable and ethical agricultural practices. Instead of purchasing anonymous bulk stock, we carefully source every ingredient to ensure traceability, consistency, and freshness in every batch.</p>
                             </div>
                         </div>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <img src={iconGears} alt="Minimal Processing" style={{ width: '30px' }} />
+                                    <img src={iconGears} alt="Naturally Processed" style={{ width: '30px' }} />
                                 </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Minimal Processing</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>We don’t over process what nature perfected</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No excessive polishing, no aggressive refining. We retain the natural structure, nutrition, and taste, just the way it should be.</p>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Naturally Processed</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Keeping Nature Intact</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products are processed with minimal intervention to preserve their natural nutrients, aroma, taste, and texture. We avoid excessive refining and artificial enhancement, allowing you to enjoy food in its purest form.</p>
                             </div>
                         </div>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <img src={iconVision} alt="Complete Transparent" style={{ width: '30px' }} />
+                                    <img src={iconVision} alt="Complete Transparency" style={{ width: '30px' }} />
                                 </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Complete Transparent</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Nothing hidden. nothing artificial.</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>From sourcing to packaging, everything is clear. No confusing labels, no hidden chemicals, just honest food you can trust.</p>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Complete Transparency</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Honest Food You Can Trust</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>From sourcing to packaging, we maintain complete clarity about what goes into our products. No hidden ingredients, misleading claims, or unnecessary chemicals only clean, authentic food for your family.</p>
                             </div>
                         </div>
-                        {/* Adding the missing 3 points */}
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <img src={iconApproval} alt="Quality" style={{ width: '30px' }} />
                                 </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>No Shortcuts in Quality</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Quality Isn't Optimized. It's Respected.</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We don't chase volume at the cost of value. Every batch is handled carefully, ensuring consistency, purity, and authenticity.</p>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>No Compromise on Quality</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Crafted With Care</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We believe quality should never be sacrificed for mass production. Every batch is carefully handled and inspected to maintain purity, freshness, and consistency that you can rely on every day.</p>
                             </div>
                         </div>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F2FFD6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <img src={iconGears} alt="Real Homes" style={{ width: '30px' }} />
+                                    <img src={iconGears} alt="Everyday Homes" style={{ width: '30px' }} />
                                 </div>
-                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Made for Real Homes</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>What we serve Our families, we serve you</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products aren't designed for shelves — they're made for kitchens, for daily meals, for real health.</p>
+                                <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Made for Everyday Homes</h4>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Simple, Healthy Living</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>Our products are thoughtfully created for real families and daily kitchens. We focus on delivering nutritious essentials that support balanced lifestyles and wholesome meals.</p>
                             </div>
                         </div>
                         <div className="col-10 col-sm-6 col-md-4 mb-30" style={{ flexShrink: 0 }}>
@@ -1197,8 +1196,8 @@ const Home = () => {
                                     <img src={iconVision} alt="Honest Value" style={{ width: '30px' }} />
                                 </div>
                                 <h4 style={{ fontSize: '18px', fontWeight: 700, color: '#0A6738', margin: 0 }}>Honest Value</h4>
-                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>You pay for purity, not marketing</p>
-                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>No inflated claims, no gimmicks — just real value in every product you bring home.</p>
+                                <p style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: '#333' }}>Pay for Purity, Not Promotions</p>
+                                <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.5' }}>We invest in better sourcing and better ingredients instead of flashy marketing. This allows us to deliver genuine value through quality products that truly matter.</p>
                             </div>
                         </div>
                     </div>
