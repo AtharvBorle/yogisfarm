@@ -49,8 +49,9 @@ api.interceptors.response.use(
   (error) => {
     console.error(`%c[ADMIN API RES ERROR]`, 'color: #dc3545; font-weight: bold;', error);
     if (error.response && error.response.status === 401) {
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      const loginPath = (import.meta.env.BASE_URL || '/') + 'login';
+      if (!window.location.pathname.includes(loginPath)) {
+        window.location.href = loginPath;
       }
     }
     return Promise.reject(error);
