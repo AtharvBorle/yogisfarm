@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import FeatureBanners from '../components/FeatureBanners';
 
+import { Check, XSquare } from 'react-feather';
+
 const statusSteps = ['placed', 'confirmed', 'shipped', 'out_for_delivery', 'delivered'];
 const statusLabels = {
     placed: 'Order Placed',
@@ -51,7 +53,14 @@ const TrackOrder = () => {
         if (orderCode.trim()) fetchOrder(orderCode.trim());
     };
 
-    const currentStepIndex = order ? statusSteps.indexOf(order.orderStatus) : -1;
+    let currentStepIndex = -1;
+    if (order) {
+        if (order.orderStatus === 'processing' || order.orderStatus === 'pending') {
+            currentStepIndex = 1; // Map to Confirmed step
+        } else {
+            currentStepIndex = statusSteps.indexOf(order.orderStatus);
+        }
+    }
     const isCancelled = order?.orderStatus === 'cancelled';
 
     return (
@@ -140,7 +149,7 @@ const TrackOrder = () => {
                                     {/* Status Timeline */}
                                     {isCancelled ? (
                                         <div style={{ textAlign: 'center', padding: '30px', background: '#fff3f3', borderRadius: '10px', border: '1px solid #ffdddd' }}>
-                                            <div style={{ fontSize: '40px', marginBottom: '10px' }}>❌</div>
+                                            <div style={{ fontSize: '40px', marginBottom: '10px' }}><XSquare size={40} color="red" /></div>
                                             <div style={{ fontWeight: '700', color: '#e74c3c', fontSize: '18px' }}>Order Cancelled</div>
                                             <p style={{ color: '#7E7E7E', marginTop: '8px' }}>This order has been cancelled. If you have questions, please contact support.</p>
                                         </div>
@@ -189,7 +198,7 @@ const TrackOrder = () => {
                                                                 boxShadow: isCurrent ? '0 0 0 4px rgba(4,105,56,0.2)' : 'none',
                                                                 transition: 'all 0.3s'
                                                             }}>
-                                                                {isCompleted ? '✓' : ''}
+                                                                {isCompleted ? <Check size={16} /> : ''}
                                                             </div>
                                                             <div style={{
                                                                 fontSize: '12px',

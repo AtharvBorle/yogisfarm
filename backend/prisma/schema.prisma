@@ -18,15 +18,21 @@ model Setting {
 
 // ─── Admin Users ───
 model Admin {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  email       String   @unique @db.VarChar(150)
-  password    String   @db.VarChar(255)
-  role        String   @default("admin") @db.VarChar(20)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id               Int      @id @default(autoincrement())
+  name             String   @db.VarChar(100)
+  email            String   @unique @db.VarChar(150)
+  password         String   @db.VarChar(255)
+  phone            String?  @db.VarChar(15)
+  twoFactorEnabled Boolean  @default(false) @map("two_factor_enabled")
+  otp              String?  @db.VarChar(10)
+  otpExpiry        DateTime? @map("otp_expiry")
+  image            String?  @db.VarChar(500)
+  role             String   @default("admin") @db.VarChar(20)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   collections DeliveryCollection[]
+  logs        AdminLog[]
 
   @@map("admins")
 }
@@ -99,14 +105,11 @@ model Product {
   categoryId       Int?     @map("category_id")
   brandId          Int?     @map("brand_id")
   taxId            Int?     @map("tax_id")
-  price            Decimal  @default(0) @db.Decimal(10, 2)
-  salePrice        Decimal? @map("sale_price") @db.Decimal(10, 2)
+  hsnId            Int?     @map("hsn_id")
   image            String?  @db.VarChar(500)
   hoverImage       String?  @map("hover_image") @db.VarChar(500)
   video            String?  @db.VarChar(500)
   tags             String?  @db.VarChar(500)
-  stock            Int      @default(0)
-  unit             String?  @db.VarChar(50)
   featured         Boolean  @default(false)
   popular          Boolean  @default(false)
   deal             Boolean  @default(false)
@@ -117,6 +120,7 @@ model Product {
   category      Category?       @relation(fields: [categoryId], references: [id])
   brand         Brand?          @relation(fields: [brandId], references: [id])
   tax           Tax?            @relation(fields: [taxId], references: [id])
+  hsn           Hsn?            @relation(fields: [hsnId], references: [id])
   images        ProductImage[]
   variants      ProductVariant[]
   benefits      ProductBenefit[]
@@ -144,8 +148,8 @@ model ProductVariant {
   id        Int      @id @default(autoincrement())
   productId Int      @map("product_id")
   name      String   @db.VarChar(100)
-  price     Decimal  @db.Decimal(10, 2)
-  salePrice Decimal? @map("sale_price") @db.Decimal(10, 2)
+  price     Decimal  @db.Decimal(18, 2)
+  salePrice Decimal? @map("sale_price") @db.Decimal(18, 2)
   stock     Int      @default(0)
 
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -240,11 +244,17 @@ model Order {
   addressCity        String?  @map("address_city") @db.VarChar(100)
   addressState       String?  @map("address_state") @db.VarChar(100)
   addressPincode     String?  @map("address_pincode") @db.VarChar(10)
-  subtotal           Decimal  @default(0) @db.Decimal(10, 2)
-  shipping           Decimal  @default(0) @db.Decimal(10, 2)
-  discount           Decimal  @default(0) @db.Decimal(10, 2)
-  tax                Decimal  @default(0) @db.Decimal(10, 2)
-  total              Decimal  @default(0) @db.Decimal(10, 2)
+  subtotal           Decimal  @default(0) @db.Decimal(18, 2)
+  shipping           Decimal  @default(0) @db.Decimal(18, 2)
+  discount           Decimal  @default(0) @db.Decimal(18, 2)
+  tax                Decimal  @default(0) @db.Decimal(18, 2)
+  taxName            String?  @map("tax_name") @db.VarChar(50)
+  taxRate            Decimal? @map("tax_rate") @db.Decimal(18, 2)
+  total              Decimal  @default(0) @db.Decimal(18, 2)
+  shippingTotal      Decimal  @default(0) @map("shipping_total") @db.Decimal(18, 2)
+  shippingTaxable    Decimal  @default(0) @map("shipping_taxable") @db.Decimal(18, 2)
+  shippingGST        Decimal  @default(0) @map("shipping_gst") @db.Decimal(18, 2)
+  grandTotal         Decimal  @default(0) @map("grand_total") @db.Decimal(18, 2)
   couponCode         String?  @map("coupon_code") @db.VarChar(50)
   orderStatus        String   @default("pending") @map("order_status") @db.VarChar(20)
   paymentMethod      String   @default("cod") @map("payment_method") @db.VarChar(20)
@@ -257,6 +267,7 @@ model Order {
   courierPartnerId   Int?     @map("courier_partner_id")
   trackingId         String?  @map("tracking_id") @db.VarChar(100)
   createdAt          DateTime @default(now()) @map("created_at")
+  labelPrintedAt     DateTime? @map("label_printed_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
   user           User            @relation(fields: [userId], references: [id])
@@ -275,11 +286,20 @@ model OrderItem {
   name      String  @db.VarChar(255)
   variant   String? @db.VarChar(100)
   brand     String? @db.VarChar(100)
-  price     Decimal @db.Decimal(10, 2)
-  discount  Decimal @default(0) @db.Decimal(10, 2)
-  gst       Decimal @default(0) @db.Decimal(10, 2)
+  price     Decimal @db.Decimal(18, 2)
+  discount  Decimal @default(0) @db.Decimal(18, 2)
+  gst       Decimal @default(0) @db.Decimal(18, 2)
+  taxRate   Decimal @default(0) @map("tax_rate") @db.Decimal(18, 2)
+  hsnCode   String? @map("hsn_code") @db.VarChar(50)
   quantity  Int     @default(1)
-  total     Decimal @db.Decimal(10, 2)
+  total     Decimal @db.Decimal(18, 2)
+  mrp              Decimal @default(0) @db.Decimal(18, 2)
+  productDiscount  Decimal @default(0) @map("product_discount") @db.Decimal(18, 2)
+  orderDiscount    Decimal @default(0) @map("order_discount") @db.Decimal(18, 2)
+  taxableValue     Decimal @default(0) @map("taxable_value") @db.Decimal(18, 2)
+  gstAmount        Decimal @default(0) @map("gst_amount") @db.Decimal(18, 2)
+  cgst             Decimal @default(0) @db.Decimal(18, 2)
+  sgst             Decimal @default(0) @db.Decimal(18, 2)
 
   order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id])
@@ -296,7 +316,7 @@ model DeliveryBoy {
   city             String?  @db.VarChar(100)
   pincode          String?  @db.VarChar(10)
   status           String   @default("active") @db.VarChar(20)
-  outstandingAmount Decimal @default(0) @map("outstanding_amount") @db.Decimal(10, 2)
+  outstandingAmount Decimal @default(0) @map("outstanding_amount") @db.Decimal(18, 2)
   createdAt        DateTime @default(now()) @map("created_at")
 
   orders           Order[]
@@ -309,7 +329,7 @@ model DeliveryBoy {
 model DeliveryCollection {
   id              Int      @id @default(autoincrement())
   deliveryBoyId   Int      @map("delivery_boy_id")
-  amount          Decimal  @db.Decimal(10, 2)
+  amount          Decimal  @db.Decimal(18, 2)
   adminId         Int      @map("admin_id")
   createdAt       DateTime @default(now()) @map("created_at")
 
@@ -333,38 +353,60 @@ model CourierPartner {
 
 // ─── Coupons ───
 model Coupon {
-  id             Int      @id @default(autoincrement())
-  name           String   @db.VarChar(100)
-  code           String   @unique @db.VarChar(50)
-  image          String?  @db.VarChar(500)
-  amountType     String   @default("percent") @map("amount_type") @db.VarChar(20)
-  amount         Decimal  @default(0) @db.Decimal(10, 2)
-  minOrderAmount Decimal  @default(0) @map("min_order_amount") @db.Decimal(10, 2)
-  maxDiscount    Decimal? @map("max_discount") @db.Decimal(10, 2)
-  description    String?  @db.Text
+  id             Int       @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  code           String    @unique @db.VarChar(50)
+  image          String?   @db.VarChar(500)
+  amountType     String    @default("percent") @map("amount_type") @db.VarChar(20)
+  amount         Decimal   @default(0) @db.Decimal(18, 2)
+  minOrderAmount Decimal   @default(0) @map("min_order_amount") @db.Decimal(18, 2)
+  maxDiscount    Decimal?  @map("max_discount") @db.Decimal(18, 2)
+  description    String?   @db.Text
+  startOn        DateTime? @map("start_on")
   expireOn       DateTime? @map("expire_on")
-  usageLimit     Int?     @map("usage_limit")
-  usedCount      Int      @default(0) @map("used_count")
-  status         String   @default("active") @db.VarChar(20)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  usageLimit     Int?      @map("usage_limit")
+  usedCount      Int       @default(0) @map("used_count")
+  status         String    @default("active") @db.VarChar(20)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Targeting and Limits
+  firstOrdersLimit Int?      @map("first_orders_limit")
+  userLimit        Int?      @map("user_limit")
+  buyProductIds    String?   @map("buy_product_ids") @db.Text
+  buyCategoryIds   String?   @map("buy_category_ids") @db.Text
+  buyBrandIds      String?   @map("buy_brand_ids") @db.Text
+
+  // Suggestions and Auto-Apply
+  showOnCart       Boolean   @default(false) @map("show_on_cart")
+  autoApply        Boolean   @default(false) @map("auto_apply")
+
+  // BXGY (BOGO) Options
+  isBogo           Boolean   @default(false) @map("is_bogo")
+  buyQuantity      Int?      @map("buy_quantity")
+  getQuantity      Int?      @map("get_quantity")
+  getProductIds    String?   @map("get_product_ids") @db.Text
+  getCategoryIds   String?   @map("get_category_ids") @db.Text
+  getBrandIds      String?   @map("get_brand_ids") @db.Text
 
   @@map("coupons")
 }
 
 // ─── Sliders ───
 model Slider {
-  id        Int      @id @default(autoincrement())
-  name      String?  @db.VarChar(100)
-  image     String   @db.VarChar(500)
-  type      String   @default("web") @db.VarChar(20)
-  position  String   @default("main") @db.VarChar(20)
-  linkType  String?  @map("link_type") @db.VarChar(20)
-  link      String?  @db.VarChar(500)
-  sortOrder Int      @default(0) @map("sort_order")
-  status    String   @default("active") @db.VarChar(20)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          Int      @id @default(autoincrement())
+  name        String?  @db.VarChar(100)
+  image       String   @db.VarChar(500)
+  mobileImage String?  @map("mobile_image") @db.VarChar(500)
+  type        String   @default("web") @db.VarChar(20)
+  position    String   @default("main") @db.VarChar(20)
+  subposition String?  @db.VarChar(20)
+  linkType    String?  @map("link_type") @db.VarChar(20)
+  link        String?  @db.VarChar(500)
+  sortOrder   Int      @default(0) @map("sort_order")
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("sliders")
 }
@@ -374,6 +416,12 @@ model Section {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)
   categoryId Int?     @map("category_id")
+  isDeal     Boolean  @default(false) @map("is_deal")
+  page       String?  @db.VarChar(20)
+  position   String?  @db.VarChar(20)
+  image      String?  @db.Text
+  linkType   String?  @map("link_type") @db.VarChar(20)
+  link       String?  @db.VarChar(500)
   sortOrder  Int      @default(0) @map("sort_order")
   status     String   @default("active") @db.VarChar(20)
   createdAt  DateTime @default(now()) @map("created_at")
@@ -388,7 +436,7 @@ model Section {
 model Tax {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(100)
-  tax       Decimal  @default(0) @db.Decimal(5, 2)
+  tax       Decimal  @default(0) @db.Decimal(18, 2)
   status    String   @default("active") @db.VarChar(20)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -396,6 +444,19 @@ model Tax {
   products Product[]
 
   @@map("taxes")
+}
+
+// ─── HSN ───
+model Hsn {
+  id        Int      @id @default(autoincrement())
+  hsnCode   String   @unique @map("hsn_code") @db.VarChar(50)
+  keywords  String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products  Product[]
+
+  @@map("hsns")
 }
 
 // ─── Contact Submissions ───
@@ -442,11 +503,24 @@ model Session {
 model Shipping {
   id            Int      @id @default(autoincrement())
   name          String   @db.VarChar(100)
-  charge        Decimal  @db.Decimal(10, 2)
-  minCartValue  Decimal  @map("min_cart_value") @db.Decimal(10, 2)
+  charge        Decimal  @db.Decimal(18, 2)
+  minCartValue  Decimal  @map("min_cart_value") @db.Decimal(18, 2)
   status        String   @default("active") @db.VarChar(20)
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@map("shipping")
+}
+
+// ─── Admin Action Logs ───
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  adminId   Int      @map("admin_id")
+  action    String   @db.VarChar(255)
+  details   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin     Admin    @relation(fields: [adminId], references: [id])
+
+  @@map("admin_logs")
 }

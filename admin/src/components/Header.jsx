@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { 
@@ -10,12 +10,37 @@ import {
   Settings, 
   Lock, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Timer
 } from 'lucide-react';
 
 const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
-    const { admin, logout } = useAuth();
+    const { admin, logout, sessionTimeLeft } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const formatTime = (ms) => {
+        if (!ms || ms <= 0) return '00:00:00';
+        const totalSeconds = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [
+            String(hours).padStart(2, '0'),
+            String(minutes).padStart(2, '0'),
+            String(seconds).padStart(2, '0')
+        ].join(':');
+    };
 
     return (
         <header style={{
@@ -37,17 +62,42 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                     onClick={toggleSidebar}
                 />
                 <span style={{ fontSize: '14px', color: isDarkMode ? '#ccc' : '#7E7E7E', fontWeight: '500' }}>
-                    Yogis Farm (admin)
+                    YogisFarms (admin)
                 </span>
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
+                {admin && sessionTimeLeft !== null && (
+                    <div 
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            background: sessionTimeLeft < 30 * 60 * 1000 
+                                ? (isDarkMode ? 'rgba(255, 77, 79, 0.15)' : 'rgba(255, 77, 79, 0.1)') 
+                                : (isDarkMode ? 'rgba(59, 183, 126, 0.15)' : 'rgba(59, 183, 126, 0.1)'),
+                            color: sessionTimeLeft < 30 * 60 * 1000 
+                                ? '#ff4d4f' 
+                                : (isDarkMode ? '#3BB77E' : '#2aa36b'),
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            fontFamily: 'monospace',
+                            border: `1px solid ${sessionTimeLeft < 30 * 60 * 1000 ? 'rgba(255, 77, 79, 0.3)' : 'rgba(59, 183, 126, 0.3)'}`
+                        }}
+                        title="Session expiry countdown"
+                    >
+                        <Timer size={14} />
+                        <span>{formatTime(sessionTimeLeft)}</span>
+                    </div>
+                )}
                 <Link to="/" style={{ color: isDarkMode ? '#ccc' : '#7E7E7E' }}><Home size={20} /></Link>
                 <div onClick={toggleDarkMode} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                     {isDarkMode ? <Sun size={20} color="#ffc107" /> : <Moon size={20} color="#7E7E7E" />}
                 </div>
                 
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative' }} ref={profileRef}>
                     <div 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
                         style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
@@ -88,22 +138,25 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
                             zIndex: 100
                         }}>
                             <Link to="/profile" style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
-                                <div style={dropdownItemStyle(isDarkMode)}>
+                                <div className="dropdown-item-hover">
                                     <User size={16} /> My Profile
                                 </div>
                             </Link>
-                            <Link to="/profile" style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
-                                <div style={dropdownItemStyle(isDarkMode)}>
+                            <Link to="/profile" state={{ activeTab: 'business' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
+                                <div className="dropdown-item-hover">
                                     <Settings size={16} /> Account Setting
                                 </div>
                             </Link>
-                            <div style={dropdownItemStyle(isDarkMode)}>
-                                <Lock size={16} /> Change Password
-                            </div>
+                            <Link to="/profile" state={{ activeTab: 'password' }} style={{ textDecoration: 'none' }} onClick={() => setIsProfileOpen(false)}>
+                                <div className="dropdown-item-hover">
+                                    <Lock size={16} /> Change Password
+                                </div>
+                            </Link>
                             <div style={{ height: '1px', background: isDarkMode ? '#444' : '#eee', margin: '8px 0' }} />
                             <div 
                                 onClick={logout}
-                                style={{ ...dropdownItemStyle(isDarkMode), color: '#ff4d4f' }}
+                                className="dropdown-item-hover"
+                                style={{ color: '#ff4d4f' }}
                             >
                                 <LogOut size={16} /> Sign Out
                             </div>
@@ -114,19 +167,5 @@ const Header = ({ toggleSidebar, toggleDarkMode, isDarkMode }) => {
         </header>
     );
 };
-
-const dropdownItemStyle = (isDark) => ({
-    padding: '10px 20px',
-    fontSize: '14px',
-    color: isDark ? '#ccc' : '#555',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    cursor: 'pointer',
-    transition: 'background 0.2s',
-    ':hover': {
-        background: isDark ? '#333' : '#f8f9fa'
-    }
-});
 
 export default Header;

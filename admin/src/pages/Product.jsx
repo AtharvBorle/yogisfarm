@@ -5,11 +5,14 @@ import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
 import toast from 'react-hot-toast';
 
+import { Image, X } from 'react-feather';
+
 const Product = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [taxes, setTaxes] = useState([]);
+    const [hsns, setHsns] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
     const [isFilemanagerOpen, setFilemanagerOpen] = useState(false);
     const [isGalleryFMOpen, setGalleryFMOpen] = useState(false);
@@ -18,8 +21,8 @@ const Product = () => {
     const [editingId, setEditingId] = useState(null);
 
     const defaultForm = {
-        name: '', shortDescription: '', description: '', categoryId: '', brandId: '',
-        price: '', salePrice: '', image: '', video: '', tags: '', stock: '0', unit: '',
+        name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '', taxId: '', hsnId: '', hsnSearch: '',
+        image: '', video: '', tags: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
     };
@@ -27,13 +30,14 @@ const Product = () => {
 
     const fetchAll = async () => {
         try {
-            const [pRes, cRes, bRes, tRes] = await Promise.all([
-                api.get('/products'), api.get('/categories'), api.get('/brands'), api.get('/taxes')
+            const [pRes, cRes, bRes, tRes, hRes] = await Promise.all([
+                api.get('/products'), api.get('/categories'), api.get('/brands'), api.get('/taxes'), api.get('/hsns')
             ]);
             if (pRes.data.status) setProducts(pRes.data.products);
             if (cRes.data.status) setCategories(cRes.data.categories);
             if (bRes.data.status) setBrands(bRes.data.brands);
             if (tRes.data.status) setTaxes(tRes.data.taxes);
+            if (hRes.data.status) setHsns(hRes.data.hsns);
         } catch (err) {
             toast.error('Failed to load data');
         }
@@ -48,11 +52,18 @@ const Product = () => {
     };
 
     const openEditModal = (row) => {
+        let parentCatId = '';
+        if (row.categoryId) {
+            const cat = categories.find(c => c.id === row.categoryId);
+            if (cat && cat.parentId) parentCatId = cat.parentId;
+            else parentCatId = row.categoryId || '';
+        }
+
         setFormData({
             name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
-            categoryId: row.categoryId || '', brandId: row.brandId || '',
-            price: row.price || '', salePrice: row.salePrice || '', image: row.image || '',
-            video: row.video || '', tags: row.tags || '', stock: row.stock || 0, unit: row.unit || '',
+            parentCategoryId: parentCatId, categoryId: row.categoryId || '', brandId: row.brandId || '',
+            taxId: row.taxId || '', hsnId: row.hsnId || '', hsnSearch: row.hsn?.hsnCode || '',
+            image: row.image || '', video: row.video || '', tags: row.tags || '',
             status: row.status, featured: row.featured, popular: row.popular, deal: row.deal,
             variants: row.variants || [], benefits: row.benefits || [], features: row.features || [],
             galleryImages: (row.images || []).map(img => img.image)
@@ -83,13 +94,17 @@ const Product = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select a product image');
+            return;
+        }
         try {
             const payload = {
                 name: formData.name, shortDescription: formData.shortDescription,
                 description: formData.description, image: formData.image,
                 categoryId: formData.categoryId || null, brandId: formData.brandId || null,
-                price: formData.price, salePrice: formData.salePrice || null,
-                video: formData.video, tags: formData.tags, stock: formData.stock, unit: formData.unit,
+                taxId: formData.taxId || null, hsnId: formData.hsnId || null,
+                video: formData.video, tags: formData.tags,
                 status: formData.status, featured: formData.featured.toString(),
                 popular: formData.popular.toString(), deal: formData.deal.toString()
             };
@@ -174,8 +189,6 @@ const Product = () => {
         },
         { header: 'Name', render: (row) => <span style={{ fontWeight: '500' }}>{row.name}</span> },
         { header: 'Category', render: (row) => row.category?.name || '—' },
-        { header: 'Price', render: (row) => `₹${row.price}` },
-        { header: 'Stock', render: (row) => row.stock },
         {
             header: 'Flags',
             render: (row) => (
@@ -228,7 +241,7 @@ const Product = () => {
                             <div className="admin-form-group">
                                 <label className="admin-label">Product Image <span className="required">*</span></label>
                                 <div className="image-placeholder-box" onClick={() => setFilemanagerOpen(true)}>
-                                    {formData.image ? <img src={getAssetUrl(formData.image)} alt="Selected" /> : <div style={{ fontSize: '48px', color: '#ccc' }}>🖼️</div>}
+                                    {formData.image ? <img src={getAssetUrl(formData.image)} alt="Selected" /> : <div style={{ fontSize: '48px', color: '#ccc' }}><Image size={48} /></div>}
                                 </div>
                             </div>
 
@@ -268,11 +281,35 @@ const Product = () => {
                             <div className="modal-row-2">
                                 <div className="admin-form-group">
                                     <label className="admin-label">Category</label>
-                                    <select value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="admin-select">
+                                    <select 
+                                        value={formData.parentCategoryId} 
+                                        onChange={e => {
+                                            const newParentId = e.target.value;
+                                            setFormData({ ...formData, parentCategoryId: newParentId, categoryId: newParentId });
+                                        }} 
+                                        className="admin-select"
+                                    >
                                         <option value="">-- Select --</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        {categories.filter(c => !c.parentId).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
                                 </div>
+                                {formData.parentCategoryId && categories.some(c => c.parentId === Number(formData.parentCategoryId)) && (
+                                    <div className="admin-form-group">
+                                        <label className="admin-label">Sub Category</label>
+                                        <select 
+                                            value={formData.categoryId !== formData.parentCategoryId ? formData.categoryId : ''} 
+                                            onChange={e => {
+                                                const newChildId = e.target.value;
+                                                // If 'All' is selected, fallback to parent id
+                                                setFormData({ ...formData, categoryId: newChildId ? newChildId : formData.parentCategoryId });
+                                            }} 
+                                            className="admin-select"
+                                        >
+                                            <option value="">-- All --</option>
+                                            {categories.filter(c => c.parentId === Number(formData.parentCategoryId)).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="admin-form-group">
                                     <label className="admin-label">Brand</label>
                                     <select value={formData.brandId} onChange={e => setFormData({ ...formData, brandId: e.target.value })} className="admin-select">
@@ -282,18 +319,40 @@ const Product = () => {
                                 </div>
                             </div>
 
-                            <div className="modal-row-2" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                            <div className="modal-row-2">
                                 <div className="admin-form-group">
-                                    <label className="admin-label">Price <span className="required">*</span></label>
-                                    <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required className="admin-input" />
+                                    <label className="admin-label">HSN Search</label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input 
+                                            type="text" 
+                                            value={formData.hsnSearch} 
+                                            onChange={e => {
+                                                const search = e.target.value;
+                                                setFormData({ ...formData, hsnSearch: search, hsnId: search === '' ? '' : formData.hsnId });
+                                            }} 
+                                            className="admin-input" 
+                                            placeholder="Type keywords or HSN" 
+                                        />
+                                        {formData.hsnSearch && !hsns.find(h => h.hsnCode === formData.hsnSearch) && (
+                                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #ccc', zIndex: 10, maxHeight: '150px', overflowY: 'auto' }}>
+                                                {hsns.filter(h => h.hsnCode.includes(formData.hsnSearch) || (h.keywords && h.keywords.toLowerCase().includes(formData.hsnSearch.toLowerCase()))).map(h => (
+                                                    <div key={h.id} style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid #eee' }} onClick={() => setFormData({ ...formData, hsnSearch: h.hsnCode, hsnId: h.id })}>
+                                                        <strong>{h.hsnCode}</strong> {h.keywords ? `(${h.keywords})` : ''}
+                                                    </div>
+                                                ))}
+                                                {hsns.filter(h => h.hsnCode.includes(formData.hsnSearch) || (h.keywords && h.keywords.toLowerCase().includes(formData.hsnSearch.toLowerCase()))).length === 0 && (
+                                                    <div style={{ padding: '8px', color: '#888' }}>No HSN found</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="admin-form-group">
-                                    <label className="admin-label">Sale Price</label>
-                                    <input type="number" step="0.01" min="0" value={formData.salePrice} onChange={e => setFormData({ ...formData, salePrice: e.target.value })} className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Stock</label>
-                                    <input type="number" min="0" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="admin-input" />
+                                    <label className="admin-label">GST Rate (Tax)</label>
+                                    <select value={formData.taxId} onChange={e => setFormData({ ...formData, taxId: e.target.value })} className="admin-select">
+                                        <option value="">-- No Tax (0%) --</option>
+                                        {taxes.filter(t => t.status === 'active').map(t => <option key={t.id} value={t.id}>{t.name} ({t.tax}%)</option>)}
+                                    </select>
                                 </div>
                             </div>
 
@@ -330,13 +389,21 @@ const Product = () => {
                             {/* Lists Area (Variants, Benefits, Features) */}
                             <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
                                 <div style={sectionTitle}>Variants</div>
+                                {formData.variants.length > 0 && (
+                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '6px', paddingRight: '42px' }}>
+                                        <span style={{ flex: 2, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Variant Name</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Price (MRP)</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Selling Price</span>
+                                        <span style={{ flex: 1, fontSize: '12px', fontWeight: '600', color: 'var(--text-muted, #888)' }}>Stock</span>
+                                    </div>
+                                )}
                                 {formData.variants.map((v, idx) => (
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                                        <input placeholder="Name" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <input placeholder="Price" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Sale Price" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <input placeholder="Stock" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
-                                        <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <input placeholder="e.g. 500g" value={v.name} onChange={e => updateVariant(idx, 'name', e.target.value)} className="admin-input" style={{ flex: 2 }} />
+                                        <input placeholder="₹ MRP" type="number" step="0.01" min="0" value={v.price} onChange={e => updateVariant(idx, 'price', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="₹ Sell" type="number" step="0.01" min="0" value={v.salePrice} onChange={e => updateVariant(idx, 'salePrice', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <input placeholder="Qty" type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', e.target.value)} className="admin-input" style={{ flex: 1 }} />
+                                        <button type="button" onClick={() => removeVariant(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addVariant} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Variant</button>
@@ -346,7 +413,7 @@ const Product = () => {
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                                         <input placeholder="Title" value={b.title} onChange={e => updateBenefit(idx, 'title', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Description" value={b.description} onChange={e => updateBenefit(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <button type="button" onClick={() => removeBenefit(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addBenefit} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Benefit</button>
@@ -356,7 +423,7 @@ const Product = () => {
                                     <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                                         <input placeholder="Feature" value={f.feature} onChange={e => updateFeature(idx, 'feature', e.target.value)} className="admin-input" style={{ flex: 1 }} />
                                         <input placeholder="Description" value={f.description} onChange={e => updateFeature(idx, 'description', e.target.value)} className="admin-input" style={{ flex: 2 }} />
-                                        <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}>✕</button>
+                                        <button type="button" onClick={() => removeFeature(idx)} style={{ ...miniBtn, background: '#dc3545', color: '#fff' }}><X size={18} /></button>
                                     </div>
                                 ))}
                                 <button type="button" onClick={addFeature} className="btn-modal-close" style={{ padding: '4px 10px' }}>+ Add Feature</button>
@@ -375,7 +442,7 @@ const Product = () => {
             {/* ─── VIEW Modal ─── */}
             <GenericModal isOpen={isViewOpen} title={viewProduct?.name || 'Product Details'} onClose={() => setViewOpen(false)}>
                 {viewProduct && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: 'var(--text)' }}>
                         {viewProduct.image && <img src={getAssetUrl(viewProduct.image)} style={{ maxHeight: '200px', objectFit: 'contain', borderRadius: '4px' }} />}
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <tbody>
@@ -383,19 +450,16 @@ const Product = () => {
                                     ['Name', viewProduct.name],
                                     ['Category', viewProduct.category?.name || '—'],
                                     ['Brand', viewProduct.brand?.name || '—'],
-                                    ['Price', `₹${viewProduct.price}`],
-                                    ['Sale Price', viewProduct.salePrice ? `₹${viewProduct.salePrice}` : '—'],
-                                    ['Stock', viewProduct.stock],
-                                    ['Unit', viewProduct.unit || '—'],
+
                                     ['Status', viewProduct.status],
                                     ['Featured', viewProduct.featured ? 'Yes' : 'No'],
                                     ['Popular', viewProduct.popular ? 'Yes' : 'No'],
                                     ['Deal', viewProduct.deal ? 'Yes' : 'No'],
                                     ['Tags', viewProduct.tags || '—'],
                                 ].map(([label, val]) => (
-                                    <tr key={label} style={{ borderBottom: '1px solid #eee' }}>
-                                        <td style={{ padding: '8px', fontWeight: '600', color: '#555', width: '130px' }}>{label}</td>
-                                        <td style={{ padding: '8px' }}>{val}</td>
+                                    <tr key={label} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '8px', fontWeight: '600', color: 'var(--text-muted, #888)', width: '130px' }}>{label}</td>
+                                        <td style={{ padding: '8px', color: 'var(--text)' }}>{val}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -406,14 +470,14 @@ const Product = () => {
                             <div>
                                 <strong>Variants:</strong>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '5px' }}>
-                                    <thead><tr style={{ background: '#f8f9fa' }}>
+                                    <thead><tr style={{ background: 'var(--sidebar-hover)', color: 'var(--text)' }}>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Name</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Price</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Sale Price</th>
                                         <th style={{ padding: '6px', textAlign: 'left' }}>Stock</th>
                                     </tr></thead>
-                                    <tbody>{viewProduct.variants.map(v => (
-                                        <tr key={v.id} style={{ borderBottom: '1px solid #eee' }}>
+                                    <tbody style={{ color: 'var(--text)' }}>{viewProduct.variants.map(v => (
+                                        <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                             <td style={{ padding: '6px' }}>{v.name}</td>
                                             <td style={{ padding: '6px' }}>₹{v.price}</td>
                                             <td style={{ padding: '6px' }}>{v.salePrice ? `₹${v.salePrice}` : '—'}</td>

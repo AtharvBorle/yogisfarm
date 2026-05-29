@@ -8,6 +8,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import { Toaster } from 'react-hot-toast';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import "./assets/css/figma-overrides.css";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

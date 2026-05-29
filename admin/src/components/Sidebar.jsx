@@ -14,7 +14,10 @@ import {
   FolderOpen, 
   TicketPercent,
   Star,
-  Wallet
+  Wallet,
+  ClipboardList,
+  Zap,
+  Receipt
 } from 'lucide-react';
 
 const navItems = [
@@ -24,6 +27,8 @@ const navItems = [
     { name: 'Brand', path: '/brands', icon: Tag },
     { name: 'Product', path: '/products', icon: ShoppingBag },
     { name: 'Order', path: '/orders', icon: ShoppingCart },
+    { name: 'Accounts', path: '/accounts', icon: Receipt },
+    { name: 'Take Action', path: '/take-action', icon: Zap },
     { name: 'Collections', path: '/collections', icon: Wallet },
     { name: 'Section', path: '/sections', icon: LayoutGrid },
     { name: 'Tax', path: '/taxes', icon: Percent },
@@ -32,6 +37,7 @@ const navItems = [
     { name: 'Review', path: '/reviews', icon: Star },
     { name: 'Filemanager', path: '/filemanager', icon: FolderOpen },
     { name: 'Coupon Code', path: '/coupons', icon: TicketPercent },
+    { name: 'Logs', path: '/logs', icon: ClipboardList },
 ];
 
 const Sidebar = ({ isCollapsed, isDarkMode }) => {
@@ -55,10 +61,10 @@ const Sidebar = ({ isCollapsed, isDarkMode }) => {
                 transition: 'padding 0.3s'
             }}>
                 <img 
-                    src="/assets/imgs/theme/logo.png" 
+                    src="/assets/imgs/theme/icons/logo.png" 
                     alt="Logo" 
                     style={{ 
-                        width: isCollapsed ? '40px' : '150px',
+                        width: isCollapsed ? '30px' : '85px',
                         height: 'auto',
                         objectFit: 'contain',
                         transition: 'width 0.3s'

@@ -3,25 +3,58 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const multerS3 = require('multer-s3');
+const { S3Client, ListObjectsV2Command, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
 const path = require('path');
 const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
-const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS } = require('../utils/sms');
+const { logAdminAction } = require('../utils/logger');
+const crypto = require('crypto');
+const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS, sendCancelledSMS, sendOtpSMS } = require('../utils/sms');
 
-// Multer config — supports subfolder uploads via uploadPath field
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const subdir = req.body.uploadPath || req.query.uploadPath || '';
-    const dir = path.join(__dirname, '..', '..', 'uploads', subdir);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+let upload;
+let s3;
+
+if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
+  s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+  });
+
+  upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_S3_BUCKET_NAME,
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      metadata: function (req, file, cb) {
+        cb(null, { fieldName: file.fieldname });
+      },
+      key: function (req, file, cb) {
+        const subdir = req.body.uploadPath || req.query.uploadPath || '';
+        const dirPath = subdir ? `uploads/${subdir}/` : 'uploads/';
+        cb(null, dirPath + Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+      }
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 }
+  });
+} else {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const subdir = req.body.uploadPath || req.query.uploadPath || '';
+      const dir = path.join(__dirname, '..', '..', 'uploads', subdir);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+    }
+  });
+  upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+}
 
 // ─── Admin Auth ───
 router.post('/login', async (req, res) => {
@@ -31,17 +64,276 @@ router.post('/login', async (req, res) => {
     if (!admin) return res.json({ status: false, message: 'Invalid credentials' });
     const valid = await bcrypt.compare(password, admin.password);
     if (!valid) return res.json({ status: false, message: 'Invalid credentials' });
+
+    if (admin.twoFactorEnabled) {
+      if (!admin.phone) {
+        return res.json({ status: false, message: '2FA is active but no mobile number is registered. Please contact superadmin.' });
+      }
+      // Generate & Send OTP
+      const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+      const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+      await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+      
+      sendOtpSMS(admin.phone, otp);
+      const maskedPhone = admin.phone.slice(0, 2) + '******' + admin.phone.slice(-2);
+      return res.json({ status: true, require2FA: true, phone: maskedPhone, email });
+    }
+
     req.session.adminId = admin.id;
     req.session.adminRole = admin.role;
+    const expiry = Date.now() + 10 * 60 * 60 * 1000;
+    req.session.adminExpiry = expiry;
+    req.session.cookie.expires = new Date(expiry);
+    req.session.cookie.maxAge = 10 * 60 * 60 * 1000;
     res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
+router.post('/login/verify-2fa', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+
+    req.session.adminId = admin.id;
+    req.session.adminRole = admin.role;
+    const expiry = Date.now() + 10 * 60 * 60 * 1000;
+    req.session.adminExpiry = expiry;
+    req.session.cookie.expires = new Date(expiry);
+    req.session.cookie.maxAge = 10 * 60 * 60 * 1000;
+    res.json({ status: true, message: 'Login successful', admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/forgot-password/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin with this email does not exist' });
+    if (!admin.phone) return res.json({ status: false, message: 'No mobile number registered to this admin account. Please contact superadmin.' });
+
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+
+    sendOtpSMS(admin.phone, otp);
+    const maskedPhone = admin.phone.slice(0, 2) + '******' + admin.phone.slice(-2);
+    res.json({ status: true, message: 'OTP sent successfully', phone: maskedPhone });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/forgot-password/reset', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.admin.update({
+      where: { id: admin.id },
+      data: { password: hashedPassword, otp: null, otpExpiry: null }
+    });
+
+    await logAdminAction(admin.id, 'Reset Password via OTP');
+    res.json({ status: true, message: 'Password reset successfully' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/profile/send-otp', requireAdmin, async (req, res) => {
+  try {
+    const { type, newPhone } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    let targetPhone = admin.phone;
+    if (type === 'verify-new-phone') {
+      if (!newPhone) return res.json({ status: false, message: 'New phone number required' });
+      targetPhone = newPhone;
+    } else {
+      if (!targetPhone) return res.json({ status: false, message: 'No mobile number registered to this admin account. Please add one first.' });
+    }
+
+    const otp = process.env.DEMO_MODE === 'true' ? '123456' : String(crypto.randomInt(100000, 999999));
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp, otpExpiry } });
+
+    sendOtpSMS(targetPhone, otp);
+    const maskedPhone = targetPhone.slice(0, 2) + '******' + targetPhone.slice(-2);
+    res.json({ status: true, message: 'OTP sent successfully', phone: maskedPhone });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.post('/profile/verify-otp', requireAdmin, async (req, res) => {
+  try {
+    const { type, otp, payload } = req.body;
+    const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId } });
+    if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
+    if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
+
+    // Execute requested action on OTP success
+    if (type === 'update-profile') {
+      const { name, email } = payload || {};
+      if (!name || !email) return res.json({ status: false, message: 'Name and Email are required' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { name, email }
+      });
+      await logAdminAction(admin.id, 'Updated Profile', `Name: ${name}, Email: ${email}`);
+    } else if (type === 'change-password') {
+      const { currentPassword, newPassword } = payload || {};
+      const valid = await bcrypt.compare(currentPassword, admin.password);
+      if (!valid) return res.json({ status: false, message: 'Current password incorrect' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { password: await bcrypt.hash(newPassword, 10) }
+      });
+      await logAdminAction(admin.id, 'Changed Password');
+    } else if (type === 'toggle-2fa') {
+      const { enabled } = payload || {};
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { twoFactorEnabled: !!enabled }
+      });
+      await logAdminAction(admin.id, enabled ? 'Enabled 2FA' : 'Disabled 2FA');
+    } else if (type === 'verify-old-phone') {
+      // Just verifying old phone to proceed to next step
+      await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+      return res.json({ status: true, message: 'Old mobile number verified successfully', step: 'old-verified' });
+    } else if (type === 'update-phone' || type === 'verify-new-phone') {
+      const { newPhone } = payload || {};
+      if (!newPhone) return res.json({ status: false, message: 'New phone number required' });
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { phone: newPhone }
+      });
+      await logAdminAction(admin.id, 'Updated Phone Number', `New Phone: ${newPhone}`);
+    } else {
+      return res.json({ status: false, message: 'Invalid verification type' });
+    }
+
+    await prisma.admin.update({ where: { id: admin.id }, data: { otp: null, otpExpiry: null } });
+    res.json({ status: true, message: 'Verification successful and updates saved' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 router.get('/me', requireAdmin, async (req, res) => {
-  const admin = await prisma.admin.findUnique({ where: { id: req.session.adminId }, select: { id: true, name: true, email: true, role: true } });
-  res.json({ status: true, admin });
+  const admin = await prisma.admin.findUnique({
+    where: { id: req.session.adminId },
+    select: { id: true, name: true, email: true, role: true, image: true, phone: true, twoFactorEnabled: true }
+  });
+  res.json({ status: true, admin, remainingTime: req.session.cookie.maxAge });
+});
+
+
+
+router.get('/logs/download', requireAdmin, async (req, res) => {
+    try {
+        const { startDate, endDate, filter } = req.query;
+        if (!startDate || !endDate) return res.status(400).send('Missing dates');
+
+        const where = {
+            createdAt: {
+                gte: new Date(startDate),
+                lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+            }
+        };
+
+        // Apply category filter
+        if (filter) {
+            const filterMap = {
+                tax: ['Tax'],
+                shipping: ['Shipping'],
+                account: ['Updated Profile', 'Updated Profile Image', 'Changed Password', 'Settings'],
+                collection: ['Collected Cash', 'Collection'],
+                coupon: ['Coupon'],
+                order: ['Order', 'Updated Order', 'Assigned Delivery', 'Updated Order Payment', 'Updated Order Status'],
+                product: ['Product'],
+            };
+            const keywords = filterMap[filter] || [filter];
+            where.action = { contains: keywords[0] };
+            if (keywords.length > 1) {
+                where.OR = keywords.map(k => ({ action: { contains: k } }));
+                delete where.action;
+            }
+        }
+
+        const logs = await prisma.adminLog.findMany({
+            where,
+            include: { admin: { select: { name: true, email: true } } },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const headers = ['Date', 'Time', 'Admin Name', 'Email', 'Action', 'Details'];
+        const csvRows = [headers.join(',')];
+        
+        logs.forEach(log => {
+            const date = new Date(log.createdAt);
+            const details = log.details ? `"${log.details.replace(/"/g, '""')}"` : '';
+            csvRows.push([
+                date.toLocaleDateString(),
+                date.toLocaleTimeString(),
+                `"${log.admin?.name || 'Unknown'}"`,
+                `"${log.admin?.email || 'Unknown'}"`,
+                `"${log.action}"`,
+                details
+            ].join(','));
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=admin_logs_${startDate}_to_${endDate}.csv`);
+        res.send(csvRows.join('\n'));
+    } catch (e) {
+        res.status(500).send('Error generating CSV');
+    }
+});
+
+router.put('/profile', requireAdmin, async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        const admin = await prisma.admin.update({
+            where: { id: req.session.adminId },
+            data: { name, email }
+        });
+        await logAdminAction(req.session.adminId, 'Updated Profile', `Name: ${name}, Email: ${email}`);
+        res.json({ status: true, message: 'Profile updated' });
+    } catch (e) {
+        res.json({ status: false, message: e.message });
+    }
+});
+
+router.post('/profile/image', requireAdmin, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.json({ status: false, message: 'No image provided' });
+        const image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
+        await prisma.admin.update({
+            where: { id: req.session.adminId },
+            data: { image }
+        });
+        await logAdminAction(req.session.adminId, 'Updated Profile Image');
+        res.json({ status: true, message: 'Profile image updated' });
+    } catch (e) {
+        res.json({ status: false, message: e.message });
+    }
 });
 
 router.post('/change-password', requireAdmin, async (req, res) => {
@@ -51,6 +343,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     const valid = await bcrypt.compare(currentPassword, admin.password);
     if (!valid) return res.json({ status: false, message: 'Current password incorrect' });
     await prisma.admin.update({ where: { id: admin.id }, data: { password: await bcrypt.hash(newPassword, 10) } });
+    await logAdminAction(req.session.adminId, 'Changed Password');
     res.json({ status: true, message: 'Password changed' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -84,14 +377,15 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       recentOrders,
       topProductsRaw
     ] = await Promise.all([
-      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' } } }),
-      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
-      prisma.order.count(),
-      prisma.order.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
+      prisma.order.count({ where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] } } }),
+      prisma.order.count({ where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }, createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.user.count(),
       prisma.user.count({ where: { createdAt: { gte: startOfLastMonth, lt: startOfCurrentMonth } } }),
       prisma.product.count(),
       prisma.order.findMany({
+        where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] } },
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true, phone: true } } }
@@ -102,20 +396,54 @@ router.get('/dashboard', requireAdmin, async (req, res) => {
       })
     ]);
 
-    // Monthly Sales Trend (Last 6 months)
+    const { period } = req.query; // week, month, year
+    
+    // Sales Trend Generation
     const salesTrend = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - i, 1);
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-      const monthSales = await prisma.order.aggregate({
-        _sum: { total: true },
-        where: { orderStatus: { not: 'cancelled' }, createdAt: { gte: start, lt: end } }
-      });
-      salesTrend.push({
-        month: d.toLocaleString('default', { month: 'short' }),
-        sales: Number(monthSales._sum.total || 0)
-      });
+    if (period === 'week') {
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const start = new Date(d.setHours(0, 0, 0, 0));
+            const end = new Date(d.setHours(23, 59, 59, 999));
+            const daySales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }, createdAt: { gte: start, lte: end } }
+            });
+            salesTrend.push({
+                month: start.toLocaleDateString('default', { weekday: 'short' }),
+                sales: Number(daySales._sum.total || 0)
+            });
+        }
+    } else if (period === 'year') {
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(currentYear, currentMonth - i, 1);
+            const start = new Date(d.getFullYear(), d.getMonth(), 1);
+            const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+            const monthSales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }, createdAt: { gte: start, lt: end } }
+            });
+            salesTrend.push({
+                month: d.toLocaleString('default', { month: 'short', year: '2-digit' }),
+                sales: Number(monthSales._sum.total || 0)
+            });
+        }
+    } else {
+        // default month (last 6 months)
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(currentYear, currentMonth - i, 1);
+            const start = new Date(d.getFullYear(), d.getMonth(), 1);
+            const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+            const monthSales = await prisma.order.aggregate({
+                _sum: { total: true },
+                where: { orderStatus: { notIn: ['cancelled', 'failed', 'pending'] }, createdAt: { gte: start, lt: end } }
+            });
+            salesTrend.push({
+                month: d.toLocaleString('default', { month: 'short' }),
+                sales: Number(monthSales._sum.total || 0)
+            });
+        }
     }
 
     const totalSales = Number(totalSalesAgg._sum.total || 0);
@@ -156,9 +484,9 @@ router.get('/sliders', requireAdmin, async (req, res) => {
 
 router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || '');
-    const slider = await prisma.slider.create({ data: { name, image, status: status || 'active', type: type || 'web', position: position || 'main', linkType, link } });
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage, mobileImage } = req.body;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
+    const slider = await prisma.slider.create({ data: { name, image, mobileImage, status: status || 'active', type: type || 'web', position: position || 'main', subposition, linkType, link } });
     res.json({ status: true, message: 'Slider created', slider });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -167,9 +495,9 @@ router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/sliders/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, type, position, linkType, link, image: bodyImage } = req.body;
-    const data = { name, status, type, position, linkType, link };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    const { name, status, type, position, subposition, linkType, link, image: bodyImage, mobileImage } = req.body;
+    const data = { name, status, type, position, subposition, linkType, link, mobileImage };
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const slider = await prisma.slider.update({ where: { id: parseInt(req.params.id) }, data });
     res.json({ status: true, message: 'Slider updated', slider });
@@ -205,10 +533,11 @@ router.post('/categories', requireAdmin, upload.single('image'), async (req, res
   try {
     const { name, status, parentId, featured, image: bodyImage } = req.body;
     const slug = slugify(name, { lower: true, strict: true });
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
     const category = await prisma.category.create({
       data: { name, slug, image, status: status || 'active', parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' }
     });
+    await logAdminAction(req.session.adminId, 'Created Category', `Name: ${name}`);
     res.json({ status: true, message: 'Category created', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -220,9 +549,10 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
     const { name, status, parentId, featured, image: bodyImage } = req.body;
     const data = { name, status, parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' };
     if (name) data.slug = slugify(name, { lower: true, strict: true });
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const category = await prisma.category.update({ where: { id: parseInt(req.params.id) }, data });
+    await logAdminAction(req.session.adminId, 'Updated Category', `Name: ${category.name}`);
     res.json({ status: true, message: 'Category updated', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -231,6 +561,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
 
 router.delete('/categories/:id', requireAdmin, async (req, res) => {
   await prisma.category.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Category', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Category deleted' });
 });
 
@@ -244,8 +575,9 @@ router.post('/brands', requireAdmin, upload.single('image'), async (req, res) =>
   try {
     const { name, status, image: bodyImage } = req.body;
     const slug = slugify(name, { lower: true, strict: true });
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
     const brand = await prisma.brand.create({ data: { name, slug, image, status: status || 'active' } });
+    await logAdminAction(req.session.adminId, 'Created Brand', `Name: ${name}`);
     res.json({ status: true, message: 'Brand created', brand });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -257,9 +589,10 @@ router.put('/brands/:id', requireAdmin, upload.single('image'), async (req, res)
     const { name, status, showHome, image: bodyImage } = req.body;
     const data = { name, status, showHome: showHome === 'true' };
     if (name) data.slug = slugify(name, { lower: true, strict: true });
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const brand = await prisma.brand.update({ where: { id: parseInt(req.params.id) }, data });
+    await logAdminAction(req.session.adminId, 'Updated Brand', `Name: ${brand.name}`);
     res.json({ status: true, message: 'Brand updated', brand });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -268,6 +601,7 @@ router.put('/brands/:id', requireAdmin, upload.single('image'), async (req, res)
 
 router.delete('/brands/:id', requireAdmin, async (req, res) => {
   await prisma.brand.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Brand', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Brand deleted' });
 });
 
@@ -286,7 +620,7 @@ router.put('/brands/order/update', requireAdmin, async (req, res) => {
 // ─── Products CRUD ───
 router.get('/products', requireAdmin, async (req, res) => {
   const products = await prisma.product.findMany({
-    include: { category: true, brand: true, images: true, variants: true, benefits: true, features: true },
+    include: { category: true, brand: true, tax: true, hsn: true, images: true, variants: true, benefits: true, features: true },
     orderBy: { createdAt: 'desc' }
   });
   res.json({ status: true, products });
@@ -294,11 +628,23 @@ router.get('/products', requireAdmin, async (req, res) => {
 
 router.post('/products', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
+    const { name, shortDescription, description, categoryId, brandId, taxId,
+      video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
-    const slug = slugify(name, { lower: true, strict: true }) + '-' + Date.now();
-    const image = req.file ? '/uploads/' + req.file.filename : (bodyImage || null);
+    // Generate unique SEO-friendly slug
+    const baseSlug = slugify(name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let count = 1;
+    while (true) {
+      const existing = await prisma.product.findUnique({ where: { slug } });
+      if (!existing) {
+        break;
+      }
+      slug = `${baseSlug}-${count}`;
+      count++;
+    }
+
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || null);
 
     const product = await prisma.product.create({
       data: {
@@ -306,15 +652,16 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
-        price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
-        stock: Math.max(0, parseInt(stock || 0)), unit, status: status || 'active',
+        hsnId: req.body.hsnId ? parseInt(req.body.hsnId) : null,
+        status: status || 'active',
         featured: featured === 'true', popular: popular === 'true', deal: deal === 'true',
         ...(variants ? { variants: { create: JSON.parse(variants) } } : {}),
         ...(benefits ? { benefits: { create: JSON.parse(benefits) } } : {}),
         ...(features ? { features: { create: JSON.parse(features) } } : {})
       },
-      include: { category: true, brand: true, variants: true, images: true }
+      include: { category: true, brand: true, tax: true, hsn: true, variants: true, images: true }
     });
+    await logAdminAction(req.session.adminId, 'Created Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product created', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -324,26 +671,27 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 router.put('/products/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, shortDescription, description, categoryId, brandId, taxId, price, salePrice,
-      video, tags, stock, unit, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
+    const { name, shortDescription, description, categoryId, brandId, taxId,
+      video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
       name, shortDescription, description, video, tags,
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
-      price: Math.max(0, parseFloat(price || 0)), salePrice: salePrice ? Math.max(0, parseFloat(salePrice)) : null,
-      stock: Math.max(0, parseInt(stock || 0)), unit, status,
+      hsnId: req.body.hsnId ? parseInt(req.body.hsnId) : null,
+      status,
       featured: featured === 'true', popular: popular === 'true', deal: deal === 'true'
     };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
 
     if (variants) data.variants = { deleteMany: {}, create: JSON.parse(variants) };
     if (benefits) data.benefits = { deleteMany: {}, create: JSON.parse(benefits) };
     if (features) data.features = { deleteMany: {}, create: JSON.parse(features) };
 
-    const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true } });
+    const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true, tax: true, hsn: true } });
+    await logAdminAction(req.session.adminId, 'Updated Product', `Name: ${name}`);
     res.json({ status: true, message: 'Product updated', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -356,6 +704,7 @@ router.patch('/products/:id/toggle', requireAdmin, async (req, res) => {
     if (!['featured', 'popular', 'deal'].includes(field)) return res.json({ status: false, message: 'Invalid field' });
     const product = await prisma.product.findUnique({ where: { id: parseInt(req.params.id) } });
     await prisma.product.update({ where: { id: product.id }, data: { [field]: !product[field] } });
+    await logAdminAction(req.session.adminId, 'Updated Product', `Toggled ${field} for Product ID: ${product.id}`);
     res.json({ status: true, message: `${field} toggled` });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -374,7 +723,7 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
     let imageData = [];
     // Support file uploads
     if (req.files && req.files.length > 0) {
-      imageData = req.files.map((f, i) => ({ productId, image: '/uploads/' + f.filename, sortOrder: i }));
+      imageData = req.files.map((f, i) => ({ productId, image: (f.key ? '/' + f.key : '/uploads/' + f.filename), sortOrder: i }));
     }
     // Support Filemanager paths sent as JSON array
     if (req.body.images && Array.isArray(req.body.images)) {
@@ -402,7 +751,13 @@ router.get('/orders', requireAdmin, async (req, res) => {
     const where = {};
     if (orderStatus) where.orderStatus = orderStatus;
     if (paymentMethod) where.paymentMethod = paymentMethod;
-    if (paymentStatus) where.paymentStatus = paymentStatus;
+    if (paymentStatus) {
+      if (paymentStatus === 'verified') {
+        where.paymentStatus = { in: ['completed', 'paid'] };
+      } else {
+        where.paymentStatus = paymentStatus;
+      }
+    }
 
     const orders = await prisma.order.findMany({
       where, orderBy: { createdAt: 'desc' },
@@ -420,7 +775,32 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       include: { user: true, items: { include: { product: { include: { brand: true, tax: true } } } }, deliveryBoy: true, courierPartner: true }
     });
-    res.json({ status: true, order });
+    
+    let coupon = null;
+    if (order && order.couponCode) {
+      coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
+    }
+    
+    res.json({ status: true, order, coupon });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Bulk print labels
+router.post('/orders/print-labels', requireAdmin, async (req, res) => {
+  try {
+    const { orderIds } = req.body;
+    if (!orderIds || !Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.json({ status: false, message: 'No orders provided' });
+    }
+
+    await prisma.order.updateMany({
+      where: { id: { in: orderIds }, labelPrintedAt: null },
+      data: { labelPrintedAt: new Date(), orderStatus: 'processing' } // Optional: also update status
+    });
+
+    res.json({ status: true, message: 'Labels generated successfully' });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -500,8 +880,10 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     } else if (orderStatus === 'out_for_delivery') {
       sendOutForDeliverySMS(order.user.phone, order.orderNumber);
     } else if (orderStatus === 'delivered') {
-      const invoiceLink = `${FRONTEND_URL}/invoice/${order.orderNumber}`;
+      const invoiceLink = `${FRONTEND_URL}/invoice?order=${order.orderNumber}`;
       sendDeliveredSMS(order.user.phone, order.orderNumber, invoiceLink);
+    } else if (orderStatus === 'cancelled') {
+      sendCancelledSMS(order.user.phone, order.orderNumber);
     }
 
     // COD handling
@@ -509,11 +891,12 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       if (order.deliveryBoyId) {
         await prisma.deliveryBoy.update({
           where: { id: order.deliveryBoyId },
-          data: { outstandingAmount: { increment: order.total } }
+          data: { outstandingAmount: { increment: Math.round(Number(order.total)) } }
         });
       }
     }
 
+    await logAdminAction(req.session.adminId, 'Updated Order Status', `Order: ${order.orderNumber}, Status: ${orderStatus}`);
     res.json({ status: true, message: 'Order status updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -530,6 +913,7 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
     });
     // SMS stub — log payment update to console
     console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
+    await logAdminAction(req.session.adminId, 'Updated Order Payment', `Order: ${order.orderNumber}, Status: ${paymentStatus}`);
     res.json({ status: true, message: 'Payment updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -553,7 +937,7 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
 
     // Auto-set status to shipped when delivery is assigned (only if currently confirmed)
     const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true }, });
-    if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed')) {
+    if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed' || current.orderStatus === 'pending' || current.orderStatus === 'processing')) {
       data.orderStatus = 'shipped';
     }
 
@@ -589,6 +973,7 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
       }
     })().catch(err => console.error("Background SMS Error:", err));
 
+    await logAdminAction(req.session.adminId, 'Assigned Delivery', `Order: ${order.orderNumber}, Type: ${deliveryType}`);
     res.json({ status: true, message: 'Delivery option updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -608,6 +993,27 @@ router.get('/delivery-boys', requireAdmin, async (req, res) => {
     return safe;
   });
   res.json({ status: true, deliveryBoys: safeBoys });
+});
+
+router.get('/delivery-boys/:id/collections', requireAdmin, async (req, res) => {
+  try {
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
+    const where = { deliveryBoyId: parseInt(req.params.id) };
+    if (startDate && endDate) {
+        where.createdAt = {
+            gte: new Date(startDate),
+            lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+        };
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [collections, total] = await Promise.all([
+        prisma.deliveryCollection.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take: parseInt(limit), include: { admin: { select: { name: true } } } }),
+        prisma.deliveryCollection.count({ where })
+    ]);
+    res.json({ status: true, collections, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 router.post('/delivery-boys', requireAdmin, async (req, res) => {
@@ -657,25 +1063,31 @@ router.post('/delivery-boys/:id/collect', requireAdmin, async (req, res) => {
     const deliveryBoy = await prisma.deliveryBoy.findUnique({ where: { id: parseInt(req.params.id) } });
     if (!deliveryBoy) return res.json({ status: false, message: 'Delivery boy not found' });
     
-    if (collectAmount > deliveryBoy.outstandingAmount) {
-      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${deliveryBoy.outstandingAmount})` });
+    if (collectAmount > Math.round(deliveryBoy.outstandingAmount)) {
+      return res.json({ status: false, message: `Amount exceeds outstanding balance (₹${Math.round(deliveryBoy.outstandingAmount)})` });
     }
+
+    // If collecting the full rounded amount, just set outstanding to 0 to avoid float issues like -0.29
+    const isFullCollection = Math.round(collectAmount) === Math.round(Number(deliveryBoy.outstandingAmount));
 
     await prisma.$transaction([
       prisma.deliveryCollection.create({
         data: {
           deliveryBoyId: deliveryBoy.id,
-          amount: collectAmount,
+          amount: Math.round(collectAmount),
           adminId: req.session.adminId
         }
       }),
       prisma.deliveryBoy.update({
         where: { id: deliveryBoy.id },
-        data: { outstandingAmount: { decrement: collectAmount } }
+        data: { 
+          outstandingAmount: isFullCollection ? 0 : Math.round(Number(deliveryBoy.outstandingAmount) - collectAmount)
+        }
       })
     ]);
 
     const updated = await prisma.deliveryBoy.findUnique({ where: { id: deliveryBoy.id } });
+    await logAdminAction(req.session.adminId, 'Collected Cash', `Amount: ₹${collectAmount}, From: ${deliveryBoy.name}`);
     res.json({ status: true, message: 'Cash collected successfully', outstandingAmount: updated.outstandingAmount });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -723,25 +1135,64 @@ router.get('/sections', requireAdmin, async (req, res) => {
   res.json({ status: true, sections });
 });
 
-router.post('/sections', requireAdmin, async (req, res) => {
+router.post('/sections', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, categoryId } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isSpecial = parsedIsDeal || position === 'cooking_challenge';
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
-      data: { name, status: status || 'active', categoryId: categoryId ? parseInt(categoryId) : null }
+      data: {
+        name,
+        status: status || 'active',
+        categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+        isDeal: parsedIsDeal,
+        page: isSpecial ? page : null,
+        position: isSpecial ? position : null,
+        image: isSpecial ? image : null,
+        linkType: isSpecial ? linkType : null,
+        link: isSpecial ? link : null
+      }
     });
+    await logAdminAction(req.session.adminId, 'Created Section', `Name: ${name}`);
     res.json({ status: true, message: 'Section created', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
-router.put('/sections/:id', requireAdmin, async (req, res) => {
+router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, status, categoryId } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isSpecial = parsedIsDeal || position === 'cooking_challenge';
+    
+    const data = {
+      name,
+      status,
+      categoryId: categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null,
+      isDeal: parsedIsDeal,
+      page: isSpecial ? page : null,
+      position: isSpecial ? position : null,
+      linkType: isSpecial ? linkType : null,
+      link: isSpecial ? link : null
+    };
+
+    if (isSpecial) {
+      if (req.file) {
+        data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
+      } else if (bodyImage) {
+        data.image = bodyImage;
+      }
+    } else {
+      data.image = null;
+    }
+
     const section = await prisma.section.update({
       where: { id: parseInt(req.params.id) },
-      data: { name, status, categoryId: categoryId ? parseInt(categoryId) : null }
+      data
     });
+    await logAdminAction(req.session.adminId, 'Updated Section', `Name: ${section.name}`);
     res.json({ status: true, message: 'Section updated', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -750,6 +1201,7 @@ router.put('/sections/:id', requireAdmin, async (req, res) => {
 
 router.delete('/sections/:id', requireAdmin, async (req, res) => {
   await prisma.section.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Section', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Section deleted' });
 });
 
@@ -775,6 +1227,7 @@ router.post('/taxes', requireAdmin, async (req, res) => {
   try {
     const { name, tax: taxRate, status } = req.body;
     const tax = await prisma.tax.create({ data: { name, tax: parseFloat(taxRate), status: status || 'active' } });
+    await logAdminAction(req.session.adminId, 'Created Tax', `Name: ${name}, Rate: ${taxRate}%`);
     res.json({ status: true, message: 'Tax created', tax });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -788,6 +1241,7 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, tax: parseFloat(taxRate), status }
     });
+    await logAdminAction(req.session.adminId, 'Updated Tax', `Name: ${tax.name}, Rate: ${tax.tax}%`);
     res.json({ status: true, message: 'Tax updated', tax });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -796,6 +1250,7 @@ router.put('/taxes/:id', requireAdmin, async (req, res) => {
 
 router.delete('/taxes/:id', requireAdmin, async (req, res) => {
   await prisma.tax.delete({ where: { id: parseInt(req.params.id) } });
+  await logAdminAction(req.session.adminId, 'Deleted Tax', `ID: ${req.params.id}`);
   res.json({ status: true, message: 'Tax deleted' });
 });
 
@@ -811,6 +1266,7 @@ router.post('/shipping', requireAdmin, async (req, res) => {
     const shipping = await prisma.shipping.create({
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status: status || 'active' }
     });
+    await logAdminAction(req.session.adminId, 'Created Shipping', `Name: ${name}, Charge: ₹${charge}, Min Cart Value: ₹${minCartValue}, Status: ${status || 'active'}`);
     res.json({ status: true, message: 'Shipping rule created', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -824,6 +1280,7 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
       where: { id: parseInt(req.params.id) },
       data: { name, charge: parseFloat(charge), minCartValue: parseFloat(minCartValue), status }
     });
+    await logAdminAction(req.session.adminId, 'Updated Shipping', `Name: ${shipping.name}, Charge: ₹${shipping.charge}, Min Cart Value: ₹${shipping.minCartValue}, Status: ${shipping.status}`);
     res.json({ status: true, message: 'Shipping rule updated', shipping });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -831,7 +1288,11 @@ router.put('/shipping/:id', requireAdmin, async (req, res) => {
 });
 
 router.delete('/shipping/:id', requireAdmin, async (req, res) => {
-  await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+  const shipping = await prisma.shipping.findUnique({ where: { id: parseInt(req.params.id) } });
+  if (shipping) {
+    await prisma.shipping.delete({ where: { id: parseInt(req.params.id) } });
+    await logAdminAction(req.session.adminId, 'Deleted Shipping', `Name: ${shipping.name}, Charge: ₹${shipping.charge}`);
+  }
   res.json({ status: true, message: 'Shipping rule deleted' });
 });
 
@@ -846,10 +1307,14 @@ router.get('/reviews', requireAdmin, async (req, res) => {
 
 router.put('/reviews/:id', requireAdmin, async (req, res) => {
   try {
-    const { status, comment } = req.body;
+    const { status, comment, rating } = req.body;
+    const data = { status, comment };
+    if (rating !== undefined) {
+      data.rating = parseInt(rating);
+    }
     const review = await prisma.review.update({
       where: { id: parseInt(req.params.id) },
-      data: { status, comment }
+      data
     });
     res.json({ status: true, message: 'Review updated', review });
   } catch (e) {
@@ -885,13 +1350,41 @@ router.get('/coupons', requireAdmin, async (req, res) => {
 
 router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, description, expireOn } = req.body;
-    const image = req.file ? '/uploads/' + req.file.filename : null;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn,
+      firstOrdersLimit, userLimit, buyProductIds, buyCategoryIds, buyBrandIds,
+      isBogo, buyQuantity, getQuantity, getProductIds, getCategoryIds, getBrandIds,
+      showOnCart, autoApply } = req.body;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : null;
+    
+    const startDate = startOn ? new Date(startOn) : null;
+    const expireDate = expireOn ? new Date(expireOn) : null;
+
     const coupon = await prisma.coupon.create({
-      data: { name, code, image, status: status || 'active', amountType: amountType || 'percent',
-        amount: parseFloat(amount), minOrderAmount: parseFloat(minOrderAmount || 0),
-        description, expireOn: expireOn ? new Date(expireOn) : null }
+      data: { 
+        name, code, image, status: status || 'active', amountType: amountType || 'percent',
+        amount: parseFloat(amount || 0), minOrderAmount: parseFloat(minOrderAmount || 0),
+        maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
+        usageLimit: usageLimit ? parseInt(usageLimit) : null,
+        description, startOn: startDate, expireOn: expireDate,
+        firstOrdersLimit: firstOrdersLimit ? parseInt(firstOrdersLimit) : null,
+        userLimit: userLimit ? parseInt(userLimit) : null,
+        buyProductIds: buyProductIds || null,
+        buyCategoryIds: buyCategoryIds || null,
+        buyBrandIds: buyBrandIds || null,
+        isBogo: isBogo === true || isBogo === 'true',
+        buyQuantity: buyQuantity ? parseInt(buyQuantity) : null,
+        getQuantity: getQuantity ? parseInt(getQuantity) : null,
+        getProductIds: getProductIds || null,
+        getCategoryIds: getCategoryIds || null,
+        getBrandIds: getBrandIds || null,
+        showOnCart: showOnCart === true || showOnCart === 'true',
+        autoApply: autoApply === true || autoApply === 'true'
+      }
     });
+    const startStr = startDate ? startDate.toLocaleString() : 'Immediate';
+    const expiryStr = expireDate ? expireDate.toLocaleString() : 'Never';
+    const amountStr = amountType === 'percent' ? `${amount}%` : `₹${amount}`;
+    await logAdminAction(req.session.adminId, 'Created Coupon', `Code: ${code}, Type: ${amountType}, Value: ${amountStr}, Min Order: ₹${minOrderAmount || 0}, Start: ${startStr}, Expiry: ${expiryStr}, Status: ${status || 'active'}`);
     res.json({ status: true, message: 'Coupon created', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -900,11 +1393,40 @@ router.post('/coupons', requireAdmin, upload.single('image'), async (req, res) =
 
 router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, code, status, amountType, amount, minOrderAmount, description, expireOn } = req.body;
-    const data = { name, code, status, amountType, amount: parseFloat(amount),
-      minOrderAmount: parseFloat(minOrderAmount || 0), description, expireOn: expireOn ? new Date(expireOn) : null };
-    if (req.file) data.image = '/uploads/' + req.file.filename;
+    const { name, code, status, amountType, amount, minOrderAmount, maxDiscount, usageLimit, description, startOn, expireOn,
+      firstOrdersLimit, userLimit, buyProductIds, buyCategoryIds, buyBrandIds,
+      isBogo, buyQuantity, getQuantity, getProductIds, getCategoryIds, getBrandIds,
+      showOnCart, autoApply } = req.body;
+    
+    const startDate = startOn ? new Date(startOn) : null;
+    const expireDate = expireOn ? new Date(expireOn) : null;
+
+    const data = { 
+      name, code, status, amountType, amount: parseFloat(amount || 0),
+      minOrderAmount: parseFloat(minOrderAmount || 0),
+      maxDiscount: maxDiscount ? parseFloat(maxDiscount) : null,
+      usageLimit: usageLimit ? parseInt(usageLimit) : null,
+      description, startOn: startDate, expireOn: expireDate,
+      firstOrdersLimit: firstOrdersLimit ? parseInt(firstOrdersLimit) : null,
+      userLimit: userLimit ? parseInt(userLimit) : null,
+      buyProductIds: buyProductIds || null,
+      buyCategoryIds: buyCategoryIds || null,
+      buyBrandIds: buyBrandIds || null,
+      isBogo: isBogo === true || isBogo === 'true',
+      buyQuantity: buyQuantity ? parseInt(buyQuantity) : null,
+      getQuantity: getQuantity ? parseInt(getQuantity) : null,
+      getProductIds: getProductIds || null,
+      getCategoryIds: getCategoryIds || null,
+      getBrandIds: getBrandIds || null,
+      showOnCart: showOnCart === true || showOnCart === 'true',
+      autoApply: autoApply === true || autoApply === 'true'
+    };
+    if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     const coupon = await prisma.coupon.update({ where: { id: parseInt(req.params.id) }, data });
+    const startStr = coupon.startOn ? new Date(coupon.startOn).toLocaleString() : 'Immediate';
+    const expiryStr = coupon.expireOn ? new Date(coupon.expireOn).toLocaleString() : 'Never';
+    const amountStr = coupon.amountType === 'percent' ? `${coupon.amount}%` : `₹${coupon.amount}`;
+    await logAdminAction(req.session.adminId, 'Updated Coupon', `Code: ${coupon.code}, Type: ${coupon.amountType}, Value: ${amountStr}, Min Order: ₹${coupon.minOrderAmount}, Start: ${startStr}, Expiry: ${expiryStr}, Status: ${coupon.status}`);
     res.json({ status: true, message: 'Coupon updated', coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -912,26 +1434,12 @@ router.put('/coupons/:id', requireAdmin, upload.single('image'), async (req, res
 });
 
 router.delete('/coupons/:id', requireAdmin, async (req, res) => {
-  await prisma.coupon.delete({ where: { id: parseInt(req.params.id) } });
-  res.json({ status: true, message: 'Coupon deleted' });
-});
-
-// ─── Settings ───
-router.get('/settings', requireAdmin, async (req, res) => {
-  const settings = await prisma.setting.findMany();
-  res.json({ status: true, settings });
-});
-
-router.put('/settings', requireAdmin, async (req, res) => {
-  try {
-    const { settings } = req.body;
-    for (const [key, value] of Object.entries(settings)) {
-      await prisma.setting.upsert({ where: { key }, create: { key, value }, update: { value } });
-    }
-    res.json({ status: true, message: 'Settings updated' });
-  } catch (e) {
-    res.json({ status: false, message: e.message });
+  const coupon = await prisma.coupon.findUnique({ where: { id: parseInt(req.params.id) } });
+  if (coupon) {
+    await prisma.coupon.delete({ where: { id: parseInt(req.params.id) } });
+    await logAdminAction(req.session.adminId, 'Deleted Coupon', `Code: ${coupon.code}`);
   }
+  res.json({ status: true, message: 'Coupon deleted' });
 });
 
 // ─── Sections CRUD ───
@@ -940,22 +1448,61 @@ router.get('/sections', requireAdmin, async (req, res) => {
   res.json({ status: true, sections });
 });
 
-router.post('/sections', requireAdmin, async (req, res) => {
+router.post('/sections', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, categoryId, status } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isChallenge = position === 'cooking_challenge';
+    const isDealOrChallenge = parsedIsDeal || isChallenge;
+    const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const section = await prisma.section.create({
-      data: { name, status: status || 'active', categoryId: categoryId ? parseInt(categoryId) : null }
+      data: {
+        name,
+        status: status || 'active',
+        categoryId: isDealOrChallenge ? null : (categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null),
+        isDeal: parsedIsDeal,
+        page: isDealOrChallenge ? page : null,
+        position: isDealOrChallenge ? position : null,
+        image: isDealOrChallenge ? image : null,
+        linkType: isDealOrChallenge ? linkType : null,
+        link: isDealOrChallenge ? link : null
+      }
     });
     res.json({ status: true, message: 'Section created', section });
   } catch (e) { res.json({ status: false, message: e.message }); }
 });
 
-router.put('/sections/:id', requireAdmin, async (req, res) => {
+router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, categoryId, status } = req.body;
+    const { name, status, categoryId, isDeal, page, position, linkType, link, image: bodyImage } = req.body;
+    const parsedIsDeal = isDeal === 'true' || isDeal === true;
+    const isChallenge = position === 'cooking_challenge';
+    const isDealOrChallenge = parsedIsDeal || isChallenge;
+    
+    const data = {
+      name,
+      status,
+      categoryId: isDealOrChallenge ? null : (categoryId && categoryId !== 'null' && categoryId !== '' ? parseInt(categoryId) : null),
+      isDeal: parsedIsDeal,
+      page: isDealOrChallenge ? page : null,
+      position: isDealOrChallenge ? position : null,
+      linkType: isDealOrChallenge ? linkType : null,
+      link: isDealOrChallenge ? link : null
+    };
+
+    if (isDealOrChallenge) {
+      if (req.file) {
+        data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
+      } else if (bodyImage) {
+        data.image = bodyImage;
+      }
+    } else {
+      data.image = null;
+    }
+
     const section = await prisma.section.update({
       where: { id: parseInt(req.params.id) },
-      data: { name, status, categoryId: categoryId ? parseInt(categoryId) : null }
+      data
     });
     res.json({ status: true, message: 'Section updated', section });
   } catch (e) { res.json({ status: false, message: e.message }); }
@@ -969,42 +1516,80 @@ router.delete('/sections/:id', requireAdmin, async (req, res) => {
 // ─── File Manager ───
 router.get('/files', requireAdmin, async (req, res) => {
   try {
-    const dir = path.join(__dirname, '..', '..', 'uploads');
     const subdir = req.query.path || '';
-    const fullPath = path.join(dir, subdir);
-    if (!fs.existsSync(fullPath)) return res.json({ status: true, files: [], folders: [], currentPath: subdir });
+    if (s3) {
+      const prefix = subdir ? `uploads/${subdir}/` : 'uploads/';
+      const command = new ListObjectsV2Command({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Prefix: prefix,
+        Delimiter: '/'
+      });
+      const data = await s3.send(command);
+      
+      const folders = (data.CommonPrefixes || []).map(p => {
+        const parts = p.Prefix.split('/');
+        return parts[parts.length - 2];
+      });
+      
+      const files = (data.Contents || []).filter(e => e.Key !== prefix).map(e => ({
+        name: e.Key.split('/').pop(),
+        path: '/' + e.Key,
+        size: e.Size
+      }));
+      res.json({ status: true, files, folders, currentPath: subdir });
+    } else {
+      const dir = path.join(__dirname, '..', '..', 'uploads');
+      const fullPath = path.join(dir, subdir);
+      if (!fs.existsSync(fullPath)) return res.json({ status: true, files: [], folders: [], currentPath: subdir });
 
-    const entries = fs.readdirSync(fullPath, { withFileTypes: true });
-    const folders = entries.filter(e => e.isDirectory()).map(e => e.name);
-    const files = entries.filter(e => e.isFile()).map(e => ({
-      name: e.name,
-      path: '/uploads/' + (subdir ? subdir + '/' : '') + e.name,
-      size: fs.statSync(path.join(fullPath, e.name)).size
-    }));
-    res.json({ status: true, files, folders, currentPath: subdir });
+      const entries = fs.readdirSync(fullPath, { withFileTypes: true });
+      const folders = entries.filter(e => e.isDirectory()).map(e => e.name);
+      const files = entries.filter(e => e.isFile()).map(e => ({
+        name: e.name,
+        path: '/uploads/' + (subdir ? subdir + '/' : '') + e.name,
+        size: fs.statSync(path.join(fullPath, e.name)).size
+      }));
+      res.json({ status: true, files, folders, currentPath: subdir });
+    }
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
 });
 
-router.post('/files/upload', requireAdmin, upload.array('files', 20), async (req, res) => {
-  try {
-    const subdir = req.body.uploadPath || '';
-    const files = req.files.map(f => ({
-      name: f.filename,
-      path: '/uploads/' + (subdir ? subdir + '/' : '') + f.filename
-    }));
-    res.json({ status: true, message: 'Files uploaded', files });
-  } catch (e) {
-    res.json({ status: false, message: e.message });
-  }
+router.post('/files/upload', requireAdmin, (req, res) => {
+  upload.array('files', 20)(req, res, function (err) {
+    if (err) {
+      console.error('Multer upload error:', err);
+      return res.json({ status: false, message: 'File upload error: ' + err.message });
+    }
+    try {
+      const subdir = req.body.uploadPath || '';
+      const files = req.files.map(f => ({
+        name: f.originalname || f.filename,
+        path: (f.key ? '/' + f.key : '/uploads/' + (subdir ? subdir + '/' : '') + f.filename)
+      }));
+      res.json({ status: true, message: 'Files uploaded', files });
+    } catch (e) {
+      res.json({ status: false, message: e.message });
+    }
+  });
 });
 
 router.post('/files/folder', requireAdmin, async (req, res) => {
   try {
     const { name, parentPath } = req.body;
-    const dir = path.join(__dirname, '..', '..', 'uploads', parentPath || '', name);
-    fs.mkdirSync(dir, { recursive: true });
+    if (s3) {
+      const prefix = parentPath ? `uploads/${parentPath}/${name}/` : `uploads/${name}/`;
+      const command = new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: prefix,
+        Body: ''
+      });
+      await s3.send(command);
+    } else {
+      const dir = path.join(__dirname, '..', '..', 'uploads', parentPath || '', name);
+      fs.mkdirSync(dir, { recursive: true });
+    }
     res.json({ status: true, message: 'Folder created' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1014,9 +1599,23 @@ router.post('/files/folder', requireAdmin, async (req, res) => {
 router.delete('/files/folder', requireAdmin, async (req, res) => {
   try {
     const { folderPath } = req.body;
-    const fullPath = path.join(__dirname, '..', '..', 'uploads', folderPath);
-    if (fs.existsSync(fullPath)) {
-      fs.rmSync(fullPath, { recursive: true, force: true });
+    if (s3) {
+      const prefix = `uploads/${folderPath}/`;
+      const listCommand = new ListObjectsV2Command({ Bucket: process.env.AWS_S3_BUCKET_NAME, Prefix: prefix });
+      const listedObjects = await s3.send(listCommand);
+      
+      if (listedObjects.Contents && listedObjects.Contents.length > 0) {
+        const deleteParams = {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Delete: { Objects: listedObjects.Contents.map(obj => ({ Key: obj.Key })) }
+        };
+        await s3.send(new DeleteObjectsCommand(deleteParams));
+      }
+    } else {
+      const fullPath = path.join(__dirname, '..', '..', 'uploads', folderPath);
+      if (fs.existsSync(fullPath)) {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+      }
     }
     res.json({ status: true, message: 'Folder deleted' });
   } catch (e) {
@@ -1027,8 +1626,13 @@ router.delete('/files/folder', requireAdmin, async (req, res) => {
 router.delete('/files', requireAdmin, async (req, res) => {
   try {
     const { filePath } = req.body;
-    const fullPath = path.join(__dirname, '..', '..', filePath);
-    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    if (s3) {
+      const key = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+      await s3.send(new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: key }));
+    } else {
+      const fullPath = path.join(__dirname, '..', '..', filePath);
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    }
     res.json({ status: true, message: 'File deleted' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1054,6 +1658,135 @@ router.put('/settings', requireAdmin, async (req, res) => {
       });
     }
     res.json({ status: true, message: 'Settings saved' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Accounts Section Endpoints ───
+router.get('/accounts/orders', requireAdmin, async (req, res) => {
+  try {
+    const { paymentStatus, orderStatus, startDate, endDate } = req.query;
+
+    const where = {};
+
+    if (paymentStatus && paymentStatus !== 'all') {
+      if (paymentStatus === 'verified') {
+        where.paymentStatus = { in: ['completed', 'paid'] };
+      } else {
+        where.paymentStatus = paymentStatus;
+      }
+    }
+
+    if (orderStatus && orderStatus !== 'all') {
+      where.orderStatus = orderStatus;
+    }
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        where.createdAt.gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.createdAt.lte = end;
+      }
+    }
+
+    const orders = await prisma.order.findMany({
+      where,
+      include: {
+        items: true,
+        user: {
+          select: {
+            name: true,
+            phone: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    const rows = [];
+    for (const order of orders) {
+      const orderDate = order.createdAt;
+      const orderNo = order.orderNumber;
+      const invoiceDate = order.createdAt;
+      const invoiceNo = order.orderNumber;
+      
+      const customerName = order.addressName || order.user?.name || 'N/A';
+      
+      const addressParts = [
+        order.addressText,
+        order.addressCity,
+        order.addressState,
+        order.addressPincode ? `India - ${order.addressPincode}` : ''
+      ].filter(Boolean);
+      const customerAddress = addressParts.join(', ');
+
+      const shippingCharges = Number(order.shippingTotal || order.shipping || 0);
+      const shippingGst = Number(order.shippingGST || 0);
+      const grandTotal = Number(order.grandTotal || order.total || 0);
+
+      // Determine state for GST split
+      const orderState = (order.addressState || '').toLowerCase().trim();
+      const isIntrastate = orderState === 'maharashtra' || orderState === '';
+
+      for (const item of order.items) {
+        const productName = item.name + (item.variant ? ` (${item.variant})` : '');
+        const qty = item.quantity;
+        const productDiscount = Number(item.productDiscount || 0);
+        const orderDiscount = Number(item.orderDiscount || 0);
+        const taxableAmount = Number(item.taxableValue || 0);
+        const taxPercent = Number(item.taxRate || 0);
+        const total = Number(item.total || 0);
+
+        let cgst = 0;
+        let sgst = 0;
+        let igst = 0;
+
+        const itemGstAmount = Number(item.gstAmount || item.gst || 0);
+
+        if (isIntrastate) {
+          cgst = Number(item.cgst || (itemGstAmount / 2).toFixed(2));
+          sgst = Number(item.sgst || (itemGstAmount - cgst).toFixed(2));
+          igst = 0;
+        } else {
+          cgst = 0;
+          sgst = 0;
+          igst = itemGstAmount;
+        }
+
+        rows.push({
+          orderDate,
+          orderNo,
+          invoiceDate,
+          invoiceNo,
+          customerName,
+          customerAddress,
+          productName,
+          qty,
+          productDiscount,
+          orderDiscount,
+          taxableAmount,
+          taxPercent,
+          cgst,
+          sgst,
+          igst,
+          total,
+          shippingCharges,
+          shippingGst,
+          grandTotal
+        });
+      }
+    }
+
+    res.json({ status: true, rows });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

@@ -5,6 +5,8 @@ import GenericModal from '../components/common/GenericModal';
 import FileManager from '../components/common/FileManager';
 import toast from 'react-hot-toast';
 
+import { Image } from 'react-feather';
+
 const Category = () => {
     const [categories, setCategories] = useState([]);
     const [isModalOpen, setModalOpen] = useState(false);
@@ -45,6 +47,10 @@ const Category = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            toast.error('Please select an image for the category');
+            return;
+        }
         try {
             const payload = { ...formData, featured: formData.featured.toString() };
             if (!payload.parentId) delete payload.parentId; // If empty, don't send to backend or send null equivalent
@@ -103,7 +109,7 @@ const Category = () => {
                                         <img src={getAssetUrl(formData.image)} alt="Selected" />
                                     ) : (
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}>🖼️</div>
+                                            <div style={{ fontSize: '48px', marginBottom: '10px', color: '#ccc' }}><Image size={48} /></div>
                                         </div>
                                     )}
                                 </div>

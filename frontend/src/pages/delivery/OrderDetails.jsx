@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api'; // Fixed from ../../../api
 import toast from 'react-hot-toast';
 
+import { ArrowLeft, Map, AlertTriangle } from 'react-feather';
+
 const DeliveryOrderDetails = () => {
     const { id } = useParams();
     const [order, setOrder] = useState(null);
@@ -59,7 +61,7 @@ const DeliveryOrderDetails = () => {
         <div style={{ background: '#f4f6f8', minHeight: '100vh', paddingBottom: '30px' }}>
             {/* Header */}
             <div style={{ background: '#fff', padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', position: 'sticky', top: 0, zIndex: 100 }}>
-                <button onClick={() => navigate('/delivery/dashboard')} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', padding: 0 }}>←</button>
+                <button onClick={() => navigate('/delivery/dashboard')} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', padding: 0 }}><ArrowLeft size={16} /></button>
                 <h2 style={{ margin: 0, fontSize: '18px', color: '#253D4E' }}>Order {order.orderNumber}</h2>
             </div>
 
@@ -70,7 +72,9 @@ const DeliveryOrderDetails = () => {
                     <div>
                         <div style={{ fontSize: '12px', color: '#7E7E7E', marginBottom: '4px' }}>Current Status</div>
                         <div style={{ fontSize: '16px', fontWeight: 'bold', color: order.orderStatus === 'delivered' ? '#28a745' : order.orderStatus === 'out_for_delivery' ? '#fd7e14' : '#007bff' }}>
-                            {order.orderStatus.replace(/_/g, ' ').toUpperCase()}
+                            {['placed', 'confirmed', 'pending', 'processing', 'shipped'].includes(order.orderStatus) 
+                                ? 'SHIPPED' 
+                                : order.orderStatus.replace(/_/g, ' ').toUpperCase()}
                         </div>
                     </div>
                     {isCod && order.paymentStatus === 'pending' && (
@@ -103,7 +107,7 @@ const DeliveryOrderDetails = () => {
                         <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.addressText}, ${order.addressCity}, ${order.addressPincode}`)}`} 
                            target="_blank" rel="noreferrer" 
                            style={{ display: 'inline-block', background: '#f4f6f8', color: '#253D4E', padding: '8px 15px', borderRadius: '6px', textDecoration: 'none', fontSize: '13px', fontWeight: 'bold', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
-                           🗺️ Open in Google Maps
+                           <Map size={16} /> Open in Google Maps
                         </a>
                     </div>
                 </div>
@@ -113,9 +117,8 @@ const DeliveryOrderDetails = () => {
                     <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' }}>Items to Deliver</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {order.items?.map(item => (
-                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#444' }}>
-                                <span>{item.quantity}x {item.name}</span>
-                                <span style={{ fontWeight: '500' }}>₹{Number(item.total).toFixed(0)}</span>
+                            <div key={item.id} style={{ fontSize: '14px', color: '#444' }}>
+                                {item.quantity}x {item.name} {item.variant ? `(${item.variant})` : ''}
                             </div>
                         ))}
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 'bold', borderTop: '1px solid #f0f0f0', paddingTop: '10px', marginTop: '5px' }}>
@@ -126,7 +129,7 @@ const DeliveryOrderDetails = () => {
                 </div>
 
                 {/* Action Buttons */}
-                {order.orderStatus === 'shipped' && (
+                {order.orderStatus !== 'out_for_delivery' && order.orderStatus !== 'delivered' && order.orderStatus !== 'cancelled' && (
                     <button 
                         onClick={() => handleStatusUpdate('out_for_delivery')}
                         disabled={loading}
@@ -139,7 +142,7 @@ const DeliveryOrderDetails = () => {
                     <div style={{ background: isCod ? '#ffeedb' : '#e8f5e9', padding: '20px', borderRadius: '12px', border: `2px solid ${isCod ? '#fd7e14' : '#28a745'}`, marginTop: '10px', textAlign: 'center' }}>
                         {isCod && (
                             <p style={{ margin: '0 0 15px 0', color: '#dc3545', fontWeight: 'bold', fontSize: '15px' }}>
-                                ⚠️ Collect ₹{Number(order.total).toFixed(0)} Cash
+                                <AlertTriangle size={16} color="orange" /> Collect ₹{Number(order.total).toFixed(0)} Cash
                             </p>
                         )}
                         <button 

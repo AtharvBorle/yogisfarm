@@ -8,7 +8,7 @@ const Filemanager = () => {
                 <h2>File Manager</h2>
             </div>
             
-            <div style={{ height: '100%', background: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', background: 'var(--card-bg)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <FileManagerComponent />
             </div>
         </div>

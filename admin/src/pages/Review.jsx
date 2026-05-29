@@ -11,6 +11,8 @@ const Review = () => {
     const [formData, setFormData] = useState({ status: 'pending', comment: '' });
     const [currentUser, setCurrentUser] = useState('');
     const [currentProduct, setCurrentProduct] = useState('');
+    const [isViewOpen, setViewOpen] = useState(false);
+    const [viewReview, setViewReview] = useState(null);
 
     const fetchReviews = async () => {
         try {
@@ -66,6 +68,11 @@ const Review = () => {
         }
     };
 
+    const openViewModal = (row) => {
+        setViewReview(row);
+        setViewOpen(true);
+    };
+
     const columns = [
         { header: 'ID', accessor: 'id' },
         { header: 'User', render: (row) => <div style={{ fontWeight: '500' }}>{row.user?.name || '—'}<br/><small style={{color:'#666'}}>{row.user?.phone}</small></div> },
@@ -101,7 +108,39 @@ const Review = () => {
                 data={reviews} 
                 onEdit={openEditModal} 
                 onDelete={handleDelete} 
+                onView={openViewModal}
             />
+
+            <GenericModal isOpen={isViewOpen} title="Review Details" onClose={() => setViewOpen(false)}>
+                {viewReview && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
+                            <div style={{ marginBottom: '8px' }}><strong>User:</strong> {viewReview.user?.name || 'Unknown User'} ({viewReview.user?.phone})</div>
+                            <div style={{ marginBottom: '8px' }}><strong>Product:</strong> {viewReview.product?.name || 'Unknown Product'}</div>
+                            <div>
+                                <strong>Date:</strong> {new Date(viewReview.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                        <div style={{ color: 'var(--text)' }}>
+                            <div style={{ marginBottom: '10px' }}>
+                                <strong>Rating:</strong> <span style={{ color: '#ffc107', fontSize: '18px', marginLeft: '5px' }}>{'★'.repeat(viewReview.rating)}{'☆'.repeat(5 - viewReview.rating)}</span>
+                            </div>
+                            <div style={{ marginBottom: '10px' }}>
+                                <strong>Status:</strong> 
+                                <span style={{ padding: '3px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', marginLeft: '10px', background: viewReview.status === 'active' ? '#e6f4ea' : viewReview.status === 'pending' ? '#fff3cd' : '#fce8e6', color: viewReview.status === 'active' ? '#1a73e8' : viewReview.status === 'pending' ? '#856404' : '#ea4335' }}>
+                                    {viewReview.status.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+                        <div style={{ color: 'var(--text)' }}>
+                            <h4 style={{ fontSize: '15px', marginBottom: '10px' }}>Comment:</h4>
+                            <div style={{ padding: '15px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>
+                                {viewReview.comment || 'No comment provided.'}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </GenericModal>
 
             <GenericModal 
                 isOpen={isModalOpen} 
@@ -109,7 +148,7 @@ const Review = () => {
                 onClose={() => setModalOpen(false)}
             >
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '15px', padding: '15px', background: '#f8f9fa', borderRadius: '6px' }}>
+                    <div style={{ marginBottom: '15px', padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
                         <div style={{ marginBottom: '8px' }}><strong>User:</strong> {currentUser}</div>
                         <div><strong>Product:</strong> {currentProduct}</div>
                     </div>

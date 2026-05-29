@@ -46,7 +46,7 @@ const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name', it
 
     return (
         <GenericModal isOpen={isOpen} title="Reorder Items" onClose={onClose}>
-            <div style={{ marginBottom: '15px', color: '#666', fontSize: '14px' }}>
+            <div style={{ marginBottom: '15px', color: 'var(--text-muted, #666)', fontSize: '14px' }}>
                 Drag and drop the items below to arrange them exactly how you want them displayed.
             </div>
             
@@ -54,14 +54,14 @@ const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name', it
                 style={{ 
                     maxHeight: '400px', 
                     overflowY: 'auto', 
-                    border: '1px solid #eee', 
+                    border: '1px solid var(--border, #eee)', 
                     borderRadius: '5px', 
                     padding: '10px',
-                    backgroundColor: '#fafafa'
+                    backgroundColor: 'var(--sidebar-hover, #fafafa)'
                 }}
             >
                 {items.length === 0 ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No items to reorder</div>
+                    <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted, #999)' }}>No items to reorder</div>
                 ) : (
                     items.map((item, index) => (
                         <div
@@ -75,8 +75,8 @@ const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name', it
                                 alignItems: 'center',
                                 padding: '12px 15px',
                                 margin: '0 0 8px 0',
-                                backgroundColor: '#fff',
-                                border: '1px solid #ddd',
+                                backgroundColor: 'var(--card-bg, #fff)',
+                                border: '1px solid var(--border, #ddd)',
                                 borderRadius: '4px',
                                 cursor: 'grab',
                                 boxShadow: draggedStartIdx === index ? '0 5px 15px rgba(0,0,0,0.1)' : 'none',
@@ -84,11 +84,11 @@ const ReorderModal = ({ isOpen, onClose, data, onSave, itemLabelKey = 'name', it
                                 transition: 'background-color 0.2s',
                             }}
                         >
-                            <GripVertical size={18} color="#aaa" style={{ marginRight: '15px' }} />
+                            <GripVertical size={18} color="var(--text-muted, #aaa)" style={{ marginRight: '15px' }} />
                             {item.image && getImageUrl && (
-                                <img src={getImageUrl(item.image)} alt="" style={{ width: '50px', height: '35px', objectFit: 'cover', borderRadius: '4px', marginRight: '12px', border: '1px solid #eee' }} />
+                                <img src={getImageUrl(item.image)} alt="" style={{ width: '50px', height: '35px', objectFit: 'cover', borderRadius: '4px', marginRight: '12px', border: '1px solid var(--border, #eee)' }} />
                             )}
-                            <span style={{ fontWeight: '500', color: '#333' }}>{item.label}</span>
+                            <span style={{ fontWeight: '500', color: 'var(--text, #333)' }}>{item.label}</span>
                         </div>
                     ))
                 )}

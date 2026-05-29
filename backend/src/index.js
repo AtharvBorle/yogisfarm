@@ -1,8 +1,9 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
-const path = require('path');
+const morgan = require('morgan');
 const PrismaStore = require('./utils/sessionStore');
 const { PrismaClient } = require('@prisma/client');
 
@@ -10,7 +11,13 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy (required for secure cookies behind CloudFront/Nginx)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware
+app.use(morgan('dev'));
 app.use(cors({
   origin: [
     'http://localhost:3000', 
@@ -19,7 +26,14 @@ app.use(cors({
     'http://localhost:5174',
     'http://192.168.0.151:5173', 
     'http://192.168.0.151:5174',
-    'https://yf.travelcarts.co.in'
+    'https://yogisfarms.com',
+    'https://www.yogisfarms.com',
+    'https://admin.yogisfarms.com',
+    'https://www.admin.yogisfarms.com',
+    'http://yogisfarms.com',
+    'http://www.yogisfarms.com',
+    'http://admin.yogisfarms.com',
+    'http://www.admin.yogisfarms.com'
   ],
   credentials: true
 }));
@@ -33,10 +47,29 @@ app.use(session({
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'lax',
-    secure: false
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    domain: process.env.NODE_ENV === 'production' ? '.yogisfarms.com' : undefined
   }
 }));
+
+// Enforce admin absolute session expiration
+app.use((req, res, next) => {
+  if (req.session && req.session.adminExpiry) {
+    const timeLeft = req.session.adminExpiry - Date.now();
+    if (timeLeft <= 0) {
+      req.session.destroy((err) => {
+        if (err) console.error('Failed to destroy expired session:', err);
+        return res.status(401).json({ status: false, message: 'Session expired' });
+      });
+      return;
+    } else {
+      req.session.cookie.expires = new Date(req.session.adminExpiry);
+      req.session.cookie.maxAge = timeLeft;
+    }
+  }
+  next();
+});
 
 // Static files
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
@@ -65,9 +98,11 @@ app.use('/api/sections', require('./routes/sections'));
 app.use('/api/taxes', require('./routes/taxes'));
 app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/reviews', require('./routes/reviews'));
+app.use('/api/hsns', require('./routes/hsn.routes'));
 
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin/hsns', require('./routes/hsn.routes'));
 
 // Delivery routes
 app.use('/api/delivery', require('./routes/delivery'));
@@ -78,5 +113,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Yogis Farm Backend running on http://localhost:${PORT}`);
+  console.log(`YogisFarms Backend running on http://localhost:${PORT}`);
 });

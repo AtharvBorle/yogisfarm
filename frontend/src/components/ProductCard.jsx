@@ -10,108 +10,431 @@ const ProductCard = ({ product }) => {
     const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
 
-    const price = product.salePrice || product.price;
-    const oldPrice = product.salePrice ? product.price : null;
+    const variants = product.variants || [];
+    const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+    const hasVariants = variants.length > 0;
+    const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+
+    const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+    const oldPrice = firstStockedVariant?.salePrice ? firstStockedVariant.price : null;
+
+    const reviews = product.reviews || [];
+    const avgRatingRaw = reviews.length > 0 
+        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) 
+        : 5.0;
+    const roundedRating = Math.round(avgRatingRaw);
+    const starString = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
     let badgeText = null;
-    if (product.salePrice && product.price > product.salePrice) {
-        const discountAmt = product.price - product.salePrice;
-        if (discountAmt >= 100 || discountAmt % 10 === 0) {
-            badgeText = `₹${discountAmt} OFF`;
-        } else {
-            const discountPct = Math.round((discountAmt / product.price) * 100);
-            badgeText = `${discountPct}% OFF`;
-        }
-    } else if (product.deal) {
-        badgeText = "Deal";
+    if (firstStockedVariant?.salePrice && parseFloat(firstStockedVariant.price) > parseFloat(firstStockedVariant.salePrice)) {
+        const numPrice = parseFloat(firstStockedVariant.price);
+        const numSalePrice = parseFloat(firstStockedVariant.salePrice);
+        const discountAmt = numPrice - numSalePrice;
+        const discountPct = Math.round((discountAmt / numPrice) * 100);
+        badgeText = `${discountPct}% OFF`;
     }
 
     const inWishlist = isInWishlist(product.id);
 
     const handleAddToCart = () => {
-        addToCart(product.id);
-    };
-
-    const renderStars = (rating = 5) => {
-        return (
-            <span style={{ color: '#adadad', fontSize: '14px', letterSpacing: '2px', display: 'inline-block', verticalAlign: 'middle' }}>
-                ★★★★★
-            </span>
-        );
+        if (!isOutOfStock && firstStockedVariant) {
+            addToCart(product.id, firstStockedVariant.id, 1, product, firstStockedVariant);
+        }
     };
 
     return (
-        <div className="product-cart-wrap mb-30 wow animate__animated animate__fadeIn" data-wow-delay=".1s" style={{ borderRadius: '15px', overflow: 'hidden' }}>
-            <div className="product-img-action-wrap">
-                <div className="product-img product-img-zoom">
-                    <Link to={`/product/${product.slug}`}>
-                        <img className="default-img" src={getAssetUrl(product.image)} alt={product.name} />
-                        {product.hoverImage && (
-                            <img className="hover-img" src={getAssetUrl(product.hoverImage)} alt="" />
-                        )}
+        <div className="product-cart-wrap" style={{ 
+            width: '100%',
+            maxWidth: '291px', 
+            height: 'auto', 
+            borderRadius: '11px', 
+            border: '1px solid #D5D5D5', 
+            backgroundColor: '#FFFFFF',
+            position: 'relative',
+            overflow: 'hidden',
+            fontFamily: "'Poppins', sans-serif",
+            display: 'flex',
+            flexDirection: 'column',
+            margin: '0 auto'
+        }}>
+            <style dangerouslySetInnerHTML={{ __html: `
+                .product-cart-wrap .product-hover-actions {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #FFFFFF;
+                    border: 1px solid #0A6738;
+                    border-radius: 20px;
+                    display: flex;
+                    align-items: center;
+                    padding: 6px 12px;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.3s ease;
+                    z-index: 15;
+                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+                    gap: 12px;
+                }
+                .product-cart-wrap:hover .product-hover-actions {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                .product-hover-actions a {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: transform 0.2s ease;
+                }
+                .product-hover-actions a::before {
+                    content: attr(data-tooltip);
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(-8px);
+                    background: #0A6738;
+                    color: #FFF;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    font-family: 'Poppins', sans-serif;
+                    font-weight: 500;
+                    pointer-events: none;
+                }
+                .product-hover-actions a::after {
+                    content: '';
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(0px);
+                    border-width: 5px;
+                    border-style: solid;
+                    border-color: #0A6738 transparent transparent transparent;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: all 0.2s ease;
+                    pointer-events: none;
+                }
+                .product-hover-actions a:hover::before,
+                .product-hover-actions a:hover::after {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                .product-hover-actions a:hover {
+                    transform: scale(1.1);
+                }
+                
+                @media (max-width: 767px) {
+                    .product-cart-wrap {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        height: 180px !important;
+                        border-radius: 5.59px !important;
+                        border: 0.509px solid #D5D5D5 !important;
+                        box-sizing: border-box !important;
+                    }
+                    .product-cart-wrap .img-container {
+                        padding: 3px 3px 0 3px !important;
+                    }
+                    .product-cart-wrap .img-wrapper {
+                        aspect-ratio: 160 / 102 !important;
+                        height: auto !important;
+                        width: 100% !important;
+                        border-radius: 4.56px !important;
+                    }
+                    .product-cart-wrap .product-content {
+                        padding: 4px 6px 3px 6px !important;
+                        position: relative !important;
+                        flex: 1 !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        overflow: hidden !important;
+                    }
+                    .product-cart-wrap .product-title {
+                        font-size: 9px !important;
+                        font-weight: 600 !important;
+                        color: #1F1F1F !important;
+                        margin: 0 0 1px 0 !important;
+                        line-height: 10px !important;
+                        height: auto !important;
+                        -webkit-line-clamp: 1 !important;
+                    }
+                    .product-cart-wrap .rating-reviews-row {
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 2px !important;
+                        margin-bottom: 2px !important;
+                        height: 8px !important;
+                    }
+                    .product-cart-wrap .stars-text {
+                        font-size: 7px !important;
+                        letter-spacing: 0.2px !important;
+                    }
+                    .product-cart-wrap .reviews-text {
+                        font-size: 5px !important;
+                        color: #9B9B9B !important;
+                    }
+                    .product-cart-wrap .price-btn-row {
+                        display: flex !important;
+                        justify-content: space-between !important;
+                        align-items: center !important;
+                        margin-top: 5px !important;
+                        height: 30px !important;
+                        gap: 2px !important;
+                    }
+                    .product-cart-wrap .price-wrapper {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        gap: 3px !important;
+                        align-items: center !important;
+                    }
+                    .product-cart-wrap .price-text {
+                        font-size: 9px !important;
+                        font-weight: 600 !important;
+                        color: #0A6738 !important;
+                        line-height: 1 !important;
+                    }
+                    .product-cart-wrap .discount-text {
+                        font-size: 6px !important;
+                        color: #FF0000 !important;
+                        line-height: 1 !important;
+                        white-space: nowrap !important;
+                    }
+                    .product-cart-wrap .btn-buy {
+                        background-color: #FF1A00 !important;
+                        color: #FFFFFF !important;
+                        width: 72px !important;
+                        height: 30px !important;
+                        border-radius: 4px !important;
+                        font-size: 10px !important;
+                        font-weight: 700 !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        text-transform: uppercase !important;
+                        text-decoration: none !important;
+                        border: none !important;
+                        line-height: 1 !important;
+                        padding: 0 !important;
+                    }
+                    .product-cart-wrap .qty-controls {
+                        display: flex !important;
+                        align-items: center !important;
+                        background-color: #f0f9f4 !important;
+                        border: 1px solid #0A6738 !important;
+                        border-radius: 4px !important;
+                        width: 72px !important;
+                        height: 30px !important;
+                        justify-content: space-between !important;
+                        padding: 0 6px !important;
+                    }
+                    .product-cart-wrap .qty-controls a {
+                        font-size: 14px !important;
+                        font-weight: bold !important;
+                        color: #0A6738 !important;
+                        line-height: 1 !important;
+                    }
+                    .product-cart-wrap .qty-controls span {
+                        font-size: 12px !important;
+                        font-weight: bold !important;
+                        line-height: 1 !important;
+                    }
+                }
+            `}} />
+
+            {/* Image Section */}
+            <div className="img-container" style={{
+                width: '100%',
+                padding: '5px 5px 0 5px'
+            }}>
+                <div className="img-wrapper" style={{
+                    width: '100%',
+                    aspectRatio: '281 / 187',
+                    position: 'relative',
+                    borderRadius: '9px',
+                    overflow: 'hidden',
+                    backgroundColor: '#F2F2F2'
+                }}>
+                    <Link to={`/product/${product.slug}`} style={{ display: 'block', width: '100%', height: '100%' }}>
+                        <img 
+                            className="default-img"
+                            src={getAssetUrl(product.image)} 
+                            alt={product.name} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
                     </Link>
-                </div>
-                <div className="product-action-1">
-                    <a aria-label="Add To Wishlist" className={`action-btn ${inWishlist ? 'btn-remove-from-wishlist' : 'btn-add-to-wishlist'}`} onClick={() => toggleWishlist(product.id)} href="#!">
-                        <i className="fi-rs-heart" style={{ color: inWishlist ? 'red' : 'inherit' }}></i>
-                    </a>
-                    <a aria-label="Quick View" className="action-btn btn-quick-view" onClick={() => setShowQuickView(true)} href="#!">
-                        <i className="fi-rs-eye"></i>
-                    </a>
-                </div>
-                {badgeText && (
-                    <div className="product-badges product-badges-position product-badges-mrg" style={{ position: 'absolute', top: 0, left: 0, margin: 0, zIndex: 9 }}>
-                        <span className="best" style={{ backgroundColor: '#046938', color: 'white', padding: '4px 12px', borderRadius: '15px 0 15px 0', fontSize: '12px', display: 'inline-block' }}>
-                            {badgeText}
-                        </span>
+                    
+                    <div className="product-hover-actions">
+                        <a aria-label="Add To Wishlist" data-tooltip="Add To Wishlist" onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }} href="#!">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill={inWishlist ? '#0A6738' : 'none'} xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.1 18.55L12 18.65L11.89 18.55C7.14 14.24 4 11.39 4 8.5C4 6.5 5.5 5 7.5 5C9.04 5 10.54 6 11.07 7.36H12.93C13.46 6 14.96 5 16.5 5C18.5 5 20 6.5 20 8.5C20 11.39 16.86 14.24 12.1 18.55ZM16.5 3C14.76 3 13.09 3.81 12 5.08C10.91 3.81 9.24 3 7.5 3C4.42 3 2 5.41 2 8.5C2 12.27 5.4 15.36 10.55 20.03L12 21.35L13.45 20.03C18.6 15.36 22 12.27 22 8.5C22 5.41 19.58 3 16.5 3Z" fill="#0A6738"/>
+                            </svg>
+                        </a>
+                        <div className="action-divider"></div>
+                        <a aria-label="Quick View" data-tooltip="Quick View" onClick={(e) => { e.preventDefault(); setShowQuickView(true); }} href="#!">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="#0A6738"/>
+                            </svg>
+                        </a>
                     </div>
-                )}
+
+                    {badgeText && (
+                        <div style={{ position: 'absolute', top: '0', left: '0', zIndex: 9 }}>
+                            <span style={{ 
+                                backgroundColor: '#046938', 
+                                color: 'white', 
+                                padding: '4px 10px', 
+                                borderRadius: '12px 0 12px 0', 
+                                fontSize: '11px', 
+                                fontWeight: 'bold',
+                                fontFamily: 'Poppins',
+                                display: 'inline-block'
+                            }}>
+                                {badgeText}
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
-            <div className="product-content-wrap" style={{ padding: '15px' }}>
-                {product.category && (
-                    <div className="product-category" style={{ marginBottom: '5px' }}>
-                        <Link to={`/shop?category=${product.category.slug}`} style={{ color: '#adadad', fontSize: '12px' }}>{product.category.name}</Link>
-                    </div>
-                )}
-                <h2 style={{ fontSize: '16px', fontWeight: 'bold', lineHeight: '1.2', marginBottom: '8px' }}>
+
+            {/* Content Section */}
+            <div className="product-content" style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                {/* Title */}
+                <h2 className="product-title" style={{ 
+                    fontSize: 'clamp(14px, 4vw, 18px)', 
+                    fontWeight: 600, 
+                    lineHeight: '1.2', 
+                    color: '#253D4E', 
+                    margin: '0 0 10px 0',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    fontFamily: 'Poppins',
+                    textTransform: 'capitalize'
+                }}>
                     <Link to={`/product/${product.slug}`} style={{ color: '#253D4E' }}>{product.name}</Link>
                 </h2>
-                <div className="product-rate-cover" style={{ marginBottom: '10px' }}>
-                    {renderStars(5)}
-                    <span className="font-small text-muted" style={{ fontSize: '13px', color: '#B6B6B6', marginLeft: '5px', display: 'inline-block', verticalAlign: 'middle' }}>({product.reviews?.length || 0})</span>
+
+                {/* Stars and Reviews */}
+                <div className="rating-reviews-row" style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '15px'
+                }}>
+                    <span className="stars-text" style={{ color: '#FFB800', fontSize: '13px', letterSpacing: '1px' }}>{starString}</span>
+                    <span className="reviews-text" style={{ 
+                        fontSize: '11px', 
+                        color: '#B6B6B6', 
+                        fontFamily: 'Poppins'
+                    }}>
+                        ({reviews.length} Reviews)
+                    </span>
                 </div>
-                <div className="product-card-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="product-price">
-                        <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#046938', lineHeight: '1' }}>₹{parseFloat(price).toFixed(2)}</div>
+
+                {/* Price and Button Row */}
+                <div className="price-btn-row" style={{ 
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 'auto',
+                    flexWrap: 'wrap',
+                    gap: '5px'
+                }}>
+                    <div className="price-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="price-text" style={{ 
+                            fontSize: 'clamp(14px, 4vw, 18px)', 
+                            fontWeight: 'bold', 
+                            color: '#0A6738', 
+                            lineHeight: '1',
+                            fontFamily: 'Poppins'
+                        }}>
+                            ₹{!isNaN(parseFloat(price)) ? parseFloat(price).toFixed(2) : '0.00'}
+                        </span>
+                        
                         {oldPrice && (
-                            <div className="old-price" style={{ fontSize: '14px', color: '#adadad', textDecoration: 'line-through', marginTop: '4px', display: 'block' }}>
-                                ₹{parseFloat(oldPrice).toFixed(2)}
-                            </div>
+                            <span className="discount-text" style={{ 
+                                fontSize: 'clamp(10px, 2.5vw, 11px)', 
+                                color: '#FF0000', 
+                                fontFamily: 'Poppins'
+                            }}>
+                                {Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100)}% Off
+                            </span>
                         )}
                     </div>
+
                     <div className="add-cart">
                         {(() => {
-                            if (product.stock <= 0) {
+                            if (isOutOfStock) {
                                 return (
-                                    <button className="add" disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'not-allowed', width: '100%', fontSize: '13px' }}>
-                                        Out of stock
+                                    <button disabled style={{ 
+                                        background: '#E0E0E0', 
+                                        color: '#666', 
+                                        border: 'none', 
+                                        width: '66px',
+                                        height: '30px',
+                                        borderRadius: '6px', 
+                                        fontSize: '10px',
+                                        fontFamily: 'Poppins',
+                                        fontWeight: 'bold',
+                                        cursor: 'not-allowed'
+                                    }}>
+                                        Sold Out
                                     </button>
                                 );
                             }
 
-                            const cartItem = cartItems?.find(item => item.product?.id === product.id && !item.variantId);
+                            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === firstStockedVariant?.id);
                             if (cartItem) {
                                 return (
-                                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#f0f9f4', borderRadius: '4px', border: '1px solid #046938' }}>
-                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ padding: '6px 10px', color: '#046938', fontSize: '16px', fontWeight: 'bold' }}>-</a>
-                                        <span style={{ padding: '0 8px', fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
-                                        <a onClick={() => cartItem.quantity < product.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ padding: '6px 10px', color: cartItem.quantity >= product.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', cursor: cartItem.quantity >= product.stock ? 'not-allowed' : 'pointer' }}>+</a>
+                                    <div className="qty-controls" style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        backgroundColor: '#f0f9f4', 
+                                        borderRadius: '6px', 
+                                        border: '1px solid #0A6738',
+                                        height: '30px',
+                                        width: '66px',
+                                        justifyContent: 'space-between',
+                                        padding: '0 5px'
+                                    }}>
+                                        <a onClick={() => cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id)} href="#!" style={{ color: '#0A6738', fontSize: '14px', fontWeight: 'bold' }}>-</a>
+                                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
+                                        <a onClick={() => cartItem.quantity < firstStockedVariant.stock && updateQuantity(cartItem.id, cartItem.quantity + 1)} href="#!" style={{ color: cartItem.quantity >= firstStockedVariant.stock ? '#ccc' : '#0A6738', fontSize: '14px', fontWeight: 'bold' }}>+</a>
                                     </div>
                                 );
                             }
+
                             return (
-                                <a className="add btn-add-to-cart" onClick={handleAddToCart} href="#!" style={{ backgroundColor: '#046938', color: 'white', padding: '6px 12px', borderRadius: '4px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-block' }}>
-                                    <i className="fi-rs-shopping-cart"></i> Add
+                                <a 
+                                    onClick={handleAddToCart} 
+                                    href="#!" 
+                                    className="btn-buy"
+                                    style={{ 
+                                        backgroundColor: '#FF0000', 
+                                        color: '#FFFFFF', 
+                                        width: '66px',
+                                        height: '30px',
+                                        borderRadius: '6px', 
+                                        fontSize: '12px', 
+                                        fontWeight: 'bold', 
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        textDecoration: 'none',
+                                        fontFamily: 'Poppins',
+                                        textTransform: 'uppercase',
+                                        transition: 'background 0.3s'
+                                    }}
+                                >
+                                    BUY +
                                 </a>
                             );
                         })()}

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import api, { getAssetUrl } from '../../api';
 import toast from 'react-hot-toast';
 
+import { Folder } from 'react-feather';
+
 const FileManager = ({ onSelect, onClose }) => {
     const [currentPath, setCurrentPath] = useState('');
     const [folders, setFolders] = useState([]);
@@ -136,15 +138,15 @@ const FileManager = ({ onSelect, onClose }) => {
                 {loading ? <div style={{ width: '100%', textAlign: 'center' }}>Loading...</div> : (
                     <>
                         {currentPath && (
-                            <div onClick={navigateUp} style={{ width: '100px', cursor: 'pointer', textAlign: 'center' }}>
-                                <div style={{ fontSize: '40px', color: '#ffc107' }}>📁</div>
+                            <div onClick={navigateUp} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', color: 'var(--text)' }}>
+                                <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px' }}>.. (Up)</div>
                             </div>
                         )}
                         
                         {folders.map(folder => (
-                            <div key={folder} onClick={() => loadFiles(currentPath ? `${currentPath}/${folder}` : folder)} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', position: 'relative' }}>
-                                <div style={{ fontSize: '40px', color: '#ffc107' }}>📁</div>
+                            <div key={folder} onClick={() => loadFiles(currentPath ? `${currentPath}/${folder}` : folder)} style={{ width: '100px', cursor: 'pointer', textAlign: 'center', position: 'relative', color: 'var(--text)' }}>
+                                <div style={{ fontSize: '40px', color: '#ffc107' }}><Folder /></div>
                                 <div style={{ fontSize: '12px', wordBreak: 'break-all' }}>{folder}</div>
                                 <button 
                                     onClick={(e) => deleteFolder(folder, e)} 
@@ -165,13 +167,13 @@ const FileManager = ({ onSelect, onClose }) => {
                                     }}
                                     style={{ 
                                         height: '80px', 
-                                        background: `url(${getAssetUrl(file.path)}) center/cover`, 
-                                        border: '1px solid #ddd',
+                                        background: `url("${encodeURI(getAssetUrl(file.path))}") center/cover`, 
+                                        border: '1px solid var(--border)',
                                         borderRadius: '4px',
                                         marginBottom: '5px'
                                     }} 
                                 />
-                                <div style={{ fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</div>
+                                <div style={{ fontSize: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text)' }}>{file.name}</div>
                                 <button 
                                     onClick={(e) => deleteFile(file.path, e)} 
                                     style={btnStyle}>

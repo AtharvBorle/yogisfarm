@@ -29,7 +29,7 @@ const Wishlist = () => {
         fetchWishlist();
     }, [user]);
 
-    if (!user) {
+    if (!user || !user.name || !user.email) {
         return <Navigate to="/login?redirect=/wishlist" />;
     }
 
@@ -38,9 +38,6 @@ const Wishlist = () => {
         fetchWishlist();
     };
 
-    const handleAddToCart = (product) => {
-        addToCart(product.id, null, 1);
-    };
 
     if (authLoading) return <div style={{height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '50px' }} /></div>;
 
@@ -85,7 +82,14 @@ const Wishlist = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {items.map(item => (
+                                        {items.map(item => {
+                                            const variants = item.product.variants || [];
+                                            const firstStockedVariant = variants.find(v => v.stock > 0) || variants[0];
+                                            const hasVariants = variants.length > 0;
+                                            const isOutOfStock = !hasVariants || variants.every(v => v.stock <= 0);
+                                            const price = firstStockedVariant ? (firstStockedVariant.salePrice || firstStockedVariant.price) : null;
+
+                                            return (
                                             <tr key={item.id}>
                                                 <td className="image product-thumbnail text-start" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec', paddingTop: '15px' }}>
                                                     <img src={getAssetUrl(item.product.image)} alt={item.product.name} style={{ width: '80px', borderRadius: '8px', border: '1px solid #ececec' }} />
@@ -94,19 +98,30 @@ const Wishlist = () => {
                                                     <h6 className="product-name mb-10"><Link to={`/product/${item.product.slug}`} style={{ color: '#046938', fontWeight: 'bold' }}>{item.product.name}</Link></h6>
                                                 </td>
                                                 <td className="price" data-title="Price" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    <h5 style={{ color: '#7E7E7E', fontSize: '18px' }}>₹{item.product.salePrice || item.product.price}</h5>
+                                                    {isOutOfStock ? (
+                                                        <h5 style={{ color: '#ea4335', fontSize: '18px' }}>Out of Stock</h5>
+                                                    ) : price !== null ? (
+                                                        <h5 style={{ color: '#7E7E7E', fontSize: '18px' }}>₹{parseFloat(price).toFixed(2)}</h5>
+                                                    ) : null}
                                                 </td>
                                                 <td className="text-center" data-title="Stock" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    <span style={{ background: '#e8f5e9', color: '#28a745', padding: '5px 15px', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold', border: '1px solid #28a745' }}>In Stock</span>
+                                                    {isOutOfStock ? (
+                                                        <span style={{ background: '#f8d7da', color: '#721c24', padding: '5px 15px', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold', border: '1px solid #f5c6cb' }}>Out of Stock</span>
+                                                    ) : (
+                                                        <span style={{ background: '#e8f5e9', color: '#28a745', padding: '5px 15px', borderRadius: '5px', fontSize: '14px', fontWeight: 'bold', border: '1px solid #28a745' }}>In Stock</span>
+                                                    )}
                                                 </td>
                                                 <td className="text-right" data-title="Cart" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    <button onClick={() => handleAddToCart(item.product)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
+                                                    {!isOutOfStock && firstStockedVariant && (
+                                                        <button onClick={() => addToCart(item.product.id, firstStockedVariant.id, 1)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
+                                                    )}
                                                 </td>
                                                 <td className="action" data-title="Remove" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
                                                     <a href="#!" onClick={() => handleRemove(item.productId)} style={{ color: '#7E7E7E' }}><i className="fi-rs-trash"></i></a>
                                                 </td>
                                             </tr>
-                                        ))}
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

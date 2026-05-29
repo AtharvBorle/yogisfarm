@@ -58,6 +58,14 @@ router.post('/verify-otp', async (req, res) => {
       }
     }
 
+    // Explicitly save session to DB before responding (prevents race with next request)
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
     const needsDetails = !user.name;
     res.json({ status: true, message: 'OTP verified', user, needsDetails });
   } catch (e) {

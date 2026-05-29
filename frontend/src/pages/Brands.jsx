@@ -18,36 +18,12 @@ const Brands = () => {
 
     return (
         <main className="main">
-            {/* Custom Green Breadcrumb Banner */}
-            <div className="page-header breadcrumb-wrap" style={{ 
-                margin: '20px 0', 
-                padding: '40px 0', 
-                backgroundColor: '#046938', 
-                borderRadius: '10px',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Background pattern placeholder - using transparent overlay for effect */}
-                <div style={{
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    opacity: 0.1,
-                    backgroundImage: 'url(/assets/imgs/theme/breadcrumb-bg.jpg)', 
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    pointerEvents: 'none'
-                }}></div>
-
-                <div className="container position-relative">
-                    <div className="breadcrumb" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }}>
-                        <div>
-                            <Link to="/" style={{ color: '#fff', fontSize: '16px' }}><i className="fi-rs-home mr-5"></i>Home</Link>
-                            <span style={{ margin: '0 10px' }}>›</span>
-                            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>Brands</span>
-                        </div>
-                        <div style={{ background: '#fff', color: '#046938', padding: '5px 25px', borderRadius: '50px', fontWeight: 'bold' }}>
-                            Yogis
-                        </div>
+            {/* Clean Standard Breadcrumb */}
+            <div className="page-header breadcrumb-wrap" style={{ margin: '0 0 20px 0' }}>
+                <div className="container">
+                    <div className="breadcrumb">
+                        <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
+                        <span></span> Brands
                     </div>
                 </div>
             </div>

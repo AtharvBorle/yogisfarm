@@ -5,13 +5,75 @@ import DataTable from '../components/common/DataTable';
 import GenericModal from '../components/common/GenericModal';
 import toast from 'react-hot-toast';
 
+import { Edit, Eye, FileText } from 'react-feather';
+
 const Order = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [deliveryBoys, setDeliveryBoys] = useState([]);
     const [filters, setFilters] = useState({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
+    const [dateType, setDateType] = useState('created');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isViewOpen, setViewOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    const filteredOrders = orders.filter(order => {
+        // 1. Search Query Filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = (
+                (order.orderNumber?.toLowerCase().includes(query)) ||
+                (order.user?.name?.toLowerCase().includes(query)) ||
+                (order.user?.email?.toLowerCase().includes(query)) ||
+                (order.user?.phone?.toLowerCase().includes(query))
+            );
+            if (!matchesSearch) return false;
+        }
+
+        // 2. Date Range Filter
+        if (startDate || endDate) {
+            const start = startDate ? new Date(startDate) : null;
+            if (start) start.setHours(0, 0, 0, 0);
+
+            const end = endDate ? new Date(endDate) : null;
+            if (end) end.setHours(23, 59, 59, 999);
+
+            const createdTime = new Date(order.createdAt).getTime();
+            const deliveredTime = order.orderStatus === 'delivered' ? new Date(order.updatedAt).getTime() : null;
+
+            let inCreatedRange = false;
+            if (start && end) {
+                inCreatedRange = createdTime >= start.getTime() && createdTime <= end.getTime();
+            } else if (start) {
+                inCreatedRange = createdTime >= start.getTime();
+            } else if (end) {
+                inCreatedRange = createdTime <= end.getTime();
+            }
+
+            let inDeliveredRange = false;
+            if (deliveredTime) {
+                if (start && end) {
+                    inDeliveredRange = deliveredTime >= start.getTime() && deliveredTime <= end.getTime();
+                } else if (start) {
+                    inDeliveredRange = deliveredTime >= start.getTime();
+                } else if (end) {
+                    inDeliveredRange = deliveredTime <= end.getTime();
+                }
+            }
+
+            if (dateType === 'created') {
+                return inCreatedRange;
+            } else if (dateType === 'delivered') {
+                return inDeliveredRange;
+            } else if (dateType === 'both') {
+                return inCreatedRange || inDeliveredRange;
+            }
+        }
+
+        return true;
+    });
 
     const fetchOrders = async () => {
         try {
@@ -41,7 +103,7 @@ const Order = () => {
 
     const statusColors = {
         placed: '#ffc107', pending: '#ffc107', confirmed: '#17a2b8', processing: '#6f42c1',
-        shipped: '#007bff', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
+        shipped: '#007bff', out_for_delivery: '#fd7e14', delivered: '#28a745', cancelled: '#dc3545', returned: '#6c757d'
     };
 
     const paymentColors = { pending: '#ffc107', verified: '#28a745', completed: '#28a745', failed: '#dc3545', refunded: '#6c757d' };
@@ -74,7 +136,7 @@ const Order = () => {
                 const isCourier = row.deliveryType === 'courier';
                 return (
                     <span style={{ fontSize: '12px', padding: '3px 10px', borderRadius: '4px', fontWeight: '600', background: isAssigned ? (isCourier ? '#e3f2fd' : '#e8f5e9') : '#fde8e8', color: isAssigned ? (isCourier ? '#007bff' : '#28a745') : '#dc3545' }}>
-                        {isCourier && row.courierPartner ? `📦 ${row.courierPartner.name}` : row.deliveryBoy ? `🚚 ${row.deliveryBoy.name}` : 'Not Assigned'}
+                        {isCourier && row.courierPartner ? row.courierPartner.name : row.deliveryBoy ? row.deliveryBoy.name : 'Not Assigned'}
                     </span>
                 );
             }
@@ -86,7 +148,7 @@ const Order = () => {
                     padding: '4px 12px', borderRadius: '4px', fontSize: '11px', fontWeight: '600',
                     background: statusColors[row.orderStatus] || '#6c757d', color: '#fff'
                 }}>
-                    {row.orderStatus === 'placed' ? 'Order Placed' : row.orderStatus.charAt(0).toUpperCase() + row.orderStatus.slice(1)}
+                    {row.orderStatus === 'placed' ? 'Order Placed' : row.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </span>
             )
         },
@@ -102,37 +164,76 @@ const Order = () => {
             )
         },
         {
-            header: 'CREATED ON',
-            render: (row) => <span style={{ fontSize: '12px', color: '#888' }}>{formatDateTime(row.createdAt)}</span>
+            header: 'CREATED-DELIVERED',
+            render: (row) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', lineHeight: '1.2' }}>
+                    <span style={{ fontSize: '12px', color: '#555' }}>
+                        {formatDateTime(row.createdAt)}
+                    </span>
+                    {row.orderStatus === 'delivered' && (
+                        <span style={{ fontSize: '12px', color: '#28a745', fontWeight: '500' }}>
+                            {formatDateTime(row.updatedAt)}
+                        </span>
+                    )}
+                </div>
+            )
         },
         {
             header: 'ACTIONS',
             render: (row) => (
                 <div style={{ display: 'flex', gap: '6px' }}>
-                    <button onClick={() => navigate(`/orders/detail/${row.orderNumber}`)} title="Edit"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#28a745', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✏️</button>
+                    <button 
+                        onClick={() => {
+                            if (row.paymentStatus !== 'failed') {
+                                navigate(`/orders/detail/${row.orderNumber}`);
+                            }
+                        }} 
+                        title={row.paymentStatus === 'failed' ? "Edit Disabled (Payment Failed)" : "Edit"}
+                        disabled={row.paymentStatus === 'failed'}
+                        style={{ 
+                            width: '28px', 
+                            height: '28px', 
+                            borderRadius: '4px', 
+                            border: 'none', 
+                            background: row.paymentStatus === 'failed' ? '#ccc' : '#28a745', 
+                            color: '#fff', 
+                            cursor: row.paymentStatus === 'failed' ? 'not-allowed' : 'pointer', 
+                            fontSize: '12px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center' 
+                        }}
+                    >
+                        <Edit size={16} />
+                    </button>
                     <button onClick={() => openViewModal(row)} title="View"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>👁</button>
-                    <button onClick={() => navigate(`/orders/invoice/${row.orderNumber}`)} title="Invoice"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#dc3545', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📄</button>
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Eye size={16} /></button>
+                    <button onClick={() => {
+                        if (!row.labelPrintedAt) {
+                            toast.error("Not shipped yet");
+                            return;
+                        }
+                        navigate(`/orders/invoice/${row.orderNumber}`);
+                    }} title="Invoice"
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: row.labelPrintedAt ? '#dc3545' : '#ccc', color: '#fff', cursor: row.labelPrintedAt ? 'pointer' : 'not-allowed', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FileText size={16} /></button>
                 </div>
             )
         }
     ];
 
-    const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box', minWidth: '120px' };
+    const inputStyle = { padding: '8px', border: '1px solid var(--border)', borderRadius: '4px', boxSizing: 'border-box', minWidth: '120px', background: 'var(--card-bg)', color: 'var(--text)' };
 
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2>Order Management</h2>
-                <div style={{ fontSize: '14px', color: '#666' }}>Total: {orders.length} orders</div>
+                <h2 style={{ color: 'var(--text)' }}>Order Management</h2>
+                <div style={{ fontSize: '14px', color: 'var(--text)' }}>Total: {filteredOrders.length} orders</div>
             </div>
 
             {/* Filters */}
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', padding: '15px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px', flexWrap: 'wrap' }}>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Order Status</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Order Status</label>
                     <select value={filters.orderStatus} onChange={e => setFilters({ ...filters, orderStatus: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="placed">Placed</option>
@@ -145,7 +246,7 @@ const Order = () => {
                     </select>
                 </div>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Payment Method</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Payment Method</label>
                     <select value={filters.paymentMethod} onChange={e => setFilters({ ...filters, paymentMethod: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="cod">COD</option>
@@ -154,7 +255,7 @@ const Order = () => {
                     </select>
                 </div>
                 <div>
-                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Payment Status</label>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Payment Status</label>
                     <select value={filters.paymentStatus} onChange={e => setFilters({ ...filters, paymentStatus: e.target.value })} style={inputStyle}>
                         <option value="">All</option>
                         <option value="pending">Pending</option>
@@ -163,15 +264,49 @@ const Order = () => {
                         <option value="refunded">Refunded</option>
                     </select>
                 </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Date Filter Type</label>
+                    <select value={dateType} onChange={e => setDateType(e.target.value)} style={inputStyle}>
+                        <option value="created">Created Date</option>
+                        <option value="delivered">Delivered Date</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Start Date</label>
+                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                    <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>End Date</label>
+                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={inputStyle} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', flex: 1 }}>
+                    <div style={{ marginRight: 'auto', width: '100%', maxWidth: '300px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: '600', display: 'block', marginBottom: '4px', color: 'var(--text)' }}>Search Order</label>
+                        <input 
+                            type="text" 
+                            placeholder="Order ID, Name, Email, Phone" 
+                            value={searchQuery} 
+                            onChange={(e) => setSearchQuery(e.target.value)} 
+                            style={{ ...inputStyle, width: '100%' }} 
+                        />
+                    </div>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <button onClick={() => setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' })}
+                    <button onClick={() => {
+                        setFilters({ orderStatus: '', paymentMethod: '', paymentStatus: '' });
+                        setDateType('created');
+                        setStartDate('');
+                        setEndDate('');
+                        setSearchQuery('');
+                    }}
                         style={{ padding: '8px 15px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                         Clear Filters
                     </button>
                 </div>
             </div>
 
-            <DataTable columns={columns} data={orders} />
+            <DataTable columns={columns} data={filteredOrders} />
 
             {/* Quick View Modal */}
             <GenericModal isOpen={isViewOpen} title={`Order Details`} onClose={() => setViewOpen(false)}>
@@ -189,7 +324,7 @@ const Order = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '5px 15px', fontSize: '13px' }}>
                                     <span style={{ fontWeight: '600' }}>Order #</span><span style={{ color: '#046938' }}>{selectedOrder.orderNumber}</span>
                                     <span style={{ fontWeight: '600' }}>Order Status</span>
-                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: statusColors[selectedOrder.orderStatus] || '#6c757d', color: '#fff' }}>{selectedOrder.orderStatus === 'placed' ? 'Order Placed' : selectedOrder.orderStatus}</span></span>
+                                    <span><span style={{ padding: '2px 10px', borderRadius: '3px', fontSize: '11px', fontWeight: '600', background: statusColors[selectedOrder.orderStatus] || '#6c757d', color: '#fff' }}>{selectedOrder.orderStatus === 'placed' ? 'Order Placed' : selectedOrder.orderStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span></span>
                                     <span style={{ fontWeight: '600' }}>Order Date</span><span>{formatDateTime(selectedOrder.createdAt)}</span>
                                     <span style={{ fontWeight: '600' }}>Total Amount</span><span>₹{Number(selectedOrder.total).toFixed(0)}</span>
                                     <span style={{ fontWeight: '600' }}>Payment Method</span><span>{selectedOrder.paymentMethod === 'cod' ? 'Cash On Delivery' : selectedOrder.paymentMethod?.toUpperCase()}</span>

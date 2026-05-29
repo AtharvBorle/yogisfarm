@@ -58,7 +58,7 @@ router.get('/me', requireDeliveryBoy, async (req, res) => {
     const pendingCount = await prisma.order.count({
       where: {
         deliveryBoyId: boy.id,
-        orderStatus: { in: ['shipped', 'out_for_delivery'] }
+        orderStatus: { notIn: ['delivered', 'cancelled', 'returned'] }
       }
     });
 
@@ -85,7 +85,7 @@ router.get('/pending-deliveries', requireDeliveryBoy, async (req, res) => {
     const orders = await prisma.order.findMany({
       where: {
         deliveryBoyId: req.session.deliveryBoyId,
-        orderStatus: { in: ['shipped', 'out_for_delivery'] }
+        orderStatus: { notIn: ['delivered', 'cancelled', 'returned'] }
       },
       orderBy: { updatedAt: 'desc' },
       include: {
@@ -101,7 +101,7 @@ router.get('/pending-deliveries', requireDeliveryBoy, async (req, res) => {
 // ─── Delivery History ───
 router.get('/history', requireDeliveryBoy, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
     const where = {
       deliveryBoyId: req.session.deliveryBoyId,
       orderStatus: 'delivered'
@@ -110,19 +110,94 @@ router.get('/history', requireDeliveryBoy, async (req, res) => {
     if (startDate && endDate) {
       where.updatedAt = {
         gte: new Date(startDate),
-        lte: new Date(endDate)
+        lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
       };
     }
 
-    const orders = await prisma.order.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-      include: {
-        user: { select: { name: true, phone: true } },
-        items: true
-      }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [orders, total] = await Promise.all([
+        prisma.order.findMany({
+            where,
+            orderBy: { updatedAt: 'desc' },
+            skip,
+            take: parseInt(limit),
+            include: {
+                user: { select: { name: true, phone: true } },
+                items: true
+            }
+        }),
+        prisma.order.count({ where })
+    ]);
+
+    res.json({ status: true, orders, total, totalPages: Math.ceil(total / limit) });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Cash Ledger (COD additions + Admin collections) ───
+router.get('/transactions', requireDeliveryBoy, async (req, res) => {
+  try {
+    const { startDate, endDate, page = 1, limit = 15 } = req.query;
+    const boyId = req.session.deliveryBoyId;
+
+    const dateFilter = {};
+    if (startDate && endDate) {
+        dateFilter.createdAt = {
+            gte: new Date(startDate),
+            lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+        };
+    }
+
+    // Fetch COD deliveries (additions) - orders that were delivered with COD
+    const codOrders = await prisma.order.findMany({
+        where: {
+            deliveryBoyId: boyId,
+            orderStatus: 'delivered',
+            paymentMethod: 'cod',
+            ...( dateFilter.createdAt ? { updatedAt: dateFilter.createdAt } : {} )
+        },
+        select: { id: true, orderNumber: true, total: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' }
     });
-    res.json({ status: true, orders });
+
+    // Fetch admin collections (subtractions)
+    const collections = await prisma.deliveryCollection.findMany({
+        where: { deliveryBoyId: boyId, ...dateFilter },
+        orderBy: { createdAt: 'desc' }
+    });
+
+    // Merge into a unified ledger
+    const ledger = [];
+    codOrders.forEach(o => {
+        ledger.push({
+            id: `order-${o.id}`,
+            type: 'addition',
+            amount: Math.round(Number(o.total)),
+            description: `COD - Order #${o.orderNumber}`,
+            date: o.updatedAt
+        });
+    });
+    collections.forEach(c => {
+        ledger.push({
+            id: `col-${c.id}`,
+            type: 'subtraction',
+            amount: Math.round(Number(c.amount)),
+            description: 'Cash Collected by Admin',
+            date: c.createdAt
+        });
+    });
+
+    // Sort by date descending
+    ledger.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Paginate
+    const total = ledger.length;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const paged = ledger.slice(skip, skip + parseInt(limit));
+
+    res.json({ status: true, transactions: paged, total, totalPages: Math.ceil(total / parseInt(limit)) });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -191,7 +266,7 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
       if (becamePaid) {
         await tx.deliveryBoy.update({
           where: { id: boyId },
-          data: { outstandingAmount: { increment: updatedOrder.total } }
+          data: { outstandingAmount: { increment: Math.round(Number(updatedOrder.total)) } }
         });
       }
     });
@@ -201,7 +276,7 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
     if (orderStatus === 'out_for_delivery') {
       sendOutForDeliverySMS(current.user?.phone, current.orderNumber);
     } else if (orderStatus === 'delivered') {
-      const invoiceLink = `${FRONTEND_URL}/invoice/${current.orderNumber}`;
+      const invoiceLink = `${FRONTEND_URL}/invoice?order=${current.orderNumber}`;
       sendDeliveredSMS(current.user?.phone, current.orderNumber, invoiceLink);
     }
 

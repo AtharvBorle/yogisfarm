@@ -5,9 +5,10 @@ const prisma = new PrismaClient();
 // Get cart
 router.get('/', async (req, res) => {
   try {
+    const guestSessionId = req.headers['x-guest-session-id'] || req.sessionID;
     const where = req.session.userId
       ? { userId: req.session.userId }
-      : { sessionId: req.sessionID };
+      : { sessionId: guestSessionId };
 
     const items = await prisma.cart.findMany({
       where,
@@ -25,9 +26,10 @@ router.get('/', async (req, res) => {
 // Get cart count
 router.get('/count', async (req, res) => {
   try {
+    const guestSessionId = req.headers['x-guest-session-id'] || req.sessionID;
     const where = req.session.userId
       ? { userId: req.session.userId }
-      : { sessionId: req.sessionID };
+      : { sessionId: guestSessionId };
     const count = await prisma.cart.count({ where });
     res.json({ status: true, count });
   } catch (e) {
@@ -45,11 +47,13 @@ router.post('/add', async (req, res) => {
       quantity: parseInt(quantity)
     };
 
+    const guestSessionId = req.headers['x-guest-session-id'] || req.sessionID;
+
     if (req.session.userId) {
       data.userId = req.session.userId;
     } else {
-      data.sessionId = req.sessionID;
-      req.session.sessionId = req.sessionID;
+      data.sessionId = guestSessionId;
+      req.session.sessionId = guestSessionId;
     }
 
     // Stock Validation
@@ -134,6 +138,32 @@ router.delete('/remove/:id', async (req, res) => {
   try {
     await prisma.cart.delete({ where: { id: parseInt(req.params.id) } });
     res.json({ status: true, message: 'Removed from cart' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Calculate totals (Backend Source of Truth)
+const { calculateOrderTotals } = require('../utils/pricing');
+
+router.post('/calculate', async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+    let identifier, type;
+    const guestSessionId = req.headers['x-guest-session-id'] || req.sessionID;
+
+    if (req.session.userId) {
+      identifier = req.session.userId;
+      type = 'userId';
+    } else if (guestSessionId) {
+      identifier = guestSessionId;
+      type = 'sessionId';
+    } else {
+      return res.json({ status: false, message: 'No session or user found' });
+    }
+
+    const pricing = await calculateOrderTotals(identifier, type, couponCode || null);
+    res.json({ status: true, pricing });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
