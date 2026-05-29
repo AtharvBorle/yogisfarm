@@ -33,7 +33,11 @@ app.use(cors({
     'http://yogisfarms.com',
     'http://www.yogisfarms.com',
     'http://admin.yogisfarms.com',
-    'http://www.admin.yogisfarms.com'
+    'http://www.admin.yogisfarms.com',
+    'https://uat.yogisfarms.com',
+    'http://uat.yogisfarms.com',
+    'https://uat-admin.yogisfarms.com',
+    'http://uat-admin.yogisfarms.com'
   ],
   credentials: true
 }));
