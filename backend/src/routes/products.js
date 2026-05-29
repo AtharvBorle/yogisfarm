@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // Get all products with filters
 router.get('/', async (req, res) => {

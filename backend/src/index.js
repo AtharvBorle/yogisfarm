@@ -5,9 +5,7 @@ const cors = require('cors');
 const session = require('express-session');
 const morgan = require('morgan');
 const PrismaStore = require('./utils/sessionStore');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const prisma = require('./db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 

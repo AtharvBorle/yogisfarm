@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // Public: Get active shipping rules
 router.get('/', async (req, res) => {

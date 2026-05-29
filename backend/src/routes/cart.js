@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 // Get cart
 router.get('/', async (req, res) => {

@@ -1,6 +1,5 @@
 const router = require('express').Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
