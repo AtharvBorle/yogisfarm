@@ -419,7 +419,7 @@ router.get('/:idOrSlug', async (req, res) => {
 // POST: Create a blog post (Admin required)
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { category, title, description, content, image, authorName, authorDate } = req.body;
+    const { category, title, description, content, image, bannerImage, authorName, authorDate } = req.body;
     
     if (!title || !category || !content) {
       return res.json({ status: false, message: 'Title, category, and content are required' });
@@ -444,6 +444,7 @@ router.post('/', requireAdmin, async (req, res) => {
         description: description || '',
         content,
         image: image || null,
+        bannerImage: bannerImage || null,
         authorName: authorName || 'ProWIn',
         authorDate: authorDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       }
@@ -459,7 +460,7 @@ router.post('/', requireAdmin, async (req, res) => {
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { category, title, description, content, image, authorName, authorDate, slug } = req.body;
+    const { category, title, description, content, image, bannerImage, authorName, authorDate, slug } = req.body;
 
     const exists = await prisma.blogPost.findUnique({ where: { id } });
     if (!exists) {
@@ -495,6 +496,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
     if (description !== undefined) data.description = description;
     if (content !== undefined) data.content = content;
     if (image !== undefined) data.image = image;
+    if (bannerImage !== undefined) data.bannerImage = bannerImage;
     if (authorName !== undefined) data.authorName = authorName;
     if (authorDate !== undefined) data.authorDate = authorDate;
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api';
+import api, { getAssetUrl } from '../../api';
 import toast from 'react-hot-toast';
 
 const BlogAdminDashboard = () => {
@@ -16,6 +16,7 @@ const BlogAdminDashboard = () => {
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
+  const [bannerImage, setBannerImage] = useState('');
   const [authorName, setAuthorName] = useState('ProWIn');
   const [authorDate, setAuthorDate] = useState('');
   
@@ -24,6 +25,7 @@ const BlogAdminDashboard = () => {
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const featuredImageRef = useRef(null);
+  const bannerImageRef = useRef(null);
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
@@ -182,6 +184,30 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  // Banner/Hero Image Upload handler
+  const handleBannerImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uploadPath', 'blogs');
+
+    const loadToast = toast.loading('Uploading banner image...');
+    try {
+      const res = await api.post('/blogs/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.status) {
+        toast.success('Banner/Hero image uploaded!', { id: loadToast });
+        setBannerImage(res.data.url);
+      } else {
+        toast.error(res.data.message || 'Upload failed', { id: loadToast });
+      }
+    } catch (err) {
+      toast.error('Upload error', { id: loadToast });
+    }
+  };
+
   // Reset Form
   const resetForm = () => {
     setEditingId(null);
@@ -191,6 +217,7 @@ const BlogAdminDashboard = () => {
     setDescription('');
     setContent('');
     setImage('');
+    setBannerImage('');
     setAuthorName('ProWIn');
     setAuthorDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }));
     setIsHtmlMode(false);
@@ -205,6 +232,7 @@ const BlogAdminDashboard = () => {
     setDescription(blog.description || '');
     setContent(blog.content || '');
     setImage(blog.image || '');
+    setBannerImage(blog.bannerImage || '');
     setAuthorName(blog.authorName || 'ProWIn');
     setAuthorDate(blog.authorDate || '');
     setActiveTab('edit');
@@ -242,6 +270,7 @@ const BlogAdminDashboard = () => {
       description,
       content,
       image,
+      bannerImage,
       authorName,
       authorDate
     };
@@ -1233,12 +1262,12 @@ const BlogAdminDashboard = () => {
                   gap: '16px'
                 }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
-                    Featured Image
+                    Featured Image (Card)
                   </h3>
 
                   {image ? (
                     <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #EAECF0' }}>
-                      <img src={image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={getAssetUrl(image)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <button
                         type="button"
                         onClick={() => setImage('')}
@@ -1280,7 +1309,7 @@ const BlogAdminDashboard = () => {
                       }}
                     >
                       <i className="fi-rs-add" style={{ fontSize: '20px' }}></i>
-                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Upload image</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Upload Card Image</span>
                     </div>
                   )}
 
@@ -1301,6 +1330,100 @@ const BlogAdminDashboard = () => {
                       value={image}
                       onChange={(e) => setImage(e.target.value)}
                       placeholder="Paste image URL directly"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Hero section banner image settings */}
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid #EAECF0',
+                  boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                    Hero Image (Banner)
+                  </h3>
+
+                  {bannerImage ? (
+                    <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #EAECF0' }}>
+                      <img src={getAssetUrl(bannerImage)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={() => setBannerImage('')}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          backgroundColor: 'rgba(240, 68, 56, 0.9)',
+                          color: '#ffffff',
+                          border: 'none',
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          lineHeight: '28px',
+                          textAlign: 'center',
+                          padding: 0
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => bannerImageRef.current && bannerImageRef.current.click()}
+                      style={{
+                        height: '160px',
+                        border: '2px dashed #D0D5DD',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        gap: '8px',
+                        color: '#667085'
+                      }}
+                    >
+                      <i className="fi-rs-add" style={{ fontSize: '20px' }}></i>
+                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Upload Banner Image</span>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    ref={bannerImageRef}
+                    accept="image/*"
+                    onChange={handleBannerImageUpload}
+                    style={{ display: 'none' }}
+                  />
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#344054' }}>
+                      Or Banner Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={bannerImage}
+                      onChange={(e) => setBannerImage(e.target.value)}
+                      placeholder="Paste banner image URL directly"
                       style={{
                         width: '100%',
                         height: '42px',

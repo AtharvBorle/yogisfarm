@@ -534,6 +534,7 @@ model BlogPost {
   description String   @db.Text
   content     String   @db.LongText
   image       String?  @db.VarChar(500)
+  bannerImage String?  @map("banner_image") @db.VarChar(500)
   authorName  String   @default("ProWIn") @map("author_name") @db.VarChar(100)
   authorDate  String   @map("author_date") @db.VarChar(50)
   createdAt   DateTime @default(now()) @map("created_at")
