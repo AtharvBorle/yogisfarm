@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 function requireLogin(req, res, next) {
   if (!req.session || !req.session.userId) {

@@ -5,9 +5,7 @@ const cors = require('cors');
 const session = require('express-session');
 const morgan = require('morgan');
 const PrismaStore = require('./utils/sessionStore');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const prisma = require('./db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -33,7 +31,11 @@ app.use(cors({
     'http://yogisfarms.com',
     'http://www.yogisfarms.com',
     'http://admin.yogisfarms.com',
-    'http://www.admin.yogisfarms.com'
+    'http://www.admin.yogisfarms.com',
+    'https://uat.yogisfarms.com',
+    'http://uat.yogisfarms.com',
+    'https://uat-admin.yogisfarms.com',
+    'http://uat-admin.yogisfarms.com'
   ],
   credentials: true
 }));

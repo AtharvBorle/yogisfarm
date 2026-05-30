@@ -7,8 +7,7 @@
  * Pricing model: GST-INCLUSIVE (offer prices already include GST)
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 /**
  * ─── UTILITY FUNCTIONS ───
