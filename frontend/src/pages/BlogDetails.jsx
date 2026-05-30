@@ -355,11 +355,10 @@ const BlogDetails = () => {
                     {/* Related Content */}
                     <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <span style={{ 
-                        color: '#0A6738', 
+                        color: '#40B14C', 
                         fontSize: '11px', 
                         fontWeight: '600', 
                         marginBottom: '8px',
-                        textTransform: 'uppercase',
                         fontFamily: 'Inter, sans-serif'
                       }}>
                         {related.category}
