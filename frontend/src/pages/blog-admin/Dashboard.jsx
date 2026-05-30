@@ -26,15 +26,11 @@ const BlogAdminDashboard = () => {
   const featuredImageRef = useRef(null);
   const navigate = useNavigate();
 
-  const categories = [
-    'Healthy Oils',
-    'Nutrition',
-    'Lifestyle',
-    'Cooking',
-    'Agriculture',
-    'Recipes',
-    'Health'
-  ];
+  const [categories, setCategories] = useState([]);
+  const [categoryName, setCategoryName] = useState('');
+  const [categorySlug, setCategorySlug] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -70,16 +66,37 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    try {
+      const res = await api.get('/blogs/categories');
+      if (res.data.status) {
+        const cats = res.data.categories || [];
+        setCategories(cats);
+        if (cats.length > 0) {
+          setCategory(prev => prev || cats[0].name);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories', err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBlogs();
+    fetchCategories();
   }, []);
 
-  // Sync editor content editable value when editing starts or changes
+  // Sync editor content editable value only when activeTab, isHtmlMode or editingId switches
   useEffect(() => {
     if ((activeTab === 'create' || activeTab === 'edit') && editorRef.current && !isHtmlMode) {
-      editorRef.current.innerHTML = content;
+      if (editorRef.current.innerHTML !== content) {
+        editorRef.current.innerHTML = content;
+      }
     }
-  }, [activeTab, content, isHtmlMode]);
+  }, [activeTab, isHtmlMode, editingId]);
 
   // Handle Slug Auto-Generation
   const handleTitleChange = (e) => {
@@ -261,6 +278,62 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  const handleCategorySubmit = async (e) => {
+    e.preventDefault();
+    if (!categoryName.trim()) {
+      toast.error('Category name is required');
+      return;
+    }
+    const slugValue = categorySlug.trim() || categoryName.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+    try {
+      let res;
+      if (editingCategoryId) {
+        res = await api.put(`/blogs/categories/${editingCategoryId}`, { name: categoryName, slug: slugValue });
+      } else {
+        res = await api.post('/blogs/categories', { name: categoryName, slug: slugValue });
+      }
+
+      if (res.data.status) {
+        toast.success(editingCategoryId ? 'Category updated successfully!' : 'Category created successfully!');
+        setCategoryName('');
+        setCategorySlug('');
+        setEditingCategoryId(null);
+        fetchCategories();
+      } else {
+        toast.error(res.data.message || 'Failed to save category');
+      }
+    } catch (err) {
+      toast.error('Server error saving category');
+    }
+  };
+
+  const handleCategoryDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    try {
+      const res = await api.delete(`/blogs/categories/${id}`);
+      if (res.data.status) {
+        toast.success('Category deleted successfully');
+        fetchCategories();
+      } else {
+        toast.error(res.data.message || 'Failed to delete category');
+      }
+    } catch (err) {
+      toast.error('Error deleting category');
+    }
+  };
+
+  const startEditCategory = (cat) => {
+    setEditingCategoryId(cat.id);
+    setCategoryName(cat.name);
+    setCategorySlug(cat.slug);
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategoryId(null);
+    setCategoryName('');
+    setCategorySlug('');
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -337,6 +410,28 @@ const BlogAdminDashboard = () => {
             Create New Blog
           </button>
 
+          <button
+            onClick={() => { setActiveTab('categories'); resetForm(); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: activeTab === 'categories' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            <i className="fi-rs-settings" style={{ fontSize: '16px' }}></i>
+            Manage Categories
+          </button>
+
           <a
             href="/blogs"
             target="_blank"
@@ -399,11 +494,13 @@ const BlogAdminDashboard = () => {
               {activeTab === 'list' && 'All Blog Posts'}
               {activeTab === 'create' && 'Create Blog Post'}
               {activeTab === 'edit' && 'Edit Blog Post'}
+              {activeTab === 'categories' && 'Blog Categories'}
             </h1>
             <p style={{ color: '#667085', margin: 0, fontSize: '14px' }}>
               {activeTab === 'list' && 'Manage your live posts, view counts, and update blogs.'}
               {activeTab === 'create' && 'Publish a new dynamic blog post with rich HTML elements.'}
               {activeTab === 'edit' && 'Modify the properties, layout, or content of an existing post.'}
+              {activeTab === 'categories' && 'Manage your dynamic blog categories for client filters.'}
             </p>
           </div>
           {activeTab === 'list' && (
@@ -555,6 +652,194 @@ const BlogAdminDashboard = () => {
           </div>
         )}
 
+        {/* Category Management View */}
+        {activeTab === 'categories' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {/* Create/Edit Category Form */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              padding: '32px',
+              borderRadius: '12px',
+              border: '1px solid #EAECF0',
+              boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)'
+            }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '700', color: '#101828' }}>
+                {editingCategoryId ? 'Edit Category' : 'Create New Category'}
+              </h3>
+              <form onSubmit={handleCategorySubmit} style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ flex: '1 1 250px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                    placeholder="e.g. Healthy Oils"
+                    required
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ flex: '1 1 250px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Slug (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={categorySlug}
+                    onChange={(e) => setCategorySlug(e.target.value)}
+                    placeholder="e.g. healthy-oils"
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none',
+                      fontFamily: 'monospace'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      backgroundColor: '#0A6738',
+                      color: '#ffffff',
+                      border: 'none',
+                      height: '46px',
+                      padding: '0 24px',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      boxShadow: '0 1px 2px rgba(16, 24, 40, 0.05)',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#08532d'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#0A6738'}
+                  >
+                    {editingCategoryId ? 'Update' : 'Add Category'}
+                  </button>
+                  {editingCategoryId && (
+                    <button
+                      type="button"
+                      onClick={cancelEditCategory}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        color: '#344054',
+                        border: '1px solid #D0D5DD',
+                        height: '46px',
+                        padding: '0 16px',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.target.style.backgroundColor = '#F9FAFB'}
+                      onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* Categories Table List */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #EAECF0',
+              boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+              overflow: 'hidden'
+            }}>
+              {categoriesLoading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                  <img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '80px' }} />
+                </div>
+              ) : categories.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '48px 24px', color: '#667085' }}>
+                  <i className="fi-rs-settings" style={{ fontSize: '32px', display: 'block', marginBottom: '12px', color: '#98A2B3' }}></i>
+                  <p style={{ margin: 0, fontSize: '15px', fontWeight: '500' }}>No categories created yet.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #EAECF0' }}>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>ID</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Category Name</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Slug</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody style={{ divideY: '1px solid #EAECF0' }}>
+                      {categories.map((cat) => (
+                        <tr key={cat.id} style={{ borderBottom: '1px solid #EAECF0' }}>
+                          <td style={{ padding: '16px 24px', fontSize: '14px', color: '#667085' }}>
+                            {cat.id}
+                          </td>
+                          <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '600', color: '#101828' }}>
+                            {cat.name}
+                          </td>
+                          <td style={{ padding: '16px 24px', fontSize: '14px', color: '#475467', fontFamily: 'monospace' }}>
+                            {cat.slug}
+                          </td>
+                          <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                              <button
+                                onClick={() => startEditCategory(cat)}
+                                style={{
+                                  border: 'none',
+                                  background: 'none',
+                                  color: '#0A6738',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: '600'
+                                }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleCategoryDelete(cat.id)}
+                                style={{
+                                  border: 'none',
+                                  background: 'none',
+                                  color: '#F04438',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  fontWeight: '600'
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Create / Edit View */}
         {(activeTab === 'create' || activeTab === 'edit') && (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -642,9 +927,13 @@ const BlogAdminDashboard = () => {
                         backgroundColor: '#ffffff'
                       }}
                     >
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
+                      {categories.length === 0 ? (
+                        <option value="">No categories available - please add one first</option>
+                      ) : (
+                        categories.map((cat) => (
+                          <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        ))
+                      )}
                     </select>
                   </div>
                 </div>
@@ -696,53 +985,116 @@ const BlogAdminDashboard = () => {
                   {!isHtmlMode && (
                     <div style={{
                       display: 'flex',
-                      gap: '4px',
+                      gap: '8px',
                       backgroundColor: '#F2F4F7',
-                      padding: '6px',
+                      padding: '8px',
                       borderTopLeftRadius: '8px',
                       borderTopRightRadius: '8px',
                       border: '1px solid #D0D5DD',
                       borderBottom: 'none',
-                      flexWrap: 'wrap'
+                      flexWrap: 'wrap',
+                      alignItems: 'center'
                     }}>
-                      <button type="button" onClick={() => execEditorCommand('bold')} title="Bold" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>B</button>
-                      <button type="button" onClick={() => execEditorCommand('italic')} title="Italic" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>I</button>
-                      <button type="button" onClick={() => execEditorCommand('underline')} title="Underline" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', textDecoration: 'underline', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>U</button>
-                      
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '4px 6px' }}></div>
+                      {/* Basic styles */}
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <button type="button" onClick={() => execEditorCommand('bold')} title="Bold" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>B</button>
+                        <button type="button" onClick={() => execEditorCommand('italic')} title="Italic" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>I</button>
+                        <button type="button" onClick={() => execEditorCommand('underline')} title="Underline" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', textDecoration: 'underline', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>U</button>
+                      </div>
 
-                      <button type="button" onClick={() => execEditorCommand('formatBlock', '<h3>')} title="Heading 3" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H3</button>
-                      <button type="button" onClick={() => execEditorCommand('formatBlock', '<h4>')} title="Heading 4" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H4</button>
-                      <button type="button" onClick={() => execEditorCommand('formatBlock', '<p>')} title="Paragraph" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>P</button>
+                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
 
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '4px 6px' }}></div>
+                      {/* Font Family & Size & Color */}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <select 
+                          onChange={(e) => execEditorCommand('fontName', e.target.value)}
+                          defaultValue="Poppins"
+                          style={{ height: '32px', padding: '0 8px', borderRadius: '4px', border: '1px solid #D0D5DD', fontSize: '13px', backgroundColor: '#ffffff', cursor: 'pointer', outline: 'none' }}
+                          title="Font Family"
+                        >
+                          <option value="Poppins">Poppins</option>
+                          <option value="Inter">Inter</option>
+                          <option value="Arial">Arial</option>
+                          <option value="Georgia">Georgia</option>
+                          <option value="Courier New">Courier New</option>
+                          <option value="Times New Roman">Times New Roman</option>
+                        </select>
 
-                      <button type="button" onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>• List</button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = prompt('Enter the link URL:');
-                          if (url) execEditorCommand('createLink', url);
-                        }}
-                        title="Insert Link"
-                        style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                      >
-                        Link
-                      </button>
+                        <select 
+                          onChange={(e) => execEditorCommand('fontSize', e.target.value)}
+                          defaultValue="3"
+                          style={{ height: '32px', padding: '0 8px', borderRadius: '4px', border: '1px solid #D0D5DD', fontSize: '13px', backgroundColor: '#ffffff', cursor: 'pointer', outline: 'none' }}
+                          title="Font Size"
+                        >
+                          <option value="1">Smallest</option>
+                          <option value="2">Small</option>
+                          <option value="3">Normal</option>
+                          <option value="4">Large</option>
+                          <option value="5">Larger</option>
+                          <option value="6">Very Large</option>
+                          <option value="7">Largest</option>
+                        </select>
 
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                        title="Insert Image inside content"
-                        style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A6738', fontWeight: 'bold' }}
-                        onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
-                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                      >
-                        Insert Image
-                      </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: '#667085' }}>Color:</span>
+                          <input 
+                            type="color" 
+                            onChange={(e) => execEditorCommand('foreColor', e.target.value)}
+                            style={{ width: '28px', height: '28px', padding: 0, border: 'none', cursor: 'pointer', backgroundColor: 'transparent' }}
+                            title="Text Color"
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
+
+                      {/* Headings */}
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<h3>')} title="Heading 3" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H3</button>
+                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<h4>')} title="Heading 4" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H4</button>
+                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<p>')} title="Paragraph" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>P</button>
+                      </div>
+
+                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
+
+                      {/* Alignments */}
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <button type="button" onClick={() => execEditorCommand('justifyLeft')} title="Align Left" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Left</button>
+                        <button type="button" onClick={() => execEditorCommand('justifyCenter')} title="Align Center" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Center</button>
+                        <button type="button" onClick={() => execEditorCommand('justifyRight')} title="Align Right" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Right</button>
+                      </div>
+
+                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
+
+                      {/* Rich inserts */}
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <button type="button" onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>• List</button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = prompt('Enter the link URL:');
+                            if (url) execEditorCommand('createLink', url);
+                          }}
+                          title="Insert Link"
+                          style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          Link
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                          title="Insert Image inside content"
+                          style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A6738', fontWeight: 'bold' }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          Insert Image
+                        </button>
+                      </div>
                       <input
                         type="file"
                         ref={fileInputRef}

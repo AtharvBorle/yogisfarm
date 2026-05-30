@@ -12,6 +12,7 @@ const Blogs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [blogsList, setBlogsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categoriesList, setCategoriesList] = useState(CATEGORIES);
 
   const postsPerPage = 9;
 
@@ -45,7 +46,20 @@ const Blogs = () => {
         setLoading(false);
       }
     };
+
+    const loadCategories = async () => {
+      try {
+        const catRes = await api.get('/blogs/categories');
+        if (catRes.data.status && catRes.data.categories && catRes.data.categories.length > 0) {
+          setCategoriesList(['All', ...catRes.data.categories.map(c => c.name)]);
+        }
+      } catch (catErr) {
+        console.error('Failed to fetch categories, using static fallback:', catErr);
+      }
+    };
+
     loadBlogs();
+    loadCategories();
   }, []);
 
   // Filter and Sort Logic
@@ -207,7 +221,7 @@ const Blogs = () => {
         }}>
           {/* Category Tabs */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            {CATEGORIES.map(category => {
+            {categoriesList.map(category => {
               const isActive = selectedCategory === category;
               return (
                 <button

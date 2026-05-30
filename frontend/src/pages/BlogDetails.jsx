@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BLOG_POSTS } from '../utils/blogData';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 import img26 from '../assets/figma/img_26.png';
 import img11 from '../assets/figma/img_11.png';
 
@@ -26,7 +26,7 @@ const BlogDetails = () => {
             title: post.title,
             slug: post.slug,
             description: post.description,
-            image: post.image || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+            image: post.image ? getAssetUrl(post.image) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
             content: post.content,
             author: {
               name: post.authorName || "ProWIn",
@@ -49,7 +49,7 @@ const BlogDetails = () => {
             title: post.title,
             slug: post.slug,
             description: post.description,
-            image: post.image || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+            image: post.image ? getAssetUrl(post.image) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
             content: post.content,
             author: {
               name: post.authorName || "ProWIn",
@@ -104,7 +104,7 @@ const BlogDetails = () => {
       
       {/* Top Hero Banner Section */}
       <div style={{
-        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url(${img26})`,
+        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url(${blog.image || img26})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         height: '180px',

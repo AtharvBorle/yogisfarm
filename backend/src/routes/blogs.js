@@ -273,6 +273,106 @@ async function ensureSeeded() {
   }
 }
 
+// Helper to seed categories if database is empty
+async function ensureCategoriesSeeded() {
+  try {
+    const count = await prisma.blogCategory.count();
+    if (count === 0) {
+      console.log('🌱 Seeding initial blog categories into database...');
+      const defaultCategories = [
+        { name: 'Healthy Oils', slug: 'healthy-oils' },
+        { name: 'Nutrition', slug: 'nutrition' },
+        { name: 'Lifestyle', slug: 'lifestyle' },
+        { name: 'Cooking', slug: 'cooking' },
+        { name: 'Agriculture', slug: 'agriculture' },
+        { name: 'Recipes', slug: 'recipes' },
+        { name: 'Health', slug: 'health' }
+      ];
+      await prisma.blogCategory.createMany({
+        data: defaultCategories
+      });
+      console.log('✅ Blog categories seeding complete.');
+    }
+  } catch (err) {
+    console.error('Failed to seed categories:', err);
+  }
+}
+
+// ─── CATEGORY ENDPOINTS ───
+
+// GET: Fetch all blog categories
+router.get('/categories', async (req, res) => {
+  try {
+    await ensureCategoriesSeeded();
+    const categories = await prisma.blogCategory.findMany({
+      orderBy: { name: 'asc' }
+    });
+    res.json({ status: true, categories });
+  } catch (e) {
+    res.status(500).json({ status: false, message: e.message });
+  }
+});
+
+// POST: Create a new blog category (Admin required)
+router.post('/categories', requireAdmin, async (req, res) => {
+  try {
+    const { name, slug } = req.body;
+    if (!name) return res.json({ status: false, message: 'Category name is required' });
+    const generatedSlug = slug || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+    
+    // Check if category name or slug already exists
+    const existing = await prisma.blogCategory.findFirst({
+      where: {
+        OR: [
+          { name },
+          { slug: generatedSlug }
+        ]
+      }
+    });
+    if (existing) {
+      return res.json({ status: false, message: 'Category with this name or slug already exists' });
+    }
+
+    const category = await prisma.blogCategory.create({
+      data: { name, slug: generatedSlug }
+    });
+    res.json({ status: true, category });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// PUT: Update an existing blog category (Admin required)
+router.put('/categories/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { name, slug } = req.body;
+    if (!name) return res.json({ status: false, message: 'Category name is required' });
+    const generatedSlug = slug || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+
+    const category = await prisma.blogCategory.update({
+      where: { id },
+      data: { name, slug: generatedSlug }
+    });
+    res.json({ status: true, category });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// DELETE: Delete a blog category (Admin required)
+router.delete('/categories/:id', requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await prisma.blogCategory.delete({
+      where: { id }
+    });
+    res.json({ status: true, message: 'Category deleted successfully' });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 // ─── API ENDPOINTS ───
 
 // GET: Fetch all blog posts
