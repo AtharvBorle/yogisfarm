@@ -253,7 +253,7 @@ const BlogAdminDashboard = () => {
   // Logout Admin
   const handleLogout = async () => {
     try {
-      await api.post('/admin/logout');
+      await api.get('/admin/logout');
       toast.success('Logged out successfully');
       navigate('/blogs/admin/login');
     } catch (err) {
