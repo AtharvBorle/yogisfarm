@@ -167,6 +167,7 @@ const Footer = () => {
                             <li className="mb-2"><Link to="/about-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>About us</Link></li>
                             <li className="mb-2"><Link to="/shop" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Shop</Link></li>
                             <li className="mb-2"><Link to="/contact-us" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Contact us</Link></li>
+                            <li className="mb-2"><Link to="/blogs" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Blogs</Link></li>
                             <li className="mb-2"><Link to="/dashboard" style={{ color: '#000', fontSize: '14px', fontWeight: 500 }}>Profile</Link></li>
                         </ul>
                     </div>

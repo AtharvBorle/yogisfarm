@@ -23,6 +23,8 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Shipping from './pages/Shipping';
 import ReturnPolicy from './pages/ReturnPolicy';
+import Blogs from './pages/Blogs';
+import BlogDetails from './pages/BlogDetails';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -41,6 +43,10 @@ import DeliveryLogin from './pages/delivery/Login';
 import DeliveryDashboard from './pages/delivery/Dashboard';
 import DeliveryOrderDetails from './pages/delivery/OrderDetails';
 
+// Blog Admin Portal Pages
+import BlogAdminLogin from './pages/blog-admin/Login';
+import BlogAdminDashboard from './pages/blog-admin/Dashboard';
+
 function App() {
 
   const [isPreloading, setIsPreloading] = useState(true);
@@ -55,7 +61,7 @@ function App() {
 
 
   const location = useLocation();
-  const isDeliveryRoute = location.pathname.startsWith('/delivery');
+  const isHideHeaderFooter = location.pathname.startsWith('/delivery') || location.pathname.startsWith('/blogs/admin');
 
   return (
     <>
@@ -65,7 +71,7 @@ function App() {
         </div>
       )}
 
-      {!isDeliveryRoute && <Header />}
+      {!isHideHeaderFooter && <Header />}
       <ScrollToTop />
       <main className="main">
         <Routes>
@@ -86,9 +92,15 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/return-policy" element={<ReturnPolicy />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:id" element={<BlogDetails />} />
+          <Route path="/blog/:id" element={<BlogDetails />} />
+          <Route path="/blog" element={<Navigate to="/blogs" replace />} />
 
-
-
+          {/* Blog Admin Portal Routes */}
+          <Route path="/blogs/admin" element={<Navigate to="/blogs/admin/login" replace />} />
+          <Route path="/blogs/admin/login" element={<BlogAdminLogin />} />
+          <Route path="/blogs/admin/dashboard" element={<BlogAdminDashboard />} />
 
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/track-order" element={<TrackOrder />} />
@@ -103,7 +115,7 @@ function App() {
           <Route path="/delivery/order/:id" element={<DeliveryOrderDetails />} />
         </Routes>
       </main>
-      {!isDeliveryRoute && <Footer />}
+      {!isHideHeaderFooter && <Footer />}
       
 
     </>
