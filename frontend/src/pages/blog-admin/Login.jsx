@@ -16,7 +16,7 @@ const BlogAdminLogin = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const res = await api.get('/admin/profile');
+        const res = await api.get('/admin/me');
         if (res.data.status) {
           navigate('/blogs/admin/dashboard');
         }

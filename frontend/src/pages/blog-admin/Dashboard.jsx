@@ -40,7 +40,7 @@ const BlogAdminDashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await api.get('/admin/profile');
+        const res = await api.get('/admin/me');
         if (!res.data.status) {
           toast.error('Session expired, please login.');
           navigate('/blogs/admin/login');
