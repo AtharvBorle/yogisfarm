@@ -57,7 +57,11 @@ const BlogDetails = () => {
           };
           setBlog(currentBlog);
 
-          const filtered = list.filter(b => b.category === currentBlog.category && b.id !== currentBlog.id);
+          const filtered = list.filter(b => 
+            b.category && currentBlog.category &&
+            b.category.trim().toLowerCase() === currentBlog.category.trim().toLowerCase() && 
+            b.id !== currentBlog.id
+          );
           setRelatedBlogs(filtered.slice(0, 3));
         } else {
           setBlog(null);

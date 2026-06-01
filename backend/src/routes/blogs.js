@@ -257,45 +257,14 @@ const STATIC_BLOGS = [
   }
 ];
 
-// Helper to seed if database is empty
+// Helper to seed if database is empty (disabled)
 async function ensureSeeded() {
-  try {
-    const count = await prisma.blogPost.count();
-    if (count === 0) {
-      console.log('🌱 Seeding initial blog posts into database...');
-      await prisma.blogPost.createMany({
-        data: STATIC_BLOGS
-      });
-      console.log('✅ Seeding complete.');
-    }
-  } catch (err) {
-    console.error('Failed to seed blogs:', err);
-  }
+  // Seeding disabled to remove fallback blogs
 }
 
-// Helper to seed categories if database is empty
+// Helper to seed categories if database is empty (disabled)
 async function ensureCategoriesSeeded() {
-  try {
-    const count = await prisma.blogCategory.count();
-    if (count === 0) {
-      console.log('🌱 Seeding initial blog categories into database...');
-      const defaultCategories = [
-        { name: 'Healthy Oils', slug: 'healthy-oils' },
-        { name: 'Nutrition', slug: 'nutrition' },
-        { name: 'Lifestyle', slug: 'lifestyle' },
-        { name: 'Cooking', slug: 'cooking' },
-        { name: 'Agriculture', slug: 'agriculture' },
-        { name: 'Recipes', slug: 'recipes' },
-        { name: 'Health', slug: 'health' }
-      ];
-      await prisma.blogCategory.createMany({
-        data: defaultCategories
-      });
-      console.log('✅ Blog categories seeding complete.');
-    }
-  } catch (err) {
-    console.error('Failed to seed categories:', err);
-  }
+  // Seeding disabled to remove fallback categories
 }
 
 // ─── CATEGORY ENDPOINTS ───

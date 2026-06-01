@@ -12,7 +12,7 @@ const BlogAdminDashboard = () => {
   const [editingId, setEditingId] = useState(null);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
-  const [category, setCategory] = useState('Healthy Oils');
+  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
@@ -213,7 +213,7 @@ const BlogAdminDashboard = () => {
     setEditingId(null);
     setTitle('');
     setSlug('');
-    setCategory('Healthy Oils');
+    setCategory(categories.length > 0 ? categories[0].name : '');
     setDescription('');
     setContent('');
     setImage('');
