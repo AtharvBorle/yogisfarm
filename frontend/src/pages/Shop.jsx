@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard';
 import Breadcrumb from '../components/Breadcrumb';
 import FloatingSidebar from '../components/FloatingSidebar';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
+import useSEO from '../hooks/useSEO';
 
 const sortLabels = {
     '': 'Relevance',
@@ -13,6 +14,7 @@ const sortLabels = {
 };
 
 const Shop = () => {
+    useSEO('shop');
     const [searchParams, setSearchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);

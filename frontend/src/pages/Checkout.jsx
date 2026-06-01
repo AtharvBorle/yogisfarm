@@ -7,10 +7,12 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
+import useSEO from '../hooks/useSEO';
 
 import { X, ArrowRight } from 'react-feather';
 
 const Checkout = () => {
+    useSEO('checkout');
     const { user, loading: authLoading } = useAuth();
     const { cartItems, cartTotal } = useCart();
     const navigate = useNavigate();

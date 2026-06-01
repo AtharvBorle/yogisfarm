@@ -5,6 +5,7 @@ import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
 import FeatureBanners from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
+import useSEO from '../hooks/useSEO';
 
 import { ArrowRight } from 'react-feather';
 
@@ -87,6 +88,7 @@ const ProductSmallCard = ({ product, isMobile }) => {
 const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
 const Home = () => {
+    useSEO('home');
     const navigate = useNavigate();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     

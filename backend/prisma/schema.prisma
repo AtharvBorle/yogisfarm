@@ -537,6 +537,15 @@ model BlogPost {
   bannerImage String?  @map("banner_image") @db.VarChar(500)
   authorName  String   @default("ProWIn") @map("author_name") @db.VarChar(100)
   authorDate  String   @map("author_date") @db.VarChar(50)
+  
+  // New columns
+  authorAvatar String? @map("author_avatar") @db.VarChar(500)
+  tags         String? @db.Text
+  archiveBlogIds String? @map("archive_blog_ids") @db.Text
+  sidebarImage String? @map("sidebar_image") @db.VarChar(500)
+  sidebarLink  String? @map("sidebar_link") @db.VarChar(500)
+  status       String  @default("inactive") @db.VarChar(20)
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

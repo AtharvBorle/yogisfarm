@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
+import useSEO from '../hooks/useSEO';
 
 const Blogs = () => {
+  useSEO('blogs');
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,7 +33,7 @@ const Blogs = () => {
             author: {
               name: post.authorName || "ProWIn",
               date: post.authorDate || "20th May 2026",
-              avatar: "/assets/imgs/theme/avatar.png"
+              avatar: post.authorAvatar ? getAssetUrl(post.authorAvatar) : "/assets/imgs/theme/avatar.png"
             }
           }));
           setBlogsList(mapped);

@@ -360,7 +360,12 @@ router.delete('/categories/:id', requireAdmin, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     await ensureSeeded();
+    
+    // Check if queried by admin session
+    const showAll = req.query.admin === 'true' && req.session && req.session.adminId;
+    
     const blogs = await prisma.blogPost.findMany({
+      where: showAll ? {} : { status: 'active' },
       orderBy: { id: 'desc' }
     });
     res.json({ status: true, blogs });
@@ -391,6 +396,13 @@ router.get('/:idOrSlug', async (req, res) => {
     if (!blog) {
       return res.status(404).json({ status: false, message: 'Blog post not found' });
     }
+
+    // Restrict inactive blogs from non-admins
+    const showAll = req.query.admin === 'true' && req.session && req.session.adminId;
+    if (!showAll && blog.status !== 'active') {
+      return res.status(404).json({ status: false, message: 'Blog post not found' });
+    }
+
     res.json({ status: true, blog });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });
@@ -400,7 +412,7 @@ router.get('/:idOrSlug', async (req, res) => {
 // POST: Create a blog post (Admin required)
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { category, title, description, content, image, bannerImage, authorName, authorDate } = req.body;
+    const { category, title, description, content, image, bannerImage, authorName, authorDate, authorAvatar, tags, archiveBlogIds, sidebarImage, sidebarLink, status } = req.body;
     
     if (!title || !category || !content) {
       return res.json({ status: false, message: 'Title, category, and content are required' });
@@ -427,7 +439,13 @@ router.post('/', requireAdmin, async (req, res) => {
         image: image || null,
         bannerImage: bannerImage || null,
         authorName: authorName || 'ProWIn',
-        authorDate: authorDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+        authorDate: authorDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        authorAvatar: authorAvatar || null,
+        tags: tags || null,
+        archiveBlogIds: archiveBlogIds || null,
+        sidebarImage: sidebarImage || null,
+        sidebarLink: sidebarLink || null,
+        status: status || 'inactive'
       }
     });
 
@@ -441,7 +459,7 @@ router.post('/', requireAdmin, async (req, res) => {
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { category, title, description, content, image, bannerImage, authorName, authorDate, slug } = req.body;
+    const { category, title, description, content, image, bannerImage, authorName, authorDate, slug, authorAvatar, tags, archiveBlogIds, sidebarImage, sidebarLink, status } = req.body;
 
     const exists = await prisma.blogPost.findUnique({ where: { id } });
     if (!exists) {
@@ -480,6 +498,12 @@ router.put('/:id', requireAdmin, async (req, res) => {
     if (bannerImage !== undefined) data.bannerImage = bannerImage;
     if (authorName !== undefined) data.authorName = authorName;
     if (authorDate !== undefined) data.authorDate = authorDate;
+    if (authorAvatar !== undefined) data.authorAvatar = authorAvatar;
+    if (tags !== undefined) data.tags = tags;
+    if (archiveBlogIds !== undefined) data.archiveBlogIds = archiveBlogIds;
+    if (sidebarImage !== undefined) data.sidebarImage = sidebarImage;
+    if (sidebarLink !== undefined) data.sidebarLink = sidebarLink;
+    if (status !== undefined) data.status = status;
 
     const updatedBlog = await prisma.blogPost.update({
       where: { id },
@@ -487,6 +511,35 @@ router.put('/:id', requireAdmin, async (req, res) => {
     });
 
     res.json({ status: true, message: 'Blog updated successfully', blog: updatedBlog });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// POST: Bulk Action (Admin required)
+router.post('/bulk-action', requireAdmin, async (req, res) => {
+  try {
+    const { ids, action } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.json({ status: false, message: 'No blog IDs provided' });
+    }
+
+    const numericIds = ids.map(id => parseInt(id));
+
+    if (action === 'delete') {
+      await prisma.blogPost.deleteMany({
+        where: { id: { in: numericIds } }
+      });
+      return res.json({ status: true, message: 'Blogs deleted successfully' });
+    } else if (action === 'active' || action === 'inactive') {
+      await prisma.blogPost.updateMany({
+        where: { id: { in: numericIds } },
+        data: { status: action }
+      });
+      return res.json({ status: true, message: `Blogs updated to ${action} successfully` });
+    } else {
+      return res.json({ status: false, message: 'Invalid action' });
+    }
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

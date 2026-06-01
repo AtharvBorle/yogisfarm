@@ -5,8 +5,10 @@ import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
 import toast from 'react-hot-toast';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import useSEO from '../hooks/useSEO';
 
 const Contact = () => {
+    useSEO('contact');
     const [formData, setFormData] = useState({
         name: '', email: '', phone: '', subject: '', message: '', captcha: ''
     });

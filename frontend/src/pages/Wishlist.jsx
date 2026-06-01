@@ -6,8 +6,10 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
+import useSEO from '../hooks/useSEO';
 
 const Wishlist = () => {
+    useSEO('wishlist');
     const { user, loading: authLoading } = useAuth();
     const { addToCart } = useCart();
     const { toggleWishlist } = useWishlist();

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 const BlogAdminDashboard = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'edit'
+  const [activeTab, setActiveTab] = useState('list'); // 'list', 'create', 'edit', 'seo', 'categories'
   
   // Form State
   const [editingId, setEditingId] = useState(null);
@@ -20,12 +20,33 @@ const BlogAdminDashboard = () => {
   const [authorName, setAuthorName] = useState('ProWIn');
   const [authorDate, setAuthorDate] = useState('');
   
+  // New States
+  const [authorAvatar, setAuthorAvatar] = useState('');
+  const [tags, setTags] = useState('');
+  const [archiveBlogIds, setArchiveBlogIds] = useState('');
+  const [sidebarImage, setSidebarImage] = useState('');
+  const [sidebarLink, setSidebarLink] = useState('');
+  const [status, setStatus] = useState('inactive');
+
+  const [selectedBlogIds, setSelectedBlogIds] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
+
+  // SEO States
+  const [seoPage, setSeoPage] = useState('home');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDesc, setSeoDesc] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
+  const [seoLoading, setSeoLoading] = useState(false);
+  
   // Editor State
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const featuredImageRef = useRef(null);
   const bannerImageRef = useRef(null);
+  const authorAvatarRef = useRef(null);
+  const sidebarImageRef = useRef(null);
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
@@ -55,7 +76,7 @@ const BlogAdminDashboard = () => {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/blogs');
+      const res = await api.get('/blogs?admin=true');
       if (res.data.status) {
         setBlogs(res.data.blogs || []);
       } else {
@@ -208,6 +229,54 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  // Author Avatar Upload handler
+  const handleAuthorAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uploadPath', 'blogs');
+
+    const loadToast = toast.loading('Uploading author image...');
+    try {
+      const res = await api.post('/blogs/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.status) {
+        toast.success('Author profile image uploaded!', { id: loadToast });
+        setAuthorAvatar(res.data.url);
+      } else {
+        toast.error(res.data.message || 'Upload failed', { id: loadToast });
+      }
+    } catch (err) {
+      toast.error('Upload error', { id: loadToast });
+    }
+  };
+
+  // Sidebar Banner Image Upload handler
+  const handleSidebarImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uploadPath', 'blogs');
+
+    const loadToast = toast.loading('Uploading sidebar banner image...');
+    try {
+      const res = await api.post('/blogs/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.status) {
+        toast.success('Sidebar banner image uploaded!', { id: loadToast });
+        setSidebarImage(res.data.url);
+      } else {
+        toast.error(res.data.message || 'Upload failed', { id: loadToast });
+      }
+    } catch (err) {
+      toast.error('Upload error', { id: loadToast });
+    }
+  };
+
   // Reset Form
   const resetForm = () => {
     setEditingId(null);
@@ -220,7 +289,14 @@ const BlogAdminDashboard = () => {
     setBannerImage('');
     setAuthorName('ProWIn');
     setAuthorDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }));
+    setAuthorAvatar('');
+    setTags('');
+    setArchiveBlogIds('');
+    setSidebarImage('');
+    setSidebarLink('');
+    setStatus('inactive');
     setIsHtmlMode(false);
+    setSelectedBlogIds([]);
   };
 
   // Edit action
@@ -235,6 +311,12 @@ const BlogAdminDashboard = () => {
     setBannerImage(blog.bannerImage || '');
     setAuthorName(blog.authorName || 'ProWIn');
     setAuthorDate(blog.authorDate || '');
+    setAuthorAvatar(blog.authorAvatar || '');
+    setTags(blog.tags || '');
+    setArchiveBlogIds(blog.archiveBlogIds || '');
+    setSidebarImage(blog.sidebarImage || '');
+    setSidebarLink(blog.sidebarLink || '');
+    setStatus(blog.status || 'inactive');
     setActiveTab('edit');
     setIsHtmlMode(false);
   };
@@ -272,7 +354,13 @@ const BlogAdminDashboard = () => {
       image,
       bannerImage,
       authorName,
-      authorDate
+      authorDate,
+      authorAvatar,
+      tags,
+      archiveBlogIds,
+      sidebarImage,
+      sidebarLink,
+      status
     };
 
     try {
@@ -295,6 +383,111 @@ const BlogAdminDashboard = () => {
       toast.error('Server error saving blog post');
     }
   };
+
+  // Bulk Actions
+  const handleBulkAction = async (action) => {
+    if (selectedBlogIds.length === 0) {
+      toast.error('No blogs selected!');
+      return;
+    }
+    if (action === 'delete' && !window.confirm(`Are you sure you want to delete ${selectedBlogIds.length} selected blog posts?`)) {
+      return;
+    }
+
+    try {
+      const res = await api.post('/blogs/bulk-action', {
+        ids: selectedBlogIds,
+        action
+      });
+
+      if (res.data.status) {
+        toast.success(res.data.message || 'Bulk action completed');
+        setSelectedBlogIds([]);
+        fetchBlogs();
+      } else {
+        toast.error(res.data.message || 'Bulk action failed');
+      }
+    } catch (err) {
+      toast.error('Server error executing bulk action');
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      const filteredIds = filteredBlogs.map(b => b.id);
+      setSelectedBlogIds(filteredIds);
+    } else {
+      setSelectedBlogIds([]);
+    }
+  };
+
+  const handleSelectBlog = (id, checked) => {
+    if (checked) {
+      setSelectedBlogIds(prev => [...prev, id]);
+    } else {
+      setSelectedBlogIds(prev => prev.filter(item => item !== id));
+    }
+  };
+
+  // SEO Handlers
+  const fetchSeoSettings = async (page) => {
+    setSeoLoading(true);
+    try {
+      const res = await api.get('/settings');
+      if (res.data.status && res.data.settings) {
+        const settings = res.data.settings;
+        setSeoTitle(settings[`seo_${page}_title`] || '');
+        setSeoDesc(settings[`seo_${page}_description`] || '');
+        setSeoKeywords(settings[`seo_${page}_keywords`] || '');
+      }
+    } catch (err) {
+      console.error('Failed to fetch SEO settings', err);
+    } finally {
+      setSeoLoading(false);
+    }
+  };
+
+  const handleSeoSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        settings: {
+          [`seo_${seoPage}_title`]: seoTitle,
+          [`seo_${seoPage}_description`]: seoDesc,
+          [`seo_${seoPage}_keywords`]: seoKeywords
+        }
+      };
+      const res = await api.put('/settings', payload);
+      if (res.data.status) {
+        toast.success('SEO settings saved successfully!');
+      } else {
+        toast.error(res.data.message || 'Failed to save SEO settings');
+      }
+    } catch (err) {
+      toast.error('Error saving SEO settings');
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'seo') {
+      fetchSeoSettings(seoPage);
+    }
+  }, [activeTab, seoPage]);
+
+  // Client-side search and category filtering
+  const filteredBlogs = blogs.filter(blog => {
+    const matchesSearch = 
+      (blog.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (blog.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (blog.authorName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (blog.slug || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory = 
+      selectedCategoryFilter === 'All' || 
+      (blog.category || '').trim().toLowerCase() === selectedCategoryFilter.trim().toLowerCase();
+
+    return matchesSearch && matchesCategory;
+  });
 
   // Logout Admin
   const handleLogout = async () => {
@@ -461,6 +654,28 @@ const BlogAdminDashboard = () => {
             Manage Categories
           </button>
 
+          <button
+            onClick={() => { setActiveTab('seo'); resetForm(); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: activeTab === 'seo' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            <i className="fi-rs-search" style={{ fontSize: '16px' }}></i>
+            SEO Settings
+          </button>
+
           <a
             href="/blogs"
             target="_blank"
@@ -564,49 +779,148 @@ const BlogAdminDashboard = () => {
             boxShadow: '0 1px 3px rgba(16, 24, 40, 0.1)',
             overflow: 'hidden'
           }}>
+            {/* Search & Category Filter Bar */}
+            <div style={{
+              display: 'flex',
+              gap: '16px',
+              padding: '20px 24px',
+              borderBottom: '1px solid #EAECF0',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              backgroundColor: '#FDFDFD'
+            }}>
+              <div style={{ flex: '1 1 300px', position: 'relative' }}>
+                <input 
+                  type="text"
+                  placeholder="Search by Title, Category, Author, or Slug..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    padding: '0 16px 0 40px',
+                    borderRadius: '8px',
+                    border: '1px solid #D0D5DD',
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                    outline: 'none'
+                  }}
+                />
+                <i className="fi-rs-search" style={{ position: 'absolute', left: '14px', top: '12px', color: '#667085', fontSize: '16px' }}></i>
+              </div>
+              <div style={{ width: '200px' }}>
+                <select
+                  value={selectedCategoryFilter}
+                  onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    padding: '0 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #D0D5DD',
+                    fontSize: '14px',
+                    outline: 'none',
+                    backgroundColor: '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="All">All Categories</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Bulk Actions Header */}
+            {selectedBlogIds.length > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 24px',
+                backgroundColor: '#F3F4F6',
+                borderBottom: '1px solid #EAECF0',
+                gap: '16px'
+              }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>
+                  {selectedBlogIds.length} item(s) selected
+                </span>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => handleBulkAction('active')}
+                    style={{
+                      backgroundColor: '#0A6738', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                    }}
+                  >
+                    Make Active
+                  </button>
+                  <button 
+                    onClick={() => handleBulkAction('inactive')}
+                    style={{
+                      backgroundColor: '#6B7280', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                    }}
+                  >
+                    Make Inactive
+                  </button>
+                  <button 
+                    onClick={() => handleBulkAction('delete')}
+                    style={{
+                      backgroundColor: '#EF4444', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: '600', cursor: 'pointer'
+                    }}
+                  >
+                    Delete Selected
+                  </button>
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px' }}>
                 <img src="/assets/imgs/theme/loader.gif" alt="Loading..." style={{ width: '60px' }} />
                 <p style={{ color: '#667085', marginTop: '15px' }}>Loading blogs list...</p>
               </div>
-            ) : blogs.length === 0 ? (
+            ) : filteredBlogs.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#344054', marginBottom: '8px' }}>No blog posts yet</h3>
-                <p style={{ color: '#667085', fontSize: '14px', marginBottom: '24px' }}>Click the button below to add your first dynamic blog post.</p>
-                <button
-                  onClick={() => { setActiveTab('create'); resetForm(); }}
-                  style={{
-                    backgroundColor: '#0A6738',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '12px 20px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Create Your First Blog
-                </button>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#344054', marginBottom: '8px' }}>No blog posts found</h3>
+                <p style={{ color: '#667085', fontSize: '14px' }}>Try adjusting your search filters or create a new blog post.</p>
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #EAECF0' }}>
+                      <th style={{ padding: '16px 24px', width: '40px' }}>
+                        <input 
+                          type="checkbox"
+                          onChange={handleSelectAll}
+                          checked={filteredBlogs.length > 0 && selectedBlogIds.length === filteredBlogs.length}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                        />
+                      </th>
                       <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase' }}>Blog Details</th>
                       <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase' }}>Category</th>
                       <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase' }}>Author / Date</th>
                       <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase' }}>Slug</th>
+                      <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase' }}>Status</th>
                       <th style={{ padding: '16px 24px', fontSize: '12px', fontWeight: '600', color: '#667085', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {blogs.map((blog) => (
+                    {filteredBlogs.map((blog) => (
                       <tr key={blog.id} style={{ borderBottom: '1px solid #EAECF0', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F9FAFB'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                        <td style={{ padding: '16px 24px', width: '40px' }}>
+                          <input 
+                            type="checkbox"
+                            checked={selectedBlogIds.includes(blog.id)}
+                            onChange={(e) => handleSelectBlog(blog.id, e.target.checked)}
+                            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                          />
+                        </td>
                         <td style={{ padding: '16px 24px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <img
-                              src={blog.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'}
+                              src={getAssetUrl(blog.image) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'}
                               alt=""
                               style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #EAECF0' }}
                             />
@@ -641,6 +955,20 @@ const BlogAdminDashboard = () => {
                         </td>
                         <td style={{ padding: '16px 24px', fontSize: '13px', color: '#667085', fontFamily: 'monospace' }}>
                           {blog.slug}
+                        </td>
+                        <td style={{ padding: '16px 24px' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            backgroundColor: blog.status === 'active' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                            color: blog.status === 'active' ? '#10B981' : '#6B7280',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            padding: '4px 10px',
+                            borderRadius: '12px',
+                            textTransform: 'capitalize'
+                          }}>
+                            {blog.status || 'inactive'}
+                          </span>
                         </td>
                         <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
@@ -1183,14 +1511,53 @@ const BlogAdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Sidebar Settings Column */}
               <div style={{
                 flex: '1 1 300px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px'
               }}>
-                {/* Meta details */}
+                {/* Blog Status */}
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid #EAECF0',
+                  boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                    Blog Status
+                  </h3>
+                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      <input 
+                        type="radio" 
+                        name="blogStatus" 
+                        value="active" 
+                        checked={status === 'active'} 
+                        onChange={() => setStatus('active')} 
+                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      Active
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      <input 
+                        type="radio" 
+                        name="blogStatus" 
+                        value="inactive" 
+                        checked={status === 'inactive'} 
+                        onChange={() => setStatus('inactive')} 
+                        style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      Inactive
+                    </label>
+                  </div>
+                </div>
+
+                {/* Author details */}
                 <div style={{
                   backgroundColor: '#ffffff',
                   padding: '24px',
@@ -1202,7 +1569,7 @@ const BlogAdminDashboard = () => {
                   gap: '16px'
                 }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: '0 0 4px 0' }}>
-                    Publishing Meta
+                    Author Details
                   </h3>
 
                   <div>
@@ -1236,6 +1603,287 @@ const BlogAdminDashboard = () => {
                       value={authorDate}
                       onChange={(e) => setAuthorDate(e.target.value)}
                       placeholder="e.g. 20th May 2026"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#344054' }}>
+                      Author Profile Image
+                    </label>
+                    {authorAvatar ? (
+                      <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #EAECF0', marginBottom: '10px' }}>
+                        <img src={getAssetUrl(authorAvatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button
+                          type="button"
+                          onClick={() => setAuthorAvatar('')}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            backgroundColor: 'rgba(240, 68, 56, 0.9)',
+                            color: '#ffffff',
+                            border: 'none',
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            lineHeight: '20px',
+                            textAlign: 'center',
+                            padding: 0
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => authorAvatarRef.current && authorAvatarRef.current.click()}
+                        style={{
+                          height: '80px',
+                          width: '80px',
+                          border: '2px dashed #D0D5DD',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                          color: '#667085',
+                          marginBottom: '10px'
+                        }}
+                      >
+                        <i className="fi-rs-add" style={{ fontSize: '16px' }}></i>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      ref={authorAvatarRef}
+                      accept="image/*"
+                      onChange={handleAuthorAvatarUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <input
+                      type="text"
+                      value={authorAvatar}
+                      onChange={(e) => setAuthorAvatar(e.target.value)}
+                      placeholder="Or paste profile image URL"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Tags Settings */}
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid #EAECF0',
+                  boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                    Tags
+                  </h3>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#344054' }}>
+                      Comma-separated Tags
+                    </label>
+                    <input
+                      type="text"
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      placeholder="e.g. groundnut oil, cold pressed, health"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Archives Selection */}
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid #EAECF0',
+                  boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                    Select Archives (Sidebar)
+                  </h3>
+                  <div style={{
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    border: '1px solid #EAECF0',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}>
+                    {blogs.filter(b => b.id !== editingId).length === 0 ? (
+                      <span style={{ fontSize: '13px', color: '#667085' }}>No other blog posts available</span>
+                    ) : (
+                      blogs.filter(b => b.id !== editingId).map(b => {
+                        const isChecked = (archiveBlogIds || '').split(',').map(s => s.trim()).includes(String(b.id));
+                        return (
+                          <label key={b.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#344054', lineHeight: '1.4' }}>
+                            <input 
+                              type="checkbox"
+                              checked={isChecked}
+                              style={{ width: '15px', height: '15px', marginTop: '2px', cursor: 'pointer' }}
+                              onChange={(e) => {
+                                let idsArr = (archiveBlogIds || '').split(',').map(s => s.trim()).filter(Boolean);
+                                if (e.target.checked) {
+                                  idsArr.push(String(b.id));
+                                } else {
+                                  idsArr = idsArr.filter(idStr => idStr !== String(b.id));
+                                }
+                                setArchiveBlogIds(idsArr.join(','));
+                              }}
+                            />
+                            {b.title}
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Sidebar Promo Banner */}
+                <div style={{
+                  backgroundColor: '#ffffff',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid #EAECF0',
+                  boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                    Sidebar Promo Banner
+                  </h3>
+
+                  {sidebarImage ? (
+                    <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #EAECF0' }}>
+                      <img src={getAssetUrl(sidebarImage)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={() => setSidebarImage('')}
+                        style={{
+                          position: 'absolute',
+                          top: '8px',
+                          right: '8px',
+                          backgroundColor: 'rgba(240, 68, 56, 0.9)',
+                          color: '#ffffff',
+                          border: 'none',
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          lineHeight: '28px',
+                          textAlign: 'center',
+                          padding: 0
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => sidebarImageRef.current && sidebarImageRef.current.click()}
+                      style={{
+                        height: '160px',
+                        border: '2px dashed #D0D5DD',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        gap: '8px',
+                        color: '#667085'
+                      }}
+                    >
+                      <i className="fi-rs-add" style={{ fontSize: '20px' }}></i>
+                      <span style={{ fontSize: '13px', fontWeight: '600' }}>Upload Sidebar Banner</span>
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    ref={sidebarImageRef}
+                    accept="image/*"
+                    onChange={handleSidebarImageUpload}
+                    style={{ display: 'none' }}
+                  />
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#344054' }}>
+                      Or Banner Image URL
+                    </label>
+                    <input
+                      type="text"
+                      value={sidebarImage}
+                      onChange={(e) => setSidebarImage(e.target.value)}
+                      placeholder="Paste image URL directly"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '14px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: '600', color: '#344054' }}>
+                      Redirect URL Link
+                    </label>
+                    <input
+                      type="text"
+                      value={sidebarLink}
+                      onChange={(e) => setSidebarLink(e.target.value)}
+                      placeholder="e.g. /shop/sunflower-oil"
                       style={{
                         width: '100%',
                         height: '42px',
@@ -1483,6 +2131,144 @@ const BlogAdminDashboard = () => {
                 {activeTab === 'edit' ? 'Save Changes' : 'Publish Blog'}
               </button>
             </div>
+          </form>
+        )}
+
+        {/* SEO Settings View */}
+        {activeTab === 'seo' && (
+          <form onSubmit={handleSeoSubmit} style={{
+            backgroundColor: '#ffffff',
+            padding: '32px',
+            borderRadius: '12px',
+            border: '1px solid #EAECF0',
+            boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+            maxWidth: '800px'
+          }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                Select Website Page
+              </label>
+              <select
+                value={seoPage}
+                onChange={(e) => setSeoPage(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #D0D5DD',
+                  fontSize: '15px',
+                  outline: 'none',
+                  backgroundColor: '#ffffff',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="home">Home Page (/)</option>
+                <option value="about">About Us (/about-us)</option>
+                <option value="contact">Contact Us (/contact-us)</option>
+                <option value="shop">Shop (/shop)</option>
+                <option value="blogs">Blogs List (/blogs)</option>
+                <option value="cart">Cart Page (/cart)</option>
+                <option value="checkout">Checkout (/checkout)</option>
+                <option value="wishlist">Wishlist (/wishlist)</option>
+              </select>
+            </div>
+
+            {seoLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <p style={{ color: '#667085', fontSize: '14px' }}>Loading SEO settings for this page...</p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Meta Title
+                  </label>
+                  <input
+                    type="text"
+                    value={seoTitle}
+                    onChange={(e) => setSeoTitle(e.target.value)}
+                    placeholder="Enter SEO title tag"
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Meta Description
+                  </label>
+                  <textarea
+                    value={seoDesc}
+                    onChange={(e) => setSeoDesc(e.target.value)}
+                    placeholder="Enter meta description for search results..."
+                    rows={4}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Meta Keywords
+                  </label>
+                  <input
+                    type="text"
+                    value={seoKeywords}
+                    onChange={(e) => setSeoKeywords(e.target.value)}
+                    placeholder="e.g. organic oils, groundnut oil, yogis farms (comma separated)"
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                  <button
+                    type="submit"
+                    style={{
+                      backgroundColor: '#0A6738',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '12px 32px',
+                      borderRadius: '8px',
+                      fontSize: '15px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    Save SEO Settings
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         )}
       </main>
