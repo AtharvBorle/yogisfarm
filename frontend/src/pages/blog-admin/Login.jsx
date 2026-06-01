@@ -31,7 +31,7 @@ const BlogAdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/admin/login', { email, password });
+      const res = await api.post('/admin/login', { email, password, loginType: 'blog_admin' });
       if (res.data.status) {
         if (res.data.require2FA) {
           setShow2FA(true);
@@ -55,7 +55,7 @@ const BlogAdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post('/admin/login/verify-2fa', { email, otp });
+      const res = await api.post('/admin/login/verify-2fa', { email, otp, loginType: 'blog_admin' });
       if (res.data.status) {
         toast.success('2FA verified! Logged in successfully.');
         navigate('/blogs/admin/dashboard');

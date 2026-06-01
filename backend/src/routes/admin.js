@@ -58,11 +58,16 @@ if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
 // ─── Admin Auth ───
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, loginType } = req.body;
     const admin = await prisma.admin.findUnique({ where: { email } });
     if (!admin) return res.json({ status: false, message: 'Invalid credentials' });
     const valid = await bcrypt.compare(password, admin.password);
     if (!valid) return res.json({ status: false, message: 'Invalid credentials' });
+
+    // Restrict blog_admin from logging in via the main admin panel
+    if (admin.role === 'blog_admin' && loginType !== 'blog_admin') {
+      return res.json({ status: false, message: 'Unauthorized. Blog admins cannot access the main admin panel.' });
+    }
 
     if (admin.twoFactorEnabled) {
       if (!admin.phone) {
@@ -92,9 +97,15 @@ router.post('/login', async (req, res) => {
 
 router.post('/login/verify-2fa', async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, loginType } = req.body;
     const admin = await prisma.admin.findUnique({ where: { email } });
     if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    // Restrict blog_admin from logging in via the main admin panel
+    if (admin.role === 'blog_admin' && loginType !== 'blog_admin') {
+      return res.json({ status: false, message: 'Unauthorized. Blog admins cannot access the main admin panel.' });
+    }
+
     if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
     if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
 
