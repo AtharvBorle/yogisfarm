@@ -250,7 +250,6 @@ const BlogDetails = () => {
             }}>
               By <span style={{ fontWeight: '600', color: '#0A6738' }}>{blog.author.name}</span>
               &nbsp;&nbsp;&nbsp;&nbsp;Last Updated On - {blog.author.date}
-              &nbsp;&nbsp;&nbsp;&nbsp;0 Comments
             </div>
 
             {/* Style override to force HTML bullet points to show since reset CSS overrides it */}
