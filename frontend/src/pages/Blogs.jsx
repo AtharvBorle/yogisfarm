@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BLOG_POSTS, CATEGORIES } from '../utils/blogData';
-import api from '../api';
+import api, { getAssetUrl } from '../api';
 
 const Blogs = () => {
   const navigate = useNavigate();
@@ -12,7 +11,7 @@ const Blogs = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [blogsList, setBlogsList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [categoriesList, setCategoriesList] = useState(CATEGORIES);
+  const [categoriesList, setCategoriesList] = useState(["All"]);
 
   const postsPerPage = 9;
 
@@ -27,7 +26,7 @@ const Blogs = () => {
             title: post.title,
             slug: post.slug,
             description: post.description,
-            image: post.image || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+            image: post.image ? getAssetUrl(post.image) : "",
             content: post.content,
             author: {
               name: post.authorName || "ProWIn",
@@ -37,11 +36,11 @@ const Blogs = () => {
           }));
           setBlogsList(mapped);
         } else {
-          setBlogsList(BLOG_POSTS);
+          setBlogsList([]);
         }
       } catch (err) {
-        console.error('Failed to fetch blogs, using static fallback:', err);
-        setBlogsList(BLOG_POSTS);
+        console.error('Failed to fetch blogs:', err);
+        setBlogsList([]);
       } finally {
         setLoading(false);
       }
@@ -54,7 +53,7 @@ const Blogs = () => {
           setCategoriesList(['All', ...catRes.data.categories.map(c => c.name)]);
         }
       } catch (catErr) {
-        console.error('Failed to fetch categories, using static fallback:', catErr);
+        console.error('Failed to fetch categories:', catErr);
       }
     };
 

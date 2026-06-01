@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { BLOG_POSTS } from '../utils/blogData';
 import api, { getAssetUrl } from '../api';
 import img26 from '../assets/figma/img_26.png';
 import img11 from '../assets/figma/img_11.png';
@@ -26,7 +25,7 @@ const BlogDetails = () => {
             title: post.title,
             slug: post.slug,
             description: post.description,
-            image: post.image ? getAssetUrl(post.image) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+            image: post.image ? getAssetUrl(post.image) : "",
             bannerImage: post.bannerImage ? getAssetUrl(post.bannerImage) : null,
             content: post.content,
             author: {
@@ -36,9 +35,6 @@ const BlogDetails = () => {
             }
           }));
           setBlogsList(list);
-        } else {
-          list = BLOG_POSTS;
-          setBlogsList(BLOG_POSTS);
         }
 
         const res = await api.get(`/blogs/${id}`);
@@ -50,7 +46,7 @@ const BlogDetails = () => {
             title: post.title,
             slug: post.slug,
             description: post.description,
-            image: post.image ? getAssetUrl(post.image) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=600&q=80",
+            image: post.image ? getAssetUrl(post.image) : "",
             bannerImage: post.bannerImage ? getAssetUrl(post.bannerImage) : null,
             content: post.content,
             author: {
@@ -61,30 +57,14 @@ const BlogDetails = () => {
           };
           setBlog(currentBlog);
 
-          const filtered = list.filter(b => b.id !== currentBlog.id);
+          const filtered = list.filter(b => b.category === currentBlog.category && b.id !== currentBlog.id);
           setRelatedBlogs(filtered.slice(0, 3));
         } else {
-          const currentBlog = BLOG_POSTS.find(b => String(b.id) === String(id) || b.slug === id);
-          if (currentBlog) {
-            setBlog(currentBlog);
-            const filtered = BLOG_POSTS.filter(b => b.id !== currentBlog.id);
-            setRelatedBlogs(filtered.slice(0, 3));
-          } else {
-            if (BLOG_POSTS[0]) {
-              navigate(`/blogs/${BLOG_POSTS[0].slug || BLOG_POSTS[0].id}`, { replace: true });
-            }
-          }
+          setBlog(null);
         }
       } catch (err) {
-        console.error('Failed to load blog details, using fallback:', err);
-        const currentBlog = BLOG_POSTS.find(b => String(b.id) === String(id) || b.slug === id);
-        if (currentBlog) {
-          setBlog(currentBlog);
-          const filtered = BLOG_POSTS.filter(b => b.id !== currentBlog.id);
-          setRelatedBlogs(filtered.slice(0, 3));
-        } else if (BLOG_POSTS[0]) {
-          navigate(`/blogs/${BLOG_POSTS[0].slug || BLOG_POSTS[0].id}`, { replace: true });
-        }
+        console.error('Failed to load blog details:', err);
+        setBlog(null);
       } finally {
         setLoading(false);
       }
@@ -106,7 +86,7 @@ const BlogDetails = () => {
       
       {/* Top Hero Banner Section */}
       <div style={{
-        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url(${blog.bannerImage || blog.image || img26})`,
+        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url(${blog.bannerImage || blog.image || ''})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         height: '180px',
