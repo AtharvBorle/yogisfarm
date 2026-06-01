@@ -319,10 +319,22 @@ router.put('/categories/:id', requireAdmin, async (req, res) => {
     if (!name) return res.json({ status: false, message: 'Category name is required' });
     const generatedSlug = slug || name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
 
+    const oldCategory = await prisma.blogCategory.findUnique({
+      where: { id }
+    });
+
     const category = await prisma.blogCategory.update({
       where: { id },
       data: { name, slug: generatedSlug }
     });
+
+    if (oldCategory && oldCategory.name !== name) {
+      await prisma.blogPost.updateMany({
+        where: { category: oldCategory.name },
+        data: { category: name }
+      });
+    }
+
     res.json({ status: true, category });
   } catch (e) {
     res.json({ status: false, message: e.message });
