@@ -99,7 +99,7 @@ const BlogDetails = () => {
             });
           }
 
-          setRelatedBlogs(matchingBlogs.slice(0, 3));
+          setRelatedBlogs(matchingBlogs);
         } else {
           setBlog(null);
         }
