@@ -24,6 +24,7 @@ const BlogAdminDashboard = () => {
   const [authorAvatar, setAuthorAvatar] = useState('');
   const [tags, setTags] = useState('');
   const [archiveBlogIds, setArchiveBlogIds] = useState('');
+  const [archiveSearchQuery, setArchiveSearchQuery] = useState('');
   const [sidebarImage, setSidebarImage] = useState('');
   const [sidebarLink, setSidebarLink] = useState('');
   const [status, setStatus] = useState('inactive');
@@ -458,6 +459,7 @@ const BlogAdminDashboard = () => {
     setAuthorAvatar('');
     setTags('');
     setArchiveBlogIds('');
+    setArchiveSearchQuery('');
     setSidebarImage('');
     setSidebarLink('');
     setStatus('inactive');
@@ -480,6 +482,7 @@ const BlogAdminDashboard = () => {
     setAuthorAvatar(blog.authorAvatar || '');
     setTags(blog.tags || '');
     setArchiveBlogIds(blog.archiveBlogIds || '');
+    setArchiveSearchQuery('');
     setSidebarImage(blog.sidebarImage || '');
     setSidebarLink(blog.sidebarLink || '');
     setStatus(blog.status || 'inactive');
@@ -2183,6 +2186,24 @@ const BlogAdminDashboard = () => {
                   <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#101828', margin: 0 }}>
                     Select Archives (Sidebar)
                   </h3>
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      type="text"
+                      placeholder="Search archives by name, author, slug, category..."
+                      value={archiveSearchQuery}
+                      onChange={(e) => setArchiveSearchQuery(e.target.value)}
+                      style={{
+                        width: '100%',
+                        height: '38px',
+                        padding: '0 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        fontSize: '13px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
                   <div style={{
                     maxHeight: '200px',
                     overflowY: 'auto',
@@ -2191,34 +2212,55 @@ const BlogAdminDashboard = () => {
                     padding: '12px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px'
+                    gap: '12px'
                   }}>
-                    {blogs.filter(b => b.id !== editingId).length === 0 ? (
-                      <span style={{ fontSize: '13px', color: '#667085' }}>No other blog posts available</span>
-                    ) : (
-                      blogs.filter(b => b.id !== editingId).map(b => {
-                        const isChecked = (archiveBlogIds || '').split(',').map(s => s.trim()).includes(String(b.id));
-                        return (
-                          <label key={b.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#344054', lineHeight: '1.4' }}>
-                            <input 
-                              type="checkbox"
-                              checked={isChecked}
-                              style={{ width: '15px', height: '15px', marginTop: '2px', cursor: 'pointer' }}
-                              onChange={(e) => {
-                                let idsArr = (archiveBlogIds || '').split(',').map(s => s.trim()).filter(Boolean);
-                                if (e.target.checked) {
-                                  idsArr.push(String(b.id));
-                                } else {
-                                  idsArr = idsArr.filter(idStr => idStr !== String(b.id));
-                                }
-                                setArchiveBlogIds(idsArr.join(','));
-                              }}
-                            />
-                            {b.title}
-                          </label>
-                        );
-                      })
-                    )}
+                    {(() => {
+                      const filteredArchives = blogs.filter(b => {
+                        if (b.id === editingId) return false;
+                        
+                        const query = (archiveSearchQuery || '').trim().toLowerCase();
+                        if (!query) return true;
+                        
+                        const titleMatch = (b.title || '').toLowerCase().includes(query);
+                        const authorMatch = (b.authorName || '').toLowerCase().includes(query);
+                        const slugMatch = (b.slug || '').toLowerCase().includes(query);
+                        const categoryMatch = (b.category || '').toLowerCase().includes(query);
+                        
+                        return titleMatch || authorMatch || slugMatch || categoryMatch;
+                      });
+                      
+                      return filteredArchives.length === 0 ? (
+                        <span style={{ fontSize: '13px', color: '#667085' }}>No matching blog posts available</span>
+                      ) : (
+                        filteredArchives.map(b => {
+                          const isChecked = (archiveBlogIds || '').split(',').map(s => s.trim()).includes(String(b.id));
+                          return (
+                            <label key={b.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#344054', lineHeight: '1.4' }}>
+                              <input 
+                                type="checkbox"
+                                checked={isChecked}
+                                style={{ width: '15px', height: '15px', marginTop: '2px', cursor: 'pointer' }}
+                                onChange={(e) => {
+                                  let idsArr = (archiveBlogIds || '').split(',').map(s => s.trim()).filter(Boolean);
+                                  if (e.target.checked) {
+                                    idsArr.push(String(b.id));
+                                  } else {
+                                    idsArr = idsArr.filter(idStr => idStr !== String(b.id));
+                                  }
+                                  setArchiveBlogIds(idsArr.join(','));
+                                }}
+                              />
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontWeight: '500' }}>{b.title}</span>
+                                <span style={{ fontSize: '11px', color: '#667085' }}>
+                                  Slug: {b.slug} | Author: {b.authorName} | Cat: {b.category}
+                                </span>
+                              </div>
+                            </label>
+                          );
+                        })
+                      );
+                    })()}
                   </div>
                 </div>
 
