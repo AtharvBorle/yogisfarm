@@ -137,7 +137,7 @@ const BlogDetails = () => {
     : [];
   const archivedBlogs = archiveIds.length > 0
     ? (blog.archivedBlogs || [])
-    : blogsList;
+    : [];
 
   return (
     <main className="main pages" style={{ backgroundColor: '#FFFFFF', minHeight: '100vh', fontFamily: 'Poppins, sans-serif' }}>
