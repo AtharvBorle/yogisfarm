@@ -99,14 +99,6 @@ const BlogDetails = () => {
             });
           }
 
-          // 4. Fall back to same category if no overlapping tags found
-          if (matchingBlogs.length === 0) {
-            matchingBlogs = matches.filter(b => 
-              b.category && currentBlog.category &&
-              b.category.trim().toLowerCase() === currentBlog.category.trim().toLowerCase()
-            );
-          }
-
           setRelatedBlogs(matchingBlogs.slice(0, 3));
         } else {
           setBlog(null);
