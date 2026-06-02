@@ -416,180 +416,154 @@ const BlogDetails = () => {
             />
 
 
-            {/* Related Blogs Section */}
-            {relatedBlogs.length > 0 && (
-              <div style={{ marginTop: '60px', borderTop: '1px solid #ECEEEF', paddingTop: '40px' }}>
-                <h3 style={{
-                  color: '#000000',
-                  fontSize: '24px',
-                  fontFamily: 'Poppins, sans-serif',
-                  fontWeight: '600',
-                  marginBottom: '30px'
-                }}>
-                  Related Blogs
-                </h3>
-
-                <style>{`
-                  .related-blogs-scroll::-webkit-scrollbar {
-                    height: 6px;
-                  }
-                  .related-blogs-scroll::-webkit-scrollbar-track {
-                    background: #F2F4F7;
-                    border-radius: 8px;
-                  }
-                  .related-blogs-scroll::-webkit-scrollbar-thumb {
-                    background: #D0D5DD;
-                    border-radius: 8px;
-                  }
-                  .related-blogs-scroll::-webkit-scrollbar-thumb:hover {
-                    background: #0A6738;
-                  }
-                `}</style>
-
-                <div 
-                  className="related-blogs-scroll"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '24px',
-                    marginBottom: '30px',
-                    overflowX: 'auto',
-                    paddingBottom: '16px',
-                    justifyContent: 'flex-start',
-                    scrollSnapType: 'x mandatory',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                >
-                  {relatedBlogs.map(related => (
-                    <div
-                      key={related.id}
-                      onClick={() => navigate(`/blogs/${related.slug || related.id}`)}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: '12px',
-                        border: '1px solid #F2F4F7',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        boxShadow: '0 9px 12px -3px rgba(16, 24, 40, 0.08), 0 3px 4px -1px rgba(16, 24, 40, 0.03)',
-                        transition: 'all 0.3s ease',
-                        width: '280px',
-                        flexShrink: 0,
-                        scrollSnapAlign: 'start'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-4px)';
-                        e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(16, 24, 40, 0.12)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.boxShadow = '0 9px 12px -3px rgba(16, 24, 40, 0.08)';
-                      }}
-                    >
-                      {/* Related Image */}
-                      <div style={{ width: '100%', height: '180px', overflow: 'hidden' }}>
-                        <img 
-                          src={related.image} 
-                          alt={related.title} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        />
-                      </div>
-
-                      {/* Related Content */}
-                      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <span style={{ 
-                          color: '#40B14C', 
-                          fontSize: '11px', 
-                          fontWeight: '600', 
-                          marginBottom: '8px',
-                          fontFamily: 'Inter, sans-serif'
-                        }}>
-                          {related.category}
-                        </span>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
-                          <h4 style={{ 
-                            fontSize: '16px', 
-                            fontWeight: '600', 
-                            color: '#101828', 
-                            lineHeight: '1.4', 
-                            margin: 0,
-                            fontFamily: 'Inter, sans-serif'
-                          }}>
-                            {related.title}
-                          </h4>
-                          <svg 
-                            style={{ width: '16px', height: '16px', flexShrink: 0, marginTop: '3px' }} 
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#101828"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <line x1="7" y1="17" x2="17" y2="7"></line>
-                            <polyline points="7 7 17 7 17 17"></polyline>
-                          </svg>
-                        </div>
-
-                        <p style={{ 
-                          color: '#667085', 
-                          fontSize: '12px', 
-                          lineHeight: '1.5', 
-                          fontFamily: 'Inter, sans-serif',
-                          margin: '0 0 20px 0',
-                          flex: 1
-                        }}>
-                          {related.description && related.description.length > 80 ? `${related.description.substring(0, 80)}...` : related.description}
-                        </p>
-
-                        {/* Related Author */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
-                          <img 
-                            src={related.author.avatar} 
-                            alt={related.author.name} 
-                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
-                          />
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '500', color: '#101828', fontFamily: 'Inter, sans-serif' }}>
-                              {related.author.name}
-                            </span>
-                            <span style={{ fontSize: '10px', color: '#667085', fontFamily: 'Inter, sans-serif' }}>
-                              {related.author.date}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Slider Dots */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
-                  {[0, 1, 2].map((idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveSlide(idx)}
-                      style={{
-                        width: '9px',
-                        height: '9px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        backgroundColor: idx === activeSlide ? '#0A6738' : '#D9D9D9',
-                        cursor: 'pointer',
-                        padding: 0,
-                        transition: 'background-color 0.2s'
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
+            
           </article>
           
         </div>
+
+        {/* Related Blogs Section */}
+        {relatedBlogs.length > 0 && (
+          <div style={{ marginTop: '60px', borderTop: '1px solid #ECEEEF', paddingTop: '40px' }}>
+            <h3 style={{
+              color: '#000000',
+              fontSize: '24px',
+              fontFamily: 'Poppins, sans-serif',
+              fontWeight: '600',
+              marginBottom: '30px'
+            }}>
+              Related Blogs
+            </h3>
+
+            <style>{`
+              .related-blogs-scroll::-webkit-scrollbar {
+                display: none !important;
+              }
+              .related-blogs-scroll {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+              }
+            `}</style>
+
+            <div 
+              className="related-blogs-scroll"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '24px',
+                marginBottom: '30px',
+                overflowX: 'auto',
+                paddingBottom: '16px',
+                justifyContent: 'flex-start',
+                scrollSnapType: 'x mandatory',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {relatedBlogs.map(related => (
+                <div
+                  key={related.id}
+                  onClick={() => navigate(`/blogs/${related.slug || related.id}`)}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '12px',
+                    border: '1px solid #F2F4F7',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    boxShadow: '0 9px 12px -3px rgba(16, 24, 40, 0.08), 0 3px 4px -1px rgba(16, 24, 40, 0.03)',
+                    transition: 'all 0.3s ease',
+                    width: '280px',
+                    flexShrink: 0,
+                    scrollSnapAlign: 'start'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 12px 20px -3px rgba(16, 24, 40, 0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = '0 9px 12px -3px rgba(16, 24, 40, 0.08)';
+                  }}
+                >
+                  {/* Related Image */}
+                  <div style={{ width: '100%', height: '180px', overflow: 'hidden' }}>
+                    <img 
+                      src={related.image} 
+                      alt={related.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  </div>
+
+                  {/* Related Content */}
+                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <span style={{ 
+                      color: '#40B14C', 
+                      fontSize: '11px', 
+                      fontWeight: '600', 
+                      marginBottom: '8px',
+                      fontFamily: 'Inter, sans-serif'
+                    }}>
+                      {related.category}
+                    </span>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                      <h4 style={{ 
+                        fontSize: '16px', 
+                        fontWeight: '600', 
+                        color: '#101828', 
+                        lineHeight: '1.4', 
+                        margin: 0,
+                        fontFamily: 'Inter, sans-serif'
+                      }}>
+                        {related.title}
+                      </h4>
+                      <svg 
+                        style={{ width: '16px', height: '16px', flexShrink: 0, marginTop: '3px' }} 
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#101828"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="7" y1="17" x2="17" y2="7"></line>
+                        <polyline points="7 7 17 7 17 17"></polyline>
+                      </svg>
+                    </div>
+
+                    <p style={{ 
+                      color: '#667085', 
+                      fontSize: '12px', 
+                      lineHeight: '1.5', 
+                      fontFamily: 'Inter, sans-serif',
+                      margin: '0 0 20px 0',
+                      flex: 1
+                    }}>
+                      {related.description && related.description.length > 80 ? `${related.description.substring(0, 80)}...` : related.description}
+                    </p>
+
+                    {/* Related Author */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+                      <img 
+                        src={related.author.avatar} 
+                        alt={related.author.name} 
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} 
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '500', color: '#101828', fontFamily: 'Inter, sans-serif' }}>
+                          {related.author.name}
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#667085', fontFamily: 'Inter, sans-serif' }}>
+                          {related.author.date}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
