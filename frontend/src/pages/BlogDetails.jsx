@@ -429,12 +429,37 @@ const BlogDetails = () => {
                   Related Blogs
                 </h3>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                  gap: '24px',
-                  marginBottom: '30px'
-                }}>
+                <style>{`
+                  .related-blogs-scroll::-webkit-scrollbar {
+                    height: 6px;
+                  }
+                  .related-blogs-scroll::-webkit-scrollbar-track {
+                    background: #F2F4F7;
+                    border-radius: 8px;
+                  }
+                  .related-blogs-scroll::-webkit-scrollbar-thumb {
+                    background: #D0D5DD;
+                    border-radius: 8px;
+                  }
+                  .related-blogs-scroll::-webkit-scrollbar-thumb:hover {
+                    background: #0A6738;
+                  }
+                `}</style>
+
+                <div 
+                  className="related-blogs-scroll"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '24px',
+                    marginBottom: '30px',
+                    overflowX: 'auto',
+                    paddingBottom: '16px',
+                    justifyContent: 'flex-start',
+                    scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                   {relatedBlogs.map(related => (
                     <div
                       key={related.id}
@@ -448,7 +473,10 @@ const BlogDetails = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         boxShadow: '0 9px 12px -3px rgba(16, 24, 40, 0.08), 0 3px 4px -1px rgba(16, 24, 40, 0.03)',
-                        transition: 'all 0.3s ease'
+                        transition: 'all 0.3s ease',
+                        width: '280px',
+                        flexShrink: 0,
+                        scrollSnapAlign: 'start'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-4px)';
