@@ -246,14 +246,10 @@ app.get('*', async (req, res) => {
     html = html.replace(/<meta\s+[^>]*property=["']description["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*name=["']keywords["'][^>]*>/gi, '');
 
-    // Inject the new tags right before </head>
-    const seoTags = `
-    <title>${cleanTitle}</title>
-    <meta name="description" content="${cleanDesc}">
-    <meta property="description" content="${cleanDesc}">
-    <meta name="keywords" content="${cleanKeywords}">`;
+    // Inject the new tags right after <head>
+    const seoTags = `\n    <title>${cleanTitle}</title>\n    <meta name="description" content="${cleanDesc}">\n    <meta property="description" content="${cleanDesc}">\n    <meta name="keywords" content="${cleanKeywords}">`;
 
-    html = html.replace('</head>', `${seoTags}\n</head>`);
+    html = html.replace('<head>', `<head>${seoTags}`);
 
     res.setHeader('Content-Type', 'text/html');
     res.send(html);

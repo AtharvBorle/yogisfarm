@@ -47,9 +47,14 @@ export const useSEO = (seoData) => {
         }
       }
 
-      // Update Page Title
+      // Update or Create Page Title
+      let titleTag = document.querySelector('title');
       if (title) {
-        document.title = title;
+        if (!titleTag) {
+          titleTag = document.createElement('title');
+          document.head.appendChild(titleTag);
+        }
+        titleTag.innerText = title;
       }
 
       // Update or Create Meta Description
@@ -58,9 +63,30 @@ export const useSEO = (seoData) => {
         if (!metaDesc) {
           metaDesc = document.createElement('meta');
           metaDesc.name = 'description';
-          document.head.appendChild(metaDesc);
+          if (titleTag) {
+            titleTag.parentNode.insertBefore(metaDesc, titleTag.nextSibling);
+          } else {
+            document.head.appendChild(metaDesc);
+          }
         }
         metaDesc.content = description;
+      }
+
+      // Update or Create Meta Property Description
+      let metaPropDesc = document.querySelector('meta[property="description"]');
+      if (description) {
+        if (!metaPropDesc) {
+          metaPropDesc = document.createElement('meta');
+          metaPropDesc.setAttribute('property', 'description');
+          if (metaDesc) {
+            metaDesc.parentNode.insertBefore(metaPropDesc, metaDesc.nextSibling);
+          } else if (titleTag) {
+            titleTag.parentNode.insertBefore(metaPropDesc, titleTag.nextSibling);
+          } else {
+            document.head.appendChild(metaPropDesc);
+          }
+        }
+        metaPropDesc.content = description;
       }
 
       // Update or Create Meta Keywords
@@ -69,7 +95,12 @@ export const useSEO = (seoData) => {
         if (!metaKeywords) {
           metaKeywords = document.createElement('meta');
           metaKeywords.name = 'keywords';
-          document.head.appendChild(metaKeywords);
+          const insertAnchor = metaPropDesc || metaDesc || titleTag;
+          if (insertAnchor) {
+            insertAnchor.parentNode.insertBefore(metaKeywords, insertAnchor.nextSibling);
+          } else {
+            document.head.appendChild(metaKeywords);
+          }
         }
         metaKeywords.content = keywords;
       }
