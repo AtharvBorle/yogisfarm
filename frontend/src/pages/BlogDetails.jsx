@@ -19,6 +19,28 @@ const BlogDetails = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const handleScroll = (e) => {
+    const container = e.target;
+    const scrollLeft = container.scrollLeft;
+    const itemWidth = 304; // 280px card + 24px gap
+    const idx = Math.round(scrollLeft / itemWidth);
+    if (idx !== activeSlide && idx >= 0 && idx < relatedBlogs.length) {
+      setActiveSlide(idx);
+    }
+  };
+
+  const handleDotClick = (idx) => {
+    const container = document.querySelector('.related-blogs-scroll');
+    if (container) {
+      const itemWidth = 304; // 280px card + 24px gap
+      container.scrollTo({
+        left: idx * itemWidth,
+        behavior: 'smooth'
+      });
+      setActiveSlide(idx);
+    }
+  };
+
   // Call useSEO dynamically with blog details
   useSEO({
     key: blog ? `blogs/${blog.slug || blog.id}` : null,
@@ -438,6 +460,7 @@ const BlogDetails = () => {
 
             <div 
               className="related-blogs-scroll"
+              onScroll={handleScroll}
               style={{
                 display: 'flex',
                 flexDirection: 'row',
@@ -554,6 +577,28 @@ const BlogDetails = () => {
                 </div>
               ))}
             </div>
+
+            {/* Slider Dots */}
+            {relatedBlogs.length > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '10px', marginBottom: '20px' }}>
+                {relatedBlogs.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleDotClick(idx)}
+                    style={{
+                      width: '9px',
+                      height: '9px',
+                      borderRadius: '50%',
+                      border: 'none',
+                      backgroundColor: idx === activeSlide ? '#0A6738' : '#D9D9D9',
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'background-color 0.2s'
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
