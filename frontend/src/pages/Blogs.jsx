@@ -105,7 +105,7 @@ const Blogs = () => {
       
       {/* Decorative Angled stripes behind components to match Figma */}
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         width: '120%',
         height: '110px',
         background: 'linear-gradient(90deg, #F0FDD4 0%, #D8F593 100%)',
@@ -116,7 +116,7 @@ const Blogs = () => {
         pointerEvents: 'none'
       }} />
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         width: '120%',
         height: '110px',
         background: 'linear-gradient(90deg, #5DCE6E 0%, #0A6738 100%)',
@@ -128,7 +128,7 @@ const Blogs = () => {
         pointerEvents: 'none'
       }} />
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         width: '120%',
         height: '130px',
         background: 'linear-gradient(90deg, #D8F593 0%, #A2E23B 100%)',
