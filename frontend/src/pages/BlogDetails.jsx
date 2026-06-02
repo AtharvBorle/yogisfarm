@@ -23,7 +23,8 @@ const BlogDetails = () => {
     const container = e.target;
     const scrollLeft = container.scrollLeft;
     const itemWidth = 304; // 280px card + 24px gap
-    const idx = Math.round(scrollLeft / itemWidth);
+    let idx = Math.round(scrollLeft / itemWidth);
+    if (idx > 2) idx = 2;
     if (idx !== activeSlide && idx >= 0 && idx < relatedBlogs.length) {
       setActiveSlide(idx);
     }
@@ -581,7 +582,7 @@ const BlogDetails = () => {
             {/* Slider Dots */}
             {relatedBlogs.length > 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '10px', marginBottom: '20px' }}>
-                {relatedBlogs.map((_, idx) => (
+                {[0, 1, 2].slice(0, relatedBlogs.length).map((idx) => (
                   <button
                     key={idx}
                     onClick={() => handleDotClick(idx)}
