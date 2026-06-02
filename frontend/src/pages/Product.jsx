@@ -85,7 +85,8 @@ const Product = () => {
         key: product ? `product/${product.slug || product.id}` : null,
         title: product ? product.name : 'Product Details',
         description: product ? product.description : '',
-        keywords: product ? `${product.name}, ${product.category?.name || ''}` : ''
+        keywords: product ? `${product.name}, ${product.category?.name || ''}` : '',
+        ogImage: product ? product.image : ''
     });
 
     const handleReviewSubmit = async (e) => {

@@ -17,7 +17,8 @@ const BlogDetails = () => {
     key: blog ? `blogs/${blog.slug || blog.id}` : null,
     title: blog ? blog.title : 'Blog Details',
     description: blog ? blog.description : '',
-    keywords: blog ? blog.tags : ''
+    keywords: blog ? blog.tags : '',
+    ogImage: blog ? blog.image : ''
   });
 
   useEffect(() => {

@@ -7,6 +7,7 @@ export const useSEO = (seoData) => {
       let title = '';
       let description = '';
       let keywords = '';
+      let ogImage = '';
 
       if (typeof seoData === 'string') {
         try {
@@ -16,6 +17,7 @@ export const useSEO = (seoData) => {
             title = settings[`seo_${seoData}_title`] || '';
             description = settings[`seo_${seoData}_description`] || '';
             keywords = settings[`seo_${seoData}_keywords`] || '';
+            ogImage = settings[`seo_${seoData}_og_image`] || '';
           }
         } catch (err) {
           console.error('Failed to load SEO settings', err);
@@ -29,21 +31,25 @@ export const useSEO = (seoData) => {
               title = settings[`seo_${seoData.key}_title`] || seoData.title || '';
               description = settings[`seo_${seoData.key}_description`] || seoData.description || '';
               keywords = settings[`seo_${seoData.key}_keywords`] || seoData.keywords || '';
+              ogImage = settings[`seo_${seoData.key}_og_image`] || seoData.ogImage || '';
             } else {
               title = seoData.title || '';
               description = seoData.description || '';
               keywords = seoData.keywords || '';
+              ogImage = seoData.ogImage || '';
             }
           } catch (err) {
             console.error('Failed to load SEO settings', err);
             title = seoData.title || '';
             description = seoData.description || '';
             keywords = seoData.keywords || '';
+            ogImage = seoData.ogImage || '';
           }
         } else {
           title = seoData.title || '';
           description = seoData.description || '';
           keywords = seoData.keywords || '';
+          ogImage = seoData.ogImage || '';
         }
       }
 
@@ -103,6 +109,27 @@ export const useSEO = (seoData) => {
           }
         }
         metaKeywords.content = keywords;
+      }
+
+      // Update or Create Meta Property OG Image
+      let metaOgImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage) {
+        if (!metaOgImage) {
+          metaOgImage = document.createElement('meta');
+          metaOgImage.setAttribute('property', 'og:image');
+          const insertAnchor = metaKeywords || metaPropDesc || metaDesc || titleTag;
+          if (insertAnchor) {
+            insertAnchor.parentNode.insertBefore(metaOgImage, insertAnchor.nextSibling);
+          } else {
+            document.head.appendChild(metaOgImage);
+          }
+        }
+        let absOgImage = ogImage;
+        if (ogImage && !ogImage.startsWith('http://') && !ogImage.startsWith('https://')) {
+          const origin = window.location.origin;
+          absOgImage = `${origin}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+        }
+        metaOgImage.content = absOgImage;
       }
     };
 
