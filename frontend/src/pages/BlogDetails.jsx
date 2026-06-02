@@ -42,7 +42,7 @@ const BlogDetails = () => {
             author: {
               name: post.authorName || "ProWIn",
               date: post.authorDate || "20th May 2026",
-              avatar: post.authorAvatar ? getAssetUrl(post.authorAvatar) : "/assets/imgs/theme/avatar.png"
+              avatar: getAssetUrl(post.authorAvatar || "assets/imgs/feedback_avatar.svg")
             }
           }));
           setBlogsList(list);
@@ -68,7 +68,7 @@ const BlogDetails = () => {
             author: {
               name: post.authorName || "ProWIn",
               date: post.authorDate || "20th May 2026",
-              avatar: post.authorAvatar ? getAssetUrl(post.authorAvatar) : "/assets/imgs/theme/avatar.png"
+              avatar: getAssetUrl(post.authorAvatar || "assets/imgs/feedback_avatar.svg")
             }
           };
           setBlog(currentBlog);
@@ -327,6 +327,33 @@ const BlogDetails = () => {
                 </span>
               </div>
             </div>
+
+            {/* Main Blog Image */}
+            {blog.image && (
+              <div style={{
+                width: '100%',
+                height: '447px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                marginBottom: '30px',
+                backgroundColor: '#F9FAFB',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                border: '1px solid #ECEEEF'
+              }}>
+                <img 
+                  src={blog.image} 
+                  alt={blog.title} 
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    display: 'block'
+                  }} 
+                />
+              </div>
+            )}
 
             {/* Style override to force HTML bullet points to show since reset CSS overrides it */}
             <style dangerouslySetInnerHTML={{ __html: `

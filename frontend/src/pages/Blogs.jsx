@@ -33,7 +33,7 @@ const Blogs = () => {
             author: {
               name: post.authorName || "ProWIn",
               date: post.authorDate || "20th May 2026",
-              avatar: post.authorAvatar ? getAssetUrl(post.authorAvatar) : "/assets/imgs/theme/avatar.png"
+              avatar: getAssetUrl(post.authorAvatar || "assets/imgs/feedback_avatar.svg")
             }
           }));
           setBlogsList(mapped);
