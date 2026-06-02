@@ -194,7 +194,7 @@ const BlogDetails = () => {
       )}
 
 
-      <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
+      <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px', paddingLeft: '60px', paddingRight: '60px' }}>
         {/* Main Columns Layout */}
         <div style={{
           display: 'flex',
@@ -356,6 +356,14 @@ const BlogDetails = () => {
               .blog-content-body h4 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.4; margin-top: 18px; margin-bottom: 8px; }
               .blog-content-body h5 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; line-height: 1.4; margin-top: 16px; margin-bottom: 8px; }
               .blog-content-body h6 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; line-height: 1.4; margin-top: 14px; margin-bottom: 6px; }
+
+              .blog-content-body p {
+                color: #1a1a1a;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
+                line-height: 1.8;
+                margin-bottom: 15px;
+              }
 
               .blog-content-body ul {
                 list-style-type: disc !important;

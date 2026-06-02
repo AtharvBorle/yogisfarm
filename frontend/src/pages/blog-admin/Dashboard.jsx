@@ -37,6 +37,7 @@ const BlogAdminDashboard = () => {
   const [seoTitle, setSeoTitle] = useState('');
   const [seoDesc, setSeoDesc] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
+  const [seoOgImage, setSeoOgImage] = useState('');
   const [seoLoading, setSeoLoading] = useState(false);
   const [seoBlogSearch, setSeoBlogSearch] = useState('');
   const [isConfiguringSpecificBlog, setIsConfiguringSpecificBlog] = useState(false);
@@ -409,6 +410,39 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  // Helper to count words in a string
+  const getWordCount = (str) => {
+    if (!str) return 0;
+    return str.trim().split(/\s+/).filter(Boolean).length;
+  };
+
+  // Restrict short description to maximum 25 words
+  const handleDescriptionChange = (e) => {
+    const text = e.target.value;
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    
+    if (words.length > 25) {
+      const tokens = text.split(/(\s+)/);
+      let count = 0;
+      let resultParts = [];
+      for (const token of tokens) {
+        if (/\s+/.test(token)) {
+          resultParts.push(token);
+        } else if (token !== '') {
+          count++;
+          if (count <= 25) {
+            resultParts.push(token);
+          } else {
+            break;
+          }
+        }
+      }
+      setDescription(resultParts.join('').trim());
+    } else {
+      setDescription(text);
+    }
+  };
+
   // Reset Form
   const resetForm = () => {
     setEditingId(null);
@@ -477,11 +511,15 @@ const BlogAdminDashboard = () => {
       return;
     }
 
+    // Ensure short description is strictly truncated to 25 words max
+    const descWords = description.trim().split(/\s+/).filter(Boolean);
+    const finalDescription = descWords.length > 25 ? descWords.slice(0, 25).join(' ') : description;
+
     const payload = {
       title,
       slug,
       category,
-      description,
+      description: finalDescription,
       content,
       image,
       bannerImage,
@@ -571,6 +609,7 @@ const BlogAdminDashboard = () => {
         setSeoTitle(settings[`seo_${page}_title`] || '');
         setSeoDesc(settings[`seo_${page}_description`] || '');
         setSeoKeywords(settings[`seo_${page}_keywords`] || '');
+        setSeoOgImage(settings[`seo_${page}_og_image`] || '');
       }
     } catch (err) {
       console.error('Failed to fetch SEO settings', err);
@@ -586,7 +625,8 @@ const BlogAdminDashboard = () => {
         settings: {
           [`seo_${seoPage}_title`]: seoTitle,
           [`seo_${seoPage}_description`]: seoDesc,
-          [`seo_${seoPage}_keywords`]: seoKeywords
+          [`seo_${seoPage}_keywords`]: seoKeywords,
+          [`seo_${seoPage}_og_image`]: seoOgImage
         }
       };
       const res = await api.put('/settings', payload);
@@ -1450,7 +1490,7 @@ const BlogAdminDashboard = () => {
                   </label>
                   <textarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={handleDescriptionChange}
                     placeholder="Provide a brief summary of the blog post to attract readers..."
                     rows={3}
                     style={{
@@ -1465,6 +1505,18 @@ const BlogAdminDashboard = () => {
                       fontFamily: 'inherit'
                     }}
                   />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                    <span style={{ fontSize: '12px', color: '#667085' }}>
+                      Brief summary to attract readers (SEO & blog card preview).
+                    </span>
+                    <span style={{ 
+                      fontSize: '12px', 
+                      fontWeight: '600', 
+                      color: getWordCount(description) >= 25 ? '#b42318' : '#667085' 
+                    }}>
+                      {getWordCount(description)} / 25 words
+                    </span>
+                  </div>
                 </div>
 
                 {/* Rich text WYSIWYG Editor section */}
@@ -1809,6 +1861,14 @@ const BlogAdminDashboard = () => {
                     .blog-editor-content h4 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.4; margin-top: 18px; margin-bottom: 8px; }
                     .blog-editor-content h5 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; line-height: 1.4; margin-top: 16px; margin-bottom: 8px; }
                     .blog-editor-content h6 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; line-height: 1.4; margin-top: 14px; margin-bottom: 6px; }
+
+                    .blog-editor-content p {
+                      color: #1a1a1a;
+                      font-family: 'Poppins', sans-serif;
+                      font-size: 16px;
+                      line-height: 1.8;
+                      margin-bottom: 15px;
+                    }
 
                     .blog-editor-content ul {
                       list-style-type: disc !important;
@@ -2877,6 +2937,28 @@ const BlogAdminDashboard = () => {
                     value={seoKeywords}
                     onChange={(e) => setSeoKeywords(e.target.value)}
                     placeholder="e.g. organic oils, groundnut oil, yogis farms (comma separated)"
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                    Open Graph Image URL (og:image)
+                  </label>
+                  <input
+                    type="text"
+                    value={seoOgImage}
+                    onChange={(e) => setSeoOgImage(e.target.value)}
+                    placeholder="e.g. https://example.com/image.jpg (absolute URL recommended)"
                     style={{
                       width: '100%',
                       height: '46px',

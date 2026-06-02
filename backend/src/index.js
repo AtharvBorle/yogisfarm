@@ -148,6 +148,7 @@ app.get('*', async (req, res) => {
     let fallbackTitle = 'YogisFarms';
     let fallbackDesc = 'YogisFarms - Pure & Natural Farm Products';
     let fallbackKeywords = '';
+    let fallbackOgImage = '';
 
     // Route matching for SEO
     if (urlPath === '/' || urlPath === '') {
@@ -177,6 +178,7 @@ app.get('*', async (req, res) => {
         fallbackTitle = blog.title;
         fallbackDesc = blog.description || '';
         fallbackKeywords = blog.tags || '';
+        fallbackOgImage = blog.image || '';
       }
     } else if (urlPath.startsWith('/product/')) {
       const slug = urlPath.substring(9).split('?')[0];
@@ -188,6 +190,7 @@ app.get('*', async (req, res) => {
       if (product) {
         fallbackTitle = product.name;
         fallbackDesc = product.description || '';
+        fallbackOgImage = product.image || '';
         if (product.categoryId) {
           const category = await prisma.category.findUnique({
             where: { id: product.categoryId }
@@ -202,6 +205,7 @@ app.get('*', async (req, res) => {
     let title = fallbackTitle;
     let description = fallbackDesc;
     let keywords = fallbackKeywords;
+    let ogImage = fallbackOgImage;
 
     if (seoKey) {
       const dbSettings = await prisma.setting.findMany({
@@ -210,7 +214,8 @@ app.get('*', async (req, res) => {
             in: [
               `seo_${seoKey}_title`,
               `seo_${seoKey}_description`,
-              `seo_${seoKey}_keywords`
+              `seo_${seoKey}_keywords`,
+              `seo_${seoKey}_og_image`
             ]
           }
         }
@@ -224,6 +229,7 @@ app.get('*', async (req, res) => {
       title = settingsMap[`seo_${seoKey}_title`] || title;
       description = settingsMap[`seo_${seoKey}_description`] || description;
       keywords = settingsMap[`seo_${seoKey}_keywords`] || keywords;
+      ogImage = settingsMap[`seo_${seoKey}_og_image`] || ogImage;
     }
 
     // Escape dynamic HTML injection content safely
@@ -236,18 +242,28 @@ app.get('*', async (req, res) => {
         .replace(/'/g, "&#039;");
     };
 
+    const makeAbsoluteUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      const host = req.get('host');
+      const protocol = req.protocol;
+      return `${protocol}://${host}${url}`;
+    };
+
     const cleanTitle = escapeHtml(title);
     const cleanDesc = escapeHtml(description);
     const cleanKeywords = escapeHtml(keywords);
+    const cleanOgImage = escapeHtml(makeAbsoluteUrl(ogImage));
 
-    // Strip existing title, description, and keywords tags
+    // Strip existing title, description, keywords and og:image tags
     html = html.replace(/<title>[\s\S]*?<\/title>/gi, '');
     html = html.replace(/<meta\s+[^>]*name=["']description["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*property=["']description["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*name=["']keywords["'][^>]*>/gi, '');
+    html = html.replace(/<meta\s+[^>]*property=["']og:image["'][^>]*>/gi, '');
 
     // Inject the new tags right after <head>
-    const seoTags = `\n    <title>${cleanTitle}</title>\n    <meta name="description" content="${cleanDesc}">\n    <meta property="description" content="${cleanDesc}">\n    <meta name="keywords" content="${cleanKeywords}">`;
+    const seoTags = `\n    <title>${cleanTitle}</title>\n    <meta name="description" content="${cleanDesc}">\n    <meta property="description" content="${cleanDesc}">\n    <meta name="keywords" content="${cleanKeywords}">\n    <meta property="og:image" content="${cleanOgImage}">`;
 
     html = html.replace('<head>', `<head>${seoTags}`);
 
