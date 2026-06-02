@@ -11,6 +11,13 @@ const BlogDetails = () => {
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [activeSlide, setActiveSlide] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Call useSEO dynamically with blog details
   useSEO({
@@ -195,7 +202,7 @@ const BlogDetails = () => {
       )}
 
 
-      <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px', paddingLeft: '60px', paddingRight: '60px' }}>
+      <div className="container" style={{ paddingTop: isMobile ? '20px' : '40px', paddingBottom: isMobile ? '30px' : '60px', paddingLeft: isMobile ? '15px' : '60px', paddingRight: isMobile ? '15px' : '60px' }}>
         {/* Main Columns Layout */}
         <div style={{
           display: 'flex',
