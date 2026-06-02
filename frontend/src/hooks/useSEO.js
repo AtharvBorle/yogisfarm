@@ -21,9 +21,30 @@ export const useSEO = (seoData) => {
           console.error('Failed to load SEO settings', err);
         }
       } else if (seoData && typeof seoData === 'object') {
-        title = seoData.title || '';
-        description = seoData.description || '';
-        keywords = seoData.keywords || '';
+        if (seoData.key) {
+          try {
+            const res = await api.get('/settings');
+            if (res.data.status && res.data.settings) {
+              const settings = res.data.settings;
+              title = settings[`seo_${seoData.key}_title`] || seoData.title || '';
+              description = settings[`seo_${seoData.key}_description`] || seoData.description || '';
+              keywords = settings[`seo_${seoData.key}_keywords`] || seoData.keywords || '';
+            } else {
+              title = seoData.title || '';
+              description = seoData.description || '';
+              keywords = seoData.keywords || '';
+            }
+          } catch (err) {
+            console.error('Failed to load SEO settings', err);
+            title = seoData.title || '';
+            description = seoData.description || '';
+            keywords = seoData.keywords || '';
+          }
+        } else {
+          title = seoData.title || '';
+          description = seoData.description || '';
+          keywords = seoData.keywords || '';
+        }
       }
 
       // Update Page Title

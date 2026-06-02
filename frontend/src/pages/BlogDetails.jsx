@@ -14,6 +14,7 @@ const BlogDetails = () => {
 
   // Call useSEO dynamically with blog details
   useSEO({
+    key: blog ? `blogs/${blog.slug || blog.id}` : null,
     title: blog ? blog.title : 'Blog Details',
     description: blog ? blog.description : '',
     keywords: blog ? blog.tags : ''
@@ -47,7 +48,7 @@ const BlogDetails = () => {
           setBlogsList(list);
         }
 
-        const res = await api.get(`/blogs/${id}`);
+        const res = await api.get(`/blogs/${id}?admin=true`);
         if (res.data.status && res.data.blog) {
           const post = res.data.blog;
           const currentBlog = {
@@ -61,6 +62,7 @@ const BlogDetails = () => {
             content: post.content,
             tags: post.tags || "",
             archiveBlogIds: post.archiveBlogIds || "",
+            archivedBlogs: post.archivedBlogs || [],
             sidebarImage: post.sidebarImage ? getAssetUrl(post.sidebarImage) : null,
             sidebarLink: post.sidebarLink || "",
             author: {
@@ -119,20 +121,26 @@ const BlogDetails = () => {
     );
   }
 
-  // Parse selected archives for the sidebar
+  // Parse selected archives for the sidebar.
+  // If the admin explicitly selected archives, use the resolved archives list from the database.
+  // Otherwise, fallback to showing all active blogs (blogsList).
   const archiveIds = blog.archiveBlogIds
     ? blog.archiveBlogIds.split(',').map(s => s.trim()).filter(Boolean)
     : [];
-  const archivedBlogs = blogsList.filter(b => archiveIds.includes(String(b.id)));
+  const archivedBlogs = archiveIds.length > 0
+    ? (blog.archivedBlogs || [])
+    : blogsList;
 
   return (
     <main className="main pages" style={{ backgroundColor: '#FFFFFF', minHeight: '100vh', fontFamily: 'Poppins, sans-serif' }}>
       
       {/* Top Hero Banner Section */}
       <div style={{
-        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url(${blog.bannerImage || blog.image || ''})`,
+        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url("${blog.bannerImage || blog.image || ''}")`,
+        backgroundColor: '#0a6738',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         height: '180px',
         width: '100%',
         display: 'flex',

@@ -403,7 +403,26 @@ router.get('/:idOrSlug', async (req, res) => {
       return res.status(404).json({ status: false, message: 'Blog post not found' });
     }
 
-    res.json({ status: true, blog });
+    // Resolve archived blogs details
+    let archivedBlogs = [];
+    if (blog.archiveBlogIds) {
+      const ids = blog.archiveBlogIds.split(',').map(s => parseInt(s.trim())).filter(id => !isNaN(id));
+      if (ids.length > 0) {
+        const posts = await prisma.blogPost.findMany({
+          where: { id: { in: ids } },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true
+          }
+        });
+        // Maintain the order selected by admin
+        archivedBlogs = ids.map(id => posts.find(p => p.id === id)).filter(Boolean);
+      }
+    }
+
+    res.json({ status: true, blog: { ...blog, archivedBlogs } });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });
   }
