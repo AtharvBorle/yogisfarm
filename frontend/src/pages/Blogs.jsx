@@ -14,6 +14,13 @@ const Blogs = () => {
   const [blogsList, setBlogsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoriesList, setCategoriesList] = useState(["All"]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const postsPerPage = 9;
 
@@ -233,7 +240,26 @@ const Blogs = () => {
           gap: '15px'
         }}>
           {/* Category Tabs */}
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div 
+            className="category-tabs-scroll"
+            style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              flexWrap: isMobile ? 'nowrap' : 'wrap',
+              overflowX: isMobile ? 'auto' : 'visible',
+              width: isMobile ? '100%' : 'auto',
+              paddingBottom: isMobile ? '8px' : '0',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+          >
+            <style>{`
+              .category-tabs-scroll::-webkit-scrollbar {
+                display: none !important;
+              }
+            `}</style>
+
             {categoriesList.map(category => {
               const isActive = selectedCategory === category;
               return (
@@ -251,7 +277,8 @@ const Blogs = () => {
                     fontFamily: 'Poppins, sans-serif',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)'
+                    boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
+                    flexShrink: 0
                   }}
                 >
                   {category}
