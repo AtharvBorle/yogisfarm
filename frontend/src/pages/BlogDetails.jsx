@@ -134,44 +134,64 @@ const BlogDetails = () => {
   return (
     <main className="main pages" style={{ backgroundColor: '#FFFFFF', minHeight: '100vh', fontFamily: 'Poppins, sans-serif' }}>
       
-      {/* Top Hero Banner Section */}
-      <div style={{
-        backgroundImage: `linear-gradient(rgba(10, 103, 56, 0.65), rgba(10, 103, 56, 0.65)), url("${blog.bannerImage || blog.image || ''}")`,
-        backgroundColor: '#0a6738',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        height: '180px',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'flex-start',
-        paddingTop: '20px',
-        paddingLeft: '8%',
-        position: 'relative',
-        marginBottom: '20px',
-        boxSizing: 'border-box'
-      }}>
+      {/* Hero Banner Section with Overlay Breadcrumbs */}
+      {blog.bannerImage || blog.image ? (
         <div style={{
-          color: '#ffffff',
-          fontSize: '13px',
-          fontFamily: 'Poppins, sans-serif',
-          textTransform: 'lowercase',
-          letterSpacing: '0.5px',
-          fontWeight: '400',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
+          width: '100%',
+          height: '350px',
+          position: 'relative',
+          overflow: 'hidden',
+          marginBottom: '30px'
         }}>
-          <Link to="/" style={{ color: '#ffffff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ACD140'} onMouseLeave={(e) => e.target.style.color = '#ffffff'}>
-            <i className="fi-rs-home" style={{ fontSize: '11px', marginRight: '6px' }}></i>
-            home
-          </Link>
-          <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>&gt;</span>
-          <Link to="/blogs" style={{ color: '#ffffff', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ACD140'} onMouseLeave={(e) => e.target.style.color = '#ffffff'}>page</Link>
-          <span style={{ color: 'rgba(255, 255, 255, 0.6)' }}>&gt;</span>
-          <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>blogs</span>
+          {/* Background Image - Cover/Stretched */}
+          <img 
+            src={blog.bannerImage || blog.image} 
+            alt={blog.title} 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover' // Stretches/expands to fill the 350px height
+            }} 
+          />
+
+          {/* Breadcrumbs Overlaid on Top of the Image */}
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            left: '8%',
+            zIndex: 10,
+            color: '#000000',
+            fontSize: '13px',
+            fontFamily: 'Poppins, sans-serif',
+            letterSpacing: '0.5px',
+            fontWeight: '400',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            textShadow: '1px 1px 3px rgba(255, 255, 255, 0.8)'
+          }}>
+            <Link to="/" style={{ color: '#000000', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ACD140'} onMouseLeave={(e) => e.target.style.color = '#000000'}>
+              <i className="fi-rs-home" style={{ fontSize: '11px', marginRight: '6px' }}></i>
+              Home
+            </Link>
+            <span style={{ color: 'rgba(0, 0, 0, 0.6)' }}>&gt;</span>
+            <Link to="/blogs" style={{ color: '#000000', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#ACD140'} onMouseLeave={(e) => e.target.style.color = '#000000'}>Page</Link>
+            <span style={{ color: 'rgba(0, 0, 0, 0.6)' }}>&gt;</span>
+            <span style={{ color: 'rgba(0, 0, 0, 0.7)' }}>Blogs</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Fallback Standard Breadcrumbs if no image exists */
+        <div className="page-header breadcrumb-wrap" style={{ margin: '0', borderBottom: '1px solid #F2F4F7', zIndex: 2, position: 'relative' }}>
+          <div className="container">
+            <div className="breadcrumb" style={{ fontSize: '13px', fontFamily: 'Poppins, sans-serif' }}>
+              <Link to="/" rel="nofollow"><i className="fi-rs-home mr-5"></i>Home</Link>
+              <span></span> <Link to="/blogs">Blog</Link>
+              <span></span> {blog.title}
+            </div>
+          </div>
+        </div>
+      )}
 
 
       <div className="container" style={{ paddingTop: '40px', paddingBottom: '60px' }}>
@@ -328,51 +348,42 @@ const BlogDetails = () => {
               </div>
             </div>
 
-            {/* Main Blog Image */}
-            {blog.image && (
-              <div style={{
-                width: '100%',
-                height: '447px',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                marginBottom: '30px',
-                backgroundColor: '#F9FAFB',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                border: '1px solid #ECEEEF'
-              }}>
-                <img 
-                  src={blog.image} 
-                  alt={blog.title} 
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    display: 'block'
-                  }} 
-                />
-              </div>
-            )}
-
-            {/* Style override to force HTML bullet points to show since reset CSS overrides it */}
+            {/* Style override to support default layouts while allowing pasted inline formatting to be preserved */}
             <style dangerouslySetInnerHTML={{ __html: `
+              .blog-content-body h1 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
+              .blog-content-body h2 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
+              .blog-content-body h3 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.4; margin-top: 20px; margin-bottom: 10px; }
+              .blog-content-body h4 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.4; margin-top: 18px; margin-bottom: 8px; }
+              .blog-content-body h5 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; line-height: 1.4; margin-top: 16px; margin-bottom: 8px; }
+              .blog-content-body h6 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; line-height: 1.4; margin-top: 14px; margin-bottom: 6px; }
+
               .blog-content-body ul {
                 list-style-type: disc !important;
                 padding-left: 20px !important;
                 margin-top: 15px !important;
                 margin-bottom: 25px !important;
               }
-              .blog-content-body li {
-                list-style-type: disc !important;
-                margin-bottom: 10px !important;
-                font-family: 'Poppins', sans-serif !important;
-                font-size: 16px !important;
-                color: #4A4A4A !important;
-                line-height: 28px !important;
+              .blog-content-body ol {
+                list-style-type: decimal !important;
+                padding-left: 20px !important;
+                margin-top: 15px !important;
+                margin-bottom: 25px !important;
               }
-              .blog-content-body h3, .blog-content-body h4 {
-                font-family: 'Poppins', sans-serif !important;
+              .blog-content-body ul li {
+                list-style-type: disc !important;
+                margin-bottom: 10px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
+                color: #4A4A4A;
+                line-height: 28px;
+              }
+              .blog-content-body ol li {
+                list-style-type: decimal !important;
+                margin-bottom: 10px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
+                color: #4A4A4A;
+                line-height: 28px;
               }
             `}} />
 

@@ -51,6 +51,7 @@ const BlogAdminDashboard = () => {
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
+  const wordInputRef = useRef(null);
   const featuredImageRef = useRef(null);
   const bannerImageRef = useRef(null);
   const authorAvatarRef = useRef(null);
@@ -159,6 +160,85 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  // Handle paste in editor to clean up pasted styles (e.g. green headings, classes, bad font-sizes)
+  const handleEditorPaste = (e) => {
+    // We let the browser perform the native paste operation first.
+    // This allows the browser to convert Microsoft Word stylesheets and nested clipboard elements
+    // into standard inline CSS styles (font-family, font-size, colors, bold, lists, etc.) on the elements.
+    
+    // We schedule a sanitize pass immediately after the paste completes.
+    setTimeout(() => {
+      if (editorRef.current) {
+        sanitizeEditorDOM(editorRef.current);
+        setContent(editorRef.current.innerHTML);
+      }
+    }, 10);
+  };
+
+  // Walk through the editor elements to strip styles/classes that conflict with Yogi's Farms theme
+  const sanitizeEditorDOM = (root) => {
+    const walk = (node) => {
+      if (node.nodeType === 1) { // Element node
+        const tagName = node.tagName.toUpperCase();
+
+        // 1. Remove class and id attributes completely so global page stylesheet rules (like .post-title or .section-title h3)
+        // do not force headings green inside the editor.
+        node.removeAttribute('class');
+        node.removeAttribute('id');
+
+        // 2. Check inline style attribute and clean specific conflicting styles (like brand green colors)
+        const styleAttr = node.getAttribute('style');
+        if (styleAttr) {
+          let styleRules = styleAttr.split(';').map(rule => rule.trim()).filter(Boolean);
+          
+          styleRules = styleRules.filter(rule => {
+            const parts = rule.split(':').map(p => p.trim());
+            if (parts.length < 2) return true;
+            const prop = parts[0].toLowerCase();
+            const val = parts[1].toLowerCase();
+
+            // Strip green color values from headings and text so they default to dark neutral color
+            if (prop === 'color') {
+              if (val.includes('green') || val.includes('0a6738') || val.includes('046938') || val.includes('rgb(4,') || val.includes('rgb(10,')) {
+                return false;
+              }
+            }
+
+            // Strip green background highlights
+            if (prop === 'background-color' || prop === 'background') {
+              if (val.includes('green') || val.includes('0a6738') || val.includes('046938') || val.includes('rgb(4,') || val.includes('rgb(10,')) {
+                return false;
+              }
+            }
+
+            return true;
+          });
+
+          if (styleRules.length > 0) {
+            node.setAttribute('style', styleRules.join('; '));
+          } else {
+            node.removeAttribute('style');
+          }
+        }
+
+        // 3. Remove pasted raw <style> tags to avoid polluting the editor
+        if (tagName === 'STYLE') {
+          node.parentNode.removeChild(node);
+          return;
+        }
+      }
+
+      // Process children
+      const children = Array.from(node.childNodes);
+      for (const child of children) {
+        walk(child);
+      }
+    };
+
+    walk(root);
+  };
+
+
   // Editor image upload handler
   const handleEditorImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -187,6 +267,50 @@ const BlogAdminDashboard = () => {
     } catch (err) {
       toast.error('Upload error', { id: loadToast });
     }
+  };
+
+  // Import Word document (.docx) handler
+  const handleWordImportUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file extension
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'docx') {
+      toast.error('Only Microsoft Word (.docx) files are supported.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('doc', file);
+
+    const loadToast = toast.loading('Importing content from Word...');
+    try {
+      const res = await api.post('/blogs/import-word', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.status) {
+        toast.success('Word document imported successfully!', { id: loadToast });
+        
+        // Load clean HTML into editor content state
+        const importedHtml = res.data.html;
+        setContent(importedHtml);
+        
+        if (editorRef.current) {
+          editorRef.current.innerHTML = importedHtml;
+          // Trigger post-paste sanitizer to make sure classes and ids from Word are stripped
+          sanitizeEditorDOM(editorRef.current);
+          setContent(editorRef.current.innerHTML);
+        }
+      } else {
+        toast.error(res.data.message || 'Import failed', { id: loadToast });
+      }
+    } catch (err) {
+      toast.error('Error importing Word document: ' + err.message, { id: loadToast });
+    }
+
+    // Reset file input value so same file can be imported again if needed
+    e.target.value = '';
   };
 
   // Featured Image Upload handler
@@ -1367,115 +1491,298 @@ const BlogAdminDashboard = () => {
                   {!isHtmlMode && (
                     <div style={{
                       display: 'flex',
-                      gap: '8px',
-                      backgroundColor: '#F2F4F7',
-                      padding: '8px',
+                      flexDirection: 'column',
+                      backgroundColor: '#F3F4F6',
+                      border: '1px solid #D0D5DD',
                       borderTopLeftRadius: '8px',
                       borderTopRightRadius: '8px',
-                      border: '1px solid #D0D5DD',
                       borderBottom: 'none',
-                      flexWrap: 'wrap',
-                      alignItems: 'center'
+                      padding: '8px 12px 6px 12px',
+                      fontFamily: 'Segoe UI, system-ui, sans-serif',
+                      boxSizing: 'border-box'
                     }}>
-                      {/* Basic styles */}
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <button type="button" onClick={() => execEditorCommand('bold')} title="Bold" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>B</button>
-                        <button type="button" onClick={() => execEditorCommand('italic')} title="Italic" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>I</button>
-                        <button type="button" onClick={() => execEditorCommand('underline')} title="Underline" style={{ width: '32px', height: '32px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', textDecoration: 'underline', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>U</button>
-                      </div>
-
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
-
-                      {/* Font Family & Size & Color */}
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <select 
-                          onChange={(e) => execEditorCommand('fontName', e.target.value)}
-                          defaultValue="Poppins"
-                          style={{ height: '32px', padding: '0 8px', borderRadius: '4px', border: '1px solid #D0D5DD', fontSize: '13px', backgroundColor: '#ffffff', cursor: 'pointer', outline: 'none' }}
-                          title="Font Family"
-                        >
-                          <option value="Poppins">Poppins</option>
-                          <option value="Inter">Inter</option>
-                          <option value="Arial">Arial</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Courier New">Courier New</option>
-                          <option value="Times New Roman">Times New Roman</option>
-                        </select>
-
-                        <select 
-                          onChange={(e) => execEditorCommand('fontSize', e.target.value)}
-                          defaultValue="3"
-                          style={{ height: '32px', padding: '0 8px', borderRadius: '4px', border: '1px solid #D0D5DD', fontSize: '13px', backgroundColor: '#ffffff', cursor: 'pointer', outline: 'none' }}
-                          title="Font Size"
-                        >
-                          <option value="1">Smallest</option>
-                          <option value="2">Small</option>
-                          <option value="3">Normal</option>
-                          <option value="4">Large</option>
-                          <option value="5">Larger</option>
-                          <option value="6">Very Large</option>
-                          <option value="7">Largest</option>
-                        </select>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: '600', color: '#667085' }}>Color:</span>
-                          <input 
-                            type="color" 
-                            onChange={(e) => execEditorCommand('foreColor', e.target.value)}
-                            style={{ width: '28px', height: '28px', padding: 0, border: 'none', cursor: 'pointer', backgroundColor: 'transparent' }}
-                            title="Text Color"
-                          />
-                        </div>
-                      </div>
-
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
-
-                      {/* Headings */}
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<h3>')} title="Heading 3" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H3</button>
-                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<h4>')} title="Heading 4" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>H4</button>
-                        <button type="button" onClick={() => execEditorCommand('formatBlock', '<p>')} title="Paragraph" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>P</button>
-                      </div>
-
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
-
-                      {/* Alignments */}
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <button type="button" onClick={() => execEditorCommand('justifyLeft')} title="Align Left" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Left</button>
-                        <button type="button" onClick={() => execEditorCommand('justifyCenter')} title="Align Center" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Center</button>
-                        <button type="button" onClick={() => execEditorCommand('justifyRight')} title="Align Right" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>Right</button>
-                      </div>
-
-                      <div style={{ width: '1px', backgroundColor: '#D0D5DD', height: '24px' }}></div>
-
-                      {/* Rich inserts */}
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <button type="button" onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List" style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'} onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>• List</button>
+                      {/* Ribbon Stylesheets */}
+                      <style dangerouslySetInnerHTML={{ __html: `
+                        .ribbon-btn {
+                          height: 28px;
+                          min-width: 28px;
+                          border: 1px solid transparent;
+                          background: none;
+                          border-radius: 3px;
+                          cursor: pointer;
+                          font-size: 13px;
+                          display: inline-flex;
+                          align-items: center;
+                          justify-content: center;
+                          color: #333333;
+                          padding: 0 6px;
+                          transition: all 0.1s ease;
+                        }
+                        .ribbon-btn:hover {
+                          background-color: #E4E7EC !important;
+                          border-color: #D0D5DD !important;
+                        }
+                        .ribbon-btn:active {
+                          background-color: #D0D5DD !important;
+                        }
                         
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = prompt('Enter the link URL:');
-                            if (url) execEditorCommand('createLink', url);
-                          }}
-                          title="Insert Link"
-                          style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                        >
-                          Link
-                        </button>
+                        .ribbon-select {
+                          height: 28px;
+                          padding: 0 4px;
+                          border-radius: 3px;
+                          border: 1px solid #D0D5DD;
+                          font-size: 12px;
+                          background-color: #ffffff;
+                          cursor: pointer;
+                          outline: none;
+                          color: #333333;
+                          transition: all 0.1s ease;
+                        }
+                        .ribbon-select:hover {
+                          border-color: #98A2B3;
+                        }
 
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                          title="Insert Image inside content"
-                          style={{ height: '32px', padding: '0 8px', border: 'none', background: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0A6738', fontWeight: 'bold' }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#EAECF0'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                        >
-                          Insert Image
-                        </button>
+                        .word-style-card {
+                          height: 38px;
+                          min-width: 80px;
+                          background-color: #ffffff;
+                          border: 1px solid #D0D5DD;
+                          border-radius: 3px;
+                          display: inline-flex;
+                          flex-direction: column;
+                          align-items: center;
+                          justify-content: center;
+                          cursor: pointer;
+                          padding: 0 8px;
+                          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+                          transition: all 0.1s ease;
+                          user-select: none;
+                        }
+                        .word-style-card:hover {
+                          background-color: #F8F9FA !important;
+                          border-color: #98A2B3 !important;
+                        }
+                        .word-style-card:active {
+                          background-color: #F2F4F7 !important;
+                        }
+                      `}} />
+
+                      {/* The Ribbon Items Layout */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'stretch' }}>
+                        
+                        {/* Group 1: Undo & Clean */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('undo')} title="Undo (Ctrl+Z)">↶</button>
+                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('redo')} title="Redo (Ctrl+Y)">↷</button>
+                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('removeFormat')} title="Clear Formatting">🧹</button>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Undo</span>
+                        </div>
+                        
+                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
+
+                        {/* Group 2: Font */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            {/* Font Select */}
+                            <select 
+                              onChange={(e) => execEditorCommand('fontName', e.target.value)}
+                              defaultValue="Poppins"
+                              className="ribbon-select"
+                              title="Font Family"
+                            >
+                              <option value="Poppins">Poppins</option>
+                              <option value="Inter">Inter</option>
+                              <option value="Arial">Arial</option>
+                              <option value="Georgia">Georgia</option>
+                              <option value="Courier New">Courier New</option>
+                              <option value="Times New Roman">Times New Roman</option>
+                            </select>
+
+                            {/* Font Size Select */}
+                            <select 
+                              onChange={(e) => execEditorCommand('fontSize', e.target.value)}
+                              defaultValue="3"
+                              className="ribbon-select"
+                              style={{ width: '60px' }}
+                              title="Font Size"
+                            >
+                              <option value="1">8pt</option>
+                              <option value="2">10pt</option>
+                              <option value="3">12pt</option>
+                              <option value="4">14pt</option>
+                              <option value="5">18pt</option>
+                              <option value="6">24pt</option>
+                              <option value="7">36pt</option>
+                            </select>
+
+                            {/* Stylings */}
+                            <div style={{ display: 'flex', gap: '1px' }}>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('bold')} title="Bold" style={{ fontWeight: 'bold' }}>B</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('italic')} title="Italic" style={{ fontStyle: 'italic' }}>I</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('underline')} title="Underline" style={{ textDecoration: 'underline' }}>U</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('strikeThrough')} title="Strikethrough" style={{ textDecoration: 'line-through' }}>ab</button>
+                            </div>
+
+                            {/* Colors */}
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '4px' }}>
+                              {/* Font Color */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                <span style={{ fontSize: '9px', color: '#667085', fontWeight: 'bold', lineHeight: '1' }}>Text</span>
+                                <input 
+                                  type="color" 
+                                  onChange={(e) => execEditorCommand('foreColor', e.target.value)}
+                                  style={{ width: '22px', height: '14px', padding: 0, border: '1px solid #D0D5DD', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                  title="Font Color"
+                                />
+                              </div>
+
+                              {/* Highlight Color */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                <span style={{ fontSize: '9px', color: '#667085', fontWeight: 'bold', lineHeight: '1' }}>Highlight</span>
+                                <input 
+                                  type="color" 
+                                  defaultValue="#ffff00"
+                                  onChange={(e) => execEditorCommand('hiliteColor', e.target.value)}
+                                  style={{ width: '22px', height: '14px', padding: 0, border: '1px solid #D0D5DD', cursor: 'pointer', backgroundColor: 'transparent' }}
+                                  title="Text Highlight"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Font</span>
+                        </div>
+
+                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
+
+                        {/* Group 3: Paragraph */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            {/* Lists */}
+                            <div style={{ display: 'flex', gap: '1px' }}>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List">• List</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('insertOrderedList')} title="Numbered List">1. List</button>
+                            </div>
+
+                            {/* Indents */}
+                            <div style={{ display: 'flex', gap: '1px' }}>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('outdent')} title="Decrease Indent">⇤</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('indent')} title="Increase Indent">⇥</button>
+                            </div>
+
+                            {/* Alignments */}
+                            <div style={{ display: 'flex', gap: '1px' }}>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyLeft')} title="Align Left">Left</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyCenter')} title="Align Center">Center</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyRight')} title="Align Right">Right</button>
+                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyFull')} title="Justify">Justify</button>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Paragraph</span>
+                        </div>
+
+                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
+
+                        {/* Group 4: Styles */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button 
+                              type="button" 
+                              className="word-style-card" 
+                              onClick={() => execEditorCommand('formatBlock', '<p>')}
+                              title="Normal Text"
+                            >
+                              <span style={{ fontWeight: 'normal', fontSize: '11px', color: '#333' }}>Normal</span>
+                            </button>
+                            <button 
+                              type="button" 
+                              className="word-style-card" 
+                              onClick={() => execEditorCommand('formatBlock', '<h1>')}
+                              style={{ borderTop: '3px solid #0056b3' }}
+                              title="Heading 1"
+                            >
+                              <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#0056b3' }}>Heading 1</span>
+                            </button>
+                            <button 
+                              type="button" 
+                              className="word-style-card" 
+                              onClick={() => execEditorCommand('formatBlock', '<h2>')}
+                              style={{ borderTop: '3px solid #2e7d32' }}
+                              title="Heading 2"
+                            >
+                              <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#2e7d32' }}>Heading 2</span>
+                            </button>
+                            <button 
+                              type="button" 
+                              className="word-style-card" 
+                              onClick={() => execEditorCommand('formatBlock', '<h3>')}
+                              style={{ borderTop: '3px solid #c62828' }}
+                              title="Heading 3"
+                            >
+                              <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#c62828' }}>Heading 3</span>
+                            </button>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Styles</span>
+                        </div>
+
+                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
+
+                        {/* Group 5: Insert */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="ribbon-btn"
+                              onClick={() => {
+                                const url = prompt('Enter the link URL:');
+                                if (url) execEditorCommand('createLink', url);
+                              }}
+                              title="Insert Link"
+                              style={{ color: '#0288d1', fontWeight: '600' }}
+                            >
+                              🔗 Link
+                            </button>
+                            <button
+                              type="button"
+                              className="ribbon-btn"
+                              onClick={() => execEditorCommand('unlink')}
+                              title="Remove Link"
+                              style={{ color: '#d32f2f', fontWeight: '600' }}
+                            >
+                              🔗❌ Unlink
+                            </button>
+                            <button
+                              type="button"
+                              className="ribbon-btn"
+                              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                              title="Insert Image inside content"
+                              style={{ color: '#2e7d32', fontWeight: '600' }}
+                            >
+                              🖼️ Image
+                            </button>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Insert</span>
+                        </div>
+
+                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
+
+                        {/* Group 6: Word Import */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="ribbon-btn"
+                              onClick={() => wordInputRef.current && wordInputRef.current.click()}
+                              title="Import from MS Word (.docx)"
+                              style={{ color: '#185abd', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              📄 Import Word (.docx)
+                            </button>
+                          </div>
+                          <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Import</span>
+                        </div>
+
                       </div>
                       <input
                         type="file"
@@ -1484,15 +1791,63 @@ const BlogAdminDashboard = () => {
                         onChange={handleEditorImageUpload}
                         style={{ display: 'none' }}
                       />
+                      <input
+                        type="file"
+                        ref={wordInputRef}
+                        accept=".docx"
+                        onChange={handleWordImportUpload}
+                        style={{ display: 'none' }}
+                      />
                     </div>
                   )}
+
+                  {/* Style override to support default layouts in editor while allowing pasted inline formatting to be preserved */}
+                  <style dangerouslySetInnerHTML={{ __html: `
+                    .blog-editor-content h1 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
+                    .blog-editor-content h2 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
+                    .blog-editor-content h3 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 20px; line-height: 1.4; margin-top: 20px; margin-bottom: 10px; }
+                    .blog-editor-content h4 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 18px; line-height: 1.4; margin-top: 18px; margin-bottom: 8px; }
+                    .blog-editor-content h5 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; line-height: 1.4; margin-top: 16px; margin-bottom: 8px; }
+                    .blog-editor-content h6 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 14px; line-height: 1.4; margin-top: 14px; margin-bottom: 6px; }
+
+                    .blog-editor-content ul {
+                      list-style-type: disc !important;
+                      padding-left: 20px !important;
+                      margin-top: 15px !important;
+                      margin-bottom: 25px !important;
+                    }
+                    .blog-editor-content ol {
+                      list-style-type: decimal !important;
+                      padding-left: 20px !important;
+                      margin-top: 15px !important;
+                      margin-bottom: 25px !important;
+                    }
+                    .blog-editor-content ul li {
+                      list-style-type: disc !important;
+                      margin-bottom: 10px;
+                      font-family: 'Poppins', sans-serif;
+                      font-size: 16px;
+                      color: #4A4A4A;
+                      line-height: 28px;
+                    }
+                    .blog-editor-content ol li {
+                      list-style-type: decimal !important;
+                      margin-bottom: 10px;
+                      font-family: 'Poppins', sans-serif;
+                      font-size: 16px;
+                      color: #4A4A4A;
+                      line-height: 28px;
+                    }
+                  `}} />
 
                   {/* Content Editable Area or Plain Text Area depending on Mode */}
                   {!isHtmlMode ? (
                     <div
                       ref={editorRef}
                       contentEditable
+                      className="blog-editor-content"
                       onInput={handleEditorInput}
+                      onPaste={handleEditorPaste}
                       style={{
                         minHeight: '360px',
                         border: '1px solid #D0D5DD',

@@ -580,6 +580,58 @@ router.delete('/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// POST: Import from Microsoft Word (.docx) file and convert to HTML (Admin required)
+router.post('/import-word', requireAdmin, multer({ storage: multer.memoryStorage() }).single('doc'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.json({ status: false, message: 'No document file uploaded' });
+    }
+
+    const mammoth = require("mammoth");
+    
+    // Configure image converter options to upload images to S3/Disk
+    const options = {
+      convertImage: mammoth.images.imgElement(async (image) => {
+        const imageBuffer = await image.read();
+        const contentType = image.contentType; // e.g. "image/png"
+        const extension = contentType.split("/")[1] || "png";
+        const filename = `${Date.now()}-docx-inline.${extension}`;
+
+        let fileUrl;
+        if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID && s3) {
+          const { PutObjectCommand } = require('@aws-sdk/client-s3');
+          const key = `uploads/blogs/${filename}`;
+          await s3.send(new PutObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: key,
+            Body: imageBuffer,
+            ContentType: contentType
+          }));
+          fileUrl = (process.env.ASSET_URL || '') + key;
+        } else {
+          const dir = path.join(__dirname, '..', '..', 'uploads', 'blogs');
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          const filePath = path.join(dir, filename);
+          fs.writeFileSync(filePath, imageBuffer);
+          fileUrl = `/uploads/blogs/${filename}`;
+        }
+
+        return { src: fileUrl };
+      })
+    };
+
+    const result = await mammoth.convertToHtml({ buffer: req.file.buffer }, options);
+    
+    res.json({
+      status: true,
+      html: result.value,
+      warnings: result.warnings
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 // POST: Upload image for editor content (Admin required)
 router.post('/upload', requireAdmin, upload.single('image'), async (req, res) => {
   try {
