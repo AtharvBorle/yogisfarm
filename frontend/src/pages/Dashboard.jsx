@@ -329,12 +329,12 @@ const Dashboard = () => {
                                                                             </Link>
                                                                             <a href="#" onClick={(e) => { 
                                                                                 e.preventDefault(); 
-                                                                                if (!order.labelPrintedAt) {
+                                                                                if (!order.labelPrintedAt && !order.deliveryBoyId && !order.courierPartnerId) {
                                                                                     toast.error("Not shipped yet");
                                                                                     return;
                                                                                 }
                                                                                 window.open(`/invoice/${order.orderNumber}`, '_blank'); 
-                                                                            }} title="Download Invoice" style={{ color: order.labelPrintedAt ? '#555' : '#ccc', fontSize: '16px', cursor: order.labelPrintedAt ? 'pointer' : 'not-allowed' }}>
+                                                                            }} title="Download Invoice" style={{ color: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? '#555' : '#ccc', fontSize: '16px', cursor: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? 'pointer' : 'not-allowed' }}>
                                                                                 <i className="fi-rs-download"></i>
                                                                             </a>
                                                                         </td>

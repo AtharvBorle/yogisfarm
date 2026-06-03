@@ -138,6 +138,7 @@ const BulkInvoice = () => {
                 table.invoice-table th { font-weight: bold; }
                 table.invoice-table th.right, table.invoice-table td.right { text-align: right; }
                 table.invoice-table th.center, table.invoice-table td.center { text-align: center; }
+                table.invoice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
             `}</style>
 
             {orders.map((order, index) => {
@@ -150,7 +151,11 @@ const BulkInvoice = () => {
                     const seq = oNum.substring(len - 6, len - 2);
                     const random = oNum.substring(len - 2);
                     
-                    const date = order.labelPrintedAt ? new Date(order.labelPrintedAt) : new Date(order.createdAt);
+                    const date = order.labelPrintedAt 
+                        ? new Date(order.labelPrintedAt) 
+                        : ((order.deliveryBoyId || order.courierPartnerId) 
+                            ? new Date(order.updatedAt || order.createdAt) 
+                            : new Date(order.createdAt));
                     const year = date.getFullYear();
                     const month = date.getMonth() + 1;
                     const day = date.getDate();
@@ -201,7 +206,7 @@ const BulkInvoice = () => {
                                 <div className="border-right flex items-center" style={{ width: '15%', justifyContent: 'center' }}>
                                     <span className="text-xl">STD</span>
                                 </div>
-                                <div className="border-right p-1" style={{ width: '60%' }}>
+                                <div className="border-right p-1" style={{ width: '50%' }}>
                                     <div className="text-xs">{courierDisplay}{paymentStatusText}</div>
                                     <div className="text-lg">{awbNo}</div>
                                 </div>
@@ -209,8 +214,11 @@ const BulkInvoice = () => {
                                     <div className="text-xs bold">SURFACE</div>
                                     <div className="text-md bold">{paymentStatusShort}</div>
                                 </div>
-                                <div className="flex items-center" style={{ width: '10%', justifyContent: 'center' }}>
-                                    <span className="text-xl">E</span>
+                                <div className="p-1 flex items-center" style={{ width: '20%', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <div className="text-xs bold">INV DATE</div>
+                                    <div className="text-xs bold" style={{ fontSize: '11px' }}>
+                                        {formatDate(order.labelPrintedAt || ((order.deliveryBoyId || order.courierPartnerId) ? (order.updatedAt || order.createdAt) : order.createdAt))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -291,7 +299,7 @@ const BulkInvoice = () => {
                                 <div style={{ textAlign: 'right', display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                                     <div>
                                         <div className="text-md bold" style={{ marginBottom: '4px' }}>Invoice No: {invoiceNumber}</div>
-                                        <div className="text-md bold" style={{ marginBottom: '10px' }}>Invoice Date: {formatDate(order.labelPrintedAt || order.createdAt)}</div>
+                                        <div className="text-md bold" style={{ marginBottom: '10px' }}>Invoice Date: {formatDate(order.labelPrintedAt || ((order.deliveryBoyId || order.courierPartnerId) ? (order.updatedAt || order.createdAt) : order.createdAt))}</div>
                                         <div className="text-sm bold">GSTIN: {gstNumber || '27AAXFN9221D1ZX'}</div>
                                     </div>
                                     <div>

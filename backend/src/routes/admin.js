@@ -946,9 +946,13 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
     }
 
     // Auto-set status to shipped when delivery is assigned (only if currently confirmed)
-    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true }, });
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true, labelPrintedAt: true }, });
     if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed' || current.orderStatus === 'pending' || current.orderStatus === 'processing')) {
       data.orderStatus = 'shipped';
+    }
+
+    if (current && !current.labelPrintedAt) {
+      data.labelPrintedAt = new Date();
     }
 
     const order = await prisma.order.update({

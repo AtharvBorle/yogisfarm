@@ -202,13 +202,13 @@ const OrderDetail = () => {
                         <Settings size={16} /> Manage
                     </button>
                     <button onClick={() => {
-                        if (!order.labelPrintedAt) {
+                        if (!order.labelPrintedAt && !order.deliveryBoyId && !order.courierPartnerId) {
                             toast.error("Not shipped yet");
                             return;
                         }
                         window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank');
                     }}
-                        style={{ padding: '8px 18px', background: order.labelPrintedAt ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: order.labelPrintedAt ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        style={{ padding: '8px 18px', background: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={16} /> Print
                     </button>
                     <button onClick={() => navigate('/orders')}
@@ -468,10 +468,21 @@ const OrderDetail = () => {
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Payment Status</label>
                         <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} className="admin-select" style={{ width: '100%' }}>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="failed">Failed</option>
-                            <option value="refunded">Refunded</option>
+                            {order.paymentMethod === 'online' && (order.paymentStatus === 'completed' || order.paymentStatus === 'paid' || order.paymentStatus === 'refunded' || order.paymentStatus === 'failed') ? (
+                                <>
+                                    {paymentForm.paymentStatus === 'completed' && <option value="completed">Completed</option>}
+                                    {paymentForm.paymentStatus === 'paid' && <option value="paid">Paid</option>}
+                                    <option value="refunded">Refunded</option>
+                                    <option value="failed">Failed</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="refunded">Refunded</option>
+                                </>
+                            )}
                         </select>
                     </div>
                     <div>
