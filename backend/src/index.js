@@ -277,9 +277,42 @@ app.get('*', async (req, res) => {
 
 // Schedule account deletion anonymization cycle based on .env configuration
 function scheduleAccountDeletionTask() {
+  // Load Balancer multi-server protection: if RUN_BACKGROUND_TASKS is explicitly set, check it.
+  const runBackground = process.env.RUN_BACKGROUND_TASKS;
+  if (runBackground !== undefined) {
+    if (runBackground !== 'true') {
+      console.log(`Skipping account deletion task scheduling (RUN_BACKGROUND_TASKS is disabled on this server instance)`);
+      return;
+    }
+  }
+
+  // PM2 cluster mode protection: only run background tasks on a single designated instance
+  const pmId = process.env.pm_id;
+  const instanceId = process.env.INSTANCE_ID;
+  const targetPmId = process.env.CRON_PM_ID || '1'; // Default to PM2 process ID '1'
+
+  if (pmId !== undefined) {
+    if (pmId !== targetPmId) {
+      console.log(`Skipping account deletion task scheduling (non-cron PM2 pm_id: ${pmId})`);
+      return;
+    }
+  } else if (instanceId !== undefined && instanceId !== '0') {
+    console.log(`Skipping account deletion task scheduling (non-zero PM2 worker instance: ${instanceId})`);
+    return;
+  }
+
   const processDeletion = async () => {
     try {
-      console.log('Running user account deletion/anonymization task...');
+      // Acquire global database advisory lock to prevent concurrent executions in Auto Scaling groups or clusters
+      const lockResult = await prisma.$queryRawUnsafe("SELECT GET_LOCK('user_anonymization_lock', 0) AS locked");
+      const isLocked = lockResult && lockResult[0] && Number(lockResult[0].locked) === 1;
+
+      if (!isLocked) {
+        console.log('Skipping user account deletion task: Another process/instance holds the global lock.');
+        return;
+      }
+
+      console.log('Acquired global database lock. Running user account deletion/anonymization task...');
       const deletionDays = parseInt(process.env.ACCOUNT_DELETION_DAYS || '30', 10);
       const deletionHours = parseInt(process.env.ACCOUNT_DELETION_HOURS || '0', 10);
       const deletionMinutes = parseInt(process.env.ACCOUNT_DELETION_MINUTES || '0', 10);
@@ -320,6 +353,13 @@ function scheduleAccountDeletionTask() {
       }
     } catch (err) {
       console.error('Error running user account deletion background task:', err);
+    } finally {
+      // Always release the global lock
+      try {
+        await prisma.$queryRawUnsafe("SELECT RELEASE_LOCK('user_anonymization_lock')");
+      } catch (releaseErr) {
+        console.error('Error releasing user anonymization lock:', releaseErr);
+      }
     }
   };
 
