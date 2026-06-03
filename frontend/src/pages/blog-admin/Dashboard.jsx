@@ -48,6 +48,20 @@ const BlogAdminDashboard = () => {
   const [productsLoading, setProductsLoading] = useState(false);
   const [seoProductSearch, setSeoProductSearch] = useState('');
   const [isConfiguringSpecificProduct, setIsConfiguringSpecificProduct] = useState(false);
+
+  // Manage SEO List view states
+  const [seoView, setSeoView] = useState('list'); // 'list' or 'form'
+  const [seoList, setSeoList] = useState([]);
+  const [seoListLoading, setSeoListLoading] = useState(false);
+  const [seoTotalCount, setSeoTotalCount] = useState(0);
+  const [seoPageNum, setSeoPageNum] = useState(1);
+  const [seoLimit] = useState(10);
+  const [seoTotalPages, setSeoTotalPages] = useState(0);
+  const [seoSearch, setSeoSearch] = useState('');
+  const [seoTypeFilter, setSeoTypeFilter] = useState('all');
+  const [seoStartDate, setSeoStartDate] = useState('');
+  const [seoEndDate, setSeoEndDate] = useState('');
+  const [isEditingSeo, setIsEditingSeo] = useState(false);
   
   // Editor State
   const [isHtmlMode, setIsHtmlMode] = useState(false);
@@ -603,6 +617,51 @@ const BlogAdminDashboard = () => {
   };
 
   // SEO Handlers
+  const fetchSeoList = async () => {
+    setSeoListLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: seoPageNum,
+        limit: seoLimit,
+        search: seoSearch,
+        type: seoTypeFilter,
+        startDate: seoStartDate,
+        endDate: seoEndDate
+      });
+      const res = await api.get(`/settings/seo?${params.toString()}`);
+      if (res.data.status) {
+        setSeoList(res.data.data || []);
+        setSeoTotalCount(res.data.totalCount || 0);
+        setSeoTotalPages(res.data.totalPages || 0);
+      } else {
+        toast.error(res.data.message || 'Failed to load SEO pages');
+      }
+    } catch (err) {
+      toast.error('Failed to fetch SEO list');
+    } finally {
+      setSeoListLoading(false);
+    }
+  };
+
+  const handleSeoDelete = async (pageKey) => {
+    if (!window.confirm(`Are you sure you want to delete SEO settings for '${pageKey}'?`)) return;
+    try {
+      const res = await api.delete(`/settings/seo/${encodeURIComponent(pageKey)}`);
+      if (res.data.status) {
+        toast.success(res.data.message || 'SEO settings deleted');
+        if (seoList.length === 1 && seoPageNum > 1) {
+          setSeoPageNum(prev => prev - 1);
+        } else {
+          fetchSeoList();
+        }
+      } else {
+        toast.error(res.data.message || 'Failed to delete SEO settings');
+      }
+    } catch (err) {
+      toast.error('Error deleting SEO settings');
+    }
+  };
+
   const fetchSeoSettings = async (page) => {
     setSeoLoading(true);
     try {
@@ -635,6 +694,8 @@ const BlogAdminDashboard = () => {
       const res = await api.put('/settings', payload);
       if (res.data.status) {
         toast.success('SEO settings saved successfully!');
+        setSeoView('list');
+        fetchSeoList();
       } else {
         toast.error(res.data.message || 'Failed to save SEO settings');
       }
@@ -657,14 +718,38 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  // SEO list fetch trigger
+  useEffect(() => {
+    if (activeTab === 'seo' && seoView === 'list') {
+      fetchSeoList();
+    }
+  }, [activeTab, seoView, seoPageNum, seoTypeFilter, seoStartDate, seoEndDate]);
+
+  // Debounced search for SEO list
+  useEffect(() => {
+    if (activeTab === 'seo' && seoView === 'list') {
+      const handler = setTimeout(() => {
+        setSeoPageNum(1);
+        fetchSeoList();
+      }, 300);
+      return () => clearTimeout(handler);
+    }
+  }, [seoSearch]);
+
+  // SEO form editor trigger
   useEffect(() => {
     if (activeTab === 'seo') {
-      fetchSeoSettings(seoPage);
       if (products.length === 0) {
         fetchProducts();
       }
     }
-  }, [activeTab, seoPage]);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'seo' && seoView === 'form') {
+      fetchSeoSettings(seoPage);
+    }
+  }, [activeTab, seoView, seoPage]);
 
   // Client-side search and category filtering
   const filteredBlogs = blogs.filter(blog => {
@@ -2618,95 +2703,94 @@ const BlogAdminDashboard = () => {
 
         {/* SEO Settings View */}
         {activeTab === 'seo' && (
-          <form onSubmit={handleSeoSubmit} style={{
-            backgroundColor: '#ffffff',
-            padding: '32px',
-            borderRadius: '12px',
-            border: '1px solid #EAECF0',
-            boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '24px',
-            maxWidth: '800px'
-          }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                Select Website Page
-              </label>
-              
-              {/* If configuring a specific blog */}
-              {(isConfiguringSpecificBlog || seoPage.startsWith('blogs/')) ? (
-                /* Specific blog configuration panel with search and select */
-                <div style={{
-                  backgroundColor: '#F9FAFB',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #EAECF0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                      Configuring SEO for: <span style={{ color: '#0A6738' }}>{
-                        seoPage.startsWith('blogs/') 
-                          ? (blogs.find(b => `blogs/${b.slug || b.id}` === seoPage)?.title || 'Specific Blog')
-                          : 'Please choose a blog below'
-                      }</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSeoPage('blogs');
-                        setIsConfiguringSpecificBlog(false);
-                        setSeoBlogSearch('');
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #D0D5DD',
-                        backgroundColor: '#ffffff',
-                        color: '#344054',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Back to Blogs List Page
-                    </button>
-                  </div>
+          seoView === 'list' ? (
+            /* Manage SEO List View */
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Header and Add Button */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                  Manage SEO Settings
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSeoPage('home');
+                    setSeoTitle('');
+                    setSeoDesc('');
+                    setSeoKeywords('');
+                    setSeoOgImage('');
+                    setIsConfiguringSpecificBlog(false);
+                    setIsConfiguringSpecificProduct(false);
+                    setIsEditingSeo(false);
+                    setSeoView('form');
+                  }}
+                  style={{
+                    backgroundColor: '#0A6738',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 1px 2px rgba(10, 103, 56, 0.05)',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  + Configure Page SEO
+                </button>
+              </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {/* Search Field */}
-                    <input
+              {/* Filters Panel */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #EAECF0',
+                boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                marginBottom: '24px',
+                padding: '20px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+              }}>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Search Input */}
+                  <div style={{ flex: '1 1 250px', position: 'relative' }}>
+                    <input 
                       type="text"
-                      placeholder="Type to search blogs..."
-                      value={seoBlogSearch}
-                      onChange={(e) => setSeoBlogSearch(e.target.value)}
+                      placeholder="Search by page name, title, keywords..."
+                      value={seoSearch}
+                      onChange={(e) => setSeoSearch(e.target.value)}
                       style={{
-                        flex: 1,
+                        width: '100%',
                         height: '40px',
-                        padding: '0 12px',
-                        borderRadius: '6px',
+                        padding: '0 16px 0 40px',
+                        borderRadius: '8px',
                         border: '1px solid #D0D5DD',
                         fontSize: '14px',
+                        boxSizing: 'border-box',
                         outline: 'none'
                       }}
                     />
+                    <i className="fi-rs-search" style={{ position: 'absolute', left: '14px', top: '12px', color: '#667085', fontSize: '16px' }}></i>
+                  </div>
 
-                    {/* Filtered Dropdown */}
+                  {/* Filter Dropdown */}
+                  <div style={{ width: '180px' }}>
                     <select
-                      value={seoPage.startsWith('blogs/') ? seoPage : ''}
+                      value={seoTypeFilter}
                       onChange={(e) => {
-                        if (e.target.value) {
-                          setSeoPage(e.target.value);
-                        }
+                        setSeoPageNum(1);
+                        setSeoTypeFilter(e.target.value);
                       }}
                       style={{
-                        flex: 1,
+                        width: '100%',
                         height: '40px',
                         padding: '0 12px',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         border: '1px solid #D0D5DD',
                         fontSize: '14px',
                         outline: 'none',
@@ -2714,327 +2798,762 @@ const BlogAdminDashboard = () => {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value="">-- Select Blog --</option>
-                      {blogs && blogs
-                        .filter(b => 
-                          (b.title || '').toLowerCase().includes(seoBlogSearch.toLowerCase()) ||
-                          (b.slug || '').toLowerCase().includes(seoBlogSearch.toLowerCase())
-                        )
-                        .map(b => (
-                          <option key={b.id} value={`blogs/${b.slug || b.id}`}>
-                            {b.title}
-                          </option>
-                        ))
-                      }
+                      <option value="all">All Page Types</option>
+                      <option value="static">Static Pages</option>
+                      <option value="blog">Blog Posts</option>
+                      <option value="product">Product Pages</option>
                     </select>
+                  </div>
+
+                  {/* Date Range Inputs */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#475467' }}>Modified Date:</span>
+                    <input
+                      type="date"
+                      value={seoStartDate}
+                      onChange={(e) => {
+                        setSeoPageNum(1);
+                        setSeoStartDate(e.target.value);
+                      }}
+                      style={{
+                        height: '40px',
+                        padding: '0 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        fontSize: '13px',
+                        outline: 'none',
+                        color: '#344054'
+                      }}
+                    />
+                    <span style={{ fontSize: '13px', color: '#667085' }}>to</span>
+                    <input
+                      type="date"
+                      value={seoEndDate}
+                      onChange={(e) => {
+                        setSeoPageNum(1);
+                        setSeoEndDate(e.target.value);
+                      }}
+                      style={{
+                        height: '40px',
+                        padding: '0 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        fontSize: '13px',
+                        outline: 'none',
+                        color: '#344054'
+                      }}
+                    />
+                    {(seoStartDate || seoEndDate) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSeoStartDate('');
+                          setSeoEndDate('');
+                          setSeoPageNum(1);
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #D0D5DD',
+                          backgroundColor: '#F9FAFB',
+                          color: '#344054',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Clear Dates
+                      </button>
+                    )}
                   </div>
                 </div>
-              ) : (isConfiguringSpecificProduct || seoPage.startsWith('product/')) ? (
-                /* Specific product configuration panel with search and select */
-                <div style={{
-                  backgroundColor: '#F9FAFB',
-                  padding: '16px',
-                  borderRadius: '8px',
-                  border: '1px solid #EAECF0',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                      Configuring SEO for: <span style={{ color: '#0A6738' }}>{
-                        seoPage.startsWith('product/') 
-                          ? (products.find(p => `product/${p.slug || p.id}` === seoPage)?.name || 'Specific Product')
-                          : 'Please choose a product below'
-                      }</span>
+              </div>
+
+              {/* Table List */}
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #EAECF0',
+                boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+                overflow: 'hidden'
+              }}>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #EAECF0' }}>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Page Route</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Type</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Meta Title</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase' }}>Last Modified</th>
+                        <th style={{ padding: '12px 24px', fontSize: '12px', fontWeight: '600', color: '#475467', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {seoListLoading ? (
+                        <tr>
+                          <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#667085' }}>
+                            Loading SEO configurations...
+                          </td>
+                        </tr>
+                      ) : seoList.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#667085' }}>
+                            No custom SEO configurations found. Click "+ Configure Page SEO" to add one.
+                          </td>
+                        </tr>
+                      ) : (
+                        seoList.map((item, idx) => {
+                          let friendlyName = item.page;
+                          if (item.page === 'home') friendlyName = '/ (Home Page)';
+                          else if (item.page === 'about') friendlyName = '/about-us (About)';
+                          else if (item.page === 'contact') friendlyName = '/contact-us (Contact)';
+                          else if (item.page === 'shop') friendlyName = '/shop (Shop)';
+                          else if (item.page === 'blogs') friendlyName = '/blogs (Blogs List)';
+                          else if (item.page === 'cart') friendlyName = '/cart (Cart)';
+                          else if (item.page === 'checkout') friendlyName = '/checkout (Checkout)';
+                          else if (item.page === 'wishlist') friendlyName = '/wishlist (Wishlist)';
+                          else if (item.page.startsWith('blogs/')) friendlyName = `/blogs/${item.page.replace('blogs/', '')} (Blog Post)`;
+                          else if (item.page.startsWith('product/')) friendlyName = `/product/${item.page.replace('product/', '')} (Product Page)`;
+
+                          let badgeBg = '#F2F4F7';
+                          let badgeColor = '#344054';
+                          if (item.type === 'static') {
+                            badgeBg = '#ECFDF3';
+                            badgeColor = '#027A48';
+                          } else if (item.type === 'blog') {
+                            badgeBg = '#EFF8FF';
+                            badgeColor = '#175CD3';
+                          } else if (item.type === 'product') {
+                            badgeBg = '#FFFAEB';
+                            badgeColor = '#B54708';
+                          }
+
+                          return (
+                            <tr key={item.page} style={{ borderBottom: idx < seoList.length - 1 ? '1px solid #EAECF0' : 'none' }}>
+                              <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '600', color: '#101828' }}>
+                                {friendlyName}
+                              </td>
+                              <td style={{ padding: '16px 24px' }}>
+                                <span style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '12px',
+                                  fontSize: '12px',
+                                  fontWeight: '500',
+                                  backgroundColor: badgeBg,
+                                  color: badgeColor,
+                                  textTransform: 'capitalize'
+                                }}>
+                                  {item.type}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 24px', fontSize: '14px', color: '#475467' }}>
+                                {item.title ? (item.title.length > 45 ? `${item.title.substring(0, 45)}...` : item.title) : <em style={{ color: '#98A2B3' }}>None</em>}
+                              </td>
+                              <td style={{ padding: '16px 24px', fontSize: '14px', color: '#475467' }}>
+                                {new Date(item.updatedAt).toLocaleString('en-IN', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </td>
+                              <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSeoPage(item.page);
+                                      setIsEditingSeo(true);
+                                      if (item.page.startsWith('blogs/')) {
+                                        setIsConfiguringSpecificBlog(true);
+                                      } else if (item.page.startsWith('product/')) {
+                                        setIsConfiguringSpecificProduct(true);
+                                      } else {
+                                        setIsConfiguringSpecificBlog(false);
+                                        setIsConfiguringSpecificProduct(false);
+                                      }
+                                      setSeoView('form');
+                                    }}
+                                    style={{
+                                      backgroundColor: 'transparent',
+                                      border: '1px solid #D0D5DD',
+                                      padding: '6px 12px',
+                                      borderRadius: '6px',
+                                      fontSize: '13px',
+                                      fontWeight: '600',
+                                      color: '#344054',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSeoDelete(item.page)}
+                                    style={{
+                                      backgroundColor: 'transparent',
+                                      border: '1px solid #FECDCA',
+                                      padding: '6px 12px',
+                                      borderRadius: '6px',
+                                      fontSize: '13px',
+                                      fontWeight: '600',
+                                      color: '#D92D20',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s'
+                                    }}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination footer */}
+                {seoTotalPages > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '16px 24px',
+                    borderTop: '1px solid #EAECF0',
+                    backgroundColor: '#FDFDFD'
+                  }}>
+                    <span style={{ fontSize: '14px', color: '#475467' }}>
+                      Showing Page <strong style={{ color: '#101828' }}>{seoPageNum}</strong> of <strong style={{ color: '#101828' }}>{seoTotalPages}</strong> ({seoTotalCount} total items)
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSeoPage('shop');
-                        setIsConfiguringSpecificProduct(false);
-                        setSeoProductSearch('');
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #D0D5DD',
-                        backgroundColor: '#ffffff',
-                        color: '#344054',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Back to Shop Page
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        disabled={seoPageNum === 1 || seoListLoading}
+                        onClick={() => setSeoPageNum(prev => prev - 1)}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #D0D5DD',
+                          backgroundColor: seoPageNum === 1 ? '#F9FAFB' : '#ffffff',
+                          color: seoPageNum === 1 ? '#8c95a5' : '#344054',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          cursor: seoPageNum === 1 ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        disabled={seoPageNum === seoTotalPages || seoListLoading}
+                        onClick={() => setSeoPageNum(prev => prev + 1)}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #D0D5DD',
+                          backgroundColor: seoPageNum === seoTotalPages ? '#F9FAFB' : '#ffffff',
+                          color: seoPageNum === seoTotalPages ? '#8c95a5' : '#344054',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          cursor: seoPageNum === seoTotalPages ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Configure SEO Form View */
+            <form onSubmit={handleSeoSubmit} style={{
+              backgroundColor: '#ffffff',
+              padding: '32px',
+              borderRadius: '12px',
+              border: '1px solid #EAECF0',
+              boxShadow: '0 1px 3px rgba(16, 24, 40, 0.05)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+              maxWidth: '800px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #EAECF0', paddingBottom: '16px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#101828', margin: 0 }}>
+                  {isEditingSeo ? 'Edit SEO Settings' : 'Configure New Page SEO'}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setSeoView('list')}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #D0D5DD',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#344054',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ← Back to List
+                </button>
+              </div>
 
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {/* Search Field */}
-                    <input
-                      type="text"
-                      placeholder="Type to search products..."
-                      value={seoProductSearch}
-                      onChange={(e) => setSeoProductSearch(e.target.value)}
-                      style={{
-                        flex: 1,
-                        height: '40px',
-                        padding: '0 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #D0D5DD',
-                        fontSize: '14px',
-                        outline: 'none'
-                      }}
-                    />
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                  Select Website Page
+                </label>
+                
+                {isEditingSeo ? (
+                  /* Read-only field when editing to prevent key changing */
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      seoPage === 'home' ? '/ (Home Page)' :
+                      seoPage === 'about' ? '/about-us (About)' :
+                      seoPage === 'contact' ? '/contact-us (Contact)' :
+                      seoPage === 'shop' ? '/shop (Shop)' :
+                      seoPage === 'blogs' ? '/blogs (Blogs List)' :
+                      seoPage === 'cart' ? '/cart (Cart)' :
+                      seoPage === 'checkout' ? '/checkout (Checkout)' :
+                      seoPage === 'wishlist' ? '/wishlist (Wishlist)' :
+                      seoPage.startsWith('blogs/') ? `/blogs/${seoPage.replace('blogs/', '')} (Blog Post)` :
+                      seoPage.startsWith('product/') ? `/product/${seoPage.replace('product/', '')} (Product Page)` :
+                      seoPage
+                    }
+                    style={{
+                      width: '100%',
+                      height: '46px',
+                      padding: '0 16px',
+                      borderRadius: '8px',
+                      border: '1px solid #D0D5DD',
+                      boxSizing: 'border-box',
+                      fontSize: '15px',
+                      outline: 'none',
+                      backgroundColor: '#F9FAFB',
+                      color: '#475467',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                ) : (
+                  /* Interactive dropdown/search selectors when creating */
+                  (isConfiguringSpecificBlog || seoPage.startsWith('blogs/')) ? (
+                    <div style={{
+                      backgroundColor: '#F9FAFB',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #EAECF0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                          Configuring SEO for: <span style={{ color: '#0A6738' }}>{
+                            seoPage.startsWith('blogs/') 
+                              ? (blogs.find(b => `blogs/${b.slug || b.id}` === seoPage)?.title || 'Specific Blog')
+                              : 'Please choose a blog below'
+                          }</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSeoPage('blogs');
+                            setIsConfiguringSpecificBlog(false);
+                            setSeoBlogSearch('');
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            backgroundColor: '#ffffff',
+                            color: '#344054',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Back to Blogs List Page
+                        </button>
+                      </div>
 
-                    {/* Filtered Dropdown */}
-                    <select
-                      value={seoPage.startsWith('product/') ? seoPage : ''}
-                      onChange={(e) => {
-                        if (e.target.value) {
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <input
+                          type="text"
+                          placeholder="Type to search blogs..."
+                          value={seoBlogSearch}
+                          onChange={(e) => setSeoBlogSearch(e.target.value)}
+                          style={{
+                            flex: 1,
+                            height: '40px',
+                            padding: '0 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            fontSize: '14px',
+                            outline: 'none'
+                          }}
+                        />
+
+                        <select
+                          value={seoPage.startsWith('blogs/') ? seoPage : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setSeoPage(e.target.value);
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            height: '40px',
+                            padding: '0 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            fontSize: '14px',
+                            outline: 'none',
+                            backgroundColor: '#ffffff',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="">-- Select Blog --</option>
+                          {blogs && blogs
+                            .filter(b => 
+                              (b.title || '').toLowerCase().includes(seoBlogSearch.toLowerCase()) ||
+                              (b.slug || '').toLowerCase().includes(seoBlogSearch.toLowerCase())
+                            )
+                            .map(b => (
+                              <option key={b.id} value={`blogs/${b.slug || b.id}`}>
+                                {b.title}
+                              </option>
+                            ))
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  ) : (isConfiguringSpecificProduct || seoPage.startsWith('product/')) ? (
+                    <div style={{
+                      backgroundColor: '#F9FAFB',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid #EAECF0',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                          Configuring SEO for: <span style={{ color: '#0A6738' }}>{
+                            seoPage.startsWith('product/') 
+                              ? (products.find(p => `product/${p.slug || p.id}` === seoPage)?.name || 'Specific Product')
+                              : 'Please choose a product below'
+                          }</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSeoPage('shop');
+                            setIsConfiguringSpecificProduct(false);
+                            setSeoProductSearch('');
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            backgroundColor: '#ffffff',
+                            color: '#344054',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Back to Shop Page
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <input
+                          type="text"
+                          placeholder="Type to search products..."
+                          value={seoProductSearch}
+                          onChange={(e) => setSeoProductSearch(e.target.value)}
+                          style={{
+                            flex: 1,
+                            height: '40px',
+                            padding: '0 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            fontSize: '14px',
+                            outline: 'none'
+                          }}
+                        />
+
+                        <select
+                          value={seoPage.startsWith('product/') ? seoPage : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setSeoPage(e.target.value);
+                            }
+                          }}
+                          style={{
+                            flex: 1,
+                            height: '40px',
+                            padding: '0 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #D0D5DD',
+                            fontSize: '14px',
+                            outline: 'none',
+                            backgroundColor: '#ffffff',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="">-- Select Product --</option>
+                          {products && products
+                            .filter(p => 
+                              (p.name || '').toLowerCase().includes(seoProductSearch.toLowerCase()) ||
+                              (p.slug || '').toLowerCase().includes(seoProductSearch.toLowerCase())
+                            )
+                            .map(p => (
+                              <option key={p.id} value={`product/${p.slug || p.id}`}>
+                                {p.name}
+                              </option>
+                            ))
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <select
+                        value={seoPage}
+                        onChange={(e) => {
                           setSeoPage(e.target.value);
-                        }
-                      }}
-                      style={{
-                        flex: 1,
-                        height: '40px',
-                        padding: '0 12px',
-                        borderRadius: '6px',
-                        border: '1px solid #D0D5DD',
-                        fontSize: '14px',
-                        outline: 'none',
-                        backgroundColor: '#ffffff',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="">-- Select Product --</option>
-                      {products && products
-                        .filter(p => 
-                          (p.name || '').toLowerCase().includes(seoProductSearch.toLowerCase()) ||
-                          (p.slug || '').toLowerCase().includes(seoProductSearch.toLowerCase())
-                        )
-                        .map(p => (
-                          <option key={p.id} value={`product/${p.slug || p.id}`}>
-                            {p.name}
-                          </option>
-                        ))
-                      }
-                    </select>
-                  </div>
+                          setIsConfiguringSpecificBlog(false);
+                          setIsConfiguringSpecificProduct(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          height: '46px',
+                          padding: '0 16px',
+                          borderRadius: '8px',
+                          border: '1px solid #D0D5DD',
+                          fontSize: '15px',
+                          outline: 'none',
+                          backgroundColor: '#ffffff',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="home">Home Page (/)</option>
+                        <option value="about">About Us (/about-us)</option>
+                        <option value="contact">Contact Us (/contact-us)</option>
+                        <option value="shop">Shop (/shop)</option>
+                        <option value="blogs">Blogs List (/blogs)</option>
+                        <option value="cart">Cart Page (/cart)</option>
+                        <option value="checkout">Checkout (/checkout)</option>
+                        <option value="wishlist">Wishlist (/wishlist)</option>
+                      </select>
+
+                      {seoPage === 'blogs' && (
+                        <button
+                          type="button"
+                          onClick={() => setIsConfiguringSpecificBlog(true)}
+                          style={{
+                            alignSelf: 'flex-start',
+                            height: '38px',
+                            padding: '0 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #0A6738',
+                            backgroundColor: '#ffffff',
+                            color: '#0A6738',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#0A6738';
+                            e.target.style.color = '#ffffff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#ffffff';
+                            e.target.style.color = '#0A6738';
+                          }}
+                        >
+                          Configure SEO for a Specific Blog Post
+                        </button>
+                      )}
+
+                      {seoPage === 'shop' && (
+                        <button
+                          type="button"
+                          onClick={() => setIsConfiguringSpecificProduct(true)}
+                          style={{
+                            alignSelf: 'flex-start',
+                            height: '38px',
+                            padding: '0 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #0A6738',
+                            backgroundColor: '#ffffff',
+                            color: '#0A6738',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#0A6738';
+                            e.target.style.color = '#ffffff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#ffffff';
+                            e.target.style.color = '#0A6738';
+                          }}
+                        >
+                          Configure SEO for a Specific Product Page
+                        </button>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+
+              {seoLoading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <p style={{ color: '#667085', fontSize: '14px' }}>Loading SEO settings for this page...</p>
                 </div>
               ) : (
-                /* Main Page Selection Dropdown */
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <select
-                    value={seoPage}
-                    onChange={(e) => {
-                      setSeoPage(e.target.value);
-                      setIsConfiguringSpecificBlog(false);
-                      setIsConfiguringSpecificProduct(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      height: '46px',
-                      padding: '0 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #D0D5DD',
-                      fontSize: '15px',
-                      outline: 'none',
-                      backgroundColor: '#ffffff',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="home">Home Page (/)</option>
-                    <option value="about">About Us (/about-us)</option>
-                    <option value="contact">Contact Us (/contact-us)</option>
-                    <option value="shop">Shop (/shop)</option>
-                    <option value="blogs">Blogs List (/blogs)</option>
-                    <option value="cart">Cart Page (/cart)</option>
-                    <option value="checkout">Checkout (/checkout)</option>
-                    <option value="wishlist">Wishlist (/wishlist)</option>
-                  </select>
-
-                  {/* Give specific blog button only if the admin selects blogs list from the dropdown */}
-                  {seoPage === 'blogs' && (
-                    <button
-                      type="button"
-                      onClick={() => setIsConfiguringSpecificBlog(true)}
+                <>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      Meta Title
+                    </label>
+                    <input
+                      type="text"
+                      value={seoTitle}
+                      onChange={(e) => setSeoTitle(e.target.value)}
+                      placeholder="Enter SEO title tag"
                       style={{
-                        alignSelf: 'flex-start',
-                        height: '38px',
+                        width: '100%',
+                        height: '46px',
                         padding: '0 16px',
                         borderRadius: '8px',
-                        border: '1px solid #0A6738',
-                        backgroundColor: '#ffffff',
-                        color: '#0A6738',
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '15px',
+                        outline: 'none'
                       }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#0A6738';
-                        e.target.style.color = '#ffffff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#ffffff';
-                        e.target.style.color = '#0A6738';
-                      }}
-                    >
-                      Configure SEO for a Specific Blog Post
-                    </button>
-                  )}
+                    />
+                  </div>
 
-                  {/* Give specific product button only if the admin selects shop from the dropdown */}
-                  {seoPage === 'shop' && (
-                    <button
-                      type="button"
-                      onClick={() => setIsConfiguringSpecificProduct(true)}
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      Meta Description
+                    </label>
+                    <textarea
+                      value={seoDesc}
+                      onChange={(e) => setSeoDesc(e.target.value)}
+                      placeholder="Enter meta description for search results..."
+                      rows={4}
                       style={{
-                        alignSelf: 'flex-start',
-                        height: '38px',
+                        width: '100%',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '15px',
+                        outline: 'none',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      Meta Keywords
+                    </label>
+                    <input
+                      type="text"
+                      value={seoKeywords}
+                      onChange={(e) => setSeoKeywords(e.target.value)}
+                      placeholder="e.g. organic oils, groundnut oil, yogis farms (comma separated)"
+                      style={{
+                        width: '100%',
+                        height: '46px',
                         padding: '0 16px',
                         borderRadius: '8px',
-                        border: '1px solid #0A6738',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '15px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
+                      Open Graph Image URL (og:image)
+                    </label>
+                    <input
+                      type="text"
+                      value={seoOgImage}
+                      onChange={(e) => setSeoOgImage(e.target.value)}
+                      placeholder="e.g. https://example.com/image.jpg (absolute URL recommended)"
+                      style={{
+                        width: '100%',
+                        height: '46px',
+                        padding: '0 16px',
+                        borderRadius: '8px',
+                        border: '1px solid #D0D5DD',
+                        boxSizing: 'border-box',
+                        fontSize: '15px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #EAECF0', paddingTop: '20px', marginTop: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSeoView('list')}
+                      style={{
                         backgroundColor: '#ffffff',
-                        color: '#0A6738',
-                        fontSize: '13px',
+                        border: '1px solid #D0D5DD',
+                        color: '#344054',
+                        padding: '12px 24px',
+                        borderRadius: '8px',
+                        fontSize: '15px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#0A6738';
-                        e.target.style.color = '#ffffff';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#ffffff';
-                        e.target.style.color = '#0A6738';
+                        transition: 'background-color 0.2s'
                       }}
                     >
-                      Configure SEO for a Specific Product Page
+                      Cancel
                     </button>
-                  )}
-                </div>
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: '#0A6738',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '12px 32px',
+                        borderRadius: '8px',
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      Save SEO Settings
+                    </button>
+                  </div>
+                </>
               )}
-            </div>
-
-            {seoLoading ? (
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <p style={{ color: '#667085', fontSize: '14px' }}>Loading SEO settings for this page...</p>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                    Meta Title
-                  </label>
-                  <input
-                    type="text"
-                    value={seoTitle}
-                    onChange={(e) => setSeoTitle(e.target.value)}
-                    placeholder="Enter SEO title tag"
-                    style={{
-                      width: '100%',
-                      height: '46px',
-                      padding: '0 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #D0D5DD',
-                      boxSizing: 'border-box',
-                      fontSize: '15px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                    Meta Description
-                  </label>
-                  <textarea
-                    value={seoDesc}
-                    onChange={(e) => setSeoDesc(e.target.value)}
-                    placeholder="Enter meta description for search results..."
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #D0D5DD',
-                      boxSizing: 'border-box',
-                      fontSize: '15px',
-                      outline: 'none',
-                      resize: 'vertical'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                    Meta Keywords
-                  </label>
-                  <input
-                    type="text"
-                    value={seoKeywords}
-                    onChange={(e) => setSeoKeywords(e.target.value)}
-                    placeholder="e.g. organic oils, groundnut oil, yogis farms (comma separated)"
-                    style={{
-                      width: '100%',
-                      height: '46px',
-                      padding: '0 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #D0D5DD',
-                      boxSizing: 'border-box',
-                      fontSize: '15px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '600', color: '#344054' }}>
-                    Open Graph Image URL (og:image)
-                  </label>
-                  <input
-                    type="text"
-                    value={seoOgImage}
-                    onChange={(e) => setSeoOgImage(e.target.value)}
-                    placeholder="e.g. https://example.com/image.jpg (absolute URL recommended)"
-                    style={{
-                      width: '100%',
-                      height: '46px',
-                      padding: '0 16px',
-                      borderRadius: '8px',
-                      border: '1px solid #D0D5DD',
-                      boxSizing: 'border-box',
-                      fontSize: '15px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-                  <button
-                    type="submit"
-                    style={{
-                      backgroundColor: '#0A6738',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '12px 32px',
-                      borderRadius: '8px',
-                      fontSize: '15px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    Save SEO Settings
-                  </button>
-                </div>
-              </>
-            )}
-          </form>
+            </form>
+          )
         )}
       </main>
     </div>
