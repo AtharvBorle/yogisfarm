@@ -281,8 +281,14 @@ function scheduleAccountDeletionTask() {
     try {
       console.log('Running user account deletion/anonymization task...');
       const deletionDays = parseInt(process.env.ACCOUNT_DELETION_DAYS || '30', 10);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - deletionDays);
+      const deletionHours = parseInt(process.env.ACCOUNT_DELETION_HOURS || '0', 10);
+      const deletionMinutes = parseInt(process.env.ACCOUNT_DELETION_MINUTES || '0', 10);
+
+      const gracePeriodMs = (deletionDays * 24 * 60 * 60 * 1000) + 
+                            (deletionHours * 60 * 60 * 1000) + 
+                            (deletionMinutes * 60 * 1000);
+
+      const cutoffDate = new Date(Date.now() - gracePeriodMs);
 
       // Find users whose deletion request is older than configured days
       const usersToAnonymize = await prisma.user.findMany({
