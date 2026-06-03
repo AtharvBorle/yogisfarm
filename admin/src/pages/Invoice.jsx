@@ -54,7 +54,7 @@ const Invoice = () => {
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true },
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-                    pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     if (autoDownload) {
@@ -112,7 +112,7 @@ const Invoice = () => {
     return (
         <div id="invoice-content" style={{ maxWidth: '1100px', margin: '0 auto', padding: '30px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#333', background: '#fff' }}>
             <style>{`
-                #invoice-content tr {
+                #invoice-content tr, .signature-section {
                     page-break-inside: avoid !important;
                     break-inside: avoid !important;
                 }
@@ -232,7 +232,7 @@ const Invoice = () => {
             </table>
 
             {/* Signature */}
-            <div style={{ border: '1px solid #ccc', padding: '30px', textAlign: 'right', marginTop: '30px' }}>
+            <div className="signature-section" style={{ border: '1px solid #ccc', padding: '30px', textAlign: 'right', marginTop: '30px' }}>
                 <em>Authorized Signature</em>
             </div>
 

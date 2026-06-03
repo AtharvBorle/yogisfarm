@@ -1,7 +1,18 @@
 import React from 'react';
 
-const GenericModal = ({ isOpen, title, onClose, children }) => {
+const GenericModal = ({ isOpen, title, onClose, children, width, size = 'lg' }) => {
     if (!isOpen) return null;
+
+    let modalWidth = '1200px';
+    if (width) {
+        modalWidth = width;
+    } else if (size === 'sm' || size === 'small') {
+        modalWidth = '550px';
+    } else if (size === 'md' || size === 'medium') {
+        modalWidth = '800px';
+    } else if (size === 'xl') {
+        modalWidth = '95%';
+    }
 
     return (
         <div style={{
@@ -10,9 +21,9 @@ const GenericModal = ({ isOpen, title, onClose, children }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center'
         }}>
             <div className="admin-card" style={{
-                width: '700px',
+                width: modalWidth,
                 maxWidth: '95%',
-                maxHeight: '90vh',
+                maxHeight: '95vh',
                 display: 'flex',
                 flexDirection: 'column'
             }}>

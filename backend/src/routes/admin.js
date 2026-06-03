@@ -638,7 +638,7 @@ router.get('/products', requireAdmin, async (req, res) => {
 
 router.post('/products', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, shortDescription, description, categoryId, brandId, taxId,
+    const { name, description, categoryId, brandId, taxId,
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     // Generate unique SEO-friendly slug
@@ -658,7 +658,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 
     const product = await prisma.product.create({
       data: {
-        name, slug, shortDescription, description, image, video, tags,
+        name, slug, description, image, video, tags,
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
@@ -681,11 +681,11 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 router.put('/products/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, shortDescription, description, categoryId, brandId, taxId,
+    const { name, description, categoryId, brandId, taxId,
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
-      name, shortDescription, description, video, tags,
+      name, description, video, tags,
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,

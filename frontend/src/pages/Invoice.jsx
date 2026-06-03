@@ -58,7 +58,7 @@ const Invoice = () => {
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true },
                     jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-                    pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     setTimeout(() => {
@@ -88,7 +88,7 @@ const Invoice = () => {
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' }
+            pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
         };
         html2pdf().set(opt).from(element).save().then(() => {
             setDownloading(false);
@@ -138,7 +138,7 @@ const Invoice = () => {
     return (
         <>
             <style>{`
-                #invoice-content tr {
+                #invoice-content tr, .signature-section {
                     page-break-inside: avoid !important;
                     break-inside: avoid !important;
                 }
@@ -280,7 +280,7 @@ const Invoice = () => {
             </table>
 
             {/* Signature */}
-            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>
+            <div className="signature-section" style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>
                 <em>This is a computer generated invoice and does not require a physical signature.</em>
             </div>
 

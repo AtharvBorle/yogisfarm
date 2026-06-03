@@ -21,7 +21,7 @@ const Product = () => {
     const [editingId, setEditingId] = useState(null);
 
     const defaultForm = {
-        name: '', shortDescription: '', description: '', parentCategoryId: '', categoryId: '', brandId: '', taxId: '', hsnId: '', hsnSearch: '',
+        name: '', description: '', parentCategoryId: '', categoryId: '', brandId: '', taxId: '', hsnId: '', hsnSearch: '',
         image: '', video: '', tags: '',
         status: 'active', featured: false, popular: false, deal: false,
         variants: [], benefits: [], features: [], galleryImages: []
@@ -60,7 +60,7 @@ const Product = () => {
         }
 
         setFormData({
-            name: row.name, shortDescription: row.shortDescription || '', description: row.description || '',
+            name: row.name, description: row.description || '',
             parentCategoryId: parentCatId, categoryId: row.categoryId || '', brandId: row.brandId || '',
             taxId: row.taxId || '', hsnId: row.hsnId || '', hsnSearch: row.hsn?.hsnCode || '',
             image: row.image || '', video: row.video || '', tags: row.tags || '',
@@ -100,7 +100,7 @@ const Product = () => {
         }
         try {
             const payload = {
-                name: formData.name, shortDescription: formData.shortDescription,
+                name: formData.name,
                 description: formData.description, image: formData.image,
                 categoryId: formData.categoryId || null, brandId: formData.brandId || null,
                 taxId: formData.taxId || null, hsnId: formData.hsnId || null,
@@ -262,15 +262,9 @@ const Product = () => {
 
                         {/* RIGHT COLUMN: Product Inputs */}
                         <div className="modal-inputs-col">
-                            <div className="modal-row-2">
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Name <span className="required">*</span></label>
-                                    <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required className="admin-input" />
-                                </div>
-                                <div className="admin-form-group">
-                                    <label className="admin-label">Short Description</label>
-                                    <input type="text" value={formData.shortDescription} onChange={e => setFormData({ ...formData, shortDescription: e.target.value })} className="admin-input" maxLength={500} />
-                                </div>
+                            <div className="admin-form-group">
+                                <label className="admin-label">Name <span className="required">*</span></label>
+                                <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required className="admin-input" />
                             </div>
 
                             <div className="admin-form-group">
@@ -464,7 +458,6 @@ const Product = () => {
                                 ))}
                             </tbody>
                         </table>
-                        {viewProduct.shortDescription && <div><strong>Short Description:</strong><p>{viewProduct.shortDescription}</p></div>}
                         {viewProduct.description && <div><strong>Description:</strong><p style={{ whiteSpace: 'pre-wrap' }}>{viewProduct.description}</p></div>}
                         {viewProduct.variants?.length > 0 && (
                             <div>

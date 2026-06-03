@@ -214,7 +214,7 @@ const Collections = () => {
                 })} />
             </div>
 
-            <GenericModal isOpen={isModalOpen} title="Collect Cash" onClose={() => setModalOpen(false)}>
+            <GenericModal isOpen={isModalOpen} title="Collect Cash" onClose={() => setModalOpen(false)} size="sm">
                 {selectedBoy && (
                     <form onSubmit={handleCollect}>
                         <div style={{ marginBottom: '15px' }}>
@@ -242,7 +242,7 @@ const Collections = () => {
                 )}
             </GenericModal>
 
-            <GenericModal isOpen={isHistoryOpen} title="Recent Collections" onClose={() => setHistoryOpen(false)}>
+            <GenericModal isOpen={isHistoryOpen} title="Recent Collections" onClose={() => setHistoryOpen(false)} size="md">
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', alignItems: 'flex-end' }}>
                     <div style={{ flex: 1 }}>
                         <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Start Date</label>
@@ -290,7 +290,7 @@ const Collections = () => {
                 )}
             </GenericModal>
 
-            <GenericModal isOpen={isAddEditOpen} title={editForm.id ? "Edit Delivery Boy" : "Add Delivery Boy"} onClose={() => setAddEditOpen(false)}>
+            <GenericModal isOpen={isAddEditOpen} title={editForm.id ? "Edit Delivery Boy" : "Add Delivery Boy"} onClose={() => setAddEditOpen(false)} size="md">
                 <form onSubmit={handleAddEditSave} style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: 'var(--text)' }}>
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Name *</label>

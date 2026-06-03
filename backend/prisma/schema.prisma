@@ -100,7 +100,6 @@ model Product {
   id               Int      @id @default(autoincrement())
   name             String   @db.VarChar(255)
   slug             String   @unique @db.VarChar(280)
-  shortDescription String?  @map("short_description") @db.VarChar(500)
   description      String?  @db.Text
   categoryId       Int?     @map("category_id")
   brandId          Int?     @map("brand_id")

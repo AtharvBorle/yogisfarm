@@ -422,18 +422,20 @@ const BulkInvoice = () => {
                             </table>
 
                             {/* Footer */}
-                            <div className="flex justify-between items-center" style={{ marginTop: '30px' }}>
-                                <div className="text-xs" style={{ color: '#555' }}>
-                                    <span className="bold">Registered Office:</span> YogisFarms, Warje, Pune 411058.
+                            <div style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                <div className="flex justify-between items-center" style={{ marginTop: '30px' }}>
+                                    <div className="text-xs" style={{ color: '#555' }}>
+                                        <span className="bold">Registered Office:</span> YogisFarms, Warje, Pune 411058.
+                                    </div>
+                                    <div className="text-xs" style={{ textAlign: 'right' }}>
+                                        Ordered Through <span className="bold">YOGISFARMS</span><br/>
+                                        <span style={{ color: '#777', fontSize: '9px' }}>Authorized Signatory</span>
+                                    </div>
                                 </div>
-                                <div className="text-xs" style={{ textAlign: 'right' }}>
-                                    Ordered Through <span className="bold">YOGISFARMS</span><br/>
-                                    <span style={{ color: '#777', fontSize: '9px' }}>Authorized Signatory</span>
+                                
+                                <div className="text-center" style={{ marginTop: '20px', fontSize: '9px', color: '#999', fontStyle: 'italic' }}>
+                                    ** This is a computer generated invoice and doesn't require a physical signature. **
                                 </div>
-                            </div>
-                            
-                            <div className="text-center" style={{ marginTop: '20px', fontSize: '9px', color: '#999', fontStyle: 'italic' }}>
-                                ** This is a computer generated invoice and doesn't require a physical signature. **
                             </div>
                         </div>
                     </div>
