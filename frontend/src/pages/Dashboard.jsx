@@ -26,6 +26,34 @@ const Dashboard = () => {
     const [orderPage, setOrderPage] = useState(1);
     const ordersPerPage = 10;
 
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleteChecked, setDeleteChecked] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDeleteAccount = async () => {
+        if (!deleteChecked || deleteConfirmText.trim().toLowerCase() !== 'delete') {
+            toast.error("Please fill the confirmation requirements");
+            return;
+        }
+        setDeleting(true);
+        try {
+            const res = await api.post('/auth/delete-account-request');
+            if (res.data.status) {
+                toast.success(res.data.message || "Account deletion requested. Logging out...");
+                await logout();
+                navigate('/');
+            } else {
+                toast.error(res.data.message || "Failed to submit deletion request");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Error submitting deletion request");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     const fetchAddresses = async () => {
         try {
             const res = await api.get('/addresses');
@@ -566,6 +594,83 @@ const Dashboard = () => {
                                                     <div className="col-md-6 mb-15"><label>Email</label><p className="font-lg"><strong>{user.email || 'Not Provided'}</strong></p></div>
                                                     <div className="col-md-6 mb-15"><label>Phone</label><p className="font-lg"><strong>{user.phone}</strong></p></div>
                                                     <div className="col-md-6 mb-15"><label>Member Since</label><p className="font-lg"><strong>{new Date(user.createdAt).toLocaleDateString()}</strong></p></div>
+                                                </div>
+                                                
+                                                <hr style={{ borderColor: '#f0f0f0', margin: '30px 0' }} />
+                                                <div style={{ marginTop: '20px' }}>
+                                                    {!showDeleteConfirm ? (
+                                                        <button 
+                                                            type="button" 
+                                                            className="btn btn-sm" 
+                                                            style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: '600' }}
+                                                            onClick={() => setShowDeleteConfirm(true)}
+                                                        >
+                                                            Delete My Account
+                                                        </button>
+                                                    ) : (
+                                                        <div style={{ padding: '20px', border: '1px solid #ffccc7', background: '#fff2f0', borderRadius: '8px' }}>
+                                                            <h6 style={{ color: '#ff4d4f', fontWeight: '700', marginBottom: '15px' }}>Account Deletion Request</h6>
+                                                            
+                                                            <div className="form-group mb-15" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    id="deleteCheckbox" 
+                                                                    checked={deleteChecked} 
+                                                                    onChange={e => setDeleteChecked(e.target.checked)} 
+                                                                    style={{ width: '18px', height: '18px', marginTop: '3px', accentColor: '#dc3545' }} 
+                                                                />
+                                                                <label htmlFor="deleteCheckbox" style={{ fontSize: '14px', color: '#555', cursor: 'pointer', userSelect: 'none', fontWeight: '500', lineHeight: '1.5' }}>
+                                                                    It takes up to 30 days to permanently delete your account. If you log in at any time during this 30-day period, the account deletion request will be automatically canceled. Once your account has been permanently deleted after 30 days, you will no longer be able to log in using the same account.
+                                                                </label>
+                                                            </div>
+
+                                                            <div className="form-group mb-15">
+                                                                <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#333' }}>
+                                                                    Please type <strong style={{ color: '#dc3545' }}>delete</strong> to confirm:
+                                                                </label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    className="form-control" 
+                                                                    placeholder="Type delete here..." 
+                                                                    value={deleteConfirmText} 
+                                                                    onChange={e => setDeleteConfirmText(e.target.value)} 
+                                                                    style={{ maxWidth: '300px', borderColor: deleteConfirmText.toLowerCase() === 'delete' ? '#28a745' : '#ffccc7' }} 
+                                                                />
+                                                            </div>
+
+                                                            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                                                                <button 
+                                                                    type="button" 
+                                                                    className="btn btn-sm btn-secondary" 
+                                                                    style={{ padding: '8px 18px', border: '1px solid #ccc', background: '#fff', color: '#555', borderRadius: '5px' }}
+                                                                    onClick={() => {
+                                                                        setShowDeleteConfirm(false);
+                                                                        setDeleteConfirmText('');
+                                                                        setDeleteChecked(false);
+                                                                    }}
+                                                                    disabled={deleting}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button 
+                                                                    type="button" 
+                                                                    className="btn btn-sm btn-danger" 
+                                                                    style={{ 
+                                                                        padding: '8px 18px', 
+                                                                        background: (deleteChecked && deleteConfirmText.trim().toLowerCase() === 'delete') ? '#dc3545' : '#e6e6e6', 
+                                                                        color: (deleteChecked && deleteConfirmText.trim().toLowerCase() === 'delete') ? '#fff' : '#aaa', 
+                                                                        border: 'none', 
+                                                                        borderRadius: '5px',
+                                                                        cursor: (deleteChecked && deleteConfirmText.trim().toLowerCase() === 'delete' && !deleting) ? 'pointer' : 'not-allowed'
+                                                                    }}
+                                                                    disabled={!deleteChecked || deleteConfirmText.trim().toLowerCase() !== 'delete' || deleting}
+                                                                    onClick={handleDeleteAccount}
+                                                                >
+                                                                    {deleting ? 'Requesting Deletion...' : 'Submit Deletion Request'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

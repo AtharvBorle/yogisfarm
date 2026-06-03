@@ -275,6 +275,99 @@ app.get('*', async (req, res) => {
   }
 });
 
+// Schedule account deletion anonymization cycle based on .env configuration
+function scheduleAccountDeletionTask() {
+  const processDeletion = async () => {
+    try {
+      console.log('Running user account deletion/anonymization task...');
+      const deletionDays = parseInt(process.env.ACCOUNT_DELETION_DAYS || '30', 10);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - deletionDays);
+
+      // Find users whose deletion request is older than configured days
+      const usersToAnonymize = await prisma.user.findMany({
+        where: {
+          deletionRequestedAt: {
+            not: null,
+            lte: cutoffDate
+          }
+        }
+      });
+
+      for (const user of usersToAnonymize) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            name: 'Deleted User',
+            email: `deleted_user_${user.id}@example.com`,
+            phone: null,
+            deletionRequestedAt: null
+          }
+        });
+
+        // Delete PII: Cart, Wishlist, and Addresses associated with this user
+        await prisma.cart.deleteMany({ where: { userId: user.id } });
+        await prisma.wishlist.deleteMany({ where: { userId: user.id } });
+        await prisma.address.deleteMany({ where: { userId: user.id } });
+
+        console.log(`Successfully anonymized deleted account user ID: ${user.id}`);
+      }
+    } catch (err) {
+      console.error('Error running user account deletion background task:', err);
+    }
+  };
+
+  const checkIntervalMs = process.env.ACCOUNT_DELETION_CHECK_INTERVAL_MS 
+    ? parseInt(process.env.ACCOUNT_DELETION_CHECK_INTERVAL_MS, 10) 
+    : null;
+
+  if (checkIntervalMs) {
+    console.log(`Account deletion background task running on interval: every ${Math.round(checkIntervalMs / 1000 / 60)} minutes`);
+    // Run immediately on startup, then on interval
+    processDeletion().then(() => {
+      setInterval(processDeletion, checkIntervalMs);
+    });
+  } else {
+    const hourIST = parseInt(process.env.ACCOUNT_DELETION_CRON_HOUR || '3', 10);
+    const minuteIST = parseInt(process.env.ACCOUNT_DELETION_CRON_MINUTE || '0', 10);
+
+    // Convert IST to UTC (subtract 5 hours and 30 minutes)
+    let totalMinutesIST = hourIST * 60 + minuteIST;
+    let totalMinutesUTC = totalMinutesIST - 330; // 5 hours 30 mins = 330 mins
+    if (totalMinutesUTC < 0) {
+      totalMinutesUTC += 24 * 60; // Wrap around previous day
+    }
+    const hourUTC = Math.floor(totalMinutesUTC / 60) % 24;
+    const minuteUTC = totalMinutesUTC % 60;
+
+    const runTaskScheduled = async () => {
+      await processDeletion();
+      scheduleNext();
+    };
+
+    const scheduleNext = () => {
+      const now = new Date();
+      const target = new Date(now);
+      target.setUTCHours(hourUTC, minuteUTC, 0, 0);
+
+      if (now.getTime() >= target.getTime()) {
+        target.setUTCDate(target.getUTCDate() + 1);
+      }
+
+      const delay = target.getTime() - now.getTime();
+      console.log(`Account deletion background task scheduled in ${Math.round(delay / 1000 / 60)} minutes (at ${hourIST}:${String(minuteIST).padStart(2, '0')} IST / ${target.toISOString()})`);
+      setTimeout(runTaskScheduled, delay);
+    };
+
+    // Run once immediately on startup, then schedule next
+    processDeletion().then(() => {
+      scheduleNext();
+    });
+  }
+}
+
+scheduleAccountDeletionTask();
+
 app.listen(PORT, () => {
   console.log(`YogisFarms Backend running on http://localhost:${PORT}`);
 });
