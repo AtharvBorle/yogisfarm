@@ -858,7 +858,7 @@ const BlogAdminDashboard = () => {
           alignItems: 'center',
           gap: '8px'
         }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '0.5px' }}>Yogi's Farms</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff', letterSpacing: '0.5px' }}>Yogi's Farms</h2>
           <span style={{ fontSize: '11px', fontWeight: '600', color: '#ACD140', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Blog Dashboard
           </span>
