@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const prisma = require('../db');
 const { requireAdmin } = require('../middleware/auth');
+const { logAdminAction } = require('../utils/logger');
 
 router.get('/', async (req, res) => {
   try {
@@ -20,12 +21,36 @@ router.put('/', requireAdmin, async (req, res) => {
       return res.json({ status: false, message: 'Invalid settings object' });
     }
 
+    // Fetch previous settings for logging
+    const keys = Object.keys(settings);
+    const previousSettings = await prisma.setting.findMany({
+      where: { key: { in: keys } }
+    });
+    const prevMap = {};
+    previousSettings.forEach(s => { prevMap[s.key] = s.value; });
+
+    const logDetails = [];
+
     for (const [key, value] of Object.entries(settings)) {
+      const valStr = String(value);
+      const prevVal = prevMap[key];
+      if (prevVal !== valStr) {
+        logDetails.push(`${key}: "${prevVal || ''}" -> "${valStr}"`);
+      }
+
       await prisma.setting.upsert({
         where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) }
+        update: { value: valStr },
+        create: { key, value: valStr }
       });
+    }
+
+    if (logDetails.length > 0) {
+      await logAdminAction(
+        req.session.adminId,
+        'Updated Settings',
+        logDetails.join(', ')
+      );
     }
 
     res.json({ status: true, message: 'Settings saved successfully' });
