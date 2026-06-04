@@ -1619,9 +1619,20 @@ const BlogAdminDashboard = () => {
                         id="htmlMode"
                         checked={isHtmlMode}
                         onChange={(e) => setIsHtmlMode(e.target.checked)}
-                        style={{ cursor: 'pointer' }}
+                        style={{ 
+                          width: '14px', 
+                          height: '14px', 
+                          minWidth: '14px', 
+                          minHeight: '14px', 
+                          cursor: 'pointer',
+                          margin: 0,
+                          padding: 0,
+                          verticalAlign: 'middle',
+                          WebkitAppearance: 'checkbox',
+                          appearance: 'checkbox'
+                        }}
                       />
-                      <label htmlFor="htmlMode" style={{ fontSize: '12px', fontWeight: '600', color: '#667085', cursor: 'pointer' }}>
+                      <label htmlFor="htmlMode" style={{ fontSize: '12px', fontWeight: '600', color: '#667085', cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center' }}>
                         View HTML Source Code
                       </label>
                     </div>
@@ -1985,6 +1996,9 @@ const BlogAdminDashboard = () => {
                       font-size: 16px;
                       color: #4A4A4A;
                       line-height: 28px;
+                    }
+                    .blog-editor-content i, .blog-editor-content em {
+                      font-style: italic !important;
                     }
                   `}} />
 
