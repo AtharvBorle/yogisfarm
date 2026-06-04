@@ -341,6 +341,40 @@ async function deleteBlogImages(blog) {
   }
 }
 
+async function cleanRemovedBlogImages(oldBlog, newBlogData) {
+  if (!oldBlog || !newBlogData) return;
+
+  const oldUrls = new Set();
+  if (oldBlog.image) oldUrls.add(oldBlog.image);
+  if (oldBlog.bannerImage) oldUrls.add(oldBlog.bannerImage);
+  if (oldBlog.authorAvatar) oldUrls.add(oldBlog.authorAvatar);
+  if (oldBlog.sidebarImage) oldUrls.add(oldBlog.sidebarImage);
+  
+  const oldInline = extractImageUrlsFromHtml(oldBlog.content);
+  oldInline.forEach(url => oldUrls.add(url));
+
+  const newImage = newBlogData.image !== undefined ? newBlogData.image : oldBlog.image;
+  const newBanner = newBlogData.bannerImage !== undefined ? newBlogData.bannerImage : oldBlog.bannerImage;
+  const newAvatar = newBlogData.authorAvatar !== undefined ? newBlogData.authorAvatar : oldBlog.authorAvatar;
+  const newSidebar = newBlogData.sidebarImage !== undefined ? newBlogData.sidebarImage : oldBlog.sidebarImage;
+  const newContent = newBlogData.content !== undefined ? newBlogData.content : oldBlog.content;
+
+  const newUrls = new Set();
+  if (newImage) newUrls.add(newImage);
+  if (newBanner) newUrls.add(newBanner);
+  if (newAvatar) newUrls.add(newAvatar);
+  if (newSidebar) newUrls.add(newSidebar);
+
+  const newInline = extractImageUrlsFromHtml(newContent);
+  newInline.forEach(url => newUrls.add(url));
+
+  for (const url of oldUrls) {
+    if (!newUrls.has(url)) {
+      await deleteUploadedFile(url);
+    }
+  }
+}
+
 // ─── CATEGORY ENDPOINTS ───
 
 // GET: Fetch all blog categories
@@ -597,6 +631,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
     if (sidebarImage !== undefined) data.sidebarImage = sidebarImage;
     if (sidebarLink !== undefined) data.sidebarLink = sidebarLink;
     if (status !== undefined) data.status = status;
+
+    await cleanRemovedBlogImages(exists, data);
 
     const updatedBlog = await prisma.blogPost.update({
       where: { id },
