@@ -21,6 +21,9 @@ router.put('/', requireAdmin, async (req, res) => {
       return res.json({ status: false, message: 'Invalid settings object' });
     }
 
+    console.log('--- Settings PUT Request ---');
+    console.log('settings input:', settings);
+
     // Fetch previous settings for logging
     const keys = Object.keys(settings);
     const previousSettings = await prisma.setting.findMany({
@@ -28,6 +31,7 @@ router.put('/', requireAdmin, async (req, res) => {
     });
     const prevMap = {};
     previousSettings.forEach(s => { prevMap[s.key] = s.value; });
+    console.log('previous settings map:', prevMap);
 
     const logDetails = [];
 
@@ -45,16 +49,23 @@ router.put('/', requireAdmin, async (req, res) => {
       });
     }
 
+    console.log('logDetails array:', logDetails);
+    console.log('adminId from session:', req.session.adminId);
+
     if (logDetails.length > 0) {
       await logAdminAction(
         req.session.adminId,
         'Updated Settings',
         logDetails.join(', ')
       );
+      console.log('logAdminAction called successfully');
+    } else {
+      console.log('logDetails is empty, logAdminAction skipped');
     }
 
     res.json({ status: true, message: 'Settings saved successfully' });
   } catch (e) {
+    console.error('Settings PUT error:', e);
     res.json({ status: false, message: e.message });
   }
 });
