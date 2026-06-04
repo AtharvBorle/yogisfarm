@@ -58,11 +58,16 @@ if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
 // ─── Admin Auth ───
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, loginType } = req.body;
     const admin = await prisma.admin.findUnique({ where: { email } });
     if (!admin) return res.json({ status: false, message: 'Invalid credentials' });
     const valid = await bcrypt.compare(password, admin.password);
     if (!valid) return res.json({ status: false, message: 'Invalid credentials' });
+
+    // Restrict blog_admin from logging in via the main admin panel
+    if (admin.role === 'blog_admin' && loginType !== 'blog_admin') {
+      return res.json({ status: false, message: 'Unauthorized. Blog admins cannot access the main admin panel.' });
+    }
 
     if (admin.twoFactorEnabled) {
       if (!admin.phone) {
@@ -92,9 +97,15 @@ router.post('/login', async (req, res) => {
 
 router.post('/login/verify-2fa', async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, loginType } = req.body;
     const admin = await prisma.admin.findUnique({ where: { email } });
     if (!admin) return res.json({ status: false, message: 'Admin not found' });
+
+    // Restrict blog_admin from logging in via the main admin panel
+    if (admin.role === 'blog_admin' && loginType !== 'blog_admin') {
+      return res.json({ status: false, message: 'Unauthorized. Blog admins cannot access the main admin panel.' });
+    }
+
     if (!admin.otp || admin.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
     if (admin.otpExpiry && new Date() > admin.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
 
@@ -627,7 +638,7 @@ router.get('/products', requireAdmin, async (req, res) => {
 
 router.post('/products', requireAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, shortDescription, description, categoryId, brandId, taxId,
+    const { name, description, categoryId, brandId, taxId,
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     // Generate unique SEO-friendly slug
@@ -647,7 +658,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 
     const product = await prisma.product.create({
       data: {
-        name, slug, shortDescription, description, image, video, tags,
+        name, slug, description, image, video, tags,
         categoryId: categoryId ? parseInt(categoryId) : null,
         brandId: brandId ? parseInt(brandId) : null,
         taxId: taxId ? parseInt(taxId) : null,
@@ -670,11 +681,11 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 router.put('/products/:id', requireAdmin, upload.single('image'), async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { name, shortDescription, description, categoryId, brandId, taxId,
+    const { name, description, categoryId, brandId, taxId,
       video, tags, status, featured, popular, deal, variants, benefits, features, image: bodyImage } = req.body;
 
     const data = {
-      name, shortDescription, description, video, tags,
+      name, description, video, tags,
       categoryId: categoryId ? parseInt(categoryId) : null,
       brandId: brandId ? parseInt(brandId) : null,
       taxId: taxId ? parseInt(taxId) : null,
@@ -935,9 +946,13 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
     }
 
     // Auto-set status to shipped when delivery is assigned (only if currently confirmed)
-    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true }, });
+    const current = await prisma.order.findUnique({ where: { id: parseInt(req.params.id) }, select: { orderStatus: true, orderNumber: true, labelPrintedAt: true }, });
     if (current && (current.orderStatus === 'confirmed' || current.orderStatus === 'placed' || current.orderStatus === 'pending' || current.orderStatus === 'processing')) {
       data.orderStatus = 'shipped';
+    }
+
+    if (current && !current.labelPrintedAt) {
+      data.labelPrintedAt = new Date();
     }
 
     const order = await prisma.order.update({

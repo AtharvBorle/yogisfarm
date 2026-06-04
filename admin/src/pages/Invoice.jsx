@@ -53,7 +53,8 @@ const Invoice = () => {
                     filename:     `Invoice_${order.orderNumber}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     if (autoDownload) {
@@ -76,7 +77,11 @@ const Invoice = () => {
         const seq = oNum.substring(len - 6, len - 2);
         const random = oNum.substring(len - 2);
         
-        const date = order.labelPrintedAt ? new Date(order.labelPrintedAt) : new Date(order.createdAt);
+        const date = order.labelPrintedAt 
+            ? new Date(order.labelPrintedAt) 
+            : ((order.deliveryBoyId || order.courierPartnerId) 
+                ? new Date(order.updatedAt || order.createdAt) 
+                : new Date(order.createdAt));
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const day = date.getDate();
@@ -106,6 +111,12 @@ const Invoice = () => {
 
     return (
         <div id="invoice-content" style={{ maxWidth: '1100px', margin: '0 auto', padding: '30px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#333', background: '#fff' }}>
+            <style>{`
+                #invoice-content tr, .signature-section {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+            `}</style>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
@@ -129,7 +140,7 @@ const Invoice = () => {
                 <div style={{ textAlign: 'right' }}>
                     Invoice Number: <strong>{invoiceNumber}</strong><br />
                     Order Id: <strong>{order.orderNumber}</strong><br />
-                    Invoice Date: <strong>{formatDate(order.labelPrintedAt || order.createdAt)}</strong><br />
+                    Invoice Date: <strong>{formatDate(order.labelPrintedAt || ((order.deliveryBoyId || order.courierPartnerId) ? (order.updatedAt || order.createdAt) : order.createdAt))}</strong><br />
                     Order Date: <strong>{formatDate(order.createdAt)}</strong>
                 </div>
             </div>
@@ -221,7 +232,7 @@ const Invoice = () => {
             </table>
 
             {/* Signature */}
-            <div style={{ border: '1px solid #ccc', padding: '30px', textAlign: 'right', marginTop: '30px' }}>
+            <div className="signature-section" style={{ border: '1px solid #ccc', padding: '30px', textAlign: 'right', marginTop: '30px' }}>
                 <em>Authorized Signature</em>
             </div>
 

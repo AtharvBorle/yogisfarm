@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { CorePillars, Testimonials, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
+import { useSEO } from '../hooks/useSEO';
 
 const NextArrow = (props) => {
     const { className, style, onClick } = props;
@@ -79,6 +80,14 @@ const Product = () => {
     const [hoverRating, setHoverRating] = useState(0);
     const [newComment, setNewComment] = useState('');
     const [filterRating, setFilterRating] = useState('all');
+
+    useSEO({
+        key: product ? `product/${product.slug || product.id}` : null,
+        title: product ? product.name : 'Product Details',
+        description: product ? product.description : '',
+        keywords: product ? `${product.name}, ${product.category?.name || ''}` : '',
+        ogImage: product ? product.image : ''
+    });
 
     const handleReviewSubmit = async (e) => {
         e.preventDefault();

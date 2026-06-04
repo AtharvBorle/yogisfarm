@@ -9,9 +9,11 @@ datasource db {
 
 // ─── Site Settings ───
 model Setting {
-  id    Int    @id @default(autoincrement())
-  key   String @unique @db.VarChar(100)
-  value String @db.Text
+  id        Int      @id @default(autoincrement())
+  key       String   @unique @db.VarChar(100)
+  value     String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("settings")
 }
@@ -42,11 +44,12 @@ model User {
   id        Int      @id @default(autoincrement())
   name      String?  @db.VarChar(100)
   email     String?  @db.VarChar(150)
-  phone     String   @unique @db.VarChar(15)
+  phone     String?  @unique @db.VarChar(15)
   otp       String?  @db.VarChar(10)
   otpExpiry DateTime? @map("otp_expiry")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  deletionRequestedAt DateTime? @map("deletion_requested_at")
 
   cart      Cart[]
   wishlist  Wishlist[]
@@ -100,7 +103,6 @@ model Product {
   id               Int      @id @default(autoincrement())
   name             String   @db.VarChar(255)
   slug             String   @unique @db.VarChar(280)
-  shortDescription String?  @map("short_description") @db.VarChar(500)
   description      String?  @db.Text
   categoryId       Int?     @map("category_id")
   brandId          Int?     @map("brand_id")
@@ -524,3 +526,41 @@ model AdminLog {
 
   @@map("admin_logs")
 }
+
+// ─── Blog Posts ───
+model BlogPost {
+  id          Int      @id @default(autoincrement())
+  category    String   @db.VarChar(100)
+  title       String   @db.VarChar(255)
+  slug        String   @unique @db.VarChar(280)
+  description String   @db.Text
+  content     String   @db.LongText
+  image       String?  @db.VarChar(500)
+  bannerImage String?  @map("banner_image") @db.VarChar(500)
+  authorName  String   @default("ProWIn") @map("author_name") @db.VarChar(100)
+  authorDate  String   @map("author_date") @db.VarChar(50)
+  
+  // New columns
+  authorAvatar String? @map("author_avatar") @db.VarChar(500)
+  tags         String? @db.Text
+  archiveBlogIds String? @map("archive_blog_ids") @db.Text
+  sidebarImage String? @map("sidebar_image") @db.VarChar(500)
+  sidebarLink  String? @map("sidebar_link") @db.VarChar(500)
+  status       String  @default("inactive") @db.VarChar(20)
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("blog_posts")
+}
+
+// ─── Blog Categories ───
+model BlogCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("blog_categories")
+}

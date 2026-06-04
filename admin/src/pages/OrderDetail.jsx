@@ -202,13 +202,13 @@ const OrderDetail = () => {
                         <Settings size={16} /> Manage
                     </button>
                     <button onClick={() => {
-                        if (!order.labelPrintedAt) {
+                        if (!order.labelPrintedAt && !order.deliveryBoyId && !order.courierPartnerId) {
                             toast.error("Not shipped yet");
                             return;
                         }
                         window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank');
                     }}
-                        style={{ padding: '8px 18px', background: order.labelPrintedAt ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: order.labelPrintedAt ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        style={{ padding: '8px 18px', background: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={16} /> Print
                     </button>
                     <button onClick={() => navigate('/orders')}
@@ -433,7 +433,7 @@ const OrderDetail = () => {
             </div>
 
             {/* Edit Order Status Modal */}
-            <GenericModal isOpen={isStatusOpen} title="Update Order Status" onClose={() => setStatusOpen(false)}>
+            <GenericModal isOpen={isStatusOpen} title="Update Order Status" onClose={() => setStatusOpen(false)} size="sm">
                 <form onSubmit={updateStatus} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
                         <div style={{ marginBottom: '10px', padding: '10px 15px', background: 'var(--sidebar-hover)', borderRadius: '6px', fontSize: '13px', color: 'var(--text)' }}>
@@ -458,7 +458,7 @@ const OrderDetail = () => {
             </GenericModal>
 
             {/* Edit Payment Modal */}
-            <GenericModal isOpen={isPaymentOpen} title="Update Payment Status" onClose={() => setPaymentOpen(false)}>
+            <GenericModal isOpen={isPaymentOpen} title="Update Payment Status" onClose={() => setPaymentOpen(false)} size="sm">
                 <form onSubmit={updatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     {order.paymentMethod === 'online' && order.paymentDescription && (
                         <div style={{ padding: '10px 15px', background: 'var(--sidebar-hover)', borderRadius: '6px', fontSize: '13px', color: 'var(--text)' }}>
@@ -468,10 +468,22 @@ const OrderDetail = () => {
                     <div>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Payment Status</label>
                         <select value={paymentForm.paymentStatus} onChange={e => setPaymentForm({ ...paymentForm, paymentStatus: e.target.value })} className="admin-select" style={{ width: '100%' }}>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="failed">Failed</option>
-                            <option value="refunded">Refunded</option>
+                            {order.paymentStatus === 'completed' || order.paymentStatus === 'paid' || order.orderStatus === 'delivered' || order.paymentStatus === 'refunded' || order.paymentStatus === 'failed' ? (
+                                <>
+                                    {paymentForm.paymentStatus === 'completed' && <option value="completed">Completed</option>}
+                                    {paymentForm.paymentStatus === 'paid' && <option value="paid">Paid</option>}
+                                    {paymentForm.paymentStatus === 'pending' && <option value="pending">Pending</option>}
+                                    <option value="refunded">Refunded</option>
+                                    <option value="failed">Failed</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="pending">Pending</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="refunded">Refunded</option>
+                                </>
+                            )}
                         </select>
                     </div>
                     <div>
@@ -486,7 +498,7 @@ const OrderDetail = () => {
             </GenericModal>
 
             {/* Delivery Option Modal */}
-            <GenericModal isOpen={isDeliveryOptionOpen} title="Assign Delivery Option" onClose={() => setDeliveryOptionOpen(false)}>
+            <GenericModal isOpen={isDeliveryOptionOpen} title="Assign Delivery Option" onClose={() => setDeliveryOptionOpen(false)} size="sm">
                 <form onSubmit={assignDeliveryOption} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                     {/* Radio Selection */}
                     <div style={{ display: 'flex', gap: '12px', color: 'var(--text)' }}>

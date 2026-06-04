@@ -11,6 +11,15 @@ function requireAdmin(req, res, next) {
   if (!req.session || !req.session.adminId) {
     return res.status(401).json({ status: false, message: 'Admin access required' });
   }
+
+  // Restrict blog_admin from accessing main admin endpoints, except checking own session or logging out
+  if (req.baseUrl.startsWith('/api/admin') && req.session.adminRole === 'blog_admin') {
+    const isAllowedPath = req.path === '/me' || req.path === '/logout';
+    if (!isAllowedPath) {
+      return res.status(403).json({ status: false, message: 'Forbidden: Blog admins cannot access main admin endpoints' });
+    }
+  }
+
   next();
 }
 

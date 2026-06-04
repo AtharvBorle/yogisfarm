@@ -38,7 +38,11 @@ router.post('/verify-otp', async (req, res) => {
     if (user.otp !== otp) return res.json({ status: false, message: 'Invalid OTP' });
     if (user.otpExpiry && new Date() > user.otpExpiry) return res.json({ status: false, message: 'OTP expired' });
 
-    await prisma.user.update({ where: { id: user.id }, data: { otp: null, otpExpiry: null } });
+    const updateData = { otp: null, otpExpiry: null };
+    if (user.deletionRequestedAt) {
+      updateData.deletionRequestedAt = null;
+    }
+    await prisma.user.update({ where: { id: user.id }, data: updateData });
     req.session.userId = user.id;
 
     // Migrate guest cart
@@ -115,6 +119,20 @@ router.get('/me', async (req, res) => {
 router.get('/logout', (req, res) => {
   req.session.destroy();
   res.json({ status: true, message: 'Logged out' });
+});
+
+// Request account deletion
+router.post('/delete-account-request', requireLogin, async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.session.userId },
+      data: { deletionRequestedAt: new Date() }
+    });
+    req.session.destroy();
+    res.json({ status: true, message: 'Account deletion requested successfully. You have been logged out.' });
+  } catch (e) {
+    res.json({ status: false, message: 'Failed to request account deletion' });
+  }
 });
 
 module.exports = router;

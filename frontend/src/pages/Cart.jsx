@@ -8,6 +8,7 @@ import { useOrderPricing } from '../hooks/useOrderPricing';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import FloatingSidebar from '../components/FloatingSidebar';
+import useSEO from '../hooks/useSEO';
 
 const CartBanner = () => (
     <section className="cart-banner-section" style={{ position: 'relative', background: '#0A6738', paddingTop: '60px', paddingBottom: '80px', overflow: 'hidden', marginBottom: '40px' }}>
@@ -42,6 +43,7 @@ const MobileCartHeader = () => (
 );
 
 const Cart = () => {
+    useSEO('cart');
     const { cartItems, updateQuantity, removeFromCart } = useCart();
     const [popularProducts, setPopularProducts] = React.useState([]);
     const { user } = useAuth();

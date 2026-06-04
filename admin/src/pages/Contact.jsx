@@ -67,7 +67,7 @@ const Contact = () => {
                 onView={openViewModal}
             />
 
-            <GenericModal isOpen={isViewOpen} title="Contact Message Details" onClose={() => setViewOpen(false)}>
+            <GenericModal isOpen={isViewOpen} title="Contact Message Details" onClose={() => setViewOpen(false)} size="md">
                 {viewContact && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>

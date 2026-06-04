@@ -209,13 +209,13 @@ const Order = () => {
                     <button onClick={() => openViewModal(row)} title="View"
                         style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: '#ffc107', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Eye size={16} /></button>
                     <button onClick={() => {
-                        if (!row.labelPrintedAt) {
+                        if (!row.labelPrintedAt && !row.deliveryBoyId && !row.courierPartnerId) {
                             toast.error("Not shipped yet");
                             return;
                         }
                         navigate(`/orders/invoice/${row.orderNumber}`);
                     }} title="Invoice"
-                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: row.labelPrintedAt ? '#dc3545' : '#ccc', color: '#fff', cursor: row.labelPrintedAt ? 'pointer' : 'not-allowed', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FileText size={16} /></button>
+                        style={{ width: '28px', height: '28px', borderRadius: '4px', border: 'none', background: (row.labelPrintedAt || row.deliveryBoyId || row.courierPartnerId) ? '#dc3545' : '#ccc', color: '#fff', cursor: (row.labelPrintedAt || row.deliveryBoyId || row.courierPartnerId) ? 'pointer' : 'not-allowed', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FileText size={16} /></button>
                 </div>
             )
         }

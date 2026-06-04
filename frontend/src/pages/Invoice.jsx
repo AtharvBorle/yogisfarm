@@ -57,7 +57,8 @@ const Invoice = () => {
                     filename:     `Invoice_${order.orderNumber}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true },
-                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+                    pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     setTimeout(() => {
@@ -86,7 +87,8 @@ const Invoice = () => {
             filename:     `Invoice_${order.orderNumber}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+            pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr', '.signature-section'] }
         };
         html2pdf().set(opt).from(element).save().then(() => {
             setDownloading(false);
@@ -101,7 +103,11 @@ const Invoice = () => {
         const seq = oNum.substring(len - 6, len - 2);
         const random = oNum.substring(len - 2);
         
-        const date = order.labelPrintedAt ? new Date(order.labelPrintedAt) : new Date(order.createdAt);
+        const date = order.labelPrintedAt 
+            ? new Date(order.labelPrintedAt) 
+            : ((order.deliveryBoyId || order.courierPartnerId) 
+                ? new Date(order.updatedAt || order.createdAt) 
+                : new Date(order.createdAt));
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
         const day = date.getDate();
@@ -131,6 +137,12 @@ const Invoice = () => {
 
     return (
         <>
+            <style>{`
+                #invoice-content tr, .signature-section {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+            `}</style>
             {/* Download Button Bar - hidden in PDF */}
             <div id="download-bar" style={{ maxWidth: '1100px', margin: '20px auto 0', padding: '15px 30px', textAlign: 'right' }}>
                 <button
@@ -176,7 +188,7 @@ const Invoice = () => {
                 <div style={{ textAlign: 'right' }}>
                     Invoice Number: <strong>{invoiceNumber}</strong><br />
                     Order Id: <strong>{order.orderNumber}</strong><br />
-                    Invoice Date: <strong>{formatDate(order.labelPrintedAt || order.createdAt)}</strong><br />
+                    Invoice Date: <strong>{formatDate(order.labelPrintedAt || ((order.deliveryBoyId || order.courierPartnerId) ? (order.updatedAt || order.createdAt) : order.createdAt))}</strong><br />
                     Order Date: <strong>{formatDate(order.createdAt)}</strong>
                 </div>
             </div>
@@ -268,7 +280,7 @@ const Invoice = () => {
             </table>
 
             {/* Signature */}
-            <div style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>
+            <div className="signature-section" style={{ borderTop: '1px solid #ccc', paddingTop: '20px', textAlign: 'center', marginTop: '40px', color: '#666', fontSize: '13px' }}>
                 <em>This is a computer generated invoice and does not require a physical signature.</em>
             </div>
 

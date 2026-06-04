@@ -111,7 +111,7 @@ const Review = () => {
                 onView={openViewModal}
             />
 
-            <GenericModal isOpen={isViewOpen} title="Review Details" onClose={() => setViewOpen(false)}>
+            <GenericModal isOpen={isViewOpen} title="Review Details" onClose={() => setViewOpen(false)} size="md">
                 {viewReview && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>
@@ -146,6 +146,7 @@ const Review = () => {
                 isOpen={isModalOpen} 
                 title="Moderate Review" 
                 onClose={() => setModalOpen(false)}
+                size="md"
             >
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '15px', padding: '15px', background: 'var(--sidebar-hover)', borderRadius: '6px', color: 'var(--text)' }}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
+import useSEO from '../hooks/useSEO';
 
 // Import Assets
 import whyChooseBg from '../assets/figma/image_find/Why_choose_bg.png';
@@ -14,6 +15,7 @@ import iconHome from '../assets/figma/image_find/5-home.svg';
 import iconValues from '../assets/figma/image_find/6-values.svg';
 
 const About = () => {
+    useSEO('about');
     return (
         <main className="main pages">
             {/* Standard Breadcrumb */}
