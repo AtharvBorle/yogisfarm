@@ -31,7 +31,9 @@ async function cleanDatabase() {
     'users',
     'admin_logs',
     'sessions',
-    'shipping'
+    'shipping',
+    'blog_posts',
+    'blog_categories'
   ];
 
   try {
@@ -50,7 +52,22 @@ async function cleanDatabase() {
     // Re-enable foreign key checks
     await prisma.$executeRawUnsafe('SET FOREIGN_KEY_CHECKS = 1;');
 
-    console.log(' \n✅ Database cleanup complete! All rows in all tables deleted, while keeping Admin users and settings intact.');
+    // Clear SEO settings from settings table
+    try {
+      console.log('Clearing SEO settings from settings table...');
+      const seoDeleteResult = await prisma.setting.deleteMany({
+        where: {
+          key: {
+            startsWith: 'seo_'
+          }
+        }
+      });
+      console.log(`Cleared ${seoDeleteResult.count} SEO setting row(s).`);
+    } catch (err) {
+      console.warn('⚠️ Warning: Could not clear SEO settings:', err.message);
+    }
+
+    console.log(' \n✅ Database cleanup complete! All rows in all tables deleted, while keeping Admin users and settings intact (except SEO configurations).');
   } catch (error) {
     console.error('❌ Error cleaning database:', error);
   } finally {
