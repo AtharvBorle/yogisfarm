@@ -299,9 +299,11 @@ router.get('/logs/download', requireAdmin, async (req, res) => {
         logs.forEach(log => {
             const date = new Date(log.createdAt);
             const details = log.details ? `"${log.details.replace(/"/g, '""')}"` : '';
+            const dateStr = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+            const timeStr = date.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
             csvRows.push([
-                date.toLocaleDateString(),
-                date.toLocaleTimeString(),
+                dateStr,
+                timeStr,
                 `"${log.admin?.name || 'Unknown'}"`,
                 `"${log.admin?.email || 'Unknown'}"`,
                 `"${log.action}"`,
