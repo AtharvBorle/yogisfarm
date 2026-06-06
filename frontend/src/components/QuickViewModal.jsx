@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
@@ -18,6 +18,20 @@ const QuickViewModal = ({ product, onClose }) => {
     const [selectedVariant, setSelectedVariant] = useState(firstStockedVariant);
     const [quantity, setQuantity] = useState(1);
     const [mainImage, setMainImage] = useState(fetchedProduct?.image);
+    const thumbnailsRef = useRef(null);
+
+    const allImages = useMemo(() => {
+        const list = [];
+        if (fetchedProduct?.image) {
+            list.push(fetchedProduct.image);
+        }
+        if (fetchedProduct?.images && fetchedProduct.images.length > 0) {
+            fetchedProduct.images.forEach(img => {
+                list.push(img.image || img);
+            });
+        }
+        return list;
+    }, [fetchedProduct]);
 
     // Fetch full product details for quick view (in case images/variants are missing from list view)
     useEffect(() => {
@@ -37,6 +51,42 @@ const QuickViewModal = ({ product, onClose }) => {
         setQuantity(1);
         setMainImage(fetchedProduct?.image);
     }, [fetchedProduct]);
+
+    // Auto-scroll logic (2-second interval)
+    useEffect(() => {
+        if (allImages.length <= 1) return;
+
+        const interval = setInterval(() => {
+            setMainImage(current => {
+                const currentIndex = allImages.indexOf(current);
+                const nextIndex = (currentIndex + 1) % allImages.length;
+                return allImages[nextIndex];
+            });
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [allImages]);
+
+    // Scroll active thumbnail into view
+    useEffect(() => {
+        if (!thumbnailsRef.current || !mainImage) return;
+        const container = thumbnailsRef.current;
+        const activeIndex = allImages.indexOf(mainImage);
+        if (activeIndex === -1) return;
+
+        const thumbElements = container.getElementsByClassName('qv-thumb');
+        const activeThumb = thumbElements[activeIndex];
+        if (activeThumb) {
+            const containerWidth = container.clientWidth;
+            const thumbLeft = activeThumb.offsetLeft;
+            const thumbWidth = activeThumb.clientWidth;
+
+            container.scrollTo({
+                left: thumbLeft - (containerWidth / 2) + (thumbWidth / 2),
+                behavior: 'smooth'
+            });
+        }
+    }, [mainImage, allImages]);
 
     if (!fetchedProduct) return null;
 
@@ -154,17 +204,27 @@ const QuickViewModal = ({ product, onClose }) => {
                     object-fit: cover;
                 }
                 .qv-thumbnails {
-                    display: grid;
-                    grid-template-columns: repeat(5, 1fr);
+                    display: flex;
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
                     gap: 15px;
+                    scroll-behavior: smooth;
+                    -ms-overflow-style: none;  /* IE and Edge */
+                    scrollbar-width: none;  /* Firefox */
+                }
+                .qv-thumbnails::-webkit-scrollbar {
+                    display: none;
                 }
                 .qv-thumb {
+                    flex: 0 0 calc(20% - 12px);
+                    min-width: 60px;
                     aspect-ratio: 1;
                     border-radius: 10px;
                     object-fit: cover;
                     background: #f2f2f2;
                     cursor: pointer;
                     border: 2px solid transparent;
+                    transition: border-color 0.2s;
                 }
                 .qv-thumb:hover { border-color: #0A6738; }
                 
@@ -357,23 +417,16 @@ const QuickViewModal = ({ product, onClose }) => {
                     <div className="qv-main-img-wrap">
                         <img src={getAssetUrl(mainImage)} alt={fetchedProduct.name} className="qv-main-img" />
                     </div>
-                    {fetchedProduct.images && fetchedProduct.images.length > 0 && (
-                        <div className="qv-thumbnails">
-                            <img 
-                                src={getAssetUrl(fetchedProduct.image)} 
-                                alt="Main Thumbnail" 
-                                className="qv-thumb" 
-                                onClick={() => setMainImage(fetchedProduct.image)}
-                                style={{ border: mainImage === fetchedProduct.image ? '2px solid #0A6738' : '2px solid transparent' }}
-                            />
-                            {fetchedProduct.images.map((img, idx) => (
+                    {allImages.length > 0 && (
+                        <div className="qv-thumbnails" ref={thumbnailsRef}>
+                            {allImages.map((img, idx) => (
                                 <img 
                                     key={idx} 
-                                    src={getAssetUrl(img.image || img)} 
+                                    src={getAssetUrl(img)} 
                                     alt={`thumbnail ${idx}`} 
                                     className="qv-thumb" 
-                                    onClick={() => setMainImage(img.image || img)}
-                                    style={{ border: mainImage === (img.image || img) ? '2px solid #0A6738' : '2px solid transparent' }}
+                                    onClick={() => setMainImage(img)}
+                                    style={{ border: mainImage === img ? '2px solid #0A6738' : '2px solid transparent' }}
                                 />
                             ))}
                         </div>
