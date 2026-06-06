@@ -132,7 +132,8 @@ const ProductCard = ({ product }) => {
                 @media (max-width: 767px) {
                     .product-cart-wrap {
                         width: 100% !important;
-                        max-width: 100% !important;
+                        max-width: 180px !important;
+                        margin: 0 auto !important;
                         height: 180px !important;
                         border-radius: 5.59px !important;
                         border: 0.509px solid #D5D5D5 !important;

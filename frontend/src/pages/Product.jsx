@@ -709,9 +709,9 @@ const Product = () => {
                                                 {
                                                     breakpoint: 576,
                                                     settings: {
-                                                        slidesToShow: 1,
+                                                        slidesToShow: Math.min(2, related.length),
                                                         slidesToScroll: 1,
-                                                        infinite: related.length > 1,
+                                                        infinite: related.length > 2,
                                                     }
                                                 }
                                             ]}
