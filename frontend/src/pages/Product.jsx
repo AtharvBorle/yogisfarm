@@ -180,7 +180,7 @@ const Product = () => {
         }, 2000);
 
         return () => clearInterval(interval);
-    }, [allImages]);
+    }, [mainImage, allImages]);
 
     // Scroll active thumbnail into view
     useEffect(() => {
@@ -258,6 +258,15 @@ const Product = () => {
 
     return (
         <main className="main">
+            <style dangerouslySetInnerHTML={{ __html: `
+                .details-thumbnails::-webkit-scrollbar {
+                    display: none !important;
+                }
+                .details-thumbnails {
+                    -ms-overflow-style: none !important;
+                    scrollbar-width: none !important;
+                }
+            `}} />
             <Breadcrumb items={breadcrumbItems} />
             <div className="container mb-30">
                 <div className="row">
