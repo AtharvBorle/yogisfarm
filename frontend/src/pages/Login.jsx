@@ -301,7 +301,9 @@ const Login = () => {
                 }
 
                 .login-otp-box {
-                    width: 52px;
+                    flex: 1;
+                    min-width: 0;
+                    max-width: 52px;
                     height: 56px;
                     border-radius: 6px;
                     border: 1px solid #000;
@@ -369,6 +371,16 @@ const Login = () => {
 
                     .login-form-card {
                         padding: 40px 24px;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .login-otp-container {
+                        gap: 6px;
+                    }
+                    .login-otp-box {
+                        height: 48px;
+                        font-size: 16px;
                     }
                 }
             `}</style>
