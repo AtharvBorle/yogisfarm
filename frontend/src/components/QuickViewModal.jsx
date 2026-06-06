@@ -203,7 +203,7 @@ const QuickViewModal = ({ product, onClose }) => {
                     display: none;
                 }
                 .qv-thumb {
-                    flex: 0 0 calc((100% - 60px) / 5);
+                    flex: 0 0 76px;
                     aspect-ratio: 1;
                     border-radius: 10px;
                     object-fit: cover;
