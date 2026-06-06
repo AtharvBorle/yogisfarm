@@ -194,10 +194,17 @@ const QuickViewModal = ({ product, onClose }) => {
                 }
                 .qv-thumbnails {
                     display: grid;
-                    grid-template-columns: repeat(5, 1fr);
+                    grid-auto-flow: column;
+                    grid-auto-columns: 1fr;
                     gap: 15px;
+                    overflow-x: auto;
+                    scrollbar-width: none;
+                }
+                .qv-thumbnails::-webkit-scrollbar {
+                    display: none;
                 }
                 .qv-thumb {
+                    min-width: 70px;
                     aspect-ratio: 1;
                     border-radius: 10px;
                     object-fit: cover;
