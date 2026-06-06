@@ -103,7 +103,9 @@ const TakeAction = () => {
                 // For a single PDF containing all, we need a special print page.
                 const orderNumbers = selectedOrderIds.map(id => orders.find(o => o.id === id)?.orderNumber).filter(Boolean);
                 const idsParam = orderNumbers.join(',');
-                window.open(`/orders/bulk-invoice?orderNumbers=${idsParam}`, '_blank');
+                const baseUrl = import.meta.env.BASE_URL || '/';
+                const prefix = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+                window.open(`${prefix}orders/bulk-invoice?orderNumbers=${idsParam}`, '_blank');
                 
                 setSelectedOrderIds([]);
             } else {
@@ -376,7 +378,9 @@ const TakeAction = () => {
                                 disabled={selectedOrderIds.length === 0}
                                 onClick={() => {
                                     const orderNumbers = selectedOrderIds.map(id => orders.find(o => o.id === id)?.orderNumber).filter(Boolean);
-                                    window.open(`/orders/bulk-invoice?orderNumbers=${orderNumbers.join(',')}`, '_blank');
+                                    const baseUrl = import.meta.env.BASE_URL || '/';
+                                    const prefix = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+                                    window.open(`${prefix}orders/bulk-invoice?orderNumbers=${orderNumbers.join(',')}`, '_blank');
                                 }}
                                 style={{ padding: '8px 20px', background: selectedOrderIds.length > 0 ? '#17a2b8' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: selectedOrderIds.length > 0 ? 'pointer' : 'not-allowed', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Download size={16} /> Download Generated Labels

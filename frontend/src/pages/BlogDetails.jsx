@@ -416,6 +416,9 @@ const BlogDetails = () => {
                 color: #4A4A4A;
                 line-height: 28px;
               }
+              .blog-content-body i, .blog-content-body em {
+                font-style: italic !important;
+              }
             `}} />
 
             {/* HTML Body Content */}

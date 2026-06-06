@@ -53,12 +53,25 @@ const Profile = () => {
     }, []);
 
     const handleSaveSettings = async () => {
+        const cleanGst = gstNumber.trim();
+        if (cleanGst.length !== 15) {
+            return toast.error('GST Number must be exactly 15 characters');
+        }
+        if (!/^[A-Z0-9]{15}$/i.test(cleanGst)) {
+            return toast.error('GST Number must be a valid 15-character alphanumeric code');
+        }
+
+        if (!window.confirm('Are you sure you want to save the new GST number?')) {
+            return;
+        }
+
         setSavingSettings(true);
         try {
-            const res = await api.put('/settings', { settings: { gst_number: gstNumber } });
+            const res = await api.put('/settings', { settings: { gst_number: cleanGst } });
             if (res.data.status) {
                 toast.success('Settings saved successfully');
-                setSavedGstNumber(gstNumber);
+                setSavedGstNumber(cleanGst);
+                setGstNumber(cleanGst);
             }
             else toast.error(res.data.message);
         } catch (e) { toast.error('Failed to save settings'); }

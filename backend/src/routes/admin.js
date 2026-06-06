@@ -299,9 +299,11 @@ router.get('/logs/download', requireAdmin, async (req, res) => {
         logs.forEach(log => {
             const date = new Date(log.createdAt);
             const details = log.details ? `"${log.details.replace(/"/g, '""')}"` : '';
+            const dateStr = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+            const timeStr = date.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
             csvRows.push([
-                date.toLocaleDateString(),
-                date.toLocaleTimeString(),
+                dateStr,
+                timeStr,
                 `"${log.admin?.name || 'Unknown'}"`,
                 `"${log.admin?.email || 'Unknown'}"`,
                 `"${log.action}"`,
@@ -1664,13 +1666,42 @@ router.get('/settings', requireAdmin, async (req, res) => {
 router.put('/settings', requireAdmin, async (req, res) => {
   try {
     const { settings } = req.body; // { key: value, key: value }
+    if (!settings || typeof settings !== 'object') {
+      return res.json({ status: false, message: 'Invalid settings object' });
+    }
+
+    // Fetch previous settings for logging
+    const keys = Object.keys(settings);
+    const previousSettings = await prisma.setting.findMany({
+      where: { key: { in: keys } }
+    });
+    const prevMap = {};
+    previousSettings.forEach(s => { prevMap[s.key] = s.value; });
+
+    const logDetails = [];
+
     for (const [key, value] of Object.entries(settings)) {
+      const valStr = String(value);
+      const prevVal = prevMap[key];
+      if (prevVal !== valStr) {
+        logDetails.push(`${key}: "${prevVal || ''}" -> "${valStr}"`);
+      }
+
       await prisma.setting.upsert({
         where: { key },
-        update: { value: String(value) },
-        create: { key, value: String(value) }
+        update: { value: valStr },
+        create: { key, value: valStr }
       });
     }
+
+    if (logDetails.length > 0) {
+      await logAdminAction(
+        req.session.adminId,
+        'Updated Settings',
+        logDetails.join(', ')
+      );
+    }
+
     res.json({ status: true, message: 'Settings saved' });
   } catch (e) {
     res.json({ status: false, message: e.message });

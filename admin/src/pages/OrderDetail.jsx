@@ -206,7 +206,9 @@ const OrderDetail = () => {
                             toast.error("Not shipped yet");
                             return;
                         }
-                        window.open(`/admin/orders/invoice/${order.orderNumber}?download=true`, '_blank');
+                        const baseUrl = import.meta.env.BASE_URL || '/';
+                        const prefix = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+                        window.open(`${prefix}orders/invoice/${order.orderNumber}?download=true`, '_blank');
                     }}
                         style={{ padding: '8px 18px', background: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? '#007bff' : '#ccc', color: '#fff', border: 'none', borderRadius: '6px', cursor: (order.labelPrintedAt || order.deliveryBoyId || order.courierPartnerId) ? 'pointer' : 'not-allowed', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={16} /> Print

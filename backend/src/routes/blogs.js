@@ -262,6 +262,119 @@ async function ensureSeeded() {
   // Seeding disabled to remove fallback blogs
 }
 
+// Helper to delete an image file from S3 or local disk
+async function deleteUploadedFile(fileUrl) {
+  if (!fileUrl) return;
+
+  try {
+    // Check if it's an S3 URL
+    if (process.env.AWS_S3_BUCKET_NAME && s3) {
+      let key = fileUrl;
+      const bucketName = process.env.AWS_S3_BUCKET_NAME;
+      
+      const assetUrl = process.env.ASSET_URL || '';
+      if (assetUrl && key.startsWith(assetUrl)) {
+        key = key.substring(assetUrl.length);
+      } else if (key.includes('.amazonaws.com/')) {
+        key = key.split('.amazonaws.com/')[1];
+      } else if (key.includes('//')) {
+        const parts = key.split('//')[1].split('/');
+        parts.shift();
+        key = parts.join('/');
+      }
+
+      if (key.startsWith('/')) {
+        key = key.substring(1);
+      }
+
+      if (key.startsWith('uploads/')) {
+        const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+        await s3.send(new DeleteObjectCommand({
+          Bucket: bucketName,
+          Key: key
+        }));
+        console.log(`Successfully deleted S3 object: ${key}`);
+      }
+    } else {
+      // Local file
+      let relativePath = fileUrl;
+      if (relativePath.startsWith('/')) {
+        relativePath = relativePath.substring(1);
+      }
+      
+      const filePath = path.join(__dirname, '..', '..', relativePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`Successfully deleted local file: ${filePath}`);
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to delete file: ${fileUrl}`, err);
+  }
+}
+
+function extractImageUrlsFromHtml(html) {
+  if (!html) return [];
+  const urls = [];
+  const regex = /<img[^>]+src=["']([^"']+)["']/g;
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    urls.push(match[1]);
+  }
+  return urls;
+}
+
+async function deleteBlogImages(blog) {
+  if (!blog) return;
+  const urls = new Set();
+  
+  if (blog.image) urls.add(blog.image);
+  if (blog.bannerImage) urls.add(blog.bannerImage);
+  if (blog.authorAvatar) urls.add(blog.authorAvatar);
+  if (blog.sidebarImage) urls.add(blog.sidebarImage);
+  
+  const inlineUrls = extractImageUrlsFromHtml(blog.content);
+  inlineUrls.forEach(url => urls.add(url));
+  
+  for (const url of urls) {
+    await deleteUploadedFile(url);
+  }
+}
+
+async function cleanRemovedBlogImages(oldBlog, newBlogData) {
+  if (!oldBlog || !newBlogData) return;
+
+  const oldUrls = new Set();
+  if (oldBlog.image) oldUrls.add(oldBlog.image);
+  if (oldBlog.bannerImage) oldUrls.add(oldBlog.bannerImage);
+  if (oldBlog.authorAvatar) oldUrls.add(oldBlog.authorAvatar);
+  if (oldBlog.sidebarImage) oldUrls.add(oldBlog.sidebarImage);
+  
+  const oldInline = extractImageUrlsFromHtml(oldBlog.content);
+  oldInline.forEach(url => oldUrls.add(url));
+
+  const newImage = newBlogData.image !== undefined ? newBlogData.image : oldBlog.image;
+  const newBanner = newBlogData.bannerImage !== undefined ? newBlogData.bannerImage : oldBlog.bannerImage;
+  const newAvatar = newBlogData.authorAvatar !== undefined ? newBlogData.authorAvatar : oldBlog.authorAvatar;
+  const newSidebar = newBlogData.sidebarImage !== undefined ? newBlogData.sidebarImage : oldBlog.sidebarImage;
+  const newContent = newBlogData.content !== undefined ? newBlogData.content : oldBlog.content;
+
+  const newUrls = new Set();
+  if (newImage) newUrls.add(newImage);
+  if (newBanner) newUrls.add(newBanner);
+  if (newAvatar) newUrls.add(newAvatar);
+  if (newSidebar) newUrls.add(newSidebar);
+
+  const newInline = extractImageUrlsFromHtml(newContent);
+  newInline.forEach(url => newUrls.add(url));
+
+  for (const url of oldUrls) {
+    if (!newUrls.has(url)) {
+      await deleteUploadedFile(url);
+    }
+  }
+}
+
 // Helper to seed categories if database is empty (disabled)
 async function ensureCategoriesSeeded() {
   // Seeding disabled to remove fallback categories
@@ -524,6 +637,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
     if (sidebarLink !== undefined) data.sidebarLink = sidebarLink;
     if (status !== undefined) data.status = status;
 
+    await cleanRemovedBlogImages(exists, data);
+
     const updatedBlog = await prisma.blogPost.update({
       where: { id },
       data
@@ -546,6 +661,13 @@ router.post('/bulk-action', requireAdmin, async (req, res) => {
     const numericIds = ids.map(id => parseInt(id));
 
     if (action === 'delete') {
+      const blogs = await prisma.blogPost.findMany({
+        where: { id: { in: numericIds } }
+      });
+      for (const blog of blogs) {
+        await deleteBlogImages(blog);
+      }
+
       await prisma.blogPost.deleteMany({
         where: { id: { in: numericIds } }
       });
@@ -568,10 +690,12 @@ router.post('/bulk-action', requireAdmin, async (req, res) => {
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const exists = await prisma.blogPost.findUnique({ where: { id } });
-    if (!exists) {
+    const blog = await prisma.blogPost.findUnique({ where: { id } });
+    if (!blog) {
       return res.json({ status: false, message: 'Blog post not found' });
     }
+
+    await deleteBlogImages(blog);
 
     await prisma.blogPost.delete({ where: { id } });
     res.json({ status: true, message: 'Blog post deleted successfully' });
