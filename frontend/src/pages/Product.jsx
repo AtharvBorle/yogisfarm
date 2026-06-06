@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import SliderComponent from 'react-slick';
@@ -38,6 +38,13 @@ const NextArrow = (props) => {
             <style>{`
                 .slick-next::before, .slick-prev::before {
                     display: none !important;
+                }
+                .details-thumbnails::-webkit-scrollbar {
+                    display: none !important;
+                }
+                .details-thumbnails {
+                    -ms-overflow-style: none !important;
+                    scrollbar-width: none !important;
                 }
             `}</style>
             <div
@@ -123,6 +130,25 @@ const Product = () => {
         }
     };
 
+    const thumbnailsRef = useRef(null);
+
+    const allImages = useMemo(() => {
+        const list = [];
+        if (product?.image) {
+            list.push(product.image);
+        }
+        if (product?.images && product.images.length > 0) {
+            product.images.forEach(img => {
+                if (img.image) {
+                    list.push(img.image);
+                } else {
+                    list.push(img);
+                }
+            });
+        }
+        return list;
+    }, [product]);
+
     useEffect(() => {
         setLoading(true);
         api.get(`/products/${slug}`).then(res => {
@@ -140,6 +166,42 @@ const Product = () => {
             }
         }).finally(() => setLoading(false));
     }, [slug]);
+
+    // Auto-scroll logic (2-second interval)
+    useEffect(() => {
+        if (allImages.length <= 1) return;
+
+        const interval = setInterval(() => {
+            setMainImage(current => {
+                const currentIndex = allImages.indexOf(current);
+                const nextIndex = (currentIndex + 1) % allImages.length;
+                return allImages[nextIndex];
+            });
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [allImages]);
+
+    // Scroll active thumbnail into view
+    useEffect(() => {
+        if (!thumbnailsRef.current || !mainImage) return;
+        const container = thumbnailsRef.current;
+        const activeIndex = allImages.indexOf(mainImage);
+        if (activeIndex === -1) return;
+
+        const thumbElements = container.children;
+        const activeThumb = thumbElements[activeIndex];
+        if (activeThumb) {
+            const containerWidth = container.clientWidth;
+            const thumbLeft = activeThumb.offsetLeft;
+            const thumbWidth = activeThumb.clientWidth;
+
+            container.scrollTo({
+                left: thumbLeft - (containerWidth / 2) + (thumbWidth / 2),
+                behavior: 'smooth'
+            });
+        }
+    }, [mainImage, allImages]);
 
     if(loading) return <div className="container mt-5 text-center">Loading...</div>;
     if(!product) return <div className="container mt-5 text-center">Product not found.</div>;
@@ -216,23 +278,33 @@ const Product = () => {
                                             </figure>
                                         </div>
                                         {/* Gallery Thumbnails */}
-                                        <div style={{ display: 'flex', gap: '10px', marginTop: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                        {allImages.length > 0 && (
                                             <div 
-                                                onClick={() => setMainImage(product.image)}
-                                                style={{ border: mainImage === product.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', width: '80px', minWidth: '80px', height: '80px', flexShrink: 0 }}
+                                                className="details-thumbnails"
+                                                ref={thumbnailsRef}
+                                                style={{ display: 'flex', gap: '10px', marginTop: '15px', overflowX: 'auto', paddingBottom: '10px', scrollBehavior: 'smooth' }}
                                             >
-                                                <img src={getAssetUrl(product.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                {allImages.map((img, idx) => (
+                                                    <div 
+                                                        key={idx}
+                                                        onClick={() => setMainImage(img)}
+                                                        style={{ 
+                                                            border: mainImage === img ? '2px solid #3BB77E' : '1px solid #eee', 
+                                                            borderRadius: '8px', 
+                                                            cursor: 'pointer', 
+                                                            overflow: 'hidden', 
+                                                            width: '80px', 
+                                                            minWidth: '80px', 
+                                                            height: '80px', 
+                                                            flexShrink: 0,
+                                                            transition: 'border-color 0.2s'
+                                                        }}
+                                                    >
+                                                        <img src={getAssetUrl(img)} alt={`Thumbnail ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    </div>
+                                                ))}
                                             </div>
-                                            {product.images?.map(img => (
-                                                <div 
-                                                    key={img.id}
-                                                    onClick={() => setMainImage(img.image)}
-                                                    style={{ border: mainImage === img.image ? '2px solid #3BB77E' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', overflow: 'hidden', width: '80px', minWidth: '80px', height: '80px', flexShrink: 0 }}
-                                                >
-                                                    <img src={getAssetUrl(img.image)} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                </div>
-                                            ))}
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
 
