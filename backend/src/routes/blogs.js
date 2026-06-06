@@ -375,6 +375,11 @@ async function cleanRemovedBlogImages(oldBlog, newBlogData) {
   }
 }
 
+// Helper to seed categories if database is empty (disabled)
+async function ensureCategoriesSeeded() {
+  // Seeding disabled to remove fallback categories
+}
+
 // ─── CATEGORY ENDPOINTS ───
 
 // GET: Fetch all blog categories
