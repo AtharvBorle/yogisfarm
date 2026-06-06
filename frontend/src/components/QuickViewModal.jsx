@@ -193,19 +193,12 @@ const QuickViewModal = ({ product, onClose }) => {
                     object-fit: cover;
                 }
                 .qv-thumbnails {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
                     gap: 15px;
-                    overflow-x: auto;
-                    scrollbar-width: none;
-                    -ms-overflow-style: none;
-                }
-                .qv-thumbnails::-webkit-scrollbar {
-                    display: none;
                 }
                 .qv-thumb {
-                    width: 78px;
-                    min-width: 78px;
-                    height: 78px;
+                    aspect-ratio: 1;
                     border-radius: 10px;
                     object-fit: cover;
                     background: #f2f2f2;
@@ -412,7 +405,7 @@ const QuickViewModal = ({ product, onClose }) => {
                                 onClick={() => setMainImage(fetchedProduct.image)}
                                 style={{ border: mainImage === fetchedProduct.image ? '2px solid #0A6738' : '2px solid transparent' }}
                             />
-                            {fetchedProduct.images.map((img, idx) => (
+                            {fetchedProduct.images.slice(0, 4).map((img, idx) => (
                                 <img 
                                     key={idx} 
                                     src={getAssetUrl(img.image || img)} 
