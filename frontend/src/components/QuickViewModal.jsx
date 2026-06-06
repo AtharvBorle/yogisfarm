@@ -193,17 +193,11 @@ const QuickViewModal = ({ product, onClose }) => {
                     object-fit: cover;
                 }
                 .qv-thumbnails {
-                    display: flex;
-                    overflow-x: auto;
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
                     gap: 15px;
-                    scrollbar-width: none;
-                    position: relative;
-                }
-                .qv-thumbnails::-webkit-scrollbar {
-                    display: none;
                 }
                 .qv-thumb {
-                    flex: 0 0 76px;
                     aspect-ratio: 1;
                     border-radius: 10px;
                     object-fit: cover;
