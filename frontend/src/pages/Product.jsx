@@ -674,33 +674,36 @@ const Product = () => {
                                     </div>
                                     <div className="related-products-slider" style={{ padding: '0 20px' }}>
                                         <Slider
+                                            key={`${product.id}-${related.length}`}
                                             dots={false}
-                                            infinite={true}
+                                            infinite={related.length > 3}
                                             speed={1000}
-                                            autoplay={true}
+                                            autoplay={related.length > 3}
                                             autoplaySpeed={3000}
-                                            slidesToShow={3}
+                                            slidesToShow={Math.min(3, related.length)}
                                             slidesToScroll={1}
-                                            arrows={true}
+                                            arrows={related.length > 1}
                                             nextArrow={<NextArrow />}
                                             prevArrow={<div style={{ display: 'none' }}></div>}
-                                            swipe={true}
-                                            draggable={true}
+                                            swipe={related.length > 1}
+                                            draggable={related.length > 1}
                                             swipeToSlide={true}
                                             pauseOnHover={true}
                                             responsive={[
                                                 {
                                                     breakpoint: 1200,
                                                     settings: {
-                                                        slidesToShow: 3,
+                                                        slidesToShow: Math.min(3, related.length),
                                                         slidesToScroll: 1,
+                                                        infinite: related.length > 3,
                                                     }
                                                 },
                                                 {
                                                     breakpoint: 992,
                                                     settings: {
-                                                        slidesToShow: 2,
+                                                        slidesToShow: Math.min(2, related.length),
                                                         slidesToScroll: 1,
+                                                        infinite: related.length > 2,
                                                     }
                                                 },
                                                 {
@@ -708,6 +711,7 @@ const Product = () => {
                                                     settings: {
                                                         slidesToShow: 1,
                                                         slidesToScroll: 1,
+                                                        infinite: related.length > 1,
                                                     }
                                                 }
                                             ]}
