@@ -1,7 +1,33 @@
 import { useEffect } from 'react';
 import api from '../api';
 
+let cachedSettingsPromise = null;
+
+const getSettings = () => {
+  if (!cachedSettingsPromise) {
+    cachedSettingsPromise = api.get('/settings')
+      .then(res => {
+        if (res.data.status && res.data.settings) {
+          return res.data.settings;
+        }
+        return null;
+      })
+      .catch(err => {
+        cachedSettingsPromise = null; // Allow retrying on failure
+        throw err;
+      });
+  }
+  return cachedSettingsPromise;
+};
+
 export const useSEO = (seoData) => {
+  const isString = typeof seoData === 'string';
+  const depKey = isString ? seoData : (seoData?.key || '');
+  const depTitle = isString ? '' : (seoData?.title || '');
+  const depDesc = isString ? '' : (seoData?.description || '');
+  const depKeywords = isString ? '' : (seoData?.keywords || '');
+  const depOgImage = isString ? '' : (seoData?.ogImage || '');
+
   useEffect(() => {
     const updateSEO = async () => {
       let title = '';
@@ -9,47 +35,47 @@ export const useSEO = (seoData) => {
       let keywords = '';
       let ogImage = '';
 
-      if (typeof seoData === 'string') {
-        try {
-          const res = await api.get('/settings');
-          if (res.data.status && res.data.settings) {
-            const settings = res.data.settings;
-            title = settings[`seo_${seoData}_title`] || '';
-            description = settings[`seo_${seoData}_description`] || '';
-            keywords = settings[`seo_${seoData}_keywords`] || '';
-            ogImage = settings[`seo_${seoData}_og_image`] || '';
-          }
-        } catch (err) {
-          console.error('Failed to load SEO settings', err);
-        }
-      } else if (seoData && typeof seoData === 'object') {
-        if (seoData.key) {
+      if (isString) {
+        if (depKey) {
           try {
-            const res = await api.get('/settings');
-            if (res.data.status && res.data.settings) {
-              const settings = res.data.settings;
-              title = settings[`seo_${seoData.key}_title`] || seoData.title || '';
-              description = settings[`seo_${seoData.key}_description`] || seoData.description || '';
-              keywords = settings[`seo_${seoData.key}_keywords`] || seoData.keywords || '';
-              ogImage = settings[`seo_${seoData.key}_og_image`] || seoData.ogImage || '';
-            } else {
-              title = seoData.title || '';
-              description = seoData.description || '';
-              keywords = seoData.keywords || '';
-              ogImage = seoData.ogImage || '';
+            const settings = await getSettings();
+            if (settings) {
+              title = settings[`seo_${depKey}_title`] || '';
+              description = settings[`seo_${depKey}_description`] || '';
+              keywords = settings[`seo_${depKey}_keywords`] || '';
+              ogImage = settings[`seo_${depKey}_og_image`] || '';
             }
           } catch (err) {
             console.error('Failed to load SEO settings', err);
-            title = seoData.title || '';
-            description = seoData.description || '';
-            keywords = seoData.keywords || '';
-            ogImage = seoData.ogImage || '';
+          }
+        }
+      } else if (seoData && typeof seoData === 'object') {
+        if (depKey) {
+          try {
+            const settings = await getSettings();
+            if (settings) {
+              title = settings[`seo_${depKey}_title`] || depTitle || '';
+              description = settings[`seo_${depKey}_description`] || depDesc || '';
+              keywords = settings[`seo_${depKey}_keywords`] || depKeywords || '';
+              ogImage = settings[`seo_${depKey}_og_image`] || depOgImage || '';
+            } else {
+              title = depTitle;
+              description = depDesc;
+              keywords = depKeywords;
+              ogImage = depOgImage;
+            }
+          } catch (err) {
+            console.error('Failed to load SEO settings', err);
+            title = depTitle;
+            description = depDesc;
+            keywords = depKeywords;
+            ogImage = depOgImage;
           }
         } else {
-          title = seoData.title || '';
-          description = seoData.description || '';
-          keywords = seoData.keywords || '';
-          ogImage = seoData.ogImage || '';
+          title = depTitle;
+          description = depDesc;
+          keywords = depKeywords;
+          ogImage = depOgImage;
         }
       }
 
@@ -134,7 +160,7 @@ export const useSEO = (seoData) => {
     };
 
     updateSEO();
-  }, [seoData]);
+  }, [isString, depKey, depTitle, depDesc, depKeywords, depOgImage]);
 };
 
 export default useSEO;
