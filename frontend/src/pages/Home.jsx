@@ -35,7 +35,6 @@ import iconVision from '../assets/figma/icon_vision.svg';
 import iconQuality from '../assets/figma/image_find/4-quality.svg';
 import iconHome from '../assets/figma/image_find/5-home.svg';
 import iconValues from '../assets/figma/image_find/6-values.svg';
-
 const ProductSmallCard = ({ product, isMobile }) => {
 
     const variants = product.variants || [];
@@ -66,7 +65,7 @@ const ProductSmallCard = ({ product, isMobile }) => {
             </figure>
             <div className="product-small-card-text-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0px' }}>
                 <h6 style={{ margin: 0, lineHeight: '1.2' }}>
-                    <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: titleSize, fontWeight: 600, fontFamily: 'Poppins, sans-serif' }}>{product.name}</Link>
+                    <Link className="product-small-card-title" to={`/product/${product.slug}`} style={{ color: '#000', fontSize: titleSize, fontWeight: 600, fontFamily: 'Poppins, sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis' }}>{product.name}</Link>
                 </h6>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
                     <span className="product-small-card-stars" style={{ color: '#FFB800', fontSize: starsSize }}>{starString}</span>
@@ -82,6 +81,149 @@ const ProductSmallCard = ({ product, isMobile }) => {
                 </div>
             </div>
         </article>
+    );
+};
+
+const ProductCardSkeleton = ({ isMobile }) => {
+    if (isMobile) {
+        return (
+            <div className="product-cart-wrap skeleton-pulse" style={{ 
+                width: '100%',
+                maxWidth: '180px', 
+                height: '180px', 
+                borderRadius: '5.59px', 
+                border: '0.509px solid #EAEAEA', 
+                backgroundColor: '#F7F7F7',
+                display: 'flex',
+                flexDirection: 'column',
+                margin: '0 auto',
+                padding: '3px'
+            }}>
+                <div className="skeleton-pulse" style={{ width: '100%', aspectRatio: '160/102', backgroundColor: '#E0E0E0', borderRadius: '4.56px' }}></div>
+                <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="skeleton-pulse" style={{ height: '10px', width: '80%', backgroundColor: '#E0E0E0', borderRadius: '4px' }}></div>
+                    <div className="skeleton-pulse" style={{ height: '8px', width: '50%', backgroundColor: '#E0E0E0', borderRadius: '4px' }}></div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                        <div className="skeleton-pulse" style={{ height: '12px', width: '40px', backgroundColor: '#E0E0E0', borderRadius: '4px' }}></div>
+                        <div className="skeleton-pulse" style={{ height: '18px', width: '50px', backgroundColor: '#E0E0E0', borderRadius: '4px' }}></div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="product-cart-wrap" style={{ 
+            width: '100%',
+            maxWidth: '291px', 
+            height: '400px', 
+            borderRadius: '11px', 
+            border: '1px solid #EAEAEA', 
+            backgroundColor: '#FFFFFF',
+            display: 'flex',
+            flexDirection: 'column',
+            margin: '0 auto',
+            padding: '5px'
+        }}>
+            <div className="skeleton-pulse" style={{ width: '100%', aspectRatio: '281/187', backgroundColor: '#F0F0F0', borderRadius: '9px' }}></div>
+            <div style={{ padding: '15px', flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="skeleton-pulse" style={{ height: '16px', width: '90%', backgroundColor: '#F0F0F0', borderRadius: '4px' }}></div>
+                <div className="skeleton-pulse" style={{ height: '12px', width: '60%', backgroundColor: '#F0F0F0', borderRadius: '4px' }}></div>
+                <div className="skeleton-pulse" style={{ height: '12px', width: '40%', backgroundColor: '#F0F0F0', borderRadius: '4px' }}></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                    <div className="skeleton-pulse" style={{ height: '24px', width: '80px', backgroundColor: '#F0F0F0', borderRadius: '4px' }}></div>
+                    <div className="skeleton-pulse" style={{ height: '32px', width: '70px', backgroundColor: '#F0F0F0', borderRadius: '4px' }}></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ProductSmallCardSkeleton = ({ isMobile }) => {
+    const imgSize = isMobile ? '140px' : '80px';
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '12px', width: '100%' }}>
+            <div className="skeleton-pulse" style={{ width: imgSize, height: imgSize, borderRadius: '10px', backgroundColor: '#F0F0F0', flexShrink: 0 }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="skeleton-pulse" style={{ height: '14px', width: '90%', backgroundColor: '#F0F0F0', borderRadius: '4px' }} />
+                <div className="skeleton-pulse" style={{ height: '10px', width: '60%', backgroundColor: '#F0F0F0', borderRadius: '4px' }} />
+                <div className="skeleton-pulse" style={{ height: '14px', width: '40%', backgroundColor: '#F0F0F0', borderRadius: '4px' }} />
+            </div>
+        </div>
+    );
+};
+
+const CategorySkeleton = () => {
+    return (
+        <div className="col-4 col-sm-3 col-md-2 mb-3 text-center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div className="skeleton-pulse skeleton-category-img" style={{ backgroundColor: '#F0F0F0' }} />
+            <div className="skeleton-pulse" style={{ height: '12px', width: '60px', backgroundColor: '#F0F0F0', borderRadius: '4px' }} />
+        </div>
+    );
+};
+
+const BannerSkeleton = ({ isMobile }) => {
+    if (isMobile) {
+        return (
+            <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '12px 15px 10px 15px' }}>
+                <div className="skeleton-pulse" style={{ width: '100%', aspectRatio: '312/190', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', gap: '8px' }}>
+                    <div className="skeleton-pulse" style={{ flex: 1, aspectRatio: '1/1', borderRadius: '6.158px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ flex: 1, aspectRatio: '1/1', borderRadius: '9.237px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ flex: 1, aspectRatio: '1/1', borderRadius: '9.237px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ flex: 1, aspectRatio: '1/1', borderRadius: '9.237px', backgroundColor: '#F0F0F0' }}></div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '25px 15px 20px 15px' }}>
+            <div style={{ display: 'flex', gap: '14px', width: '100%' }}>
+                <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
+                    <div className="skeleton-pulse" style={{ width: '173px', height: '173px', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ width: '173px', height: '173px', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                </div>
+                <div className="skeleton-pulse" style={{ flex: 1, height: '361px', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                <div className="d-none d-lg-flex" style={{ flexDirection: 'column', gap: '15px', width: '173px', flexShrink: 0 }}>
+                    <div className="skeleton-pulse" style={{ width: '173px', height: '173px', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ width: '173px', height: '173px', borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const BestDealsSkeleton = ({ isMobile }) => {
+    if (isMobile) {
+        return (
+            <div style={{ padding: '0 24px' }}>
+                <div className="section-title animate__animated animate__fadeIn" style={{ margin: '0 0 12px 0' }}>
+                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600 }}>Best Deals</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '5px' }}>
+                    <div className="skeleton-pulse" style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                    <div className="skeleton-pulse" style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', backgroundColor: '#F0F0F0' }}></div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
+            <div className="section-title">
+                <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
+            </div>
+            <div style={{ display: 'flex', gap: '26px', marginBottom: '24px' }}>
+                <div className="skeleton-pulse" style={{ flex: 1, height: '303px', borderRadius: '10px', backgroundColor: '#F0F0F0' }}></div>
+                <div className="skeleton-pulse" style={{ flex: 1, height: '303px', borderRadius: '10px', backgroundColor: '#F0F0F0' }}></div>
+            </div>
+            <div style={{ display: 'flex', gap: '24px' }}>
+                <div className="skeleton-pulse" style={{ width: '291px', height: '346px', borderRadius: '10px', backgroundColor: '#F0F0F0' }}></div>
+                <div className="skeleton-pulse" style={{ flex: 1, height: '346px', borderRadius: '10px', backgroundColor: '#F0F0F0' }}></div>
+                <div className="skeleton-pulse" style={{ width: '291px', height: '346px', borderRadius: '10px', backgroundColor: '#F0F0F0' }}></div>
+            </div>
+        </div>
     );
 };
 
@@ -106,6 +248,8 @@ const Home = () => {
     const [featuredProducts, setFeaturedProducts] = useState([]);
     const [popularProducts, setPopularProducts] = useState([]);
     const [dealProducts, setDealProducts] = useState([]);
+    const [isMainLoading, setIsMainLoading] = useState(true);
+    const [isPopularLoading, setIsPopularLoading] = useState(true);
 
     // Automated Compact Dynamic Lists
     const [topSellingList, setTopSellingList] = useState([]);
@@ -183,10 +327,12 @@ const Home = () => {
                 setRecentlyAddedList(listRes.data.recentlyAdded || []);
                 setTopRatedList(listRes.data.topRated || []);
             }
-        }).catch(err => console.error(err));
+        }).catch(err => console.error(err))
+        .finally(() => setIsMainLoading(false));
     }, []);
 
     useEffect(() => {
+        setIsPopularLoading(true);
         let url = `/products?popular=true&page=${popularPage}&limit=8`;
         if (popularSearch) {
             url += `&search=${encodeURIComponent(popularSearch)}`;
@@ -198,7 +344,8 @@ const Home = () => {
                     setPopularTotalPages(res.data.totalPages || 1);
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error(err))
+            .finally(() => setIsPopularLoading(false));
     }, [popularPage, popularSearch]);
 
 
@@ -355,6 +502,25 @@ const Home = () => {
         <>
             <style dangerouslySetInnerHTML={{
                 __html: `
+                @keyframes skeleton-glow {
+                    0% { background-color: #f2f2f2; }
+                    50% { background-color: #e5e5e5; }
+                    100% { background-color: #f2f2f2; }
+                }
+                .skeleton-pulse {
+                    animation: skeleton-glow 1.5s ease-in-out infinite !important;
+                }
+                .skeleton-category-img {
+                    width: 100px;
+                    height: 100px;
+                    border-radius: 50%;
+                }
+                @media (max-width: 767px) {
+                    .skeleton-category-img {
+                        width: 95px !important;
+                        height: 95px !important;
+                    }
+                }
                 @media (max-width: 767px) {
                     .auto-scroll-container {
                         flex-wrap: nowrap !important;
@@ -429,6 +595,10 @@ const Home = () => {
                         height: 18px !important;
                         width: auto !important;
                     }
+                    .product-small-card-text-container {
+                        height: auto !important;
+                        min-height: 140px !important;
+                    }
                 }
                 .why-choose-logo {
                     height: 95px !important;
@@ -460,8 +630,11 @@ const Home = () => {
                 }
             `}} />
             {/* 1. MAIN SLIDER */}
-            {mainSliders.length > 0 && (
-                <section className="home-slider position-relative pt-25 pb-20">
+            {isMainLoading ? (
+                <BannerSkeleton isMobile={isMobile} />
+            ) : (
+                mainSliders.length > 0 && (
+                    <section className="home-slider position-relative pt-25 pb-20">
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
                         <div style={{ display: 'flex', alignItems: 'stretch', gap: '14px', width: '100%' }}>
                             {/* Left Banners — Figma: 173x173 stacked, gap ~15px */}
@@ -565,13 +738,30 @@ const Home = () => {
                         </div>
                     </div>
                 </section>
+                )
             )}
 
 
 
             {/* 2. Featured Categories */}
-            {categories.length > 0 && (
+            {isMainLoading ? (
                 <section className="popular-categories section-padding">
+                    <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
+                        <div className="section-title">
+                            <div className="title">
+                                <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
+                            </div>
+                        </div>
+                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
+                            {Array.from({ length: isMobile ? 3 : 6 }).map((_, idx) => (
+                                <CategorySkeleton key={idx} />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            ) : (
+                categories.length > 0 && (
+                    <section className="popular-categories section-padding">
                     <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }} className="wow animate__animated animate__fadeIn">
                         <div className="section-title">
                             <div className="title">
@@ -598,6 +788,7 @@ const Home = () => {
                         </div>
                     </div>
                 </section>
+                )
             )}
 
             {/* 3. TOP SLIDER */}
@@ -659,7 +850,13 @@ const Home = () => {
                         </div>
 
                         <div className="row flex-wrap" style={{ paddingBottom: '20px' }}>
-                            {popularProducts.length > 0 ? (
+                            {isPopularLoading ? (
+                                Array.from({ length: 8 }).map((_, idx) => (
+                                    <div key={idx} className="col-6 col-sm-6 col-md-4 col-lg-3 mb-3 d-flex justify-content-center">
+                                        <ProductCardSkeleton isMobile={isMobile} />
+                                    </div>
+                                ))
+                            ) : popularProducts.length > 0 ? (
                                 popularProducts.map(product => (
                                     <div key={product.id} className="col-6 col-sm-6 col-md-4 col-lg-3 mb-3 d-flex justify-content-center">
                                         <ProductCard product={product} />
@@ -793,114 +990,128 @@ const Home = () => {
             })}
 
             {/* 7. Deals Section (Restructured 2-over-3 Layout) */}
-            {!isMobile && (
-                <section className="section-padding pb-5">
-                    <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                        <div className="section-title">
-                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
-                        </div>
+            {isMainLoading ? (
+                isMobile ? (
+                    <section className="best-deals-mobile" style={{ background: '#F2FFD6', padding: '20px 0 35px 0', marginBottom: '20px' }}>
+                        <BestDealsSkeleton isMobile={true} />
+                    </section>
+                ) : (
+                    <section className="section-padding pb-5">
+                        <BestDealsSkeleton isMobile={false} />
+                    </section>
+                )
+            ) : (
+                <>
+                    {!isMobile && (
+                        <section className="section-padding pb-5">
+                            <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
+                                <div className="section-title">
+                                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Best Deals</h3>
+                                </div>
 
-                        {/* Row 1: Two Wide Banners (605px each with 26px gap = 1236px) */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '26px', marginBottom: '24px', justifyContent: 'center' }}>
-                            <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
-                                {dr1c1 ? (
-                                    <a href={getSliderLink(dr1c1)}>
-                                        <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
-                                    </a>
-                                ) : (
-                                    <img src={bestDealsR1C1} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
-                                )}
-                            </div>
-                            <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
-                                {dr1c2 ? (
-                                    <a href={getSliderLink(dr1c2)}>
-                                        <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
-                                    </a>
-                                ) : (
-                                    <img src={bestDealsR1C2} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
-                                )}
-                            </div>
-                        </div>
+                                {/* Row 1: Two Wide Banners (605px each with 26px gap = 1236px) */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '26px', marginBottom: '24px', justifyContent: 'center' }}>
+                                    <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
+                                        {dr1c1 ? (
+                                            <a href={getSliderLink(dr1c1)}>
+                                                <img src={getAssetUrl(dr1c1.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
+                                            </a>
+                                        ) : (
+                                            <img src={bestDealsR1C1} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C1" />
+                                        )}
+                                    </div>
+                                    <div style={{ flex: '1 1 500px', maxWidth: '605px' }}>
+                                        {dr1c2 ? (
+                                            <a href={getSliderLink(dr1c2)}>
+                                                <img src={getAssetUrl(dr1c2.image)} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
+                                            </a>
+                                        ) : (
+                                            <img src={bestDealsR1C2} style={{ width: '100%', height: '303px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R1 C2" />
+                                        )}
+                                    </div>
+                                </div>
 
-                        {/* Row 2: Ad | Video | Ad (291px | 606px | 291px with 2x24px gaps = 1236px) */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
-                            {/* Left Advertisement */}
-                            <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
-                                {dr2c1 ? (
-                                    <a href={getSliderLink(dr2c1)}>
-                                        <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
-                                    </a>
-                                ) : (
-                                    <img src={bestDealsR2Left} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
-                                )}
-                            </div>
+                                {/* Row 2: Ad | Video | Ad (291px | 606px | 291px with 2x24px gaps = 1236px) */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
+                                    {/* Left Advertisement */}
+                                    <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
+                                        {dr2c1 ? (
+                                            <a href={getSliderLink(dr2c1)}>
+                                                <img src={getAssetUrl(dr2c1.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
+                                            </a>
+                                        ) : (
+                                            <img src={bestDealsR2Left} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Left" />
+                                        )}
+                                    </div>
 
-                            {/* Center Video Banner */}
-                            <div style={{ flex: '2 1 480px', maxWidth: '606px', position: 'relative' }}>
-                                {dr2mid ? (
-                                    <a href={getSliderLink(dr2mid)}>
-                                        <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
-                                    </a>
-                                ) : (
-                                    <img src={bestDealsR2Mid} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
-                                )}
-                                {/* Video Play Button Overlay */}
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    width: '64px',
-                                    height: '64px',
-                                    backgroundColor: 'rgba(255,255,255,0.2)',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#fff',
-                                    cursor: 'pointer',
-                                    border: '2px solid #fff',
-                                    backdropFilter: 'blur(4px)'
-                                }}>
-                                    <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor" />
-                                    </svg>
+                                    {/* Center Video Banner */}
+                                    <div style={{ flex: '2 1 480px', maxWidth: '606px', position: 'relative' }}>
+                                        {dr2mid ? (
+                                            <a href={getSliderLink(dr2mid)}>
+                                                <img src={getAssetUrl(dr2mid.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
+                                            </a>
+                                        ) : (
+                                            <img src={bestDealsR2Mid} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Mid" />
+                                        )}
+                                        {/* Video Play Button Overlay */}
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            width: '64px',
+                                            height: '64px',
+                                            backgroundColor: 'rgba(255,255,255,0.2)',
+                                            borderRadius: '50%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            border: '2px solid #fff',
+                                            backdropFilter: 'blur(4px)'
+                                        }}>
+                                            <svg width="32" height="32" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M5.5 11.5L11 7.5L5.5 3.5V11.5Z" fill="currentColor" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Advertisement */}
+                                    <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
+                                        {dr2c2 ? (
+                                            <a href={getSliderLink(dr2c2)}>
+                                                <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
+                                            </a>
+                                        ) : (
+                                            <img src={bestDealsR2Right} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
+                                        )}
+                                    </div>
                                 </div>
                             </div>
+                        </section>
+                    )}
 
-                            {/* Right Advertisement */}
-                            <div style={{ flex: '1 1 240px', maxWidth: '291px' }}>
-                                {dr2c2 ? (
-                                    <a href={getSliderLink(dr2c2)}>
-                                        <img src={getAssetUrl(dr2c2.image)} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
-                                    </a>
-                                ) : (
-                                    <img src={bestDealsR2Right} style={{ width: '100%', height: '346px', objectFit: 'fill', borderRadius: '10px' }} alt="Best Deal R2 Right" />
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* Mobile-Only Best Deals swipe carousel */}
-            {isMobile && dealSection && dealBanners.length > 0 && (
-                <section className="best-deals-mobile" style={{ background: '#F2FFD6', padding: '20px 0 35px 0', marginBottom: '20px' }}>
-                    <div style={{ padding: '0 24px' }}>
-                        <div className="section-title" style={{ margin: '0 0 12px 0' }}>
-                            <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Best Deals</h3>
-                        </div>
-                        <div ref={homeDealsScrollRef} className="d-flex flex-nowrap overflow-auto" style={{ gap: '16px', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                            {dealBanners.map((banner, idx) => (
-                                <div key={idx} style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', overflow: 'hidden' }}>
-                                    <a href={getSliderLink(banner)}>
-                                        <img src={getAssetUrl(banner.image)} alt={banner.name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </a>
+                    {/* Mobile-Only Best Deals swipe carousel */}
+                    {isMobile && dealSection && dealBanners.length > 0 && (
+                        <section className="best-deals-mobile" style={{ background: '#F2FFD6', padding: '20px 0 35px 0', marginBottom: '20px' }}>
+                            <div style={{ padding: '0 24px' }}>
+                                <div className="section-title" style={{ margin: '0 0 12px 0' }}>
+                                    <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 600, lineHeight: '22px', margin: 0 }}>Best Deals</h3>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                                <div ref={homeDealsScrollRef} className="d-flex flex-nowrap overflow-auto" style={{ gap: '16px', paddingBottom: '5px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                    {dealBanners.map((banner, idx) => (
+                                        <div key={idx} style={{ width: '312px', height: '159px', flexShrink: 0, borderRadius: '9px', overflow: 'hidden' }}>
+                                            <a href={getSliderLink(banner)}>
+                                                <img src={getAssetUrl(banner.image)} alt={banner.name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </section>
+                    )}
+                </>
             )}
 
             {/* 8. BOTTOM SLIDER */}
@@ -909,96 +1120,180 @@ const Home = () => {
             {/* 9. 4-Column Compact Products Section */}
             <section className="section-padding mb-10 mt-10">
                 <div style={{ maxWidth: '1236px', margin: '0 auto', padding: '0 15px' }}>
-                    {/* Desktop/Tablet Grid View */}
-                    {!isMobile && (
-                        <div className="row text-start">
-                            <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                                <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
-                                <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                    {topSellingList.map(p => (
-                                        <div key={p.id}>
-                                            <ProductSmallCard product={p} />
-                                        </div>
-                                    ))}
+                    {isMainLoading ? (
+                        !isMobile ? (
+                            <div className="row text-start">
+                                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                    <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                                    <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <ProductSmallCardSkeleton key={idx} isMobile={false} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                    <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                                    <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <ProductSmallCardSkeleton key={idx} isMobile={false} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                    <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                                    <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <ProductSmallCardSkeleton key={idx} isMobile={false} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                    <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                                    <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <ProductSmallCardSkeleton key={idx} isMobile={false} />
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                                <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
-                                <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                    {trendingList.map(p => (
-                                        <div key={p.id}>
-                                            <ProductSmallCard product={p} />
-                                        </div>
-                                    ))}
+                        ) : (
+                            <div className="d-flex flex-column" style={{ gap: '25px' }}>
+                                <div>
+                                    <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                                    <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <div key={idx} style={{ width: '92vw', flexShrink: 0 }}>
+                                                <ProductSmallCardSkeleton isMobile={true} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                                    <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <div key={idx} style={{ width: '92vw', flexShrink: 0 }}>
+                                                <ProductSmallCardSkeleton isMobile={true} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                                    <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <div key={idx} style={{ width: '92vw', flexShrink: 0 }}>
+                                                <ProductSmallCardSkeleton isMobile={true} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                                    <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                        {Array.from({ length: 3 }).map((_, idx) => (
+                                            <div key={idx} style={{ width: '92vw', flexShrink: 0 }}>
+                                                <ProductSmallCardSkeleton isMobile={true} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                                <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
-                                <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                    {recentlyAddedList.map(p => (
-                                        <div key={p.id}>
-                                            <ProductSmallCard product={p} />
+                        )
+                    ) : (
+                        <>
+                            {/* Desktop/Tablet Grid View */}
+                            {!isMobile && (
+                                <div className="row text-start">
+                                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                        <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                                        <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                            {topSellingList.map(p => (
+                                                <div key={p.id}>
+                                                    <ProductSmallCard product={p} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
-                                <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
-                                <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
-                                    {topRatedList.map(p => (
-                                        <div key={p.id}>
-                                            <ProductSmallCard product={p} />
+                                    </div>
+                                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                        <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                                        <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                            {trendingList.map(p => (
+                                                <div key={p.id}>
+                                                    <ProductSmallCard product={p} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+                                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                        <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                                        <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                            {recentlyAddedList.map(p => (
+                                                <div key={p.id}>
+                                                    <ProductSmallCard product={p} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="col-12 col-md-6 col-lg-4 col-xl-3 mb-md-0 mb-4">
+                                        <h4 className="section-title style-1 mb-30 product-list-small-section-title global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                                        <div className="product-list-small d-flex flex-column" style={{ gap: '10px' }}>
+                                            {topRatedList.map(p => (
+                                                <div key={p.id}>
+                                                    <ProductSmallCard product={p} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    )}
+                            )}
 
-                    {/* Mobile Horizontal Scrolling Compact Product View (Dynamic & limited to 3 items) */}
-                    {isMobile && (
-                        <div className="d-flex flex-column" style={{ gap: '25px' }}>
-                            <div>
-                                <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
-                                <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                    {topSellingList.map(p => (
-                                        <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
-                                            <ProductSmallCard product={p} isMobile={true} />
+                            {/* Mobile Horizontal Scrolling Compact Product View (Dynamic & limited to 3 items) */}
+                            {isMobile && (
+                                <div className="d-flex flex-column" style={{ gap: '25px' }}>
+                                    <div>
+                                        <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Selling</h4>
+                                        <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                            {topSellingList.map(p => (
+                                                <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                                    <ProductSmallCard product={p} isMobile={true} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
-                                <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                    {trendingList.map(p => (
-                                        <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
-                                            <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                    <div>
+                                        <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Trending Products</h4>
+                                        <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                            {trendingList.map(p => (
+                                                <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                                    <ProductSmallCard product={p} isMobile={true} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
-                                <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                    {recentlyAddedList.map(p => (
-                                        <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
-                                            <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                    <div>
+                                        <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Recently Added</h4>
+                                        <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                            {recentlyAddedList.map(p => (
+                                                <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                                    <ProductSmallCard product={p} isMobile={true} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
-                                <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
-                                    {topRatedList.map(p => (
-                                        <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
-                                            <ProductSmallCard product={p} isMobile={true} />
+                                    </div>
+                                    <div>
+                                        <h4 className="section-title style-1 mb-15 global-heading-style" style={{ borderBottom: '2px solid #ececec', paddingBottom: '10px', fontWeight: 'bold', color: '#0A6738', fontFamily: 'Poppins, sans-serif' }}>Top Rated</h4>
+                                        <div className="scroll-container" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px', WebkitOverflowScrolling: 'touch' }}>
+                                            {topRatedList.map(p => (
+                                                <div key={p.id} style={{ width: '92vw', flexShrink: 0 }}>
+                                                    <ProductSmallCard product={p} isMobile={true} />
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            )}
+                        </>
                     )}
                 </div>
             </section>
