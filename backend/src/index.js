@@ -304,8 +304,8 @@ function scheduleAccountDeletionTask() {
   const processDeletion = async () => {
     try {
       // Acquire global database advisory lock to prevent concurrent executions in Auto Scaling groups or clusters
-      const lockResult = await prisma.$queryRawUnsafe("SELECT GET_LOCK('user_anonymization_lock', 0) AS locked");
-      const isLocked = lockResult && lockResult[0] && Number(lockResult[0].locked) === 1;
+      const lockResult = await prisma.$queryRawUnsafe("SELECT pg_try_advisory_lock(123456789) AS locked");
+      const isLocked = lockResult && lockResult[0] && lockResult[0].locked === true;
 
       if (!isLocked) {
         console.log('Skipping user account deletion task: Another process/instance holds the global lock.');
@@ -356,7 +356,7 @@ function scheduleAccountDeletionTask() {
     } finally {
       // Always release the global lock
       try {
-        await prisma.$queryRawUnsafe("SELECT RELEASE_LOCK('user_anonymization_lock')");
+        await prisma.$queryRawUnsafe("SELECT pg_advisory_unlock(123456789)");
       } catch (releaseErr) {
         console.error('Error releasing user anonymization lock:', releaseErr);
       }
