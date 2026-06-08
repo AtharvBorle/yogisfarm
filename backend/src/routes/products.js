@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       const br = await prisma.brand.findUnique({ where: { slug: brand } });
       if (br) where.brandId = br.id;
     }
-    if (search) where.name = { contains: search };
+    if (search) where.name = { contains: search, mode: 'insensitive' };
     if (featured === 'true') where.featured = true;
     if (popular === 'true') where.popular = true;
     if (deal === 'true') where.deal = true;
