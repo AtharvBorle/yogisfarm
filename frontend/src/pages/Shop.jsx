@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
+import { ProductCardSkeleton } from '../components/Skeletons';
 import Breadcrumb from '../components/Breadcrumb';
 import FloatingSidebar from '../components/FloatingSidebar';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
@@ -23,6 +24,7 @@ const Shop = () => {
     const [isMobileSortOpen, setIsMobileSortOpen] = useState(false);
     const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
     const [mobileSearchVal, setMobileSearchVal] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
     
     const category = searchParams.get('category') || '';
     const brand = searchParams.get('brand') || '';
@@ -41,6 +43,7 @@ const Shop = () => {
     }, [keyword]);
 
     useEffect(() => {
+        setIsLoading(true);
         let url = `/products?page=${page}`;
         if(category) url += `&category=${category}`;
         if(brand) url += `&brand=${brand}`;
@@ -54,6 +57,10 @@ const Shop = () => {
                 setTotalProducts(res.data.total);
                 setTotalPages(res.data.totalPages);
             }
+        }).catch(err => {
+            console.error(err);
+        }).finally(() => {
+            setIsLoading(false);
         });
     }, [category, brand, keyword, sort, page]);
 
@@ -176,7 +183,13 @@ const Shop = () => {
                             </div>
 
                             <div className="row product-grid">
-                                {products.length === 0 ? (
+                                {isLoading ? (
+                                    Array.from({ length: 6 }).map((_, idx) => (
+                                        <div key={idx} className="col-lg-4 col-md-6 col-sm-6 mb-30">
+                                            <ProductCardSkeleton isMobile={false} />
+                                        </div>
+                                    ))
+                                ) : products.length === 0 ? (
                                     <div className="col-12 text-center py-5">
                                         <h4>No products found</h4>
                                         <p>Try different search terms or browse categories</p>
@@ -523,7 +536,13 @@ const Shop = () => {
                 {/* 2-Column Product Grid for Mobile */}
                 <div style={{ padding: '0 14px' }}>
                     <div className="row" style={{ marginLeft: '-6px', marginRight: '-6px' }}>
-                        {products.length === 0 ? (
+                        {isLoading ? (
+                            Array.from({ length: 6 }).map((_, idx) => (
+                                <div key={idx} className="col-6 mb-15" style={{ paddingLeft: '6px', paddingRight: '6px' }}>
+                                    <ProductCardSkeleton isMobile={true} />
+                                </div>
+                            ))
+                        ) : products.length === 0 ? (
                             <div className="col-12 text-center py-5">
                                 <h4>No products found</h4>
                                 <p>Try different search terms or browse categories</p>

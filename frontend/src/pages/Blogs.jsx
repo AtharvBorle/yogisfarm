@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import useSEO from '../hooks/useSEO';
+import { BlogCardSkeleton } from '../components/Skeletons';
 
 const Blogs = () => {
   useSEO('blogs');
@@ -360,7 +361,7 @@ const Blogs = () => {
         </div>
 
         {/* Empty State */}
-        {paginatedPosts.length === 0 && (
+        {!loading && paginatedPosts.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 0', border: '1px dashed #E5E7EB', borderRadius: '12px', backgroundColor: '#ffffff' }}>
             <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#667085', fontFamily: 'Poppins, sans-serif', margin: '0 0 8px 0' }}>No articles found</h3>
             <p style={{ color: '#9CA3AF', fontSize: '14px' }}>Try adjusting your search criteria or choosing a different category.</p>
@@ -374,107 +375,113 @@ const Blogs = () => {
           gap: '32px', 
           marginBottom: '50px' 
         }}>
-          {paginatedPosts.map(post => (
-            <article 
-              key={post.id}
-              onClick={() => navigate(`/blogs/${post.slug || post.id}`)}
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #F2F4F7',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0px 20px 24px -4px rgba(16, 24, 40, 0.12), 0px 8px 8px -4px rgba(16, 24, 40, 0.04)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'none';
-                e.currentTarget.style.boxShadow = '0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)';
-              }}
-            >
-              {/* Blog Image */}
-              <div style={{ width: '100%', height: '240px', overflow: 'hidden' }}>
-                <img 
-                  src={post.image} 
-                  alt={post.title} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                />
-              </div>
+          {loading ? (
+            Array.from({ length: 6 }).map((_, idx) => (
+              <BlogCardSkeleton key={idx} />
+            ))
+          ) : (
+            paginatedPosts.map(post => (
+              <article 
+                key={post.id}
+                onClick={() => navigate(`/blogs/${post.slug || post.id}`)}
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px solid #F2F4F7',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0px 20px 24px -4px rgba(16, 24, 40, 0.12), 0px 8px 8px -4px rgba(16, 24, 40, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = '0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03)';
+                }}
+              >
+                {/* Blog Image */}
+                <div style={{ width: '100%', height: '240px', overflow: 'hidden' }}>
+                  <img 
+                    src={post.image} 
+                    alt={post.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                </div>
 
-              {/* Card Details */}
-              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <span style={{ 
-                  color: '#0A6738', 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  marginBottom: '12px',
-                  fontFamily: 'Poppins, sans-serif'
-                }}>
-                  {post.category}
-                </span>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
-                  <h3 style={{ 
-                    fontSize: '20px', 
-                    fontWeight: '700', 
-                    color: '#101828', 
-                    lineHeight: '1.4', 
-                    margin: 0,
+                {/* Card Details */}
+                <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                  <span style={{ 
+                    color: '#0A6738', 
+                    fontSize: '14px', 
+                    fontWeight: '600', 
+                    marginBottom: '12px',
                     fontFamily: 'Poppins, sans-serif'
                   }}>
-                    {post.title}
-                  </h3>
-                  {/* Up-Right Arrow Icon to match Figma */}
-                  <svg 
-                    style={{ width: '20px', height: '20px', flexShrink: 0, marginTop: '4px' }} 
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#101828"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="7" y1="17" x2="17" y2="7"></line>
-                    <polyline points="7 7 17 7 17 17"></polyline>
-                  </svg>
-                </div>
+                    {post.category}
+                  </span>
 
-                <p style={{ 
-                  color: '#667085', 
-                  fontSize: '14px', 
-                  lineHeight: '1.6', 
-                  marginBottom: '24px',
-                  fontFamily: 'Poppins, sans-serif',
-                  flex: 1
-                }}>
-                  {post.description}
-                </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
+                    <h3 style={{ 
+                      fontSize: '20px', 
+                      fontWeight: '700', 
+                      color: '#101828', 
+                      lineHeight: '1.4', 
+                      margin: 0,
+                      fontFamily: 'Poppins, sans-serif'
+                    }}>
+                      {post.title}
+                    </h3>
+                    {/* Up-Right Arrow Icon to match Figma */}
+                    <svg 
+                      style={{ width: '20px', height: '20px', flexShrink: 0, marginTop: '4px' }} 
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#101828"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="7" y1="17" x2="17" y2="7"></line>
+                      <polyline points="7 7 17 7 17 17"></polyline>
+                    </svg>
+                  </div>
 
-                {/* Author Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img 
-                    src={post.author.avatar} 
-                    alt={post.author.name} 
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
-                  />
-                  <div>
-                    <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#101828', margin: 0, fontFamily: 'Poppins, sans-serif' }}>
-                      {post.author.name}
-                    </h5>
-                    <span style={{ fontSize: '14px', color: '#667085', fontFamily: 'Poppins, sans-serif' }}>
-                      {post.author.date}
-                    </span>
+                  <p style={{ 
+                    color: '#667085', 
+                    fontSize: '14px', 
+                    lineHeight: '1.6', 
+                    marginBottom: '24px',
+                    fontFamily: 'Poppins, sans-serif',
+                    flex: 1
+                  }}>
+                    {post.description}
+                  </p>
+
+                  {/* Author Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img 
+                      src={post.author.avatar} 
+                      alt={post.author.name} 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                    <div>
+                      <h5 style={{ fontSize: '14px', fontWeight: '600', color: '#101828', margin: 0, fontFamily: 'Poppins, sans-serif' }}>
+                        {post.author.name}
+                      </h5>
+                      <span style={{ fontSize: '14px', color: '#667085', fontFamily: 'Poppins, sans-serif' }}>
+                        {post.author.date}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))
+          )}
         </div>
 
         {/* Pagination Section */}

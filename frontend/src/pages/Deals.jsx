@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import ProductCard from '../components/ProductCard';
+import { ProductCardSkeleton, BestDealsSkeleton } from '../components/Skeletons';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
 import SliderComponent from 'react-slick';
@@ -284,7 +285,16 @@ const Deals = () => {
                 </div>
 
                 {/* Dynamic Best Deals sets from Admin, falling back to static imports */}
-                {dealSections.length > 0 ? (
+                {loading ? (
+                    <>
+                        <div className="d-none d-lg-block">
+                            <BestDealsSkeleton isMobile={false} />
+                        </div>
+                        <div className="d-block d-lg-none">
+                            <BestDealsSkeleton isMobile={true} />
+                        </div>
+                    </>
+                ) : dealSections.length > 0 ? (
                     dealSections.map((sec, idx) => (
                         <BestDealsSection key={sec.id || idx} section={sec} />
                     ))
@@ -304,7 +314,13 @@ const Deals = () => {
                             <h3 style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontSize: '25px', fontWeight: 600, marginBottom: '30px', borderBottom: '2px solid #F2FFD6', paddingBottom: '10px', display: 'inline-block' }}>Popular Products</h3>
                             <div className="popular-products-slider" style={{ padding: '0 20px' }}>
                                 {loading ? (
-                                    <p>Loading products...</p>
+                                    <div style={{ display: 'flex', gap: '24px' }}>
+                                        {Array.from({ length: 4 }).map((_, idx) => (
+                                            <div key={idx} style={{ flex: '1 1 25%', maxWidth: '291px' }}>
+                                                <ProductCardSkeleton isMobile={false} />
+                                            </div>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <Slider
                                         dots={false}
@@ -335,7 +351,11 @@ const Deals = () => {
                             </div>
                             <div className="row flex-wrap" style={{ padding: '0 5px 20px 5px' }}>
                                 {loading ? (
-                                    <p style={{ padding: '0 15px' }}>Loading products...</p>
+                                    Array.from({ length: 4 }).map((_, idx) => (
+                                        <div key={idx} className="col-6 mb-3 d-flex justify-content-center" style={{ padding: '0 6px' }}>
+                                            <ProductCardSkeleton isMobile={true} />
+                                        </div>
+                                    ))
                                 ) : (
                                     popularProducts.map(product => (
                                         <div key={product.id} className="col-6 mb-3 d-flex justify-content-center" style={{ padding: '0 6px' }}>
