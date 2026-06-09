@@ -479,9 +479,6 @@ router.delete('/categories/:id', requireAdmin, async (req, res) => {
     res.json({ status: false, message: e.message });
   }
 });
-    res.json({ status: false, message: e.message });
-  }
-});
 
 // ─── API ENDPOINTS ───
 
