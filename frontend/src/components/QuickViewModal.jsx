@@ -101,9 +101,12 @@ const QuickViewModal = ({ product, onClose }) => {
         }
     };
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
         if (!isOutOfStock && selectedVariant) {
-            addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+            const cartItem = cartItems?.find(item => item.product?.id === fetchedProduct.id && item.variantId === selectedVariant?.id);
+            if (!cartItem) {
+                await addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+            }
             onClose();
             navigate('/checkout');
         }

@@ -228,8 +228,11 @@ const Product = () => {
         addToCart(product.id, selectedVariant?.id, quantity);
     };
 
-    const handleBuyNow = () => {
-        addToCart(product.id, selectedVariant?.id, quantity);
+    const handleBuyNow = async () => {
+        const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === selectedVariant?.id);
+        if (!cartItem) {
+            await addToCart(product.id, selectedVariant?.id, quantity);
+        }
         navigate('/checkout');
     };
 
