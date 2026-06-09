@@ -2,12 +2,22 @@ const router = require('express').Router();
 const prisma = require('../db');
 const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
+const cache = require('../utils/cache');
 
 router.get('/', async (req, res) => {
   try {
+    const cacheKey = 'settings:all';
+    const cachedSettings = cache.get(cacheKey);
+    if (cachedSettings) {
+      return res.json({ status: true, settings: cachedSettings });
+    }
+
     const settings = await prisma.setting.findMany();
     const obj = {};
     settings.forEach(s => { obj[s.key] = s.value; });
+
+    cache.set(cacheKey, obj, 300); // cache for 5 minutes
+
     res.json({ status: true, settings: obj });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -62,6 +72,8 @@ router.put('/', requireAdmin, async (req, res) => {
     } else {
       console.log('logDetails is empty, logAdminAction skipped');
     }
+
+    cache.delStartWith('settings:');
 
     res.json({ status: true, message: 'Settings saved successfully' });
   } catch (e) {
@@ -207,6 +219,8 @@ router.delete('/seo/*', requireAdmin, async (req, res) => {
         }
       }
     });
+
+    cache.delStartWith('settings:');
 
     res.json({ status: true, message: `SEO settings for '${pageKey}' deleted successfully` });
   } catch (e) {

@@ -9,6 +9,7 @@ const fs = require('fs');
 const slugify = require('slugify');
 const { requireAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../utils/logger');
+const cache = require('../utils/cache');
 const crypto = require('crypto');
 const { sendOrderConfirmSMS, sendShippedSMS, sendOutForDeliverySMS, sendDeliveredSMS, sendAssignedSMS, sendCancelledSMS, sendOtpSMS } = require('../utils/sms');
 
@@ -499,6 +500,7 @@ router.post('/sliders', requireAdmin, upload.single('image'), async (req, res) =
     const { name, status, type, position, subposition, linkType, link, image: bodyImage, mobileImage } = req.body;
     const image = req.file ? (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename) : (bodyImage || '');
     const slider = await prisma.slider.create({ data: { name, image, mobileImage, status: status || 'active', type: type || 'web', position: position || 'main', subposition, linkType, link } });
+    cache.delStartWith('sliders:');
     res.json({ status: true, message: 'Slider created', slider });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -512,6 +514,7 @@ router.put('/sliders/:id', requireAdmin, upload.single('image'), async (req, res
     if (req.file) data.image = (req.file.key ? '/' + req.file.key : '/uploads/' + req.file.filename);
     else if (bodyImage) data.image = bodyImage;
     const slider = await prisma.slider.update({ where: { id: parseInt(req.params.id) }, data });
+    cache.delStartWith('sliders:');
     res.json({ status: true, message: 'Slider updated', slider });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -524,6 +527,7 @@ router.put('/sliders/order/update', requireAdmin, async (req, res) => {
     for (let i = 0; i < order.length; i++) {
       await prisma.slider.update({ where: { id: order[i] }, data: { sortOrder: i } });
     }
+    cache.delStartWith('sliders:');
     res.json({ status: true, message: 'Order updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -532,6 +536,7 @@ router.put('/sliders/order/update', requireAdmin, async (req, res) => {
 
 router.delete('/sliders/:id', requireAdmin, async (req, res) => {
   await prisma.slider.delete({ where: { id: parseInt(req.params.id) } });
+  cache.delStartWith('sliders:');
   res.json({ status: true, message: 'Slider deleted' });
 });
 
@@ -550,6 +555,7 @@ router.post('/categories', requireAdmin, upload.single('image'), async (req, res
       data: { name, slug, image, status: status || 'active', parentId: parentId ? parseInt(parentId) : null, featured: featured === 'true' }
     });
     await logAdminAction(req.session.adminId, 'Created Category', `Name: ${name}`);
+    cache.delStartWith('categories:');
     res.json({ status: true, message: 'Category created', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -565,6 +571,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
     else if (bodyImage) data.image = bodyImage;
     const category = await prisma.category.update({ where: { id: parseInt(req.params.id) }, data });
     await logAdminAction(req.session.adminId, 'Updated Category', `Name: ${category.name}`);
+    cache.delStartWith('categories:');
     res.json({ status: true, message: 'Category updated', category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -574,6 +581,7 @@ router.put('/categories/:id', requireAdmin, upload.single('image'), async (req, 
 router.delete('/categories/:id', requireAdmin, async (req, res) => {
   await prisma.category.delete({ where: { id: parseInt(req.params.id) } });
   await logAdminAction(req.session.adminId, 'Deleted Category', `ID: ${req.params.id}`);
+  cache.delStartWith('categories:');
   res.json({ status: true, message: 'Category deleted' });
 });
 
@@ -674,6 +682,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
       include: { category: true, brand: true, tax: true, hsn: true, variants: true, images: true }
     });
     await logAdminAction(req.session.adminId, 'Created Product', `Name: ${name}`);
+    cache.delStartWith('products:');
     res.json({ status: true, message: 'Product created', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -704,6 +713,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
 
     const product = await prisma.product.update({ where: { id }, data, include: { category: true, brand: true, tax: true, hsn: true } });
     await logAdminAction(req.session.adminId, 'Updated Product', `Name: ${name}`);
+    cache.delStartWith('products:');
     res.json({ status: true, message: 'Product updated', product });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -717,6 +727,7 @@ router.patch('/products/:id/toggle', requireAdmin, async (req, res) => {
     const product = await prisma.product.findUnique({ where: { id: parseInt(req.params.id) } });
     await prisma.product.update({ where: { id: product.id }, data: { [field]: !product[field] } });
     await logAdminAction(req.session.adminId, 'Updated Product', `Toggled ${field} for Product ID: ${product.id}`);
+    cache.delStartWith('products:');
     res.json({ status: true, message: `${field} toggled` });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -725,6 +736,7 @@ router.patch('/products/:id/toggle', requireAdmin, async (req, res) => {
 
 router.delete('/products/:id', requireAdmin, async (req, res) => {
   await prisma.product.delete({ where: { id: parseInt(req.params.id) } });
+  cache.delStartWith('products:');
   res.json({ status: true, message: 'Product deleted' });
 });
 
@@ -750,6 +762,7 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
       // If empty array sent, clear all
       await prisma.productImage.deleteMany({ where: { productId } });
     }
+    cache.delStartWith('products:');
     res.json({ status: true, message: 'Images uploaded' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1171,6 +1184,7 @@ router.post('/sections', requireAdmin, upload.single('image'), async (req, res) 
       }
     });
     await logAdminAction(req.session.adminId, 'Created Section', `Name: ${name}`);
+    cache.delStartWith('sections:');
     res.json({ status: true, message: 'Section created', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1209,6 +1223,7 @@ router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, re
       data
     });
     await logAdminAction(req.session.adminId, 'Updated Section', `Name: ${section.name}`);
+    cache.delStartWith('sections:');
     res.json({ status: true, message: 'Section updated', section });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -1218,6 +1233,7 @@ router.put('/sections/:id', requireAdmin, upload.single('image'), async (req, re
 router.delete('/sections/:id', requireAdmin, async (req, res) => {
   await prisma.section.delete({ where: { id: parseInt(req.params.id) } });
   await logAdminAction(req.session.adminId, 'Deleted Section', `ID: ${req.params.id}`);
+  cache.delStartWith('sections:');
   res.json({ status: true, message: 'Section deleted' });
 });
 
@@ -1227,6 +1243,7 @@ router.put('/sections/order/update', requireAdmin, async (req, res) => {
     for (let i = 0; i < order.length; i++) {
       await prisma.section.update({ where: { id: order[i] }, data: { sortOrder: i } });
     }
+    cache.delStartWith('sections:');
     res.json({ status: true, message: 'Section order updated' });
   } catch (e) {
     res.json({ status: false, message: e.message });
