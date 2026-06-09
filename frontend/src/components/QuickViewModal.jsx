@@ -18,6 +18,7 @@ const QuickViewModal = ({ product, onClose }) => {
     const [selectedVariant, setSelectedVariant] = useState(firstStockedVariant);
     const [quantity, setQuantity] = useState(1);
     const [mainImage, setMainImage] = useState(fetchedProduct?.image);
+    const [actionLoading, setActionLoading] = useState(false);
 
     // Fetch full product details for quick view (in case images/variants are missing from list view)
     useEffect(() => {
@@ -95,20 +96,32 @@ const QuickViewModal = ({ product, onClose }) => {
         ? (fetchedProduct.reviews.reduce((acc, r) => acc + r.rating, 0) / fetchedProduct.reviews.length) 
         : 5.0;
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
+        if (actionLoading) return;
         if (!isOutOfStock && selectedVariant) {
-            addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+            setActionLoading(true);
+            try {
+                await addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+            } finally {
+                setActionLoading(false);
+            }
         }
     };
 
     const handleBuyNow = async () => {
+        if (actionLoading) return;
         if (!isOutOfStock && selectedVariant) {
-            const cartItem = cartItems?.find(item => item.product?.id === fetchedProduct.id && item.variantId === selectedVariant?.id);
-            if (!cartItem) {
-                await addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+            setActionLoading(true);
+            try {
+                const cartItem = cartItems?.find(item => item.product?.id === fetchedProduct.id && item.variantId === selectedVariant?.id);
+                if (!cartItem) {
+                    await addToCart(fetchedProduct.id, selectedVariant.id, quantity);
+                }
+                onClose();
+                navigate('/checkout');
+            } finally {
+                setActionLoading(false);
             }
-            onClose();
-            navigate('/checkout');
         }
     };
 
@@ -483,14 +496,24 @@ const QuickViewModal = ({ product, onClose }) => {
                         </div>
                     </div>
 
-                    <div className="qv-actions">
+                    <div className="qv-actions" style={{ opacity: actionLoading ? 0.7 : 1 }}>
                         {(() => {
                             const cartItem = cartItems?.find(item => item.product?.id === fetchedProduct.id && item.variantId === selectedVariant?.id);
                             if (cartItem) {
                                 return (
                                     <div style={{ display: 'flex', alignItems: 'center', background: '#0A6738', borderRadius: '12px', overflow: 'hidden', color: '#FFF' }}>
                                         <button 
-                                            onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }}
+                                            disabled={actionLoading}
+                                            onClick={async (e) => { 
+                                                e.preventDefault(); 
+                                                if (actionLoading) return;
+                                                setActionLoading(true);
+                                                try {
+                                                    cartItem.quantity > 1 ? await updateQuantity(cartItem.id, cartItem.quantity - 1) : await removeFromCart(cartItem.id); 
+                                                } finally {
+                                                    setActionLoading(false);
+                                                }
+                                            }}
                                             style={{ padding: '15px 20px', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         >
                                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -499,7 +522,17 @@ const QuickViewModal = ({ product, onClose }) => {
                                         </button>
                                         <span style={{ color: '#fff', fontWeight: '600', fontSize: '16px', padding: '0 10px', whiteSpace: 'nowrap' }}>{cartItem.quantity} in Cart</span>
                                         <button 
-                                            onClick={(e) => { e.preventDefault(); cartItem.quantity < (selectedVariant?.stock || 0) && updateQuantity(cartItem.id, cartItem.quantity + 1); }}
+                                            disabled={actionLoading}
+                                            onClick={async (e) => { 
+                                                e.preventDefault(); 
+                                                if (actionLoading) return;
+                                                setActionLoading(true);
+                                                try {
+                                                    cartItem.quantity < (selectedVariant?.stock || 0) && await updateQuantity(cartItem.id, cartItem.quantity + 1); 
+                                                } finally {
+                                                    setActionLoading(false);
+                                                }
+                                            }}
                                             style={{ padding: '15px 20px', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                         >
                                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -513,8 +546,8 @@ const QuickViewModal = ({ product, onClose }) => {
                                 <button 
                                     className="qv-btn-cart" 
                                     onClick={handleAddToCart}
-                                    disabled={isOutOfStock}
-                                    style={{ opacity: isOutOfStock ? 0.5 : 1 }}
+                                    disabled={isOutOfStock || actionLoading}
+                                    style={{ opacity: (isOutOfStock || actionLoading) ? 0.5 : 1, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
                                 >
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M17 18C17.5304 18 18.0391 18.2107 18.4142 18.5858C18.7893 18.9609 19 19.4696 19 20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22C16.4696 22 15.9609 21.7893 15.5858 21.4142C15.2107 21.0391 15 20.5304 15 20C15 18.89 15.89 18 17 18ZM1 2H4.27L5.21 4H20C20.2652 4 20.5196 4.10536 20.7071 4.29289C20.8946 4.48043 21 4.73478 21 5C21 5.17 20.95 5.34 20.88 5.5L17.3 11.97C16.96 12.58 16.3 13 15.55 13H8.1L7.2 14.63L7.17 14.75C7.17 14.8163 7.19634 14.8799 7.24322 14.9268C7.29011 14.9737 7.3537 15 7.42 15H19V17H7C6.46957 17 5.96086 16.7893 5.58579 16.4142C5.21071 16.0391 5 15.5304 5 15C5 14.65 5.09 14.32 5.24 14.04L6.6 11.59L3 4H1V2ZM7 18C7.53043 18 8.03914 18.2107 8.41421 18.5858C8.78929 18.9609 9 19.4696 9 20C9 20.5304 8.78929 21.0391 8.41421 21.4142C8.03914 21.7893 7.53043 22 7 22C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20C5 18.89 5.89 18 7 18ZM16 11L18.78 6H6.14L8.5 11H16Z" fill="#0A6738"/>
@@ -526,8 +559,8 @@ const QuickViewModal = ({ product, onClose }) => {
                         <button 
                             className="qv-btn-buy" 
                             onClick={handleBuyNow}
-                            disabled={isOutOfStock}
-                            style={{ opacity: isOutOfStock ? 0.5 : 1 }}
+                            disabled={isOutOfStock || actionLoading}
+                            style={{ opacity: (isOutOfStock || actionLoading) ? 0.5 : 1, cursor: actionLoading ? 'not-allowed' : 'pointer' }}
                         >
                             Buy Now
                         </button>
