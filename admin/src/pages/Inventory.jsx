@@ -162,6 +162,35 @@ const Inventory = () => {
         setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
     };
 
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+
+    // Reset page on filter/search change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, threshold, sortOrder]);
+
+    const totalPages = Math.ceil(filteredInventory.length / itemsPerPage) || 1;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedInventory = filteredInventory.slice(startIndex, startIndex + itemsPerPage);
+
+    const handlePageChange = (page) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
+    const handleItemsPerPageChange = (e) => {
+        const val = parseInt(e.target.value);
+        if (val > 0) {
+            setItemsPerPage(val);
+            setCurrentPage(1);
+        } else if (e.target.value === '') {
+            setItemsPerPage('');
+        }
+    };
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -212,6 +241,24 @@ const Inventory = () => {
 
             {/* Inventory Table Card */}
             <div className="admin-card" style={{ overflowX: 'auto', border: 'none' }}>
+                {/* Items Per Page and Count Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '0 10px' }}>
+                    <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)' }}>
+                        Show 
+                        <input 
+                            type="number" 
+                            min="1" 
+                            value={itemsPerPage} 
+                            onChange={handleItemsPerPageChange} 
+                            style={{ width: '60px', padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', color: 'var(--text)' }} 
+                        /> 
+                        entries
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'var(--text)' }}>
+                        Showing {filteredInventory.length > 0 ? startIndex + 1 : 0} to {Math.min(startIndex + (itemsPerPage || 0), filteredInventory.length)} of {filteredInventory.length} entries
+                    </div>
+                </div>
+
                 <table className="admin-table">
                     <thead>
                         <tr>
@@ -232,14 +279,14 @@ const Inventory = () => {
                                     Loading inventory items...
                                 </td>
                             </tr>
-                        ) : filteredInventory.length === 0 ? (
+                        ) : paginatedInventory.length === 0 ? (
                             <tr>
                                 <td colSpan="8" style={{ textAlign: 'center', padding: '30px', color: '#888' }}>
                                     No inventory items match the current filters.
                                 </td>
                             </tr>
                         ) : (
-                            filteredInventory.map((item, index) => {
+                            paginatedInventory.map((item, index) => {
                                 const isLowStock = item.stock <= 5;
                                 const localVal = item.variantId ? editStocks[item.variantId] : item.stock;
 
@@ -344,6 +391,62 @@ const Inventory = () => {
                         )}
                     </tbody>
                 </table>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '15px', padding: '0 10px 10px 0' }}>
+                        <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                            <button 
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                style={{ padding: '6px 12px', background: currentPage === 1 ? 'var(--border)' : 'var(--card-bg)', color: currentPage === 1 ? 'var(--text-muted)' : '#007bff', border: 'none', borderRight: '1px solid var(--border)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontSize: '13px' }}
+                            >
+                                Prev
+                            </button>
+                            
+                            {/* Page Numbers */}
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (currentPage <= 3) {
+                                    pageNum = i + 1;
+                                } else if (currentPage >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = currentPage - 2 + i;
+                                }
+                                
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        onClick={() => handlePageChange(pageNum)}
+                                        style={{ 
+                                            padding: '6px 12px', 
+                                            background: currentPage === pageNum ? '#3BB77E' : 'var(--card-bg)', 
+                                            color: currentPage === pageNum ? '#fff' : '#007bff', 
+                                            border: 'none', 
+                                            borderRight: '1px solid var(--border)', 
+                                            cursor: 'pointer', 
+                                            fontSize: '13px',
+                                            fontWeight: currentPage === pageNum ? 'bold' : 'normal'
+                                        }}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                            
+                            <button 
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                style={{ padding: '6px 12px', background: currentPage === totalPages ? 'var(--border)' : 'var(--card-bg)', color: currentPage === totalPages ? 'var(--text-muted)' : '#007bff', border: 'none', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontSize: '13px' }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
