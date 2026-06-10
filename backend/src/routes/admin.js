@@ -767,6 +767,8 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
+});
+
 // ─── Inventory Management ───
 router.get('/inventory', requireAdmin, async (req, res) => {
   try {
