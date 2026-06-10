@@ -17,3 +17,6 @@ package-lock.json
 /frontend/.next
 /uploads/*
 !/uploads/.gitkeep
+backend/scratch/
+scratch/
+

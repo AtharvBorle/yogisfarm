@@ -767,6 +767,52 @@ router.post('/products/:id/images', requireAdmin, upload.array('images', 10), as
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
+// ─── Inventory Management ───
+router.get('/inventory', requireAdmin, async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      include: {
+        category: true,
+        brand: true,
+        variants: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ status: true, products });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+router.put('/inventory/stock', requireAdmin, async (req, res) => {
+  try {
+    const { variantId, stock } = req.body;
+    if (variantId === undefined || stock === undefined) {
+      return res.json({ status: false, message: 'Missing variantId or stock' });
+    }
+
+    const updatedVariant = await prisma.productVariant.update({
+      where: { id: parseInt(variantId) },
+      data: { stock: parseInt(stock) },
+      include: { product: true }
+    });
+
+    await logAdminAction(
+      req.session.adminId,
+      'Updated Inventory Stock',
+      `Product: ${updatedVariant.product.name}, Variant: ${updatedVariant.name}, New Stock: ${stock}`
+    );
+
+    cache.delStartWith('products:');
+
+    res.json({
+      status: true,
+      message: 'Stock updated successfully',
+      variant: updatedVariant
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
 });
 
 // ─── Orders Management ───

@@ -17,7 +17,8 @@ import {
   Wallet,
   ClipboardList,
   Zap,
-  Receipt
+  Receipt,
+  Package
 } from 'lucide-react';
 
 const navItems = [
@@ -26,6 +27,7 @@ const navItems = [
     { name: 'Category', path: '/categories', icon: ListTree },
     { name: 'Brand', path: '/brands', icon: Tag },
     { name: 'Product', path: '/products', icon: ShoppingBag },
+    { name: 'Inventory', path: '/inventory', icon: Package },
     { name: 'Order', path: '/orders', icon: ShoppingCart },
     { name: 'Accounts', path: '/accounts', icon: Receipt },
     { name: 'Take Action', path: '/take-action', icon: Zap },
