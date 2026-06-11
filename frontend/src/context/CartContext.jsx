@@ -41,7 +41,7 @@ export const CartProvider = ({ children }) => {
       if (response.data.status) {
         toast.success(response.data.message);
         setCartCount(response.data.count);
-        fetchCart(); // Refresh items
+        await fetchCart(); // Refresh items
       } else {
         toast.error(response.data.message);
       }
@@ -54,7 +54,7 @@ export const CartProvider = ({ children }) => {
     try {
       const response = await api.put('/cart/update', { cartId, quantity });
       if (response.data.status) {
-        fetchCart();
+        await fetchCart();
       }
     } catch (error) {
       toast.error('Failed to update cart');
@@ -66,7 +66,7 @@ export const CartProvider = ({ children }) => {
       const response = await api.delete(`/cart/remove/${cartId}`);
       if (response.data.status) {
         toast.success(response.data.message);
-        fetchCart();
+        await fetchCart();
       }
     } catch (error) {
       toast.error('Failed to remove item');

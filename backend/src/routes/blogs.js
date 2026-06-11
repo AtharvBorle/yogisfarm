@@ -8,6 +8,7 @@ const multerS3 = require('multer-s3');
 const slugify = require('slugify');
 const prisma = require('../db');
 const { requireAdmin } = require('../middleware/auth');
+const cache = require('../utils/cache');
 
 // Configure Multer for local uploads or S3
 let upload;
@@ -385,10 +386,19 @@ async function ensureCategoriesSeeded() {
 // GET: Fetch all blog categories
 router.get('/categories', async (req, res) => {
   try {
+    const cacheKey = 'blogs:categories';
+    const cachedCategories = cache.get(cacheKey);
+    if (cachedCategories) {
+      return res.json({ status: true, categories: cachedCategories });
+    }
+
     await ensureCategoriesSeeded();
     const categories = await prisma.blogCategory.findMany({
       orderBy: { name: 'asc' }
     });
+
+    cache.set(cacheKey, categories, 300); // cache for 5 minutes
+
     res.json({ status: true, categories });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });
@@ -418,6 +428,7 @@ router.post('/categories', requireAdmin, async (req, res) => {
     const category = await prisma.blogCategory.create({
       data: { name, slug: generatedSlug }
     });
+    cache.delStartWith('blogs:');
     res.json({ status: true, category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -448,6 +459,7 @@ router.put('/categories/:id', requireAdmin, async (req, res) => {
       });
     }
 
+    cache.delStartWith('blogs:');
     res.json({ status: true, category });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -461,6 +473,7 @@ router.delete('/categories/:id', requireAdmin, async (req, res) => {
     await prisma.blogCategory.delete({
       where: { id }
     });
+    cache.delStartWith('blogs:');
     res.json({ status: true, message: 'Category deleted successfully' });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -476,11 +489,24 @@ router.get('/', async (req, res) => {
     
     // Check if queried by admin session
     const showAll = req.query.admin === 'true' && req.session && req.session.adminId;
+    const cacheKey = 'blogs:list';
+
+    if (!showAll) {
+      const cachedBlogs = cache.get(cacheKey);
+      if (cachedBlogs) {
+        return res.json({ status: true, blogs: cachedBlogs });
+      }
+    }
     
     const blogs = await prisma.blogPost.findMany({
       where: showAll ? {} : { status: 'active' },
       orderBy: { id: 'desc' }
     });
+
+    if (!showAll) {
+      cache.set(cacheKey, blogs, 300); // cache for 5 minutes
+    }
+
     res.json({ status: true, blogs });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });
@@ -492,8 +518,19 @@ router.get('/:idOrSlug', async (req, res) => {
   try {
     await ensureSeeded();
     const param = req.params.idOrSlug;
-    let blog;
     
+    // Restrict inactive blogs from non-admins
+    const showAll = req.query.admin === 'true' && req.session && req.session.adminId;
+    const cacheKey = `blogs:slug=${param}`;
+
+    if (!showAll) {
+      const cachedBlog = cache.get(cacheKey);
+      if (cachedBlog) {
+        return res.json({ status: true, blog: cachedBlog });
+      }
+    }
+
+    let blog;
     if (/^\d+$/.test(param)) {
       // Is dynamic numeric ID
       blog = await prisma.blogPost.findUnique({
@@ -510,8 +547,6 @@ router.get('/:idOrSlug', async (req, res) => {
       return res.status(404).json({ status: false, message: 'Blog post not found' });
     }
 
-    // Restrict inactive blogs from non-admins
-    const showAll = req.query.admin === 'true' && req.session && req.session.adminId;
     if (!showAll && blog.status !== 'active') {
       return res.status(404).json({ status: false, message: 'Blog post not found' });
     }
@@ -535,7 +570,13 @@ router.get('/:idOrSlug', async (req, res) => {
       }
     }
 
-    res.json({ status: true, blog: { ...blog, archivedBlogs } });
+    const blogWithArchives = { ...blog, archivedBlogs };
+
+    if (!showAll) {
+      cache.set(cacheKey, blogWithArchives, 300); // cache for 5 minutes
+    }
+
+    res.json({ status: true, blog: blogWithArchives });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });
   }
@@ -580,6 +621,8 @@ router.post('/', requireAdmin, async (req, res) => {
         status: status || 'inactive'
       }
     });
+
+    cache.delStartWith('blogs:');
 
     res.json({ status: true, message: 'Blog created successfully', blog: newBlog });
   } catch (e) {
@@ -644,6 +687,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
       data
     });
 
+    cache.delStartWith('blogs:');
+
     res.json({ status: true, message: 'Blog updated successfully', blog: updatedBlog });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -671,12 +716,14 @@ router.post('/bulk-action', requireAdmin, async (req, res) => {
       await prisma.blogPost.deleteMany({
         where: { id: { in: numericIds } }
       });
+      cache.delStartWith('blogs:');
       return res.json({ status: true, message: 'Blogs deleted successfully' });
     } else if (action === 'active' || action === 'inactive') {
       await prisma.blogPost.updateMany({
         where: { id: { in: numericIds } },
         data: { status: action }
       });
+      cache.delStartWith('blogs:');
       return res.json({ status: true, message: `Blogs updated to ${action} successfully` });
     } else {
       return res.json({ status: false, message: 'Invalid action' });
@@ -698,6 +745,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
     await deleteBlogImages(blog);
 
     await prisma.blogPost.delete({ where: { id } });
+    cache.delStartWith('blogs:');
     res.json({ status: true, message: 'Blog post deleted successfully' });
   } catch (e) {
     res.status(500).json({ status: false, message: e.message });

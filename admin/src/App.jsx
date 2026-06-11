@@ -7,6 +7,7 @@ import Slider from './pages/Slider';
 import Category from './pages/Category';
 import Brand from './pages/Brand';
 import Product from './pages/Product';
+import Inventory from './pages/Inventory';
 import Order from './pages/Order';
 import Section from './pages/Section';
 import Tax from './pages/Tax';
@@ -37,6 +38,7 @@ function App() {
       <Route path="/categories" element={admin ? <AdminLayout><Category /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/brands" element={admin ? <AdminLayout><Brand /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/products" element={admin ? <AdminLayout><Product /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/inventory" element={admin ? <AdminLayout><Inventory /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/orders" element={admin ? <AdminLayout><Order /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/orders/detail/:orderNumber" element={admin ? <AdminLayout><OrderDetail /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/orders/invoice/:orderNumber" element={admin ? <Invoice /> : <Navigate to="/login" />} />

@@ -1,9 +1,16 @@
 const router = require('express').Router();
 const prisma = require('../db');
+const cache = require('../utils/cache');
 
 // Get all products with filters
 router.get('/', async (req, res) => {
   try {
+    const cacheKey = `products:query:${JSON.stringify(req.query)}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return res.json({ status: true, ...cachedData });
+    }
+
     const { category, brand, search, sort, featured, popular, deal, page = 1, limit = 20 } = req.query;
     const where = { status: 'active' };
 
@@ -40,7 +47,16 @@ router.get('/', async (req, res) => {
       prisma.product.count({ where })
     ]);
 
-    res.json({ status: true, products, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
+    const responseData = {
+      products,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / parseInt(limit))
+    };
+
+    cache.set(cacheKey, responseData, 300); // cache for 5 minutes
+
+    res.json({ status: true, ...responseData });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -50,6 +66,11 @@ router.get('/', async (req, res) => {
 router.get('/homepage-lists', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 3;
+    const cacheKey = `products:homepage-lists:limit=${limit}`;
+    const cachedLists = cache.get(cacheKey);
+    if (cachedLists) {
+      return res.json({ status: true, ...cachedLists });
+    }
     
     // 1. Recently Added (actual creation date)
     const recentlyAdded = await prisma.product.findMany({
@@ -122,12 +143,18 @@ router.get('/homepage-lists', async (req, res) => {
       topSelling = [...topSelling, ...fallbackProducts];
     }
 
-    res.json({
-      status: true,
+    const listsData = {
       topSelling,
       trending,
       recentlyAdded,
       topRated
+    };
+
+    cache.set(cacheKey, listsData, 300); // cache for 5 minutes
+
+    res.json({
+      status: true,
+      ...listsData
     });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -137,6 +164,12 @@ router.get('/homepage-lists', async (req, res) => {
 // Get single product by slug
 router.get('/:slug', async (req, res) => {
   try {
+    const cacheKey = `products:slug=${req.params.slug}`;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      return res.json({ status: true, ...cachedData });
+    }
+
     const product = await prisma.product.findUnique({
       where: { slug: req.params.slug },
       include: {
@@ -154,7 +187,10 @@ router.get('/:slug', async (req, res) => {
       take: 8, include: { category: true, variants: true }
     });
 
-    res.json({ status: true, product, related });
+    const responseData = { product, related };
+    cache.set(cacheKey, responseData, 300); // cache for 5 minutes
+
+    res.json({ status: true, ...responseData });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -163,6 +199,12 @@ router.get('/:slug', async (req, res) => {
 // Quick view
 router.get('/:id/quick-view', async (req, res) => {
   try {
+    const cacheKey = `products:quickview=${req.params.id}`;
+    const cachedProduct = cache.get(cacheKey);
+    if (cachedProduct) {
+      return res.json({ status: true, product: cachedProduct });
+    }
+
     const product = await prisma.product.findUnique({
       where: { id: parseInt(req.params.id) },
       include: { 
@@ -173,6 +215,11 @@ router.get('/:id/quick-view', async (req, res) => {
         reviews: { where: { status: 'active' }, include: { user: { select: { name: true } } }, orderBy: { createdAt: 'desc' } }
       }
     });
+
+    if (product) {
+      cache.set(cacheKey, product, 300); // cache for 5 minutes
+    }
+
     res.json({ status: true, product });
   } catch (e) {
     res.json({ status: false, message: e.message });

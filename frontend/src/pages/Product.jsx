@@ -87,6 +87,7 @@ const Product = () => {
     const [hoverRating, setHoverRating] = useState(0);
     const [newComment, setNewComment] = useState('');
     const [filterRating, setFilterRating] = useState('all');
+    const [actionLoading, setActionLoading] = useState(false);
 
     useSEO({
         key: product ? `product/${product.slug || product.id}` : null,
@@ -224,13 +225,28 @@ const Product = () => {
     }
     breadcrumbItems.push({ label: product.name });
 
-    const handleAddToCart = () => {
-        addToCart(product.id, selectedVariant?.id, quantity);
+    const handleAddToCart = async () => {
+        if (actionLoading) return;
+        setActionLoading(true);
+        try {
+            await addToCart(product.id, selectedVariant?.id, quantity);
+        } finally {
+            setActionLoading(false);
+        }
     };
 
-    const handleBuyNow = () => {
-        addToCart(product.id, selectedVariant?.id, quantity);
-        navigate('/checkout');
+    const handleBuyNow = async () => {
+        if (actionLoading) return;
+        setActionLoading(true);
+        try {
+            const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === selectedVariant?.id);
+            if (!cartItem) {
+                await addToCart(product.id, selectedVariant?.id, quantity);
+            }
+            navigate('/checkout');
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     const handleWishlist = () => {
@@ -404,32 +420,60 @@ const Product = () => {
                                             const cartItem = cartItems?.find(item => item.product?.id === product.id && item.variantId === selectedVariant?.id);
                                             
                                             return (
-                                                <div className="detail-extralink mb-30" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                                                <div className="detail-extralink mb-30" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', opacity: actionLoading ? 0.7 : 1 }}>
                                                     {isOutOfStock ? (
                                                         <button disabled style={{ background: '#e0e0e0', color: '#666', border: 'none', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1, cursor: 'not-allowed' }}>Out of Stock</button>
                                                     ) : cartItem ? (
                                                         <div style={{ display: 'flex', alignItems: 'center', background: '#0A6738', borderRadius: '10px', flex: 1.3, overflow: 'hidden', height: '50px' }}>
                                                             <button 
-                                                                onClick={(e) => { e.preventDefault(); cartItem.quantity > 1 ? updateQuantity(cartItem.id, cartItem.quantity - 1) : removeFromCart(cartItem.id); }}
+                                                                disabled={actionLoading}
+                                                                onClick={async (e) => { 
+                                                                    e.preventDefault(); 
+                                                                    if (actionLoading) return;
+                                                                    setActionLoading(true);
+                                                                    try {
+                                                                        cartItem.quantity > 1 ? await updateQuantity(cartItem.id, cartItem.quantity - 1) : await removeFromCart(cartItem.id); 
+                                                                    } finally {
+                                                                        setActionLoading(false);
+                                                                    }
+                                                                }}
                                                                 style={{ width: '45px', height: '100%', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                                             >
                                                                 <Minus size={18} />
                                                             </button>
                                                             <span style={{ color: '#fff', fontWeight: '600', fontSize: '15px', flex: 1, textAlign: 'center', whiteSpace: 'nowrap' }}>{cartItem.quantity} in Cart</span>
                                                             <button 
-                                                                onClick={(e) => { e.preventDefault(); cartItem.quantity < currentStock && updateQuantity(cartItem.id, cartItem.quantity + 1); }}
+                                                                disabled={actionLoading}
+                                                                onClick={async (e) => { 
+                                                                    e.preventDefault(); 
+                                                                    if (actionLoading) return;
+                                                                    setActionLoading(true);
+                                                                    try {
+                                                                        cartItem.quantity < currentStock && await updateQuantity(cartItem.id, cartItem.quantity + 1); 
+                                                                    } finally {
+                                                                        setActionLoading(false);
+                                                                    }
+                                                                }}
                                                                 style={{ width: '45px', height: '100%', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                                                             >
                                                                 <Plus size={18} />
                                                             </button>
                                                         </div>
                                                     ) : (
-                                                        <button onClick={handleAddToCart} style={{ background: '#E9FFF4', color: '#0A6738', border: '1px solid #0A6738', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                                        <button 
+                                                            disabled={actionLoading}
+                                                            onClick={handleAddToCart} 
+                                                            style={{ background: '#E9FFF4', color: '#0A6738', border: '1px solid #0A6738', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: actionLoading ? 'not-allowed' : 'pointer' }}
+                                                        >
                                                             <ShoppingCart size={20} /> Add to cart
                                                         </button>
                                                     )}
                                                     {!isOutOfStock && (
-                                                        <button onClick={handleBuyNow} style={{ background: '#FF1A00', color: '#fff', border: 'none', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                                        <button 
+                                                            disabled={actionLoading}
+                                                            onClick={handleBuyNow} 
+                                                            style={{ background: '#FF1A00', color: '#fff', border: 'none', padding: '12px 30px', borderRadius: '10px', fontWeight: '600', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: actionLoading ? 'not-allowed' : 'pointer' }}
+                                                        >
                                                             <ShoppingBag size={20} /> Buy Now
                                                         </button>
                                                     )}

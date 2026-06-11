@@ -11,10 +11,21 @@ import useSEO from '../hooks/useSEO';
 const Wishlist = () => {
     useSEO('wishlist');
     const { user, loading: authLoading } = useAuth();
-    const { addToCart } = useCart();
+    const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
     const { toggleWishlist } = useWishlist();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const handleAddToCart = async (productId, variantId) => {
+        if (actionLoading) return;
+        setActionLoading(true);
+        try {
+            await addToCart(productId, variantId, 1);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     const fetchWishlist = () => {
         if(user) {
@@ -114,9 +125,58 @@ const Wishlist = () => {
                                                     )}
                                                 </td>
                                                 <td className="text-right" data-title="Cart" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
-                                                    {!isOutOfStock && firstStockedVariant && (
-                                                        <button onClick={() => addToCart(item.product.id, firstStockedVariant.id, 1)} className="btn btn-sm" style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold' }}><i className="fi-rs-shopping-cart mr-5"></i>Add</button>
-                                                    )}
+                                                    {!isOutOfStock && firstStockedVariant && (() => {
+                                                        const cartItem = cartItems?.find(c => c.product?.id === item.product.id && c.variantId === firstStockedVariant.id);
+                                                        if (cartItem) {
+                                                            return (
+                                                                <div style={{ 
+                                                                    display: 'inline-flex', 
+                                                                    alignItems: 'center', 
+                                                                    backgroundColor: '#f0f9f4', 
+                                                                    borderRadius: '6px', 
+                                                                    border: '1px solid #046938',
+                                                                    height: '35px',
+                                                                    width: '100px',
+                                                                    justifyContent: 'space-between',
+                                                                    padding: '0 10px',
+                                                                    margin: '0 auto',
+                                                                    opacity: actionLoading ? 0.7 : 1
+                                                                }}>
+                                                                    <a onClick={async (e) => { 
+                                                                        e.preventDefault(); 
+                                                                        if (actionLoading) return;
+                                                                        setActionLoading(true);
+                                                                        try {
+                                                                            cartItem.quantity > 1 ? await updateQuantity(cartItem.id, cartItem.quantity - 1) : await removeFromCart(cartItem.id); 
+                                                                        } finally {
+                                                                            setActionLoading(false);
+                                                                        }
+                                                                    }} href="#!" style={{ color: '#046938', fontSize: '16px', fontWeight: 'bold', textDecoration: 'none' }}>-</a>
+                                                                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#253D4E' }}>{cartItem.quantity}</span>
+                                                                    <a onClick={async (e) => { 
+                                                                        e.preventDefault(); 
+                                                                        if (actionLoading) return;
+                                                                        setActionLoading(true);
+                                                                        try {
+                                                                            cartItem.quantity < firstStockedVariant.stock && await updateQuantity(cartItem.id, cartItem.quantity + 1); 
+                                                                        } finally {
+                                                                            setActionLoading(false);
+                                                                        }
+                                                                    }} href="#!" style={{ color: cartItem.quantity >= firstStockedVariant.stock ? '#ccc' : '#046938', fontSize: '16px', fontWeight: 'bold', textDecoration: 'none' }}>+</a>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <button 
+                                                                disabled={actionLoading}
+                                                                onClick={() => handleAddToCart(item.product.id, firstStockedVariant.id)} 
+                                                                className="btn btn-sm" 
+                                                                style={{ background: '#046938', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading ? 0.7 : 1 }}
+                                                            >
+                                                                <i className="fi-rs-shopping-cart mr-5"></i>Add
+                                                            </button>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td className="action" data-title="Remove" style={{ verticalAlign: 'middle', borderBottom: '1px solid #ececec' }}>
                                                     <a href="#!" onClick={() => handleRemove(item.productId)} style={{ color: '#7E7E7E' }}><i className="fi-rs-trash"></i></a>
