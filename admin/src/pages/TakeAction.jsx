@@ -184,7 +184,7 @@ const TakeAction = () => {
 
         // Tab logic
         if (activeTab === 'takeAction') {
-            return !order.labelPrintedAt && (order.orderStatus === 'placed' || order.orderStatus === 'confirmed' || order.orderStatus === 'pending');
+            return !order.labelPrintedAt && (order.orderStatus === 'placed' || order.orderStatus === 'confirmed');
         }
         if (activeTab === 'readyToShip') {
             return order.labelPrintedAt && !order.deliveryBoyId && !order.courierPartnerId && order.orderStatus !== 'cancelled';
