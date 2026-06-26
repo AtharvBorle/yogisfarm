@@ -1,9 +1,6 @@
 import React from 'react';
-import SliderComponent from 'react-slick';
 import { useNavigate } from 'react-router-dom';
 import { getAssetUrl } from '../api';
-
-const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
 const CategoryCarousel = ({ categories }) => {
     const navigate = useNavigate();
@@ -20,63 +17,6 @@ const CategoryCarousel = ({ categories }) => {
         { id: 'fallback_8', name: 'Sunflower Oil', slug: '#', image: '/src/assets/figma/img_11.png' }
     ];
 
-    const categorySettings = {
-        dots: false,
-        infinite: false,
-        speed: 1000,
-        slidesToShow: 8,
-        slidesToScroll: 1,
-        autoplay: false,
-        arrows: true,
-        responsive: [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: 6,
-                    infinite: false,
-                    autoplay: false
-                }
-            },
-            {
-                breakpoint: 992,
-                settings: {
-                    slidesToShow: 5,
-                    infinite: false,
-                    autoplay: false
-                }
-            },
-            {
-                breakpoint: 768,
-                settings: {
-                    slidesToShow: 4,
-                    infinite: false,
-                    autoplay: false,
-                    arrows: false
-                }
-            },
-            {
-                breakpoint: 576,
-                settings: {
-                    slidesToShow: 3,
-                    slidesToScroll: 1,
-                    infinite: false,
-                    autoplay: false,
-                    arrows: false
-                }
-            },
-            {
-                breakpoint: 400,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 1,
-                    infinite: false,
-                    autoplay: false,
-                    arrows: false
-                }
-            }
-        ]
-    };
-
     return (
         <section 
             style={{
@@ -87,6 +27,48 @@ const CategoryCarousel = ({ categories }) => {
                 backgroundColor: 'var(--yf-bg-white)'
             }}
         >
+            <style>{`
+                .category-scroll-container {
+                    display: flex;
+                    overflow-x: auto;
+                    gap: 20px;
+                    padding: 10px 0;
+                    scrollbar-width: none; /* Firefox */
+                    -ms-overflow-style: none; /* IE 10+ */
+                    justify-content: center;
+                }
+                .category-scroll-container::-webkit-scrollbar {
+                    display: none; /* Safari and Chrome */
+                }
+                @media (max-width: 1200px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 6 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 992px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 5 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 768px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 4 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 576px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 3 ? 'flex-start' : 'center'};
+                        padding-left: 20px;
+                        padding-right: 20px;
+                    }
+                }
+                @media (max-width: 400px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 2 ? 'flex-start' : 'center'};
+                    }
+                }
+            `}</style>
+
             <div 
                 style={{
                     width: '1440px', // Desktop focus
@@ -110,60 +92,58 @@ const CategoryCarousel = ({ categories }) => {
                     </h3>
                 </div>
 
-                <div style={{ margin: '0 -10px' }}>
-                    <Slider {...categorySettings}>
-                        {displayCategories.map(cat => (
-                            <div key={cat.id} style={{ padding: '0 10px', outline: 'none' }}>
-                                <figure 
-                                    onClick={() => navigate(String(cat.id).startsWith('fallback') ? '#' : `/shop?category=${cat.slug}`)}
-                                    style={{
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        gap: '15px',
-                                        padding: '0',
-                                        margin: '5px',
-                                        transition: 'transform 0.3s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(-5px)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(0)';
-                                    }}
-                                >
-                                    <div style={{
-                                        width: '112px',
-                                        height: '112px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '9px',
-                                        border: '1px solid #F9F9F9',
-                                        backgroundColor: 'var(--yf-bg-white)',
-                                        overflow: 'hidden'
-                                    }}>
-                                        <img 
-                                            src={String(cat.id).startsWith('fallback') ? cat.image : getAssetUrl(cat.image)} 
-                                            alt={cat.name} 
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                        />
-                                    </div>
-                                    <h6 style={{ 
-                                        color: 'var(--yf-primary-dark)', 
-                                        fontSize: '13px', 
-                                        fontFamily: 'var(--font-poppins)', 
-                                        fontWeight: '600',
-                                        margin: 0,
-                                        textAlign: 'center'
-                                    }}>
-                                        {cat.name}
-                                    </h6>
-                                </figure>
+                <div className="category-scroll-container">
+                    {displayCategories.map(cat => (
+                        <figure 
+                            key={cat.id}
+                            onClick={() => navigate(String(cat.id).startsWith('fallback') ? '#' : `/shop?category=${cat.slug}`)}
+                            style={{
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '15px',
+                                padding: '0',
+                                margin: '5px',
+                                transition: 'transform 0.3s ease',
+                                flexShrink: 0
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-5px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            <div style={{
+                                width: '112px',
+                                height: '112px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '9px',
+                                border: '1px solid #F9F9F9',
+                                backgroundColor: 'var(--yf-bg-white)',
+                                overflow: 'hidden'
+                            }}>
+                                <img 
+                                    src={String(cat.id).startsWith('fallback') ? cat.image : getAssetUrl(cat.image)} 
+                                    alt={cat.name} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                />
                             </div>
-                        ))}
-                    </Slider>
+                            <h6 style={{ 
+                                color: 'var(--yf-primary-dark)', 
+                                fontSize: '13px', 
+                                fontFamily: 'var(--font-poppins)', 
+                                fontWeight: '600',
+                                margin: 0,
+                                textAlign: 'center'
+                            }}>
+                                {cat.name}
+                            </h6>
+                        </figure>
+                    ))}
                 </div>
             </div>
         </section>
