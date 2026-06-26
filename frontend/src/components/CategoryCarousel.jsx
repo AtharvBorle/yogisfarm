@@ -40,6 +40,22 @@ const CategoryCarousel = ({ categories }) => {
                 .category-scroll-container::-webkit-scrollbar {
                     display: none; /* Safari and Chrome */
                 }
+                .category-item {
+                    cursor: pointer;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 15px;
+                    padding: 0;
+                    margin: 5px;
+                    transition: transform 0.3s ease;
+                    flex-shrink: 0;
+                }
+                @media (hover: hover) {
+                    .category-item:hover {
+                        transform: translateY(-5px);
+                    }
+                }
                 @media (max-width: 1200px) {
                     .category-scroll-container {
                         justify-content: ${displayCategories.length > 6 ? 'flex-start' : 'center'};
@@ -96,24 +112,8 @@ const CategoryCarousel = ({ categories }) => {
                     {displayCategories.map(cat => (
                         <figure 
                             key={cat.id}
+                            className="category-item"
                             onClick={() => navigate(String(cat.id).startsWith('fallback') ? '#' : `/shop?category=${cat.slug}`)}
-                            style={{
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '15px',
-                                padding: '0',
-                                margin: '5px',
-                                transition: 'transform 0.3s ease',
-                                flexShrink: 0
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-5px)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                            }}
                         >
                             <div style={{
                                 width: '112px',
