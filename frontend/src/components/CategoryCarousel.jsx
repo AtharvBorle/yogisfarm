@@ -22,35 +22,35 @@ const CategoryCarousel = ({ categories }) => {
 
     const categorySettings = {
         dots: false,
-        infinite: displayCategories.length > 8,
+        infinite: false,
         speed: 1000,
         slidesToShow: 8,
         slidesToScroll: 1,
-        autoplay: displayCategories.length > 8,
+        autoplay: false,
         arrows: true,
         responsive: [
             {
                 breakpoint: 1200,
                 settings: {
                     slidesToShow: 6,
-                    infinite: displayCategories.length > 6,
-                    autoplay: displayCategories.length > 6
+                    infinite: false,
+                    autoplay: false
                 }
             },
             {
                 breakpoint: 992,
                 settings: {
                     slidesToShow: 5,
-                    infinite: displayCategories.length > 5,
-                    autoplay: displayCategories.length > 5
+                    infinite: false,
+                    autoplay: false
                 }
             },
             {
                 breakpoint: 768,
                 settings: {
                     slidesToShow: 4,
-                    infinite: displayCategories.length > 4,
-                    autoplay: displayCategories.length > 4,
+                    infinite: false,
+                    autoplay: false,
                     arrows: false
                 }
             },
@@ -59,8 +59,8 @@ const CategoryCarousel = ({ categories }) => {
                 settings: {
                     slidesToShow: 3,
                     slidesToScroll: 1,
-                    infinite: displayCategories.length > 3,
-                    autoplay: displayCategories.length > 3,
+                    infinite: false,
+                    autoplay: false,
                     arrows: false
                 }
             },
@@ -69,8 +69,8 @@ const CategoryCarousel = ({ categories }) => {
                 settings: {
                     slidesToShow: 2,
                     slidesToScroll: 1,
-                    infinite: displayCategories.length > 2,
-                    autoplay: displayCategories.length > 2,
+                    infinite: false,
+                    autoplay: false,
                     arrows: false
                 }
             }
