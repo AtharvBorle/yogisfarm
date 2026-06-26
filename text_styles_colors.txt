@@ -574,7 +574,7 @@ color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-heig
 // About us
 color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
 ---
-// +91 9119501177
+// +91 7030911999
 color: black; font-size: 14px; font-family: Poppins; font-weight: 400; line-height: 22px; word-wrap: break-word
 ---
 // info@yogisfarms.in

@@ -115,7 +115,7 @@ const Contact = () => {
                                     <div style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <Phone size={24} color="#000" />
                                     </div>
-                                    <span style={{ fontSize: '20px', color: '#000', fontWeight: 400 }}>+91 9119501177</span>
+                                    <span style={{ fontSize: '20px', color: '#000', fontWeight: 400 }}>+91 7030911999</span>
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

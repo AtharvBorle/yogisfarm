@@ -134,7 +134,7 @@ const Invoice = () => {
                     S.No 18, Saikrupa Bunglow, Sudarshan Park society, Ingale Nagar, Warje, Pune 411058, Pune<br />
                     Pune, Maharashtra - 411058<br />
                     E-Mail Address: info@yogisfarms.com<br />
-                    Phone Number: +91 9119501177
+                    Phone Number: +91 7030911999
                     {gstNumber && <><br />GST Number: <strong>{gstNumber}</strong></>}
                 </div>
                 <div style={{ textAlign: 'right' }}>

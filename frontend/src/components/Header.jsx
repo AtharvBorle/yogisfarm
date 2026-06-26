@@ -509,7 +509,7 @@ const Header = () => {
                         <div className="hotline d-none d-lg-flex">
                             <img src="/assets/imgs/theme/icons/icon-headphone.svg" alt="hotline" />
                             <p>
-                                <a href="tel:9119501177">9119501177</a>
+                                <a href="tel:7030911999">7030911999</a>
                                 <span className="text-center">24/7 Support Center</span>
                             </p>
                         </div>
@@ -585,7 +585,7 @@ const Header = () => {
                                 <Link to="/track-order" onClick={() => setIsMobileMenuOpen(false)}><i className="fi-rs-truck"></i> Track Order</Link>
                             </div>
                             <div className="single-mobile-header-info">
-                                <a href="tel:9119501177"><i className="fi-rs-headphones"></i> 9119501177 </a>
+                                <a href="tel:7030911999"><i className="fi-rs-headphones"></i> 7030911999 </a>
                             </div>
                             {user && (
                                 <div className="single-mobile-header-info">

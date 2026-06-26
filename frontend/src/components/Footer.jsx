@@ -182,7 +182,7 @@ const Footer = () => {
                             </li>
                             <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={callIcon} alt="Phone" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
-                                <a href="tel:+919119501177" style={{ color: '#000' }}>+91 9119501177</a>
+                                <a href="tel:+917030911999" style={{ color: '#000' }}>+91 7030911999</a>
                             </li>
                             <li className="mb-3 footer-contact-item" style={{ display: 'flex', alignItems: 'center', color: '#000', fontSize: '14px', fontWeight: 500 }}>
                                 <img src={mailIcon} alt="Email" style={{ width: '18px', marginRight: '10px', flexShrink: 0 }} />
