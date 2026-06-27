@@ -418,7 +418,7 @@ const Header = () => {
                                                 </svg>
                                                 {cartCount > 0 && <span className="pro-count">{cartCount}</span>}
                                             </div>
-                                            <span className="action-label">Add Cart</span>
+                                            <span className="action-label">Cart</span>
                                         </Link>
                                     </div>
                                     {/* Profile */}
