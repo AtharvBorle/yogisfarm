@@ -269,79 +269,75 @@ const Cart = () => {
             <CartBanner />
 
             <div className="container mb-80">
-                <div className="row">
-                    <div className="col-lg-8">
-                        {cartItems.length === 0 ? (
-                            <div className="text-center py-5">
-                                <h4 style={{ color: '#0A6738' }}>Your cart is empty</h4>
-                                <p className="mb-30">Browse our products and add items to your cart</p>
-                                <Link to="/shop" className="btn" style={{ backgroundColor: '#0A6738', color: '#fff', padding: '12px 30px', borderRadius: '8px' }}>Continue Shopping</Link>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="table-responsive">
-                                    <table className="table" style={{ borderCollapse: 'separate', borderSpacing: '0 15px' }}>
-                                        <thead style={{ background: '#F8F8F8' }}>
-                                            <tr style={{ border: 'none' }}>
-                                                <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '60px' }}></th>
-                                                <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none' }}>PRODUCT</th>
-                                                <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '120px' }}>PRICE</th>
-                                                <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', textAlign: 'center', width: '150px' }}>QTY</th>
-                                                <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '120px' }}>TOTAL</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {cartItems.map((item) => {
-                                                const price = item.variant 
-                                                    ? (item.variant.salePrice || item.variant.price) 
-                                                    : 0;
-                                                const subtotal = price * item.quantity;
-                                                return (
-                                                    <tr key={item.id} className="cart-table-row" style={{ verticalAlign: 'middle', background: '#fff', border: '1px solid #eee', transition: '0.3s' }}>
-                                                        <td style={{ padding: '15px', width: '60px' }}>
-                                                            <button onClick={() => removeFromCart(item.id)} style={{ border: 'none', background: 'transparent', color: '#000', cursor: 'pointer', padding: '5px' }}>
-                                                                <Trash2 size={18} />
-                                                            </button>
-                                                        </td>
-                                                        <td style={{ padding: '15px' }}>
-                                                            <div className="d-flex align-items-center" style={{ gap: '30px' }}>
-                                                                <img src={getAssetUrl(item.product.image)} alt="" style={{ width: '90px', height: '90px', borderRadius: '10px', objectFit: 'cover' }} />
-                                                                <div>
-                                                                    <Link to={`/product/${item.product.slug}`} style={{ color: '#0A6738', fontWeight: '600', fontSize: '16px' }}>{item.product.name}</Link>
-                                                                    {item.variant && <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{item.variant.name}</p>}
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '15px', color: '#333', fontWeight: '600' }}>₹{parseFloat(price).toFixed(2)}</td>
-                                                        <td style={{ padding: '15px' }}>
-                                                            <div className="d-flex align-items-center justify-content-center" style={{ gap: '5px' }}>
-                                                                <button onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))} className="qty-btn" style={{ width: '28px', height: '28px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}>
-                                                                    <Minus size={14} />
-                                                                </button>
-                                                                <div style={{ width: '35px', height: '28px', border: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', background: '#fff' }}>
-                                                                    {item.quantity}
-                                                                </div>
-                                                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="qty-btn" style={{ width: '28px', height: '28px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}>
-                                                                    <Plus size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '15px', color: '#0A6738', fontWeight: '700' }}>₹{parseFloat(subtotal).toFixed(2)}</td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div className="mt-30">
-                                    <Link to="/shop" style={{ color: '#0A6738', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <i className="fi-rs-arrow-left"></i> Continue Shopping
-                                    </Link>
-                                </div>
-                            </>
-                        )}
+                {cartItems.length === 0 ? (
+                    <div className="text-center py-5">
+                        <h4 style={{ color: '#0A6738' }}>Your cart is empty</h4>
+                        <p className="mb-30">Browse our products and add items to your cart</p>
+                        <Link to="/shop" className="btn" style={{ backgroundColor: '#0A6738', color: '#fff', padding: '12px 30px', borderRadius: '8px' }}>Continue Shopping</Link>
                     </div>
-                    {cartItems.length > 0 && (
+                ) : (
+                    <div className="row">
+                        <div className="col-lg-8">
+                            <div className="table-responsive">
+                                <table className="table" style={{ borderCollapse: 'separate', borderSpacing: '0 15px' }}>
+                                    <thead style={{ background: '#F8F8F8' }}>
+                                        <tr style={{ border: 'none' }}>
+                                            <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '60px' }}></th>
+                                            <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none' }}>PRODUCT</th>
+                                            <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '120px' }}>PRICE</th>
+                                            <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', textAlign: 'center', width: '150px' }}>QTY</th>
+                                            <th style={{ padding: '15px', color: '#666', fontSize: '14px', fontWeight: '600', border: 'none', width: '120px' }}>TOTAL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cartItems.map((item) => {
+                                            const price = item.variant 
+                                                ? (item.variant.salePrice || item.variant.price) 
+                                                : 0;
+                                            const subtotal = price * item.quantity;
+                                            return (
+                                                <tr key={item.id} className="cart-table-row" style={{ verticalAlign: 'middle', background: '#fff', border: '1px solid #eee', transition: '0.3s' }}>
+                                                    <td style={{ padding: '15px', width: '60px' }}>
+                                                        <button onClick={() => removeFromCart(item.id)} style={{ border: 'none', background: 'transparent', color: '#000', cursor: 'pointer', padding: '5px' }}>
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </td>
+                                                    <td style={{ padding: '15px' }}>
+                                                        <div className="d-flex align-items-center" style={{ gap: '30px' }}>
+                                                            <img src={getAssetUrl(item.product.image)} alt="" style={{ width: '90px', height: '90px', borderRadius: '10px', objectFit: 'cover' }} />
+                                                            <div>
+                                                                <Link to={`/product/${item.product.slug}`} style={{ color: '#0A6738', fontWeight: '600', fontSize: '16px' }}>{item.product.name}</Link>
+                                                                {item.variant && <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{item.variant.name}</p>}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: '15px', color: '#333', fontWeight: '600' }}>₹{parseFloat(price).toFixed(2)}</td>
+                                                    <td style={{ padding: '15px' }}>
+                                                        <div className="d-flex align-items-center justify-content-center" style={{ gap: '5px' }}>
+                                                            <button onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))} className="qty-btn" style={{ width: '28px', height: '28px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}>
+                                                                <Minus size={14} />
+                                                            </button>
+                                                            <div style={{ width: '35px', height: '28px', border: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '600', background: '#fff' }}>
+                                                                {item.quantity}
+                                                            </div>
+                                                            <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="qty-btn" style={{ width: '28px', height: '28px', border: 'none', background: '#0A6738', color: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: '0.3s' }}>
+                                                                <Plus size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ padding: '15px', color: '#0A6738', fontWeight: '700' }}>₹{parseFloat(subtotal).toFixed(2)}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="mt-30">
+                                <Link to="/shop" style={{ color: '#0A6738', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <i className="fi-rs-arrow-left"></i> Continue Shopping
+                                </Link>
+                            </div>
+                        </div>
                         <div className="col-lg-4">
                             <div className="cart-summary-box" style={{ border: '1px solid #eee', borderRadius: '15px', padding: '30px', background: '#fff', transition: '0.3s' }}>
                                 <h4 className="mb-30" style={{ color: '#0A6738', fontSize: '20px', fontWeight: '700' }}>Order Summary</h4>
@@ -367,8 +363,8 @@ const Cart = () => {
                                 </button>
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 {/* Popular Products Section */}
                 {popularProducts.length > 0 && (
