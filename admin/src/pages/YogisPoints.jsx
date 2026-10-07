@@ -44,6 +44,7 @@ const YogisPoints = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(false);
 
   // Transactions state
   const [transactions, setTransactions] = useState([]);
@@ -139,6 +140,30 @@ const YogisPoints = () => {
       toast.error(err.response?.data?.message || 'Error updating settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleGlobal = async (e) => {
+    const nextVal = e.target.checked;
+    setToggleLoading(true);
+    // Optimistic local state update
+    setConfig(prev => ({ ...prev, enabled: nextVal }));
+    try {
+      const res = await api.put('/yogis-points/config', { ...config, enabled: nextVal });
+      if (res.data.status) {
+        toast.success(nextVal ? 'Yogis Points feature turned ON' : 'Yogis Points feature turned OFF');
+        setConfig(res.data.config);
+        if (res.data.stats) setStats(res.data.stats);
+      } else {
+        toast.error(res.data.message || 'Failed to update toggle');
+        setConfig(prev => ({ ...prev, enabled: !nextVal }));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Error updating toggle status');
+      setConfig(prev => ({ ...prev, enabled: !nextVal }));
+    } finally {
+      setToggleLoading(false);
     }
   };
 
@@ -315,17 +340,19 @@ const YogisPoints = () => {
             <span style={{ fontWeight: '700', color: config.enabled ? '#046938' : '#888', fontSize: '15px' }}>
               {config.enabled ? 'FEATURE ENABLED' : 'FEATURE DISABLED'}
             </span>
-            <label style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px', margin: 0, cursor: 'pointer' }}>
+            <label style={{ position: 'relative', display: 'inline-block', width: '56px', height: '30px', margin: 0, cursor: toggleLoading ? 'wait' : 'pointer' }}>
               <input 
                 type="checkbox" 
                 checked={config.enabled} 
-                onChange={(e) => setConfig({ ...config, enabled: e.target.checked })} 
+                onChange={handleToggleGlobal}
+                disabled={toggleLoading}
                 style={{ opacity: 0, width: 0, height: 0 }} 
               />
               <span style={{ 
-                position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
+                position: 'absolute', cursor: toggleLoading ? 'wait' : 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
                 backgroundColor: config.enabled ? '#046938' : '#ccc', 
-                transition: '0.3s', borderRadius: '30px' 
+                transition: '0.3s', borderRadius: '30px',
+                opacity: toggleLoading ? 0.7 : 1
               }}>
                 <span style={{ 
                   position: 'absolute', content: '""', height: '22px', width: '22px', left: config.enabled ? '28px' : '4px', bottom: '4px', 

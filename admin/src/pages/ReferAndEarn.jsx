@@ -35,6 +35,7 @@ const ReferAndEarn = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(false);
 
   // History state
   const [referrals, setReferrals] = useState([]);
@@ -124,12 +125,38 @@ const ReferAndEarn = () => {
     }
   };
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     if (!config.pointsEnabled && !config.referralEnabled) {
       toast.error('Cannot enable Refer & Earn while Yogis Points is disabled.');
       return;
     }
-    setConfig(prev => ({ ...prev, referralEnabled: !prev.referralEnabled }));
+    const nextVal = !config.referralEnabled;
+    setToggleLoading(true);
+    setConfig(prev => ({ ...prev, referralEnabled: nextVal }));
+    try {
+      const res = await api.put('/refer-and-earn/config', {
+        referralEnabled: nextVal,
+        referrerRewardPoints: parseInt(config.referrerRewardPoints, 10) || 0,
+        referredRewardPoints: parseInt(config.referredRewardPoints, 10) || 0
+      });
+      if (res.data.status) {
+        toast.success(nextVal ? 'Refer & Earn feature turned ON' : 'Refer & Earn feature turned OFF');
+        setConfig(prev => ({
+          ...prev,
+          ...res.data.config
+        }));
+        fetchHistory(1);
+      } else {
+        toast.error(res.data.message || 'Failed to update toggle');
+        setConfig(prev => ({ ...prev, referralEnabled: !nextVal }));
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Error updating toggle status');
+      setConfig(prev => ({ ...prev, referralEnabled: !nextVal }));
+    } finally {
+      setToggleLoading(false);
+    }
   };
 
   const pointsToRupees = (points) => {
@@ -309,17 +336,17 @@ const ReferAndEarn = () => {
                 type="checkbox" 
                 checked={config.referralEnabled} 
                 onChange={handleToggle}
-                disabled={!config.pointsEnabled}
+                disabled={!config.pointsEnabled || toggleLoading}
                 style={{ opacity: 0, width: 0, height: 0 }} 
               />
               <span style={{ 
                 position: 'absolute', 
-                cursor: !config.pointsEnabled ? 'not-allowed' : 'pointer', 
+                cursor: (!config.pointsEnabled || toggleLoading) ? 'not-allowed' : 'pointer', 
                 top: 0, left: 0, right: 0, bottom: 0, 
                 backgroundColor: config.referralEnabled ? '#046938' : '#ccc', 
                 borderRadius: '34px', 
                 transition: '0.4s',
-                opacity: !config.pointsEnabled ? 0.6 : 1
+                opacity: (!config.pointsEnabled || toggleLoading) ? 0.6 : 1
               }}>
                 <span style={{ 
                   position: 'absolute', 
