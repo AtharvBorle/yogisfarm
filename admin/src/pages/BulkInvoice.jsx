@@ -412,6 +412,22 @@ const BulkInvoice = () => {
                                         </td>
                                         <td className="right bold" style={{ padding: '8px 4px' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                     </tr>
+                                    {Number(order.yogisPointsDiscount) > 0 && (
+                                        <tr>
+                                            <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px', color: '#15803d' }}>
+                                                Yogis Points Discount ({order.yogisPointsUsed || 0} pts) :
+                                            </td>
+                                            <td className="right bold" style={{ padding: '8px 4px', color: '#15803d' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</td>
+                                        </tr>
+                                    )}
+                                    {Number(order.discount) > 0 && (
+                                        <tr>
+                                            <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px' }}>
+                                                Coupon Discount :
+                                            </td>
+                                            <td className="right bold" style={{ padding: '8px 4px' }}>-₹{Number(order.discount).toFixed(2)}</td>
+                                        </tr>
+                                    )}
                                     {/* Footer Row */}
                                     <tr>
                                         <td colSpan="3" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>

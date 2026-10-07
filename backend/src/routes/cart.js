@@ -147,7 +147,7 @@ const { calculateOrderTotals } = require('../utils/pricing');
 
 router.post('/calculate', async (req, res) => {
   try {
-    const { couponCode } = req.body;
+    const { couponCode, useYogisPoints = false } = req.body;
     let identifier, type;
     const guestSessionId = req.headers['x-guest-session-id'] || req.sessionID;
 
@@ -161,7 +161,7 @@ router.post('/calculate', async (req, res) => {
       return res.json({ status: false, message: 'No session or user found' });
     }
 
-    const pricing = await calculateOrderTotals(identifier, type, couponCode || null);
+    const pricing = await calculateOrderTotals(identifier, type, couponCode || null, Boolean(useYogisPoints));
     res.json({ status: true, pricing });
   } catch (e) {
     res.json({ status: false, message: e.message });

@@ -218,6 +218,22 @@ const Invoice = () => {
                                             </td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
+                                        {Number(order.yogisPointsDiscount) > 0 && (
+                                            <tr>
+                                                <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', color: '#15803d' }}>
+                                                    Yogis Points Discount ({order.yogisPointsUsed || 0} pts) :
+                                                </td>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold', color: '#15803d' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                        {Number(order.discount) > 0 && (
+                                            <tr>
+                                                <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
+                                                    Coupon Discount :
+                                                </td>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>-₹{Number(order.discount).toFixed(2)}</td>
+                                            </tr>
+                                        )}
                                         <tr>
                                             <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
                                             <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>

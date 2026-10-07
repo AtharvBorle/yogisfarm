@@ -420,13 +420,26 @@ const OrderDetail = () => {
                     {[
                         { label: 'Sub Total', value: `₹${Number(order.subtotal).toFixed(0)}` },
                         { label: 'Shipping Charges', value: `₹${Number(order.shipping).toFixed(0)}` },
-                        { label: 'Coupon Discount', value: `₹${Number(order.discount).toFixed(0)}` },
+                        ...(Number(order.yogisPointsDiscount) > 0 ? [{
+                            label: `Yogis Points Discount (${order.yogisPointsUsed || 0} pts)`,
+                            value: `-₹${Number(order.yogisPointsDiscount).toFixed(0)}`
+                        }] : []),
+                        ...(Number(order.discount) > 0 ? [{
+                            label: 'Coupon Discount',
+                            value: `-₹${Number(order.discount).toFixed(0)}`
+                        }] : []),
                     ].map(row => (
                         <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)' }}>
                             <span style={{ fontWeight: '600' }}>{row.label}</span>
                             <span>{row.value}</span>
                         </div>
                     ))}
+                    {order.pointsAwarded && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)', color: '#28a745' }}>
+                            <span style={{ fontWeight: '600' }}>Points Awarded on Completion</span>
+                            <span style={{ fontWeight: '700' }}>+{order.pointsAwarded} Points</span>
+                        </div>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', fontWeight: '700', fontSize: '20px' }}>
                         <span>TOTAL</span>
                         <span>₹{Number(order.total).toFixed(0)}</span>

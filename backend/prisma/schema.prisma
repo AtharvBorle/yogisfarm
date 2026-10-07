@@ -56,6 +56,9 @@ model User {
   addresses Address[]
   orders    Order[]
   reviews   Review[]
+  pointsAccount      YogisPointsAccount?
+  pointsTransactions YogisPointsTransaction[]
+  pointsLots         YogisPointsLot[]
 
   @@map("users")
 }
@@ -258,6 +261,10 @@ model Order {
   shippingGST        Decimal  @default(0) @map("shipping_gst") @db.Decimal(18, 2)
   grandTotal         Decimal  @default(0) @map("grand_total") @db.Decimal(18, 2)
   couponCode         String?  @map("coupon_code") @db.VarChar(50)
+  discountType       String?  @map("discount_type") @db.VarChar(30)
+  yogisPointsUsed    Int      @default(0) @map("yogis_points_used")
+  yogisPointsDiscount Decimal @default(0) @map("yogis_points_discount") @db.Decimal(18, 2)
+  pointsAwarded      Boolean  @default(false) @map("points_awarded")
   orderStatus        String   @default("pending") @map("order_status") @db.VarChar(20)
   paymentMethod      String   @default("cod") @map("payment_method") @db.VarChar(20)
   paymentStatus      String   @default("pending") @map("payment_status") @db.VarChar(20)
@@ -272,11 +279,12 @@ model Order {
   labelPrintedAt     DateTime? @map("label_printed_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
-  user           User            @relation(fields: [userId], references: [id])
-  address        Address?        @relation(fields: [addressId], references: [id])
-  deliveryBoy    DeliveryBoy?    @relation(fields: [deliveryBoyId], references: [id])
-  courierPartner CourierPartner? @relation(fields: [courierPartnerId], references: [id])
-  items          OrderItem[]
+  user               User                     @relation(fields: [userId], references: [id])
+  address            Address?                 @relation(fields: [addressId], references: [id])
+  deliveryBoy        DeliveryBoy?             @relation(fields: [deliveryBoyId], references: [id])
+  courierPartner     CourierPartner?          @relation(fields: [courierPartnerId], references: [id])
+  items              OrderItem[]
+  pointsTransactions YogisPointsTransaction[]
 
   @@map("orders")
 }
@@ -563,4 +571,72 @@ model BlogCategory {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("blog_categories")
-}
+}
+
+// ─── Yogis Points ───
+model YogisPointsConfig {
+  id                      Int      @id @default(autoincrement())
+  enabled                 Boolean  @default(false)
+  pointsPerOrder          Int      @default(10) @map("points_per_order")
+  conversionPoints        Int      @default(100) @map("conversion_points")
+  conversionRupees        Decimal  @default(100.00) @map("conversion_rupees") @db.Decimal(18, 2)
+  minimumRedeemablePoints Int      @default(100) @map("minimum_redeemable_points")
+  minimumCartValue        Decimal  @default(500.00) @map("minimum_cart_value") @db.Decimal(18, 2)
+  expiryEnabled           Boolean  @default(true) @map("expiry_enabled")
+  expiryValue             Int      @default(1) @map("expiry_value")
+  expiryUnit              String   @default("years") @map("expiry_unit") @db.VarChar(20)
+  welcomeBonusEnabled     Boolean  @default(false) @map("welcome_bonus_enabled")
+  welcomeBonusPoints      Int      @default(100) @map("welcome_bonus_points")
+  updatedAt               DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("yogis_points_config")
+}
+
+model YogisPointsAccount {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique @map("user_id")
+  balance   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("yogis_points_accounts")
+}
+
+model YogisPointsTransaction {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  type         String   @db.VarChar(30) // ORDER_EARN, WELCOME_BONUS, REDEEM, EXPIRY, REFUND_REVERSAL, ADMIN_ADJUSTMENT
+  points       Int
+  balanceAfter Int      @map("balance_after")
+  orderId      Int?     @map("order_id")
+  description  String?  @db.Text
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  lots  YogisPointsLot[]
+
+  @@index([userId, createdAt])
+  @@map("yogis_points_transactions")
+}
+
+model YogisPointsLot {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id")
+  transactionId   Int      @map("transaction_id")
+  originalPoints  Int      @map("original_points")
+  remainingPoints Int      @map("remaining_points")
+  expiresAt       DateTime? @map("expires_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction YogisPointsTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("yogis_points_lots")
+}
+

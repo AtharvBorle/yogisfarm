@@ -24,6 +24,7 @@ import Review from './pages/Review';
 import Collections from './pages/Collections';
 import Logs from './pages/Logs';
 import Accounts from './pages/Accounts';
+import YogisPoints from './pages/YogisPoints';
 
 function App() {
   const { admin, loading } = useAuth();
@@ -51,6 +52,7 @@ function App() {
       <Route path="/contacts" element={admin ? <AdminLayout><Contact /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/yogis-points" element={admin ? <AdminLayout><YogisPoints /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/reviews" element={admin ? <AdminLayout><Review /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/logs" element={admin ? <AdminLayout><Logs /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/accounts" element={admin ? <AdminLayout><Accounts /></AdminLayout> : <Navigate to="/login" />} />

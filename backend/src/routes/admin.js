@@ -918,23 +918,37 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       include: { user: { select: { name: true, phone: true } }, items: true }
     });
 
-    if (orderStatus === 'cancelled') {
-        for (const item of order.items) {
-           if (item.variant) {
-               const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
-               if (variant) {
-                   await prisma.productVariant.update({
-                       where: { id: variant.id },
-                       data: { stock: { increment: item.quantity } }
-                   });
-               }
-           } else {
-               await prisma.product.update({
-                   where: { id: item.productId },
-                   data: { stock: { increment: item.quantity } }
-               });
-           }
-        }
+    const { awardOrderCompletionPoints, reverseOrderPoints } = require('../utils/yogisPoints');
+
+    if (orderStatus === 'delivered') {
+      try {
+        await awardOrderCompletionPoints(order.id);
+      } catch (ptsErr) {
+        console.error('Error awarding Yogis Points for delivered order:', ptsErr);
+      }
+    } else if (orderStatus === 'cancelled') {
+      try {
+        await reverseOrderPoints(order.id);
+      } catch (ptsErr) {
+        console.error('Error reversing Yogis Points for cancelled order:', ptsErr);
+      }
+
+      for (const item of order.items) {
+         if (item.variant) {
+             const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
+             if (variant) {
+                 await prisma.productVariant.update({
+                     where: { id: variant.id },
+                     data: { stock: { increment: item.quantity } }
+                 });
+             }
+         } else {
+             await prisma.product.update({
+                 where: { id: item.productId },
+                 data: { stock: { increment: item.quantity } }
+             });
+         }
+      }
     }
 
     // Send status-specific SMS via Way2Smart
@@ -984,6 +998,16 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
       data: { paymentStatus, paymentDescription },
       include: { user: { select: { name: true, phone: true } } }
     });
+
+    if (paymentStatus === 'refunded') {
+      try {
+        const { reverseOrderPoints } = require('../utils/yogisPoints');
+        await reverseOrderPoints(order.id);
+      } catch (ptsErr) {
+        console.error('Error reversing points for refunded order:', ptsErr);
+      }
+    }
+
     // SMS stub — log payment update to console
     console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
     await logAdminAction(req.session.adminId, 'Updated Order Payment', `Order: ${order.orderNumber}, Status: ${paymentStatus}`);
@@ -1897,6 +1921,129 @@ router.get('/accounts/orders', requireAdmin, async (req, res) => {
     }
 
     res.json({ status: true, rows });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Yogis Points Management Endpoints ───
+const { 
+  getPointsConfig, 
+  updatePointsConfig, 
+  adminAdjustPoints 
+} = require('../utils/yogisPoints');
+
+// Get configuration and overall stats
+router.get('/yogis-points/config', requireAdmin, async (req, res) => {
+  try {
+    const config = await getPointsConfig();
+
+    const [totalAccounts, activeBalanceAgg, redeemedAgg, earnedAgg, bonusAgg] = await Promise.all([
+      prisma.yogisPointsAccount.count(),
+      prisma.yogisPointsAccount.aggregate({ _sum: { balance: true } }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'REDEEM' },
+        _sum: { points: true }
+      }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'ORDER_EARN' },
+        _sum: { points: true }
+      }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'WELCOME_BONUS' },
+        _sum: { points: true }
+      })
+    ]);
+
+    const stats = {
+      totalAccounts,
+      totalActivePoints: activeBalanceAgg._sum.balance || 0,
+      totalRedeemedPoints: Math.abs(redeemedAgg._sum.points || 0),
+      totalEarnedPoints: earnedAgg._sum.points || 0,
+      totalBonusPoints: bonusAgg._sum.points || 0
+    };
+
+    res.json({ status: true, config, stats });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Update configuration
+router.put('/yogis-points/config', requireAdmin, async (req, res) => {
+  try {
+    const config = await updatePointsConfig(req.body);
+    await logAdminAction(
+      req.session.adminId,
+      'Updated Yogis Points Configuration',
+      JSON.stringify(req.body)
+    );
+    res.json({ status: true, message: 'Yogis Points configuration updated successfully', config });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Get transactions log
+router.get('/yogis-points/transactions', requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+    const type = req.query.type || undefined;
+    const search = req.query.search ? String(req.query.search).trim() : '';
+
+    const where = {};
+    if (type) where.type = type;
+    if (search) {
+      where.OR = [
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { user: { phone: { contains: search } } },
+        { order: { orderNumber: { contains: search, mode: 'insensitive' } } }
+      ];
+    }
+
+    const [transactions, total] = await Promise.all([
+      prisma.yogisPointsTransaction.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, phone: true, email: true } },
+          order: { select: { id: true, orderNumber: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.yogisPointsTransaction.count({ where })
+    ]);
+
+    res.json({
+      status: true,
+      transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Admin manual point adjustment
+router.post('/yogis-points/adjust', requireAdmin, async (req, res) => {
+  try {
+    const { userId, points, description } = req.body;
+    if (!userId) return res.json({ status: false, message: 'User ID is required' });
+    const result = await adminAdjustPoints(parseInt(userId, 10), points, description, req.session.adminId);
+    await logAdminAction(
+      req.session.adminId,
+      'Adjusted Customer Yogis Points',
+      `User ${userId}, Points: ${points}, Reason: ${description}`
+    );
+    res.json({ status: true, message: 'Points adjusted successfully', balance: result.balance });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

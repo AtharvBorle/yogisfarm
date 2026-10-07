@@ -34,9 +34,28 @@ const Payment = () => {
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
+    const [useYogisPoints, setUseYogisPoints] = useState(false);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, coupon, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
+    const { 
+        subtotalBase, 
+        totalTax, 
+        shipping, 
+        discountAmount, 
+        grandTotal, 
+        coupon, 
+        yogisPointsUsed, 
+        yogisPointsDiscount, 
+        yogisPoints, 
+        loading: pricingLoading 
+    } = useOrderPricing(cartItems, appliedCoupon, useYogisPoints);
+
+    // Auto-uncheck points if eligibility criteria becomes unmet
+    useEffect(() => {
+        if (useYogisPoints && yogisPoints && !yogisPoints.eligible) {
+            setUseYogisPoints(false);
+        }
+    }, [yogisPoints, useYogisPoints]);
 
     // Fetch suggested coupons
     useEffect(() => {
@@ -134,6 +153,7 @@ const Payment = () => {
                 addressId: selectedAddress.id,
                 paymentMethod,
                 couponCode: appliedCoupon || undefined,
+                useYogisPoints: Boolean(useYogisPoints),
                 orderNote: notes || undefined,
                 agreeTerms: true
             });
@@ -261,8 +281,14 @@ const Payment = () => {
                             </div>
                             {discountAmount > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
-                                    <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({couponCode}) :</span>
+                                    <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({coupon?.code || couponCode}) :</span>
                                     <span style={{ fontWeight: '700', color: '#dc3545', fontSize: '16px' }}>-₹{pricingLoading ? '...' : (discountAmount || 0).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {yogisPointsDiscount > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+                                    <span style={{ fontWeight: '600', color: '#046938' }}>Yogis Points Discount ({yogisPointsUsed} pts) :</span>
+                                    <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>-₹{pricingLoading ? '...' : (yogisPointsDiscount || 0).toFixed(2)}</span>
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
@@ -385,6 +411,43 @@ const Payment = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Yogis Points Section */}
+                        {yogisPoints?.enabled && yogisPoints?.eligible && (
+                            <div style={{
+                                border: '2px solid #3BB77E',
+                                borderRadius: '10px',
+                                padding: '18px 20px',
+                                marginBottom: '30px',
+                                background: '#f4faf6'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '20px' }}>🪙</span>
+                                        <span style={{ fontWeight: '700', fontSize: '16px', color: '#253D4E' }}>Yogis Points</span>
+                                    </div>
+                                    <div style={{ fontSize: '13px', fontWeight: '600', color: '#046938' }}>
+                                        Available: <strong>{yogisPoints.availablePoints} Points</strong>
+                                    </div>
+                                </div>
+                                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #cce5d6' }}>
+                                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#253D4E', margin: 0, userSelect: 'none' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={useYogisPoints}
+                                            onChange={(e) => setUseYogisPoints(e.target.checked)}
+                                            style={{ width: '18px', height: '18px', accentColor: '#046938', cursor: 'pointer' }}
+                                        />
+                                        <span>Use Yogis Points</span>
+                                    </label>
+                                    {useYogisPoints && (
+                                        <div style={{ marginTop: '8px', fontSize: '13px', color: '#046938', fontWeight: '600', paddingLeft: '28px' }}>
+                                            {yogisPoints.pointsToUse} Points = ₹{yogisPoints.pointsDiscount} discount
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

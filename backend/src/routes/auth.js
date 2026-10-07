@@ -69,6 +69,14 @@ router.post('/verify-otp', async (req, res) => {
       });
     });
 
+    // Award welcome bonus if enabled and not already granted
+    try {
+      const { awardWelcomeBonus } = require('../utils/yogisPoints');
+      await awardWelcomeBonus(user.id);
+    } catch (bonusErr) {
+      console.error('Error checking/awarding welcome bonus:', bonusErr);
+    }
+
     const needsDetails = !user.name;
     res.json({ status: true, message: 'OTP verified', user, needsDetails });
   } catch (e) {
@@ -84,6 +92,14 @@ router.post('/submit-details', requireLogin, async (req, res) => {
       where: { id: req.session.userId },
       data: { name, email }
     });
+
+    try {
+      const { awardWelcomeBonus } = require('../utils/yogisPoints');
+      await awardWelcomeBonus(user.id);
+    } catch (bonusErr) {
+      console.error('Error checking/awarding welcome bonus:', bonusErr);
+    }
+
     res.json({ status: true, message: 'Details saved', user });
   } catch (e) {
     res.json({ status: false, message: 'Failed to save details' });

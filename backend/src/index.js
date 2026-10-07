@@ -103,6 +103,7 @@ app.use('/api/taxes', require('./routes/taxes'));
 app.use('/api/shipping', require('./routes/shipping'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/hsns', require('./routes/hsn.routes'));
+app.use('/api/points', require('./routes/points'));
 
 // Admin routes
 app.use('/api/admin', require('./routes/admin'));

@@ -31,6 +31,30 @@ const Dashboard = () => {
     const [deleteChecked, setDeleteChecked] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
+    // Yogis Points State
+    const [pointsData, setPointsData] = useState(null);
+    const [pointsEnabled, setPointsEnabled] = useState(false);
+    const [loadingPoints, setLoadingPoints] = useState(false);
+
+    const fetchPoints = async () => {
+        setLoadingPoints(true);
+        try {
+            const res = await api.get('/points/my-points');
+            if (res.data.status && res.data.enabled) {
+                setPointsEnabled(true);
+                setPointsData(res.data);
+            } else {
+                setPointsEnabled(false);
+                setPointsData(null);
+            }
+        } catch (err) {
+            console.error('Error fetching points:', err);
+            setPointsEnabled(false);
+        } finally {
+            setLoadingPoints(false);
+        }
+    };
+
     const handleDeleteAccount = async () => {
         if (!deleteChecked || deleteConfirmText.trim().toLowerCase() !== 'delete') {
             toast.error("Please fill the confirmation requirements");
@@ -65,6 +89,19 @@ const Dashboard = () => {
         if (authLoading) return;
         if (!user) { navigate('/login'); return; }
         if (!user.name || !user.email) { navigate('/login'); return; }
+
+        // Check Yogis Points feature status
+        api.get('/points/status').then(res => {
+            if (res.data?.status && res.data?.enabled) {
+                setPointsEnabled(true);
+                if (tab === 'points') {
+                    fetchPoints();
+                }
+            } else {
+                setPointsEnabled(false);
+            }
+        }).catch(() => setPointsEnabled(false));
+
         const fetchData = async () => {
             try {
                 if (tab === 'orders' || tab === 'dashboard') {
@@ -73,6 +110,9 @@ const Dashboard = () => {
                 }
                 if (tab === 'addresses' || tab === 'dashboard') {
                     fetchAddresses();
+                }
+                if (tab === 'points') {
+                    fetchPoints();
                 }
             } catch (err) { console.error(err); }
         };
@@ -216,9 +256,29 @@ const Dashboard = () => {
     const sidebarItems = [
         { key: 'dashboard', icon: 'fi-rs-settings-sliders', label: 'Dashboard' },
         { key: 'orders', icon: 'fi-rs-shopping-bag', label: 'My Order' },
+        ...(pointsEnabled ? [{ key: 'points', icon: 'fi-rs-gift', label: 'Yogis Points' }] : []),
         { key: 'addresses', icon: 'fi-rs-marker', label: 'My Addresses' },
         { key: 'profile', icon: 'fi-rs-user', label: 'My Profile' },
     ];
+
+    const pointsTypeBadge = (type) => {
+        switch (type) {
+            case 'ORDER_EARN':
+                return { label: 'Order Completed', color: '#15803d', bg: '#dcfce7' };
+            case 'WELCOME_BONUS':
+                return { label: 'Welcome Bonus', color: '#0369a1', bg: '#e0f2fe' };
+            case 'REDEEM':
+                return { label: 'Redeemed', color: '#b91c1c', bg: '#fee2e2' };
+            case 'EXPIRY':
+                return { label: 'Expired', color: '#b45309', bg: '#fef3c7' };
+            case 'REFUND_REVERSAL':
+                return { label: 'Refund Reversal', color: '#6d28d9', bg: '#ede9fe' };
+            case 'ADMIN_ADJUSTMENT':
+                return { label: 'Admin Adjustment', color: '#4338ca', bg: '#e0e7ff' };
+            default:
+                return { label: type, color: '#374151', bg: '#f3f4f6' };
+        }
+    };
 
     const payBadge = (status) => {
         if (status === 'verified' || status === 'completed' || status === 'paid') return { bg: '#28a745', label: 'Paid' };
@@ -510,10 +570,24 @@ const Dashboard = () => {
                                                         <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges</span>
                                                         <span>₹{Number(selectedOrder.shipping).toFixed(2)}</span>
                                                     </div>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                                                        <span style={{ fontWeight: '600', color: '#253D4E' }}>Discount Amount</span>
-                                                        <span>₹{Number(selectedOrder.discount).toFixed(2)}</span>
-                                                    </div>
+                                                    {Number(selectedOrder.yogisPointsDiscount) > 0 && (
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
+                                                            <span style={{ fontWeight: '600' }}>Yogis Points Discount ({selectedOrder.yogisPointsUsed || 0} pts)</span>
+                                                            <span style={{ fontWeight: '700' }}>-₹{Number(selectedOrder.yogisPointsDiscount).toFixed(2)}</span>
+                                                        </div>
+                                                    )}
+                                                    {Number(selectedOrder.discount) > 0 && (
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                                            <span style={{ fontWeight: '600', color: '#253D4E' }}>Coupon Discount</span>
+                                                            <span>-₹{Number(selectedOrder.discount).toFixed(2)}</span>
+                                                        </div>
+                                                    )}
+                                                    {selectedOrder.pointsAwarded && (
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
+                                                            <span style={{ fontWeight: '600' }}>Points Earned on this Order</span>
+                                                            <span style={{ fontWeight: '700' }}>+{selectedOrder.pointsAwarded} Points</span>
+                                                        </div>
+                                                    )}
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
                                                         <span style={{ color: '#046938' }}>Total</span>
                                                         <span>₹{Number(selectedOrder.total).toFixed(0)}</span>
@@ -522,6 +596,123 @@ const Dashboard = () => {
                                             </div>
 
                                             <Link to="?tab=orders" style={{ color: '#046938', fontWeight: '600' }}><ArrowLeft size={16} /> Back to Orders</Link>
+                                        </div>
+                                    )}
+
+                                    {/* Yogis Points Tab */}
+                                    {tab === 'points' && pointsEnabled && (
+                                        <div className="card" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', overflow: 'hidden' }}>
+                                            <div className="card-header" style={{ background: '#f8faf9', padding: '16px 20px', borderBottom: '1px solid #eee' }}>
+                                                <h3 className="mb-0" style={{ fontSize: '20px', fontWeight: '700', color: '#253D4E' }}>Yogis Points</h3>
+                                            </div>
+                                            <div className="card-body" style={{ padding: '24px' }}>
+                                                <div className="row mb-30" style={{ rowGap: '20px' }}>
+                                                    {/* Balance Card */}
+                                                    <div className="col-lg-6">
+                                                        <div style={{ background: 'linear-gradient(135deg, #046938 0%, #0a8a4c 100%)', borderRadius: '12px', padding: '24px', color: '#fff', boxShadow: '0 4px 15px rgba(4, 105, 56, 0.15)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                                            <div>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    <span style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.8px', opacity: 0.9, fontWeight: '600' }}>Available Balance</span>
+                                                                    <span style={{ fontSize: '22px' }}>🪙</span>
+                                                                </div>
+                                                                <div style={{ fontSize: '38px', fontWeight: '800', margin: '10px 0 6px 0', lineHeight: '1.1' }}>
+                                                                    {pointsData?.balance ?? 0} <span style={{ fontSize: '20px', fontWeight: '600' }}>Points</span>
+                                                                </div>
+                                                                <div style={{ fontSize: '16px', fontWeight: '600', opacity: 0.95 }}>
+                                                                    Value: ₹{pointsData?.rupeeValue ?? 0}
+                                                                </div>
+                                                            </div>
+                                                            {pointsData?.config && (
+                                                                <div style={{ fontSize: '12px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.25)', opacity: 0.9 }}>
+                                                                    Conversion: <strong>{pointsData.config.conversionPoints} Points = ₹{pointsData.config.conversionRupees}</strong>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Rules / Info */}
+                                                    <div className="col-lg-6">
+                                                        <div style={{ background: '#f9fbf9', borderRadius: '12px', padding: '20px 24px', border: '1px solid #e2ece5', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                            <h5 style={{ fontSize: '15px', fontWeight: '700', color: '#253D4E', marginBottom: '12px' }}>How Yogis Points Work</h5>
+                                                            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#555', lineHeight: '1.9' }}>
+                                                                {pointsData?.config?.pointsPerOrder > 0 && (
+                                                                    <li>Earn <strong>+{pointsData.config.pointsPerOrder} Points</strong> automatically on every delivered order.</li>
+                                                                )}
+                                                                {pointsData?.config?.minimumRedeemablePoints > 0 && (
+                                                                    <li>Minimum <strong>{pointsData.config.minimumRedeemablePoints} Points</strong> required to redeem at checkout.</li>
+                                                                )}
+                                                                {pointsData?.config?.minimumCartValue > 0 && (
+                                                                    <li>Applicable on carts with minimum value of <strong>₹{pointsData.config.minimumCartValue}</strong>.</li>
+                                                                )}
+                                                                <li>Use all your points at checkout to receive an instant discount!</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* History Section */}
+                                                <div>
+                                                    <h4 style={{ fontSize: '18px', fontWeight: '700', color: '#253D4E', marginBottom: '16px' }}>Yogis Points History</h4>
+                                                    {loadingPoints ? (
+                                                        <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>Loading points history...</div>
+                                                    ) : (!pointsData?.transactions || pointsData.transactions.length === 0) ? (
+                                                        <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px', border: '1px dashed #ddd', color: '#777' }}>
+                                                            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🪙</div>
+                                                            <p style={{ margin: 0, fontSize: '14px', fontWeight: '500' }}>No points transactions yet. Start shopping to earn Yogis Points!</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="table-responsive">
+                                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                                <thead>
+                                                                    <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Date</th>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Transaction Type</th>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Description</th>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Points</th>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Balance</th>
+                                                                        <th style={{ padding: '12px 14px', textAlign: 'left', fontWeight: '600', color: '#253D4E', fontSize: '13px' }}>Expiry</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {pointsData.transactions.map(tx => {
+                                                                        const tb = pointsTypeBadge(tx.type);
+                                                                        const isPositive = tx.points > 0;
+                                                                        return (
+                                                                            <tr key={tx.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                                                                <td style={{ padding: '12px 14px', fontSize: '13px', color: '#555', whiteSpace: 'nowrap' }}>
+                                                                                    {formatDate(tx.createdAt)}
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 14px' }}>
+                                                                                    <span style={{ padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '600', background: tb.bg, color: tb.color, whiteSpace: 'nowrap' }}>
+                                                                                        {tb.label}
+                                                                                    </span>
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 14px', fontSize: '13px', color: '#253D4E' }}>
+                                                                                    <div>{tx.description}</div>
+                                                                                    {tx.order?.orderNumber && (
+                                                                                        <div style={{ fontSize: '11px', color: '#046938', fontWeight: '600', marginTop: '2px' }}>
+                                                                                            Order #{tx.order.orderNumber}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '700', fontSize: '14px', color: isPositive ? '#15803d' : '#b91c1c', whiteSpace: 'nowrap' }}>
+                                                                                    {isPositive ? `+${tx.points}` : `${tx.points}`}
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600', fontSize: '13px', color: '#253D4E', whiteSpace: 'nowrap' }}>
+                                                                                    {tx.balanceAfter} pts
+                                                                                </td>
+                                                                                <td style={{ padding: '12px 14px', fontSize: '12px', color: '#777', whiteSpace: 'nowrap' }}>
+                                                                                    {tx.expiresAt ? formatDate(tx.expiresAt) : '—'}
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 

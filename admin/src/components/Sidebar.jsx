@@ -18,7 +18,8 @@ import {
   ClipboardList,
   Zap,
   Receipt,
-  Package
+  Package,
+  Coins
 } from 'lucide-react';
 
 const navItems = [
@@ -39,6 +40,7 @@ const navItems = [
     { name: 'Review', path: '/reviews', icon: Star },
     { name: 'Filemanager', path: '/filemanager', icon: FolderOpen },
     { name: 'Coupon Code', path: '/coupons', icon: TicketPercent },
+    { name: 'Yogis Points', path: '/yogis-points', icon: Coins },
     { name: 'Logs', path: '/logs', icon: ClipboardList },
 ];
 
