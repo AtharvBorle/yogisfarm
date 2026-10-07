@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-spa-routes.js",
-    "build:uat": "vite build --mode uat && node scripts/generate-spa-routes.js",
+    "build": "vite build",
+    "build:uat": "vite build --mode uat",
     "lint": "eslint .",
     "preview": "vite preview"
   },
