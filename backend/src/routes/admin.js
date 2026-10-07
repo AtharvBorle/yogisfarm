@@ -1935,7 +1935,7 @@ const {
 } = require('../utils/yogisPoints');
 
 // Get configuration and overall stats
-router.get('/yogis-points/config', requireAdmin, async (req, res) => {
+router.get(['/yogis-points/config', '/admin/yogis-points/config'], requireAdmin, async (req, res) => {
   try {
     const config = await getPointsConfig();
 
@@ -1971,7 +1971,7 @@ router.get('/yogis-points/config', requireAdmin, async (req, res) => {
 });
 
 // Update configuration
-router.put('/yogis-points/config', requireAdmin, async (req, res) => {
+router.put(['/yogis-points/config', '/admin/yogis-points/config'], requireAdmin, async (req, res) => {
   try {
     const config = await updatePointsConfig(req.body);
     await logAdminAction(
@@ -1986,7 +1986,7 @@ router.put('/yogis-points/config', requireAdmin, async (req, res) => {
 });
 
 // Get transactions log
-router.get('/yogis-points/transactions', requireAdmin, async (req, res) => {
+router.get(['/yogis-points/transactions', '/admin/yogis-points/transactions'], requireAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
@@ -2034,7 +2034,7 @@ router.get('/yogis-points/transactions', requireAdmin, async (req, res) => {
 });
 
 // Admin manual point adjustment
-router.post('/yogis-points/adjust', requireAdmin, async (req, res) => {
+router.post(['/yogis-points/adjust', '/admin/yogis-points/adjust'], requireAdmin, async (req, res) => {
   try {
     const { userId, points, description } = req.body;
     if (!userId) return res.json({ status: false, message: 'User ID is required' });
@@ -2052,7 +2052,7 @@ router.post('/yogis-points/adjust', requireAdmin, async (req, res) => {
 
 // ─── Refer & Earn Management Endpoints ───
 // Get configuration and overall stats
-router.get('/refer-and-earn/config', requireAdmin, async (req, res) => {
+router.get(['/refer-and-earn/config', '/admin/refer-and-earn/config'], requireAdmin, async (req, res) => {
   try {
     const config = await getPointsConfig();
     const historyData = await getAdminReferralHistory({ page: 1, limit: 1 });
@@ -2075,7 +2075,7 @@ router.get('/refer-and-earn/config', requireAdmin, async (req, res) => {
 });
 
 // Update Refer & Earn configuration
-router.put('/refer-and-earn/config', requireAdmin, async (req, res) => {
+router.put(['/refer-and-earn/config', '/admin/refer-and-earn/config'], requireAdmin, async (req, res) => {
   try {
     const { referralEnabled, referrerRewardPoints, referredRewardPoints } = req.body;
     const currentConfig = await getPointsConfig();
@@ -2117,7 +2117,7 @@ router.put('/refer-and-earn/config', requireAdmin, async (req, res) => {
 });
 
 // Get referral history with pagination & search
-router.get('/refer-and-earn/history', requireAdmin, async (req, res) => {
+router.get(['/refer-and-earn/history', '/admin/refer-and-earn/history'], requireAdmin, async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;

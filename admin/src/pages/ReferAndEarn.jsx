@@ -45,7 +45,7 @@ const ReferAndEarn = () => {
 
   const fetchConfig = async () => {
     try {
-      const res = await api.get('/admin/refer-and-earn/config');
+      const res = await api.get('/refer-and-earn/config');
       if (res.data.status) {
         setConfig(res.data.config);
         if (res.data.stats) setStats(res.data.stats);
@@ -66,7 +66,7 @@ const ReferAndEarn = () => {
       params.append('limit', 15);
       if (search) params.append('search', search);
 
-      const res = await api.get(`/admin/refer-and-earn/history?${params.toString()}`);
+      const res = await api.get(`/refer-and-earn/history?${params.toString()}`);
       if (res.data.status) {
         setReferrals(res.data.referrals);
         if (res.data.pagination) {
@@ -104,7 +104,7 @@ const ReferAndEarn = () => {
 
     setSaving(true);
     try {
-      const res = await api.put('/admin/refer-and-earn/config', {
+      const res = await api.put('/refer-and-earn/config', {
         referralEnabled: config.referralEnabled,
         referrerRewardPoints: parseInt(config.referrerRewardPoints, 10) || 0,
         referredRewardPoints: parseInt(config.referredRewardPoints, 10) || 0

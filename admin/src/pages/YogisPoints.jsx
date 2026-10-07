@@ -60,7 +60,7 @@ const YogisPoints = () => {
 
   const fetchConfigAndStats = async () => {
     try {
-      const res = await api.get('/admin/yogis-points/config');
+      const res = await api.get('/yogis-points/config');
       if (res.data.status) {
         setConfig(res.data.config);
         if (res.data.stats) setStats(res.data.stats);
@@ -82,7 +82,7 @@ const YogisPoints = () => {
       if (txType) params.append('type', txType);
       if (txSearch) params.append('search', txSearch);
 
-      const res = await api.get(`/admin/yogis-points/transactions?${params.toString()}`);
+      const res = await api.get(`/yogis-points/transactions?${params.toString()}`);
       if (res.data.status) {
         setTransactions(res.data.transactions);
         if (res.data.pagination) {
@@ -126,7 +126,7 @@ const YogisPoints = () => {
 
     setSaving(true);
     try {
-      const res = await api.put('/admin/yogis-points/config', config);
+      const res = await api.put('/yogis-points/config', config);
       if (res.data.status) {
         toast.success(res.data.message || 'Settings saved successfully');
         setConfig(res.data.config);
@@ -156,7 +156,7 @@ const YogisPoints = () => {
 
     setAdjustSubmitting(true);
     try {
-      const res = await api.post('/admin/yogis-points/adjust', adjustForm);
+      const res = await api.post('/yogis-points/adjust', adjustForm);
       if (res.data.status) {
         toast.success(res.data.message || 'Points adjusted successfully');
         setIsAdjustOpen(false);
