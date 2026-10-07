@@ -31,14 +31,20 @@ async function getPointsConfig(prismaClient = prisma) {
         expiryValue: 1,
         expiryUnit: 'years',
         welcomeBonusEnabled: false,
-        welcomeBonusPoints: 100
+        welcomeBonusPoints: 100,
+        referralEnabled: false,
+        referrerRewardPoints: 100,
+        referredRewardPoints: 50
       }
     });
   }
   return {
     ...config,
     conversionRupees: Number(config.conversionRupees),
-    minimumCartValue: Number(config.minimumCartValue)
+    minimumCartValue: Number(config.minimumCartValue),
+    // Business invariant: If Yogis Points is OFF, Refer & Earn is strictly OFF
+    referralEnabled: Boolean(config.enabled && config.referralEnabled),
+    rawReferralEnabled: Boolean(config.referralEnabled)
   };
 }
 
@@ -95,6 +101,34 @@ async function updatePointsConfig(data, prismaClient = prisma) {
     payload.welcomeBonusPoints = val;
   }
 
+  // Refer & Earn validation & dependency enforcement
+  if (data.referralEnabled !== undefined) {
+    const isReferralOn = Boolean(data.referralEnabled);
+    if (isReferralOn) {
+      const willBePointsEnabled = data.enabled !== undefined ? Boolean(data.enabled) : current.enabled;
+      if (!willBePointsEnabled) {
+        throw new Error('Cannot enable Refer & Earn while Yogis Points is disabled. Enable Yogis Points first.');
+      }
+    }
+    payload.referralEnabled = isReferralOn;
+  }
+
+  // If Yogis Points is turned OFF, automatically force Refer & Earn to OFF
+  if (data.enabled !== undefined && !Boolean(data.enabled)) {
+    payload.referralEnabled = false;
+  }
+
+  if (data.referrerRewardPoints !== undefined) {
+    const val = parseInt(data.referrerRewardPoints, 10);
+    if (isNaN(val) || val <= 0) throw new Error('Referrer reward points must be a positive integer');
+    payload.referrerRewardPoints = val;
+  }
+  if (data.referredRewardPoints !== undefined) {
+    const val = parseInt(data.referredRewardPoints, 10);
+    if (isNaN(val) || val <= 0) throw new Error('Referred customer reward points must be a positive integer');
+    payload.referredRewardPoints = val;
+  }
+
   const updated = await prismaClient.yogisPointsConfig.update({
     where: { id: current.id },
     data: payload
@@ -103,7 +137,9 @@ async function updatePointsConfig(data, prismaClient = prisma) {
   return {
     ...updated,
     conversionRupees: Number(updated.conversionRupees),
-    minimumCartValue: Number(updated.minimumCartValue)
+    minimumCartValue: Number(updated.minimumCartValue),
+    referralEnabled: Boolean(updated.enabled && updated.referralEnabled),
+    rawReferralEnabled: Boolean(updated.referralEnabled)
   };
 }
 
@@ -731,6 +767,423 @@ async function adminAdjustPoints(userId, points, description, adminId, tx = pris
   return { success: true, balance: newBalance };
 }
 
+/**
+ * Generate a unique customer referral code (e.g., AKASH-4B9X or YOGI-7K2M)
+ */
+async function generateUniqueReferralCode(name, tx = prisma) {
+  const crypto = require('crypto');
+  const firstWord = String(name || 'YOGI').trim().split(/\s+/)[0] || 'YOGI';
+  const base = firstWord
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, 6) || 'YOGI';
+
+  for (let i = 0; i < 20; i++) {
+    const suffix = crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4);
+    const code = `${base}-${suffix}`;
+    const exists = await tx.user.findUnique({ where: { referralCode: code } });
+    if (!exists) return code;
+  }
+  return `YOGI-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+}
+
+/**
+ * Ensures user has a unique referral code, generating and saving one if missing
+ */
+async function getOrCreateUserReferralCode(userId, tx = prisma) {
+  const user = await tx.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error('User not found');
+  if (user.referralCode) return user.referralCode;
+
+  const code = await generateUniqueReferralCode(user.name || user.phone, tx);
+  await tx.user.update({
+    where: { id: userId },
+    data: { referralCode: code }
+  });
+  return code;
+}
+
+/**
+ * Validate a referral code without side effects
+ */
+async function validateReferralCode(code, userId = null, tx = prisma) {
+  if (!code || !code.trim()) {
+    return { valid: false, reason: 'CODE_REQUIRED', message: 'Referral code is required' };
+  }
+  const cleanCode = String(code).trim().toUpperCase();
+
+  const config = await getPointsConfig(tx);
+  if (!config.enabled || !config.referralEnabled) {
+    return { valid: false, reason: 'INACTIVE', message: 'Refer & Earn program is currently inactive' };
+  }
+
+  const referrer = await tx.user.findUnique({ where: { referralCode: cleanCode } });
+  if (!referrer) {
+    return { valid: false, reason: 'INVALID_CODE', message: 'Invalid referral code' };
+  }
+
+  if (userId && referrer.id === Number(userId)) {
+    return { valid: false, reason: 'SELF_REFERRAL', message: 'Self-referral is not permitted' };
+  }
+
+  return {
+    valid: true,
+    code: cleanCode,
+    referrerName: referrer.name ? referrer.name.split(' ')[0] : 'a Yogi friend',
+    referredRewardPoints: config.referredRewardPoints
+  };
+}
+
+/**
+ * Process new customer registration atomically:
+ * 1. Validates and saves customer details (name, email)
+ * 2. Generates user's own unique referral code
+ * 3. Validates referral code (if supplied) and rewards both referrer & referred
+ * 4. Awards welcome bonus if enabled
+ * 
+ * Entire process wrapped in a database transaction with row locks and duplicate protections.
+ */
+async function processNewCustomerSignup({ userId, name, email, referralCode }, txParam = null) {
+  const executeInTx = async (tx) => {
+    const user = await tx.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const config = await getPointsConfig(tx);
+
+    // Validate email uniqueness if provided
+    if (email && email.trim()) {
+      const emailDup = await tx.user.findFirst({
+        where: { email: email.trim(), id: { not: userId } }
+      });
+      if (emailDup) throw new Error('Email is already registered with another account');
+    }
+
+    // Ensure this customer receives their own unique referral code
+    const myCode = user.referralCode || (await generateUniqueReferralCode(name, tx));
+
+    // Update user details
+    const updatedUser = await tx.user.update({
+      where: { id: userId },
+      data: {
+        name: name ? name.trim() : user.name,
+        email: email ? email.trim() : user.email,
+        referralCode: myCode
+      }
+    });
+
+    let referralRecord = null;
+    let referralRewarded = false;
+    let welcomeBonusRewarded = false;
+
+    // Process referral attribution if code is provided
+    if (referralCode && String(referralCode).trim()) {
+      const cleanCode = String(referralCode).trim().toUpperCase();
+
+      // Check if program is active
+      if (config.enabled && config.referralEnabled) {
+        // Find referrer
+        const referrer = await tx.user.findUnique({ where: { referralCode: cleanCode } });
+        if (!referrer) {
+          throw new Error('Invalid referral code');
+        }
+
+        // Prevent self-referral
+        if (referrer.id === userId) {
+          throw new Error('Self-referral is not permitted');
+        }
+
+        // Prevent duplicate referral for same customer
+        const existingRef = await tx.referral.findUnique({ where: { referredUserId: userId } });
+        if (existingRef) {
+          throw new Error('Referral reward has already been issued for this customer');
+        }
+
+        // Create Referral relationship
+        referralRecord = await tx.referral.create({
+          data: {
+            referrerUserId: referrer.id,
+            referredUserId: userId,
+            referralCode: cleanCode,
+            status: 'REWARDED',
+            referrerRewardPoints: config.referrerRewardPoints,
+            referredRewardPoints: config.referredRewardPoints,
+            signedUpAt: new Date(),
+            rewardedAt: new Date()
+          }
+        });
+
+        const expiryDate = calculateExpiryDate(config);
+
+        // 1. Credit Referrer (+referrerRewardPoints)
+        if (config.referrerRewardPoints > 0) {
+          await ensureUserAccount(referrer.id, tx);
+          await tx.$queryRawUnsafe(
+            'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
+            referrer.id
+          );
+          const refAcc = await tx.yogisPointsAccount.update({
+            where: { userId: referrer.id },
+            data: { balance: { increment: config.referrerRewardPoints } }
+          });
+          const refTx = await tx.yogisPointsTransaction.create({
+            data: {
+              userId: referrer.id,
+              type: 'REFERRAL_REWARD_REFERRER',
+              points: config.referrerRewardPoints,
+              balanceAfter: refAcc.balance,
+              description: `Referral reward for inviting ${updatedUser.name || 'a friend'}`,
+              expiresAt: expiryDate
+            }
+          });
+          await tx.yogisPointsLot.create({
+            data: {
+              userId: referrer.id,
+              transactionId: refTx.id,
+              originalPoints: config.referrerRewardPoints,
+              remainingPoints: config.referrerRewardPoints,
+              expiresAt: expiryDate
+            }
+          });
+        }
+
+        // 2. Credit Referred User (+referredRewardPoints)
+        if (config.referredRewardPoints > 0) {
+          await ensureUserAccount(userId, tx);
+          await tx.$queryRawUnsafe(
+            'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
+            userId
+          );
+          const userAcc = await tx.yogisPointsAccount.update({
+            where: { userId },
+            data: { balance: { increment: config.referredRewardPoints } }
+          });
+          const userTx = await tx.yogisPointsTransaction.create({
+            data: {
+              userId,
+              type: 'REFERRAL_REWARD_REFERRED',
+              points: config.referredRewardPoints,
+              balanceAfter: userAcc.balance,
+              description: `Referral bonus for joining with code ${cleanCode}`,
+              expiresAt: expiryDate
+            }
+          });
+          await tx.yogisPointsLot.create({
+            data: {
+              userId,
+              transactionId: userTx.id,
+              originalPoints: config.referredRewardPoints,
+              remainingPoints: config.referredRewardPoints,
+              expiresAt: expiryDate
+            }
+          });
+        }
+
+        referralRewarded = true;
+      }
+    }
+
+    // 3. Process Welcome Bonus independently (Requirement 12 & 13)
+    if (config.enabled && config.welcomeBonusEnabled && config.welcomeBonusPoints > 0) {
+      const existingBonus = await tx.yogisPointsTransaction.findFirst({
+        where: { userId, type: 'WELCOME_BONUS' }
+      });
+      if (!existingBonus) {
+        await ensureUserAccount(userId, tx);
+        await tx.$queryRawUnsafe(
+          'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
+          userId
+        );
+        const userAcc = await tx.yogisPointsAccount.update({
+          where: { userId },
+          data: { balance: { increment: config.welcomeBonusPoints } }
+        });
+        const expiryDate = calculateExpiryDate(config);
+        const bonusTx = await tx.yogisPointsTransaction.create({
+          data: {
+            userId,
+            type: 'WELCOME_BONUS',
+            points: config.welcomeBonusPoints,
+            balanceAfter: userAcc.balance,
+            description: `Welcome Bonus of ${config.welcomeBonusPoints} Yogis Points credited!`,
+            expiresAt: expiryDate
+          }
+        });
+        await tx.yogisPointsLot.create({
+          data: {
+            userId,
+            transactionId: bonusTx.id,
+            originalPoints: config.welcomeBonusPoints,
+            remainingPoints: config.welcomeBonusPoints,
+            expiresAt: expiryDate
+          }
+        });
+        welcomeBonusRewarded = true;
+      }
+    }
+
+    return {
+      success: true,
+      user: updatedUser,
+      referral: referralRecord,
+      referralRewarded,
+      welcomeBonusRewarded
+    };
+  };
+
+  if (txParam) {
+    return await executeInTx(txParam);
+  }
+  return await prisma.$transaction(executeInTx);
+}
+
+/**
+ * Get customer referral summary matching the UI/Figma design
+ */
+async function getUserReferralSummary(userId, tx = prisma) {
+  const config = await getPointsConfig(tx);
+  const referralCode = await getOrCreateUserReferralCode(userId, tx);
+
+  // Total referral earnings = sum of points from REFERRAL_REWARD_REFERRER for this user
+  const earningsAgg = await tx.yogisPointsTransaction.aggregate({
+    where: {
+      userId,
+      type: 'REFERRAL_REWARD_REFERRER'
+    },
+    _sum: {
+      points: true
+    }
+  });
+  const totalEarnings = earningsAgg._sum.points || 0;
+
+  // List of referrals made by this user
+  const referralRecords = await tx.referral.findMany({
+    where: { referrerUserId: userId },
+    include: {
+      referred: {
+        select: {
+          name: true,
+          email: true,
+          phone: true,
+          createdAt: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const referrals = referralRecords.map(r => {
+    let friendName = 'Friend';
+    if (r.referred?.name) {
+      const parts = r.referred.name.trim().split(/\s+/);
+      if (parts.length > 1) {
+        friendName = `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+      } else {
+        friendName = parts[0];
+      }
+    } else if (r.referred?.phone) {
+      friendName = `User ${r.referred.phone.slice(-4)}`;
+    }
+
+    let friendEmail = '';
+    if (r.referred?.email) {
+      const [local, dom] = r.referred.email.split('@');
+      if (dom) {
+        friendEmail = `${local.slice(0, 2)}***@${dom}`;
+      } else {
+        friendEmail = r.referred.email;
+      }
+    }
+
+    return {
+      id: r.id,
+      friendName,
+      maskedName: friendName,
+      friendEmail,
+      maskedEmail: friendEmail,
+      date: r.signedUpAt || r.createdAt,
+      invitedDate: r.signedUpAt || r.createdAt,
+      status: r.status === 'REWARDED' ? 'Joined' : r.status,
+      rawStatus: r.status,
+      earnings: r.referrerRewardPoints,
+      points: r.referrerRewardPoints
+    };
+  });
+
+  return {
+    enabled: Boolean(config.enabled && config.referralEnabled),
+    pointsEnabled: Boolean(config.enabled),
+    referralCode,
+    referrerRewardPoints: config.referrerRewardPoints,
+    referredRewardPoints: config.referredRewardPoints,
+    conversionPoints: config.conversionPoints,
+    conversionRupees: config.conversionRupees,
+    minimumRedeemablePoints: config.minimumRedeemablePoints,
+    totalEarnings,
+    totalEarnedPoints: totalEarnings,
+    totalReferrals: referrals.length,
+    referrals
+  };
+}
+
+/**
+ * Get Admin referral history with pagination and metrics
+ */
+async function getAdminReferralHistory({ page = 1, limit = 20, search = '' }, tx = prisma) {
+  const skip = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
+  const take = parseInt(limit, 10);
+
+  const where = {};
+  if (search && search.trim()) {
+    const q = search.trim();
+    where.OR = [
+      { referralCode: { contains: q, mode: 'insensitive' } },
+      { referrer: { name: { contains: q, mode: 'insensitive' } } },
+      { referrer: { phone: { contains: q, mode: 'insensitive' } } },
+      { referred: { name: { contains: q, mode: 'insensitive' } } },
+      { referred: { phone: { contains: q, mode: 'insensitive' } } }
+    ];
+  }
+
+  const [total, referrals, metricsAgg] = await Promise.all([
+    tx.referral.count({ where }),
+    tx.referral.findMany({
+      where,
+      include: {
+        referrer: { select: { id: true, name: true, phone: true, email: true } },
+        referred: { select: { id: true, name: true, phone: true, email: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take
+    }),
+    tx.referral.aggregate({
+      _sum: {
+        referrerRewardPoints: true,
+        referredRewardPoints: true
+      },
+      _count: {
+        id: true
+      }
+    })
+  ]);
+
+  return {
+    referrals,
+    pagination: {
+      total,
+      page: parseInt(page, 10),
+      limit: take,
+      totalPages: Math.ceil(total / take)
+    },
+    metrics: {
+      totalReferrals: metricsAgg._count.id || 0,
+      totalReferrerPoints: metricsAgg._sum.referrerRewardPoints || 0,
+      totalReferredPoints: metricsAgg._sum.referredRewardPoints || 0,
+      totalPointsIssued: (metricsAgg._sum.referrerRewardPoints || 0) + (metricsAgg._sum.referredRewardPoints || 0)
+    }
+  };
+}
+
 module.exports = {
   getPointsConfig,
   updatePointsConfig,
@@ -743,5 +1196,11 @@ module.exports = {
   awardOrderCompletionPoints,
   reverseOrderPoints,
   awardWelcomeBonus,
-  adminAdjustPoints
+  adminAdjustPoints,
+  generateUniqueReferralCode,
+  getOrCreateUserReferralCode,
+  validateReferralCode,
+  processNewCustomerSignup,
+  getUserReferralSummary,
+  getAdminReferralHistory
 };

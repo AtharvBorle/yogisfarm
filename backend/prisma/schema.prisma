@@ -59,6 +59,9 @@ model User {
   pointsAccount      YogisPointsAccount?
   pointsTransactions YogisPointsTransaction[]
   pointsLots         YogisPointsLot[]
+  referralCode       String?                 @unique @map("referral_code") @db.VarChar(50)
+  referralsMade      Referral[]              @relation("ReferralsMade")
+  referralReceived   Referral?               @relation("ReferralReceived")
 
   @@map("users")
 }
@@ -587,6 +590,9 @@ model YogisPointsConfig {
   expiryUnit              String   @default("years") @map("expiry_unit") @db.VarChar(20)
   welcomeBonusEnabled     Boolean  @default(false) @map("welcome_bonus_enabled")
   welcomeBonusPoints      Int      @default(100) @map("welcome_bonus_points")
+  referralEnabled         Boolean  @default(false) @map("referral_enabled")
+  referrerRewardPoints    Int      @default(100) @map("referrer_reward_points")
+  referredRewardPoints    Int      @default(50) @map("referred_reward_points")
   updatedAt               DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("yogis_points_config")
@@ -607,7 +613,7 @@ model YogisPointsAccount {
 model YogisPointsTransaction {
   id           Int      @id @default(autoincrement())
   userId       Int      @map("user_id")
-  type         String   @db.VarChar(30) // ORDER_EARN, WELCOME_BONUS, REDEEM, EXPIRY, REFUND_REVERSAL, ADMIN_ADJUSTMENT
+  type         String   @db.VarChar(50) // ORDER_EARN, WELCOME_BONUS, REDEEM, EXPIRY, REFUND_REVERSAL, ADMIN_ADJUSTMENT, REFERRAL_REWARD_REFERRER, REFERRAL_REWARD_REFERRED
   points       Int
   balanceAfter Int      @map("balance_after")
   orderId      Int?     @map("order_id")
@@ -638,5 +644,28 @@ model YogisPointsLot {
 
   @@index([userId, expiresAt])
   @@map("yogis_points_lots")
+}
+
+// ─── Referrals ───
+model Referral {
+  id                   Int       @id @default(autoincrement())
+  referrerUserId       Int       @map("referrer_user_id")
+  referredUserId       Int       @unique @map("referred_user_id")
+  referralCode         String    @map("referral_code") @db.VarChar(50)
+  status               String    @default("REWARDED") @db.VarChar(30) // INVITED, SIGNED_UP, REWARDED
+  referrerRewardPoints Int       @default(0) @map("referrer_reward_points")
+  referredRewardPoints Int       @default(0) @map("referred_reward_points")
+  invitedAt            DateTime? @map("invited_at")
+  signedUpAt           DateTime? @default(now()) @map("signed_up_at")
+  rewardedAt           DateTime? @map("rewarded_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  referrer User @relation("ReferralsMade", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferralReceived", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  @@index([referrerUserId])
+  @@index([referralCode])
+  @@map("referrals")
 }
 

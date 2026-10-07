@@ -7,6 +7,7 @@ import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
 import { ArrowLeft } from 'react-feather';
+import ReferAndEarnTab from '../components/ReferAndEarnTab';
 
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
@@ -34,6 +35,7 @@ const Dashboard = () => {
     // Yogis Points State
     const [pointsData, setPointsData] = useState(null);
     const [pointsEnabled, setPointsEnabled] = useState(false);
+    const [referralEnabled, setReferralEnabled] = useState(false);
     const [loadingPoints, setLoadingPoints] = useState(false);
 
     const fetchPoints = async () => {
@@ -101,6 +103,15 @@ const Dashboard = () => {
                 setPointsEnabled(false);
             }
         }).catch(() => setPointsEnabled(false));
+
+        // Check Refer & Earn feature status
+        api.get('/referrals/status').then(res => {
+            if (res.data?.status && res.data?.enabled) {
+                setReferralEnabled(true);
+            } else {
+                setReferralEnabled(false);
+            }
+        }).catch(() => setReferralEnabled(false));
 
         const fetchData = async () => {
             try {
@@ -256,7 +267,8 @@ const Dashboard = () => {
     const sidebarItems = [
         { key: 'dashboard', icon: 'fi-rs-settings-sliders', label: 'Dashboard' },
         { key: 'orders', icon: 'fi-rs-shopping-bag', label: 'My Order' },
-        ...(pointsEnabled ? [{ key: 'points', icon: 'fi-rs-gift', label: 'Yogis Points' }] : []),
+        ...(pointsEnabled ? [{ key: 'points', icon: 'fi-rs-gift', label: 'Yogi\'s Points' }] : []),
+        ...(pointsEnabled && referralEnabled ? [{ key: 'refer', icon: 'fi-rs-share', label: 'Refer & Earn' }] : []),
         { key: 'addresses', icon: 'fi-rs-marker', label: 'My Addresses' },
         { key: 'profile', icon: 'fi-rs-user', label: 'My Profile' },
     ];
@@ -334,6 +346,31 @@ const Dashboard = () => {
                                             </Link>
                                         ))}
                                     </div>
+
+                                    {/* Yogi's Points Sidebar Illustration matching Figma */}
+                                    {pointsEnabled && (
+                                        <div className="d-none d-md-block" style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
+                                            <img 
+                                                src="/assets/imgs/theme/yogis-coin.png" 
+                                                alt="Yogi's Points" 
+                                                style={{ 
+                                                    width: '150px', 
+                                                    height: '150px', 
+                                                    objectFit: 'contain', 
+                                                    filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.12))' 
+                                                }} 
+                                            />
+                                            <div style={{ 
+                                                fontSize: '22px', 
+                                                fontWeight: '800', 
+                                                color: '#966023', 
+                                                marginTop: '12px',
+                                                letterSpacing: '0.5px'
+                                            }}>
+                                                Yogi's Points
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Content */}
@@ -714,6 +751,11 @@ const Dashboard = () => {
                                                 </div>
                                             </div>
                                         </div>
+                                    )}
+
+                                    {/* Refer & Earn Tab */}
+                                    {tab === 'refer' && pointsEnabled && referralEnabled && (
+                                        <ReferAndEarnTab user={user} />
                                     )}
 
                                     {/* Addresses Tab */}

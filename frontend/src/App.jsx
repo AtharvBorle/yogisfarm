@@ -63,6 +63,20 @@ function App() {
   const location = useLocation();
   const isHideHeaderFooter = location.pathname.startsWith('/delivery') || location.pathname.startsWith('/blogs/admin');
 
+  // Persistent referral attribution from URL params
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref') || urlParams.get('referral');
+      if (refParam && refParam.trim()) {
+        const cleanCode = refParam.trim().toUpperCase();
+        localStorage.setItem('yogisfarm_referral_code', cleanCode);
+      }
+    } catch (e) {
+      console.warn('Failed to persist referral code from URL:', e);
+    }
+  }, [location.search]);
+
   return (
     <>
       {isPreloading && (
@@ -80,6 +94,7 @@ function App() {
           <Route path="/product/:slug" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/refer-and-earn" element={<Navigate to="/dashboard?tab=refer" replace />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment" element={<Payment />} />
           <Route path="/dashboard" element={<Dashboard />} />

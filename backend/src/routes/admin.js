@@ -1930,7 +1930,8 @@ router.get('/accounts/orders', requireAdmin, async (req, res) => {
 const { 
   getPointsConfig, 
   updatePointsConfig, 
-  adminAdjustPoints 
+  adminAdjustPoints,
+  getAdminReferralHistory
 } = require('../utils/yogisPoints');
 
 // Get configuration and overall stats
@@ -2049,4 +2050,88 @@ router.post('/yogis-points/adjust', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Refer & Earn Management Endpoints ───
+// Get configuration and overall stats
+router.get('/refer-and-earn/config', requireAdmin, async (req, res) => {
+  try {
+    const config = await getPointsConfig();
+    const historyData = await getAdminReferralHistory({ page: 1, limit: 1 });
+
+    res.json({
+      status: true,
+      config: {
+        pointsEnabled: config.enabled,
+        referralEnabled: config.referralEnabled,
+        referrerRewardPoints: config.referrerRewardPoints,
+        referredRewardPoints: config.referredRewardPoints,
+        conversionPoints: config.conversionPoints,
+        conversionRupees: config.conversionRupees
+      },
+      stats: historyData.metrics
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Update Refer & Earn configuration
+router.put('/refer-and-earn/config', requireAdmin, async (req, res) => {
+  try {
+    const { referralEnabled, referrerRewardPoints, referredRewardPoints } = req.body;
+    const currentConfig = await getPointsConfig();
+
+    if (referralEnabled && !currentConfig.enabled) {
+      return res.json({
+        status: false,
+        message: 'Cannot enable Refer & Earn when Yogis Points is disabled. Please enable Yogis Points first.'
+      });
+    }
+
+    const payload = {};
+    if (typeof referralEnabled === 'boolean') payload.referralEnabled = referralEnabled;
+    if (referrerRewardPoints !== undefined) payload.referrerRewardPoints = referrerRewardPoints;
+    if (referredRewardPoints !== undefined) payload.referredRewardPoints = referredRewardPoints;
+
+    const updated = await updatePointsConfig(payload);
+    await logAdminAction(
+      req.session.adminId,
+      'Updated Refer & Earn Configuration',
+      JSON.stringify(payload)
+    );
+
+    res.json({
+      status: true,
+      message: 'Refer & Earn configuration updated successfully',
+      config: {
+        pointsEnabled: updated.enabled,
+        referralEnabled: updated.referralEnabled,
+        referrerRewardPoints: updated.referrerRewardPoints,
+        referredRewardPoints: updated.referredRewardPoints,
+        conversionPoints: updated.conversionPoints,
+        conversionRupees: updated.conversionRupees
+      }
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Get referral history with pagination & search
+router.get('/refer-and-earn/history', requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const search = req.query.search ? String(req.query.search).trim() : '';
+
+    const data = await getAdminReferralHistory({ page, limit, search });
+    res.json({
+      status: true,
+      ...data
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 module.exports = router;
+

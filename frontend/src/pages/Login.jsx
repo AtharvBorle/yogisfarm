@@ -14,6 +14,14 @@ const Login = () => {
     const [step, setStep] = useState(1);
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const [referralCode, setReferralCode] = useState(() => {
+        try {
+            return localStorage.getItem('yogisfarm_referral_code') || '';
+        } catch {
+            return '';
+        }
+    });
+    const [referralActive, setReferralActive] = useState(false);
     const { fetchUser, user, loading: authLoading } = useAuth();
     const { fetchCart } = useCart();
     const navigate = useNavigate();
@@ -21,6 +29,22 @@ const Login = () => {
     const redirect = searchParams.get('redirect') || '/dashboard';
 
     const [resendTimer, setResendTimer] = useState(0);
+
+    React.useEffect(() => {
+        const checkReferral = async () => {
+            try {
+                const res = await api.get('/referrals/status');
+                if (res.data.status && res.data.enabled) {
+                    setReferralActive(true);
+                } else {
+                    setReferralActive(false);
+                }
+            } catch {
+                setReferralActive(false);
+            }
+        };
+        checkReferral();
+    }, []);
 
     React.useEffect(() => {
         let interval;
@@ -141,7 +165,12 @@ const Login = () => {
             return toast.error('You must agree to the Terms & Conditions and Policies to register.');
         }
         try {
-            const res = await api.post('/auth/submit-details', { name, email });
+            const payload = { name, email };
+            if (referralActive && referralCode && referralCode.trim()) {
+                payload.referralCode = referralCode.trim().toUpperCase();
+            }
+
+            const res = await api.post('/auth/submit-details', payload);
             if (res.data.status) {
                 toast.success('Registration successful!');
 
@@ -149,6 +178,7 @@ const Login = () => {
                 localStorage.removeItem('yogisfarm_login_phone');
                 localStorage.removeItem('yogisfarm_login_otp_sent_time');
                 localStorage.removeItem('yogisfarm_login_step');
+                localStorage.removeItem('yogisfarm_referral_code');
 
                 await fetchUser();
                 fetchCart();
@@ -480,7 +510,7 @@ const Login = () => {
                                 />
                             </div>
 
-                            <div style={{marginBottom: '24px'}}>
+                            <div style={{marginBottom: referralActive ? '16px' : '24px'}}>
                                 <label style={{fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '5px'}}>Email Address</label>
                                 <input 
                                     type="email"
@@ -492,6 +522,22 @@ const Login = () => {
                                     style={{marginBottom: 0}}
                                 />
                             </div>
+
+                            {referralActive && (
+                                <div style={{marginBottom: '24px'}}>
+                                    <label style={{fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '5px'}}>
+                                        Referral Code <span style={{fontWeight: 'normal', color: '#888'}}>(Optional)</span>
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        className="login-input-mobile"
+                                        placeholder="Enter referral code"
+                                        value={referralCode}
+                                        onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                                        style={{marginBottom: 0, textTransform: 'uppercase'}}
+                                    />
+                                </div>
+                            )}
 
                             <div style={{ marginBottom: '24px' }}>
                                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#253D4E', lineHeight: '1.4' }}>

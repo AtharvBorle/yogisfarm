@@ -69,15 +69,19 @@ router.post('/verify-otp', async (req, res) => {
       });
     });
 
-    // Award welcome bonus if enabled and not already granted
-    try {
-      const { awardWelcomeBonus } = require('../utils/yogisPoints');
-      await awardWelcomeBonus(user.id);
-    } catch (bonusErr) {
-      console.error('Error checking/awarding welcome bonus:', bonusErr);
+    const needsDetails = !user.name;
+
+    // For existing users logging in, ensure welcome bonus is processed if eligible.
+    // For new users needing details, rewards are processed atomically in submit-details.
+    if (!needsDetails) {
+      try {
+        const { awardWelcomeBonus } = require('../utils/yogisPoints');
+        await awardWelcomeBonus(user.id);
+      } catch (bonusErr) {
+        console.error('Error checking/awarding welcome bonus:', bonusErr);
+      }
     }
 
-    const needsDetails = !user.name;
     res.json({ status: true, message: 'OTP verified', user, needsDetails });
   } catch (e) {
     res.json({ status: false, message: 'Verification failed' });
@@ -87,22 +91,32 @@ router.post('/verify-otp', async (req, res) => {
 // Submit details (after first login)
 router.post('/submit-details', requireLogin, async (req, res) => {
   try {
-    const { name, email } = req.body;
-    const user = await prisma.user.update({
-      where: { id: req.session.userId },
-      data: { name, email }
-    });
-
-    try {
-      const { awardWelcomeBonus } = require('../utils/yogisPoints');
-      await awardWelcomeBonus(user.id);
-    } catch (bonusErr) {
-      console.error('Error checking/awarding welcome bonus:', bonusErr);
+    const { name, email, referralCode } = req.body;
+    if (!name || !name.trim()) {
+      return res.json({ status: false, message: 'Name is required' });
+    }
+    if (!email || !email.trim()) {
+      return res.json({ status: false, message: 'Email is required' });
     }
 
-    res.json({ status: true, message: 'Details saved', user });
+    const { processNewCustomerSignup } = require('../utils/yogisPoints');
+    const result = await processNewCustomerSignup({
+      userId: req.session.userId,
+      name,
+      email,
+      referralCode
+    });
+
+    res.json({
+      status: true,
+      message: 'Registration successful',
+      user: result.user,
+      referralRewarded: result.referralRewarded,
+      welcomeBonusRewarded: result.welcomeBonusRewarded
+    });
   } catch (e) {
-    res.json({ status: false, message: 'Failed to save details' });
+    console.error('Error in submit-details:', e);
+    res.json({ status: false, message: e.message || 'Failed to save details' });
   }
 });
 
