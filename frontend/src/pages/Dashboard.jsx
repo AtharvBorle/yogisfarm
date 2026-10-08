@@ -680,7 +680,12 @@ const Dashboard = () => {
                                                             <div>
                                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                                     <span style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.8px', opacity: 0.9, fontWeight: '600' }}>Available Balance</span>
-                                                                    <span style={{ fontSize: '22px' }}>🪙</span>
+                                                                    <img 
+                                                                        src="/yogis_farms_coin_smooth_360_spin.svg" 
+                                                                        alt="Points" 
+                                                                        style={{ width: '24px', height: '24px', objectFit: 'contain' }} 
+                                                                        onError={(e) => { e.currentTarget.src = "/assets/imgs/theme/yogis-coin.png"; }} 
+                                                                    />
                                                                 </div>
                                                                 <div style={{ fontSize: '38px', fontWeight: '800', margin: '10px 0 6px 0', lineHeight: '1.1' }}>
                                                                     {pointsData?.balance ?? 0} <span style={{ fontSize: '20px', fontWeight: '600' }}>Points</span>
@@ -706,7 +711,7 @@ const Dashboard = () => {
                                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '6px' }}>
                                                                 <h5 style={{ fontSize: '16px', fontWeight: '700', color: '#253D4E', margin: 0 }}>Redemption Rules</h5>
                                                                 <span style={{ fontSize: '11px', fontWeight: '600', color: '#046938', backgroundColor: '#DCFCE7', padding: '3px 8px', borderRadius: '12px' }}>
-                                                                    💳 Redeem on Payment Page
+                                                                    Redeem on Payment Page
                                                                 </span>
                                                             </div>
 
@@ -747,9 +752,9 @@ const Dashboard = () => {
                                                                         marginBottom: '10px'
                                                                     }}>
                                                                         {hasEnoughPts ? (
-                                                                            <span>✓ You have enough points ({userBal} Pts)! You can redeem them on any order of ₹{minOrd} or more on the Payment page.</span>
+                                                                            <span>You have enough points ({userBal} Pts)! You can redeem them on any order of ₹{minOrd} or more on the Payment page.</span>
                                                                         ) : (
-                                                                            <span>💡 You need {minPts - userBal} more points to reach the minimum redemption threshold of {minPts} points.</span>
+                                                                            <span>You need {minPts - userBal} more points to reach the minimum redemption threshold of {minPts} points.</span>
                                                                         )}
                                                                     </div>
                                                                 );
@@ -772,7 +777,12 @@ const Dashboard = () => {
                                                         <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>Loading points history...</div>
                                                     ) : (!pointsData?.transactions || pointsData.transactions.length === 0) ? (
                                                         <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px', border: '1px dashed #ddd', color: '#777' }}>
-                                                            <div style={{ fontSize: '32px', marginBottom: '10px' }}>🪙</div>
+                                                            <img 
+                                                                src="/yogis_farms_coin_smooth_360_spin.svg" 
+                                                                alt="Points" 
+                                                                style={{ width: '36px', height: '36px', objectFit: 'contain', marginBottom: '10px' }} 
+                                                                onError={(e) => { e.currentTarget.src = "/assets/imgs/theme/yogis-coin.png"; }} 
+                                                            />
                                                             <p style={{ margin: 0, fontSize: '14px', fontWeight: '500' }}>No points transactions yet. Start shopping to earn Yogis Points!</p>
                                                         </div>
                                                     ) : (

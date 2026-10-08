@@ -108,7 +108,7 @@ const RedeemPointsNotice = ({
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                <span>🛒 Min. Order:</span>
+                <span>Min. Order:</span>
                 <strong>₹{minOrder}</strong>
                 {currentCart > 0 && !meetsOrderValue && (
                   <span style={{ fontWeight: '500', opacity: 0.85 }}>(Current: ₹{currentCart.toFixed(0)})</span>
@@ -128,7 +128,7 @@ const RedeemPointsNotice = ({
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                <span>⭐ Min. Points to Redeem:</span>
+                <span>Min. Points to Redeem:</span>
                 <strong>{minPoints} Pts</strong>
               </div>
             )}
@@ -139,15 +139,15 @@ const RedeemPointsNotice = ({
             {user ? (
               !meetsOrderValue ? (
                 <span style={{ color: '#B45309', fontWeight: '500' }}>
-                  💡 Add <strong>₹{(minOrder - currentCart).toFixed(0)}</strong> more to cart to redeem your points on the Payment page.
+                  Add <strong>₹{(minOrder - currentCart).toFixed(0)}</strong> more to cart to redeem your points on the Payment page.
                 </span>
               ) : !meetsPoints ? (
                 <span style={{ color: '#B45309', fontWeight: '500' }}>
-                  💡 You need <strong>{minPoints - availablePoints}</strong> more points to reach the redemption threshold.
+                  You need <strong>{minPoints - availablePoints}</strong> more points to reach the redemption threshold.
                 </span>
               ) : (
                 <span style={{ color: '#15803D', fontWeight: '600' }}>
-                  ✓ {page === 'payment' ? 'You are eligible to apply your points below!' : 'Eligible! You can apply your points for a discount on the Payment step.'}
+                  {page === 'payment' ? 'You are eligible to apply your points below!' : 'Eligible! You can apply your points for a discount on the Payment step.'}
                 </span>
               )
             ) : (

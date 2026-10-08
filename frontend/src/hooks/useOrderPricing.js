@@ -112,7 +112,13 @@ export function useOrderPricing(cartItems, couponCode = null, useYogisPoints = f
             ? res.data.pricing.pointsPerOrder 
             : earned;
           
-          if (perOrder > 0) cachedPointsPerOrder = perOrder;
+          if (perOrder > 0) {
+            if (cachedPointsConfig) {
+              cachedPointsConfig.pointsPerOrder = perOrder;
+            } else {
+              cachedPointsConfig = { enabled: true, pointsPerOrder: perOrder, minOrderValue: 0, minPoints: 0 };
+            }
+          }
 
           setPricing({
             offerPriceSum: res.data.pricing.offerPriceSum,

@@ -8,7 +8,6 @@ import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
 import EarnCoinsNotice from '../components/EarnCoinsNotice';
-import RedeemPointsNotice from '../components/RedeemPointsNotice';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -310,7 +309,6 @@ const Payment = () => {
                                 <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{pricingLoading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                             </div>
                             <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginTop: '15px' }} />
-                            <RedeemPointsNotice yogisPoints={yogisPoints} cartTotal={offerPriceSum || subtotalBase} user={user} page="payment" size="md" style={{ marginTop: '12px' }} />
                         </div>
                     </div>
 
@@ -454,7 +452,7 @@ const Payment = () => {
                                         borderRadius: '6px',
                                         fontWeight: '600'
                                     }}>
-                                        🛒 Min. Order: ₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0}
+                                        Min. Order: ₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0}
                                     </span>
                                     <span style={{
                                         fontSize: '11px',
@@ -464,7 +462,7 @@ const Payment = () => {
                                         borderRadius: '6px',
                                         fontWeight: '600'
                                     }}>
-                                        ⭐ Min. Points to Redeem: {yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0} Pts
+                                        Min. Points to Redeem: {yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0} Pts
                                     </span>
                                 </div>
 
@@ -488,18 +486,18 @@ const Payment = () => {
                                 ) : (
                                     <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #E5E7EB', fontSize: '12px', color: '#92400E', lineHeight: '1.5' }}>
                                         {!user ? (
-                                            <div>⚠️ Please log in to redeem your Yogi's Points.</div>
+                                            <div>Please log in to redeem your Yogi's Points.</div>
                                         ) : (offerPriceSum || subtotalBase) < (yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) ? (
                                             <div>
-                                                ⚠️ Minimum order value of <strong>₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue}</strong> required to redeem points. (Current order value: ₹{(offerPriceSum || subtotalBase || 0).toFixed(0)}) — add <strong>₹{((yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) - (offerPriceSum || subtotalBase || 0)).toFixed(0)}</strong> more to unlock.
+                                                Minimum order value of <strong>₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue}</strong> required to redeem points. (Current order value: ₹{(offerPriceSum || subtotalBase || 0).toFixed(0)}) — add <strong>₹{((yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) - (offerPriceSum || subtotalBase || 0)).toFixed(0)}</strong> more to unlock.
                                             </div>
                                         ) : (yogisPoints.availablePoints || 0) < (yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) ? (
                                             <div>
-                                                ⚠️ Minimum <strong>{yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints} Points</strong> required to redeem. You currently have <strong>{yogisPoints.availablePoints || 0} Points</strong> (need {((yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) - (yogisPoints.availablePoints || 0))} more).
+                                                Minimum <strong>{yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints} Points</strong> required to redeem. You currently have <strong>{yogisPoints.availablePoints || 0} Points</strong> (need {((yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) - (yogisPoints.availablePoints || 0))} more).
                                             </div>
                                         ) : (
                                             <div>
-                                                ⚠️ {yogisPoints.reason || 'Points cannot be applied on this order.'}
+                                                {yogisPoints.reason || 'Points cannot be applied on this order.'}
                                             </div>
                                         )}
                                     </div>
