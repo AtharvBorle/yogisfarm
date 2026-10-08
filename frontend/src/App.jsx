@@ -66,8 +66,12 @@ function App() {
   // Persistent referral attribution from URL params
   useEffect(() => {
     try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const refParam = urlParams.get('ref') || urlParams.get('referral');
+      const urlParams = new URLSearchParams(window.location.search || location.search);
+      let refParam = urlParams.get('ref') || urlParams.get('referral');
+      if (!refParam && window.location.hash.includes('?')) {
+        const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+        refParam = hashParams.get('ref') || hashParams.get('referral');
+      }
       if (refParam && refParam.trim()) {
         const cleanCode = refParam.trim().toUpperCase();
         localStorage.setItem('yogisfarm_referral_code', cleanCode);
@@ -75,7 +79,7 @@ function App() {
     } catch (e) {
       console.warn('Failed to persist referral code from URL:', e);
     }
-  }, [location.search]);
+  }, [location.search, location.hash]);
 
   return (
     <>
