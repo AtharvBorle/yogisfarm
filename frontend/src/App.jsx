@@ -98,6 +98,7 @@ function App() {
           <Route path="/product/:slug" element={<Product />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/login/" element={<Login />} />
           <Route path="/refer-and-earn" element={<Navigate to="/dashboard?tab=refer" replace />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/payment" element={<Payment />} />

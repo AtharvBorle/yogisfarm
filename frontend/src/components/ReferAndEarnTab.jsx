@@ -45,18 +45,25 @@ const ReferAndEarnTab = ({ user }) => {
 
   const referralCode = data?.referralCode || user?.referralCode || '';
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://yogisfarms.com';
-  const referralLink = data?.referralLink || `${currentOrigin}/?ref=${referralCode}`;
-  const config = data?.config || {
-    referrerRewardPoints: 100,
-    referredRewardPoints: 50,
-    conversionPoints: 100,
-    conversionRupees: 10,
-    minimumRedeemablePoints: 1000
+  const cleanOrigin = currentOrigin.replace(/\/+$/, '');
+  const referralLink = referralCode ? `${cleanOrigin}/login/?ref=${referralCode}` : '';
+
+  const config = {
+    referrerRewardPoints: data?.referrerRewardPoints ?? data?.config?.referrerRewardPoints ?? 100,
+    referredRewardPoints: data?.referredRewardPoints ?? data?.config?.referredRewardPoints ?? 50,
+    conversionPoints: data?.conversionPoints ?? data?.config?.conversionPoints ?? 100,
+    conversionRupees: data?.conversionRupees ?? data?.config?.conversionRupees ?? 10,
+    minimumRedeemablePoints: data?.minimumRedeemablePoints ?? data?.config?.minimumRedeemablePoints ?? 1000
   };
-  const summary = data?.summary || {
-    totalReferrals: 0,
-    totalEarnedPoints: 0,
-    referrals: []
+
+  const referralsList = data?.referrals || data?.summary?.referrals || [];
+  const totalEarnedPoints = data?.totalEarnedPoints ?? data?.totalEarnings ?? data?.summary?.totalEarnedPoints ?? 0;
+  const totalReferrals = data?.totalReferrals ?? data?.summary?.totalReferrals ?? referralsList.length;
+
+  const summary = {
+    totalReferrals,
+    totalEarnedPoints,
+    referrals: referralsList
   };
 
   const handleCopyLink = () => {

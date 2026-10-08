@@ -1040,13 +1040,14 @@ async function processNewCustomerSignup({ userId, name, email, referralCode }, t
  * Get customer referral summary matching the UI/Figma design
  */
 async function getUserReferralSummary(userId, tx = prisma) {
+  const uId = parseInt(userId, 10);
   const config = await getPointsConfig(tx);
-  const referralCode = await getOrCreateUserReferralCode(userId, tx);
+  const referralCode = await getOrCreateUserReferralCode(uId, tx);
 
   // Total referral earnings = sum of points from REFERRAL_REWARD_REFERRER for this user
   const earningsAgg = await tx.yogisPointsTransaction.aggregate({
     where: {
-      userId,
+      userId: uId,
       type: 'REFERRAL_REWARD_REFERRER'
     },
     _sum: {
@@ -1057,7 +1058,7 @@ async function getUserReferralSummary(userId, tx = prisma) {
 
   // List of referrals made by this user
   const referralRecords = await tx.referral.findMany({
-    where: { referrerUserId: userId },
+    where: { referrerUserId: uId },
     include: {
       referred: {
         select: {
@@ -1109,10 +1110,15 @@ async function getUserReferralSummary(userId, tx = prisma) {
     };
   });
 
+  const frontendUrl = process.env.FRONTEND_URL || 'https://uat.yogisfarms.com';
+  const cleanFrontendUrl = frontendUrl.replace(/\/+$/, '');
+  const referralLink = `${cleanFrontendUrl}/login/?ref=${referralCode}`;
+
   return {
     enabled: Boolean(config.enabled && config.referralEnabled),
     pointsEnabled: Boolean(config.enabled),
     referralCode,
+    referralLink,
     referrerRewardPoints: config.referrerRewardPoints,
     referredRewardPoints: config.referredRewardPoints,
     conversionPoints: config.conversionPoints,
@@ -1121,7 +1127,19 @@ async function getUserReferralSummary(userId, tx = prisma) {
     totalEarnings,
     totalEarnedPoints: totalEarnings,
     totalReferrals: referrals.length,
-    referrals
+    referrals,
+    summary: {
+      totalReferrals: referrals.length,
+      totalEarnedPoints: totalEarnings,
+      referrals
+    },
+    config: {
+      referrerRewardPoints: config.referrerRewardPoints,
+      referredRewardPoints: config.referredRewardPoints,
+      conversionPoints: config.conversionPoints,
+      conversionRupees: config.conversionRupees,
+      minimumRedeemablePoints: config.minimumRedeemablePoints
+    }
   };
 }
 
