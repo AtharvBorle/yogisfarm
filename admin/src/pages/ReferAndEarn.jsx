@@ -59,13 +59,13 @@ const ReferAndEarn = () => {
     }
   };
 
-  const fetchHistory = async (pageNum = 1, currentLimit = limit) => {
+  const fetchHistory = async (pageNum = 1, currentLimit = limit, currentSearch = search) => {
     setHistoryLoading(true);
     try {
       const params = new URLSearchParams();
       params.append('page', pageNum);
       params.append('limit', currentLimit);
-      if (search) params.append('search', search);
+      if (currentSearch) params.append('search', currentSearch);
 
       const res = await api.get(`/refer-and-earn/history?${params.toString()}`);
       if (res.data.status) {
@@ -431,9 +431,9 @@ const ReferAndEarn = () => {
           </div>
 
           {/* Search Bar */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <div style={{ position: 'relative', width: '280px' }}>
-              <Search size={16} color="#999" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', width: '280px', boxSizing: 'border-box' }}>
+              <Search size={16} color="#999" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
               <input 
                 type="text" 
                 placeholder="Search code, name, phone..." 
@@ -445,8 +445,9 @@ const ReferAndEarn = () => {
                   padding: '9px 12px 9px 36px', 
                   borderRadius: '8px', 
                   border: '1px solid #ddd', 
-                  fontSize: '13px',
-                  outline: 'none'
+                  fontSize: '13px', 
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -454,17 +455,43 @@ const ReferAndEarn = () => {
               type="button" 
               onClick={() => fetchHistory(1)}
               style={{ 
-                padding: '9px 16px', 
-                background: '#f1f3f4', 
+                padding: '9px 18px', 
+                background: '#046938', 
+                color: '#fff',
                 border: 'none', 
                 borderRadius: '8px', 
                 fontWeight: '600', 
                 fontSize: '13px', 
-                cursor: 'pointer' 
+                cursor: 'pointer',
+                flexShrink: 0,
+                whiteSpace: 'nowrap'
               }}
             >
               Filter
             </button>
+            {search && (
+              <button 
+                type="button" 
+                onClick={() => {
+                  setSearch('');
+                  fetchHistory(1, limit, '');
+                }}
+                style={{ 
+                  padding: '9px 14px', 
+                  background: '#f1f3f4', 
+                  color: '#555',
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  fontWeight: '600', 
+                  fontSize: '13px', 
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
