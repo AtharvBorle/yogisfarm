@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
@@ -12,6 +13,7 @@ import SpinningCoin from '../components/SpinningCoin';
 
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
+    const { wishlist, fetchWishlist } = useWishlist();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const tab = searchParams.get('tab') || 'dashboard';
@@ -124,6 +126,9 @@ const Dashboard = () => {
                 }
                 if (tab === 'addresses' || tab === 'dashboard') {
                     fetchAddresses();
+                }
+                if (tab === 'dashboard' && fetchWishlist) {
+                    fetchWishlist();
                 }
                 if (tab === 'points') {
                     fetchPoints();
@@ -394,22 +399,37 @@ const Dashboard = () => {
                                                 <p>From your account dashboard you can view your recent orders, manage your shipping addresses, and edit your profile.</p>
                                                 <div className="row mt-20">
                                                     <div className="col-4 text-center">
-                                                        <div className="p-3 border rounded">
-                                                            <h2 style={{ color: '#046938' }}>{orders.length}</h2>
-                                                            <p className="mb-0">Orders</p>
-                                                        </div>
+                                                        <Link to="?tab=orders" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                                            <div className="p-3 border rounded" style={{ transition: 'all 0.2s', cursor: 'pointer' }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#046938'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(4,105,56,0.1)'; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dee2e6'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                            >
+                                                                <h2 style={{ color: '#046938' }}>{orders.length}</h2>
+                                                                <p className="mb-0" style={{ color: '#253D4E', fontWeight: '500' }}>Orders</p>
+                                                            </div>
+                                                        </Link>
                                                     </div>
                                                     <div className="col-4 text-center">
-                                                        <div className="p-3 border rounded">
-                                                            <h2 style={{ color: '#046938' }}>0</h2>
-                                                            <p className="mb-0">Wishlist</p>
-                                                        </div>
+                                                        <Link to="/wishlist" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                                            <div className="p-3 border rounded" style={{ transition: 'all 0.2s', cursor: 'pointer' }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#046938'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(4,105,56,0.1)'; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dee2e6'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                            >
+                                                                <h2 style={{ color: '#046938' }}>{wishlist ? wishlist.length : 0}</h2>
+                                                                <p className="mb-0" style={{ color: '#253D4E', fontWeight: '500' }}>Wishlist</p>
+                                                            </div>
+                                                        </Link>
                                                     </div>
                                                     <div className="col-4 text-center">
-                                                        <div className="p-3 border rounded">
-                                                            <h2 style={{ color: '#046938' }}>{addresses.length}</h2>
-                                                            <p className="mb-0">Addresses</p>
-                                                        </div>
+                                                        <Link to="?tab=addresses" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                                            <div className="p-3 border rounded" style={{ transition: 'all 0.2s', cursor: 'pointer' }}
+                                                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#046938'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(4,105,56,0.1)'; }}
+                                                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dee2e6'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                            >
+                                                                <h2 style={{ color: '#046938' }}>{addresses.length}</h2>
+                                                                <p className="mb-0" style={{ color: '#253D4E', fontWeight: '500' }}>Addresses</p>
+                                                            </div>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             </div>
