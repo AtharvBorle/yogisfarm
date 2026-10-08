@@ -73,6 +73,24 @@ const BlogAdminDashboard = () => {
   const [isStrikeActive, setIsStrikeActive] = useState(false);
   const [activeAlignment, setActiveAlignment] = useState('left');
   const [activeHeading, setActiveHeading] = useState('p');
+  const [isFloatingToolbarOpen, setIsFloatingToolbarOpen] = useState(false);
+  const [isToolbarPinned, setIsToolbarPinned] = useState(false);
+  const hoverTimeoutRef = useRef(null);
+
+  const handleToolbarMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsFloatingToolbarOpen(true);
+  };
+
+  const handleToolbarMouseLeave = () => {
+    if (isToolbarPinned) return;
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsFloatingToolbarOpen(false);
+    }, 200);
+  };
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
   const wordInputRef = useRef(null);
@@ -1134,6 +1152,8 @@ const BlogAdminDashboard = () => {
     setStatus('inactive');
     setIsHtmlMode(false);
     setSelectedBlogIds([]);
+    setIsFloatingToolbarOpen(false);
+    setIsToolbarPinned(false);
   };
 
   // Edit action
@@ -1503,7 +1523,11 @@ const BlogAdminDashboard = () => {
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '4px 0 10px rgba(0, 0, 0, 0.05)',
-        flexShrink: 0
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        height: '100vh',
+        zIndex: 50
       }}>
         <div style={{
           padding: '24px',
@@ -1630,6 +1654,564 @@ const BlogAdminDashboard = () => {
             <i className="fi-rs-eye" style={{ fontSize: '16px' }}></i>
             View Live Site
           </a>
+
+          {/* Quick Formatting Tools Sticky Sidebar Trigger (Below sections on red arrow) */}
+          {(activeTab === 'create' || activeTab === 'edit') && (
+            <div
+              style={{ position: 'relative', marginTop: '14px' }}
+              onMouseEnter={handleToolbarMouseEnter}
+              onMouseLeave={handleToolbarMouseLeave}
+            >
+              <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes slideInLeftToolbar {
+                  from {
+                    opacity: 0;
+                    transform: translateX(-14px) scale(0.98);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateX(0) scale(1);
+                  }
+                }
+              `}} />
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setIsFloatingToolbarOpen(prev => !prev)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  border: isFloatingToolbarOpen ? '1.5px solid #ACD140' : '1px dashed rgba(172, 209, 64, 0.6)',
+                  backgroundColor: isFloatingToolbarOpen ? 'rgba(172, 209, 64, 0.22)' : 'rgba(255, 255, 255, 0.12)',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isFloatingToolbarOpen ? '0 0 14px rgba(172, 209, 64, 0.35)' : 'none'
+                }}
+                title="Formatting Tools (Hover to expand, move away to shrink)"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '6px',
+                    backgroundColor: isFloatingToolbarOpen ? '#ACD140' : 'rgba(172, 209, 64, 0.25)',
+                    color: isFloatingToolbarOpen ? '#0A6738' : '#ACD140',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s'
+                  }}>
+                    ⚡
+                  </span>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '700', lineHeight: '1.2' }}>Formatting Tools</div>
+                    <div style={{ fontSize: '10px', color: '#ACD140', fontWeight: '500', marginTop: '2px' }}>
+                      {isFloatingToolbarOpen ? (isToolbarPinned ? '📌 Pinned Open' : 'Active • Expanded') : 'Hover to Expand ▶'}
+                    </div>
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: '11px',
+                  color: '#ACD140',
+                  fontWeight: '700',
+                  transform: isFloatingToolbarOpen ? 'translateX(2px)' : 'none',
+                  transition: 'transform 0.2s'
+                }}>
+                  {isFloatingToolbarOpen ? '◀' : '▶'}
+                </span>
+              </button>
+
+              {/* Expanded Floating Toolbar (Auto-expands on hover, auto-shrinks on mouse leave) */}
+              {isFloatingToolbarOpen && (
+                <div
+                  onMouseEnter={handleToolbarMouseEnter}
+                  onMouseLeave={handleToolbarMouseLeave}
+                  onMouseDown={(e) => {
+                    if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'INPUT') {
+                      e.preventDefault();
+                    }
+                  }}
+                  style={{
+                    position: 'fixed',
+                    left: '268px',
+                    top: '70px',
+                    width: '780px',
+                    maxWidth: 'calc(100vw - 290px)',
+                    maxHeight: 'calc(100vh - 90px)',
+                    overflowY: 'auto',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '14px',
+                    border: '1.5px solid #0A6738',
+                    boxShadow: '0 20px 45px -5px rgba(10, 103, 56, 0.25), 0 10px 25px rgba(0, 0, 0, 0.12)',
+                    zIndex: 9999,
+                    padding: '16px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    animation: 'slideInLeftToolbar 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    color: '#101828'
+                  }}
+                >
+                  {/* Floating Toolbar Header */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingBottom: '10px',
+                    borderBottom: '1px solid #EAECF0'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '15px', color: '#0A6738' }}>⚡</span>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#0A6738' }}>Quick Formatting Tools</span>
+                      <span style={{
+                        fontSize: '11px',
+                        color: '#667085',
+                        backgroundColor: '#F2F4F7',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontWeight: '500'
+                      }}>
+                        {isToolbarPinned ? '📌 Pinned Open' : 'Hover Active • Auto-shrinks on cursor leave'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => setIsToolbarPinned(prev => !prev)}
+                        title={isToolbarPinned ? "Unpin (Auto-shrink on exit)" : "Pin open (Keep visible)"}
+                        style={{
+                          background: isToolbarPinned ? '#0A6738' : '#F2F4F7',
+                          color: isToolbarPinned ? '#ffffff' : '#344054',
+                          border: '1px solid #D0D5DD',
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        📌 {isToolbarPinned ? 'Pinned' : 'Pin'}
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setIsToolbarPinned(false); setIsFloatingToolbarOpen(false); }}
+                        title="Shrink / Close Toolbar"
+                        style={{
+                          background: 'transparent',
+                          color: '#667085',
+                          border: 'none',
+                          borderRadius: '6px',
+                          width: '24px',
+                          height: '24px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Row 1: Typography, Size, Styles, Colors, Undo/Redo */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    {/* Font Family */}
+                    <select
+                      value={currentFontFamily}
+                      onMouseDown={saveSelection}
+                      onChange={(e) => applyFontFamily(e.target.value)}
+                      className="ribbon-select"
+                      style={{ height: '30px' }}
+                      title="Font Family"
+                    >
+                      <option value="Poppins">Poppins</option>
+                      <option value="Inter">Inter</option>
+                      <option value="Arial">Arial</option>
+                      <option value="Georgia">Georgia</option>
+                      <option value="Courier New">Courier New</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                    </select>
+
+                    {/* Font Size */}
+                    <select
+                      value={currentFontSize}
+                      onMouseDown={saveSelection}
+                      onChange={(e) => applyFontSize(e.target.value)}
+                      className="ribbon-select"
+                      style={{ width: '85px', height: '30px', fontWeight: '500' }}
+                      title="Font Size of selected text"
+                    >
+                      <option value="11px">11px (8pt)</option>
+                      <option value="13px">13px (10pt)</option>
+                      <option value="14px">14px (10.5pt)</option>
+                      <option value="16px">16px (12pt)</option>
+                      <option value="18px">18px (14pt)</option>
+                      <option value="20px">20px (15pt)</option>
+                      <option value="24px">24px (18pt)</option>
+                      <option value="28px">28px (21pt)</option>
+                      <option value="32px">32px (24pt)</option>
+                      <option value="36px">36px (27pt)</option>
+                      <option value="48px">48px (36pt)</option>
+                    </select>
+
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#D0D5DD', margin: '0 2px' }} />
+
+                    {/* Bold, Italic, Underline, Strike */}
+                    <button
+                      type="button"
+                      className={`ribbon-btn ${isBoldActive ? 'ribbon-btn-active' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={toggleBold}
+                      title="Bold (Ctrl+B)"
+                      style={{
+                        fontWeight: 'bold',
+                        backgroundColor: isBoldActive ? '#D0D5DD' : 'transparent',
+                        borderColor: isBoldActive ? '#98A2B3' : 'transparent'
+                      }}
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      className={`ribbon-btn ${isItalicActive ? 'ribbon-btn-active' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={toggleItalic}
+                      title="Italic (Ctrl+I)"
+                      style={{
+                        fontStyle: 'italic',
+                        backgroundColor: isItalicActive ? '#D0D5DD' : 'transparent',
+                        borderColor: isItalicActive ? '#98A2B3' : 'transparent'
+                      }}
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      className={`ribbon-btn ${isUnderlineActive ? 'ribbon-btn-active' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={toggleUnderline}
+                      title="Underline (Ctrl+U)"
+                      style={{
+                        textDecoration: 'underline',
+                        backgroundColor: isUnderlineActive ? '#D0D5DD' : 'transparent',
+                        borderColor: isUnderlineActive ? '#98A2B3' : 'transparent'
+                      }}
+                    >
+                      U
+                    </button>
+                    <button
+                      type="button"
+                      className={`ribbon-btn ${isStrikeActive ? 'ribbon-btn-active' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { execEditorCommand('strikeThrough'); updateActiveFormatting(); }}
+                      title="Strikethrough"
+                      style={{
+                        textDecoration: 'line-through',
+                        backgroundColor: isStrikeActive ? '#D0D5DD' : 'transparent',
+                        borderColor: isStrikeActive ? '#98A2B3' : 'transparent'
+                      }}
+                    >
+                      ab
+                    </button>
+
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#D0D5DD', margin: '0 2px' }} />
+
+                    {/* Colors */}
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {/* Text Color */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ fontSize: '10px', color: '#667085', fontWeight: 'bold' }}>Text</span>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={removeTextColor}
+                          title="Reset Text Color to Default"
+                          style={{ height: '16px', width: '16px', fontSize: '9px', padding: 0, border: '1px solid #D0D5DD', borderRadius: '3px', background: '#fff', cursor: 'pointer', color: '#d32f2f', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          ✕
+                        </button>
+                        <input
+                          type="color"
+                          defaultValue="#1a1a1a"
+                          onMouseDown={saveSelection}
+                          onInput={(e) => { execEditorCommand('foreColor', e.target.value); updateActiveFormatting(); }}
+                          style={{ width: '24px', height: '18px', padding: 0, border: '1px solid #D0D5DD', borderRadius: '3px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                          title="Choose Text Color"
+                        />
+                      </div>
+
+                      {/* Highlight Color */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <span style={{ fontSize: '10px', color: '#667085', fontWeight: 'bold' }}>Highlight</span>
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={removeHighlight}
+                          title="Remove Text Highlight"
+                          style={{ height: '16px', width: '16px', fontSize: '9px', padding: 0, border: '1px solid #D0D5DD', borderRadius: '3px', background: '#fff', cursor: 'pointer', color: '#d32f2f', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          ✕
+                        </button>
+                        <input
+                          type="color"
+                          defaultValue="#ffff00"
+                          onMouseDown={saveSelection}
+                          onInput={(e) => { execEditorCommand('hiliteColor', e.target.value); updateActiveFormatting(); }}
+                          style={{ width: '24px', height: '18px', padding: 0, border: '1px solid #D0D5DD', borderRadius: '3px', cursor: 'pointer', backgroundColor: 'transparent' }}
+                          title="Choose Highlight Color"
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#D0D5DD', margin: '0 2px' }} />
+
+                    {/* Undo, Redo, Clean */}
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => { execEditorCommand('undo'); updateActiveFormatting(); }} title="Undo (Ctrl+Z)">↶</button>
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => { execEditorCommand('redo'); updateActiveFormatting(); }} title="Redo (Ctrl+Y)">↷</button>
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => { execEditorCommand('removeFormat'); updateActiveFormatting(); }} title="Clear Formatting">🧹</button>
+                  </div>
+
+                  {/* Row 2: Styles / Heading Cards */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { applyFormatBlock('p'); setActiveHeading('p'); }}
+                      title="Normal Text"
+                      style={{
+                        height: '32px',
+                        backgroundColor: activeHeading === 'p' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'p' ? '#0A6738' : '#D0D5DD',
+                        borderWidth: activeHeading === 'p' ? '2px' : '1px'
+                      }}
+                    >
+                      <span style={{ fontWeight: activeHeading === 'p' ? '700' : 'normal', fontSize: '11px', color: activeHeading === 'p' ? '#0A6738' : '#333' }}>Normal</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { applyFormatBlock('h1'); setActiveHeading('h1'); }}
+                      style={{
+                        height: '32px',
+                        borderTop: '3px solid #0056b3',
+                        backgroundColor: activeHeading === 'h1' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'h1' ? '#0056b3' : '#D0D5DD',
+                        borderWidth: activeHeading === 'h1' ? '2px' : '1px'
+                      }}
+                      title="Heading 1"
+                    >
+                      <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#0056b3' }}>Heading 1</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { applyFormatBlock('h2'); setActiveHeading('h2'); }}
+                      style={{
+                        height: '32px',
+                        borderTop: '3px solid #2e7d32',
+                        backgroundColor: activeHeading === 'h2' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'h2' ? '#2e7d32' : '#D0D5DD',
+                        borderWidth: activeHeading === 'h2' ? '2px' : '1px'
+                      }}
+                      title="Heading 2"
+                    >
+                      <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#2e7d32' }}>Heading 2</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { applyFormatBlock('h3'); setActiveHeading('h3'); }}
+                      style={{
+                        height: '32px',
+                        borderTop: '3px solid #c62828',
+                        backgroundColor: activeHeading === 'h3' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'h3' ? '#c62828' : '#D0D5DD',
+                        borderWidth: activeHeading === 'h3' ? '2px' : '1px'
+                      }}
+                      title="Heading 3"
+                    >
+                      <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#c62828' }}>Heading 3</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { insertQuote(); setActiveHeading('blockquote'); }}
+                      style={{
+                        height: '32px',
+                        borderTop: '3px solid #0A6738',
+                        backgroundColor: activeHeading === 'blockquote' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'blockquote' ? '#0A6738' : '#D0D5DD',
+                        borderWidth: activeHeading === 'blockquote' ? '2px' : '1px'
+                      }}
+                      title="Quote / Blockquote"
+                    >
+                      <span style={{ fontStyle: 'italic', fontWeight: activeHeading === 'blockquote' ? '700' : 'normal', fontSize: '11px', color: '#0A6738' }}>“ Quote</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="word-style-card"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { applyFormatBlock('pre'); setActiveHeading('pre'); }}
+                      style={{
+                        height: '32px',
+                        borderTop: '3px solid #475467',
+                        backgroundColor: activeHeading === 'pre' ? '#E4E7EC' : '#ffffff',
+                        borderColor: activeHeading === 'pre' ? '#475467' : '#D0D5DD',
+                        borderWidth: activeHeading === 'pre' ? '2px' : '1px'
+                      }}
+                      title="Code Block"
+                    >
+                      <span style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px', color: '#475467' }}>&lt;Code&gt;</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="ribbon-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => execEditorCommand('insertHorizontalRule')}
+                      title="Insert Horizontal Divider Line"
+                      style={{ height: '32px', padding: '0 8px', fontSize: '11px', fontWeight: '600' }}
+                    >
+                      ― Line
+                    </button>
+                  </div>
+
+                  {/* Row 3: Paragraph, Lists & Insertions */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                    {/* Alignments */}
+                    <div style={{ display: 'flex', gap: '1px' }}>
+                      <button
+                        type="button"
+                        className="ribbon-btn"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { execEditorCommand('justifyLeft'); setActiveAlignment('left'); }}
+                        title="Align Left"
+                        style={{
+                          backgroundColor: activeAlignment === 'left' ? '#D0D5DD' : 'transparent',
+                          borderColor: activeAlignment === 'left' ? '#98A2B3' : 'transparent'
+                        }}
+                      >
+                        Left
+                      </button>
+                      <button
+                        type="button"
+                        className="ribbon-btn"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { execEditorCommand('justifyCenter'); setActiveAlignment('center'); }}
+                        title="Align Center"
+                        style={{
+                          backgroundColor: activeAlignment === 'center' ? '#D0D5DD' : 'transparent',
+                          borderColor: activeAlignment === 'center' ? '#98A2B3' : 'transparent'
+                        }}
+                      >
+                        Center
+                      </button>
+                      <button
+                        type="button"
+                        className="ribbon-btn"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { execEditorCommand('justifyRight'); setActiveAlignment('right'); }}
+                        title="Align Right"
+                        style={{
+                          backgroundColor: activeAlignment === 'right' ? '#D0D5DD' : 'transparent',
+                          borderColor: activeAlignment === 'right' ? '#98A2B3' : 'transparent'
+                        }}
+                      >
+                        Right
+                      </button>
+                      <button
+                        type="button"
+                        className="ribbon-btn"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { execEditorCommand('justifyFull'); setActiveAlignment('justify'); }}
+                        title="Justify"
+                        style={{
+                          backgroundColor: activeAlignment === 'justify' ? '#D0D5DD' : 'transparent',
+                          borderColor: activeAlignment === 'justify' ? '#98A2B3' : 'transparent'
+                        }}
+                      >
+                        Justify
+                      </button>
+                    </div>
+
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#D0D5DD', margin: '0 2px' }} />
+
+                    {/* Lists */}
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List">• List</button>
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('insertOrderedList')} title="Numbered List">1. List</button>
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('outdent')} title="Decrease Indent">⇤</button>
+                    <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('indent')} title="Increase Indent">⇥</button>
+
+                    <div style={{ width: '1px', height: '24px', backgroundColor: '#D0D5DD', margin: '0 2px' }} />
+
+                    {/* Inserts */}
+                    <button
+                      type="button"
+                      className="ribbon-btn"
+                      onMouseDown={saveSelection}
+                      onClick={handleInsertLink}
+                      title="Insert Link"
+                      style={{ color: '#0288d1', fontWeight: '600' }}
+                    >
+                      🔗 Link
+                    </button>
+                    <button
+                      type="button"
+                      className="ribbon-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => execEditorCommand('unlink')}
+                      title="Remove Link"
+                      style={{ color: '#d32f2f', fontWeight: '600' }}
+                    >
+                      🔗❌ Unlink
+                    </button>
+                    <button
+                      type="button"
+                      className="ribbon-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={insertTable}
+                      title="Insert Table"
+                      style={{ color: '#795548', fontWeight: '600' }}
+                    >
+                      📊 Table
+                    </button>
+                    <button
+                      type="button"
+                      className="ribbon-btn"
+                      onMouseDown={saveSelection}
+                      onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                      title="Insert Image inside content"
+                      style={{ color: '#2e7d32', fontWeight: '600' }}
+                    >
+                      🖼️ Image
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         <div style={{ padding: '24px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
