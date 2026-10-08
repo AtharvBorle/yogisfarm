@@ -363,6 +363,7 @@ const ReferAndEarn = () => {
                   step="1"
                   value={config.referrerRewardPoints} 
                   onChange={(e) => setConfig({ ...config, referrerRewardPoints: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
                   style={{ 
                     flex: 1, 
                     padding: '10px 14px', 
@@ -391,6 +392,7 @@ const ReferAndEarn = () => {
                   step="1"
                   value={config.referredRewardPoints} 
                   onChange={(e) => setConfig({ ...config, referredRewardPoints: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
                   style={{ 
                     flex: 1, 
                     padding: '10px 14px', 

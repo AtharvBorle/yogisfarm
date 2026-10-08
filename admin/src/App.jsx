@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -29,6 +30,16 @@ import ReferAndEarn from './pages/ReferAndEarn';
 
 function App() {
   const { admin, loading } = useAuth();
+
+  useEffect(() => {
+    const handleWheel = () => {
+      if (document.activeElement && document.activeElement.type === 'number') {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
 
   if (loading) return <div>Loading...</div>;
 

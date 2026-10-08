@@ -359,6 +359,7 @@ const YogisPoints = () => {
                     step="1"
                     value={config.pointsPerOrder}
                     onChange={(e) => setConfig({ ...config, pointsPerOrder: parseInt(e.target.value, 10) || 0 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ 
                       width: '120px', 
                       padding: '10px 14px', 
@@ -393,6 +394,7 @@ const YogisPoints = () => {
                     step="1"
                     value={config.conversionPoints}
                     onChange={(e) => setConfig({ ...config, conversionPoints: parseInt(e.target.value, 10) || 1 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '90px', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '15px', fontWeight: '700', textAlign: 'center' }} 
                   />
                   <span style={{ fontWeight: '600', color: '#444' }}>Points</span>
@@ -404,6 +406,7 @@ const YogisPoints = () => {
                     step="0.01"
                     value={config.conversionRupees}
                     onChange={(e) => setConfig({ ...config, conversionRupees: parseFloat(e.target.value) || 0 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '100px', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '15px', fontWeight: '700', textAlign: 'center' }} 
                   />
                 </div>
@@ -432,6 +435,7 @@ const YogisPoints = () => {
                     step="1"
                     value={config.minimumRedeemablePoints}
                     onChange={(e) => setConfig({ ...config, minimumRedeemablePoints: parseInt(e.target.value, 10) || 0 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '100%', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', fontWeight: '600' }} 
                   />
                 </div>
@@ -445,6 +449,7 @@ const YogisPoints = () => {
                     step="1"
                     value={config.minimumCartValue}
                     onChange={(e) => setConfig({ ...config, minimumCartValue: parseFloat(e.target.value) || 0 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '100%', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', fontWeight: '600' }} 
                   />
                 </div>
@@ -481,6 +486,7 @@ const YogisPoints = () => {
                     disabled={!config.expiryEnabled}
                     value={config.expiryValue}
                     onChange={(e) => setConfig({ ...config, expiryValue: parseInt(e.target.value, 10) || 1 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '90px', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px', fontWeight: '600' }} 
                   />
                   <select 
@@ -527,6 +533,7 @@ const YogisPoints = () => {
                     disabled={!config.welcomeBonusEnabled}
                     value={config.welcomeBonusPoints}
                     onChange={(e) => setConfig({ ...config, welcomeBonusPoints: parseInt(e.target.value, 10) || 0 })}
+                    onWheel={(e) => e.target.blur()}
                     style={{ width: '120px', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '15px', fontWeight: '700', color: '#046938' }} 
                   />
                   <span style={{ fontSize: '13px', color: '#666' }}>Points on signup</span>
@@ -802,6 +809,7 @@ const YogisPoints = () => {
               placeholder="e.g. 1" 
               value={adjustForm.userId} 
               onChange={(e) => setAdjustForm({ ...adjustForm, userId: e.target.value })}
+              onWheel={(e) => e.target.blur()}
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px' }} 
             />
           </div>
@@ -817,6 +825,7 @@ const YogisPoints = () => {
               placeholder="e.g. 50 or -50" 
               value={adjustForm.points} 
               onChange={(e) => setAdjustForm({ ...adjustForm, points: e.target.value })}
+              onWheel={(e) => e.target.blur()}
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #ccc', borderRadius: '6px', fontSize: '14px' }} 
             />
           </div>
