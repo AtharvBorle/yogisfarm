@@ -310,12 +310,20 @@ async function checkRedemptionEligibility(userId, cartOfferPriceSum, couponDisco
     };
   }
 
+  let summary = null;
+  if (userId) {
+    summary = await getUserPointsSummary(userId, prismaClient);
+  }
+  const availablePoints = summary ? summary.balance : 0;
+
   if (cartOfferPriceSum < config.minimumCartValue) {
     return {
       eligible: false,
       reason: `Cart value must be at least ₹${config.minimumCartValue} to redeem Yogis Points`,
       minCartValue: config.minimumCartValue,
       currentCartValue: cartOfferPriceSum,
+      availablePoints,
+      minPoints: config.minimumRedeemablePoints,
       config
     };
   }
@@ -324,16 +332,21 @@ async function checkRedemptionEligibility(userId, cartOfferPriceSum, couponDisco
     return {
       eligible: false,
       reason: 'Please log in to redeem Yogis Points',
+      minCartValue: config.minimumCartValue,
+      currentCartValue: cartOfferPriceSum,
+      availablePoints: 0,
+      minPoints: config.minimumRedeemablePoints,
       config
     };
   }
 
-  const summary = await getUserPointsSummary(userId, prismaClient);
   if (!summary || summary.balance < config.minimumRedeemablePoints) {
     return {
       eligible: false,
       reason: `At least ${config.minimumRedeemablePoints} Yogis Points required to redeem (You have ${summary ? summary.balance : 0})`,
-      availablePoints: summary ? summary.balance : 0,
+      availablePoints,
+      minCartValue: config.minimumCartValue,
+      currentCartValue: cartOfferPriceSum,
       minPoints: config.minimumRedeemablePoints,
       config
     };

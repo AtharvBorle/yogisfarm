@@ -9,6 +9,7 @@ import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import FloatingSidebar from '../components/FloatingSidebar';
 import EarnCoinsNotice from '../components/EarnCoinsNotice';
+import RedeemPointsNotice from '../components/RedeemPointsNotice';
 import useSEO from '../hooks/useSEO';
 
 const CartBanner = () => (
@@ -58,7 +59,7 @@ const Cart = () => {
     }, []);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, loading, grandTotal, pointsEarned, pointsPerOrder } = useOrderPricing(cartItems);
+    const { subtotalBase, totalTax, shipping, loading, grandTotal, pointsEarned, pointsPerOrder, yogisPoints, offerPriceSum } = useOrderPricing(cartItems);
     const coinsReward = pointsEarned || pointsPerOrder || 0;
 
     React.useEffect(() => {
@@ -212,7 +213,10 @@ const Cart = () => {
                                     </div>
 
                                     {/* Coins Reward Notification */}
-                                    <EarnCoinsNotice coins={coinsReward} size="sm" style={{ marginBottom: '15px' }} />
+                                    <EarnCoinsNotice coins={coinsReward} size="sm" style={{ marginBottom: '10px' }} />
+
+                                    {/* Redeem Points Notice */}
+                                    <RedeemPointsNotice yogisPoints={yogisPoints} cartTotal={offerPriceSum || grandTotal} user={user} page="cart" size="sm" style={{ marginBottom: '15px' }} />
 
                                     {/* Red Checkout Button */}
                                     <button 
@@ -363,7 +367,8 @@ const Cart = () => {
                                     <span style={{ color: '#333', fontWeight: '700', fontSize: '18px' }}>Total</span>
                                     <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                                 </div>
-                                <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginBottom: '20px' }} />
+                                <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginBottom: '12px' }} />
+                                <RedeemPointsNotice yogisPoints={yogisPoints} cartTotal={offerPriceSum || grandTotal} user={user} page="cart" size="md" style={{ marginBottom: '20px' }} />
                                 <button onClick={handleCheckout} className="btn btn-checkout w-100">
                                     Proceed To Checkout
                                 </button>

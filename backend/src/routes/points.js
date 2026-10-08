@@ -19,8 +19,18 @@ router.get('/status', async (req, res) => {
       conversionRupees: config.conversionRupees,
       minimumRedeemablePoints: config.minimumRedeemablePoints,
       minimumCartValue: config.minimumCartValue,
+      minPoints: config.minimumRedeemablePoints,
+      minOrderValue: config.minimumCartValue,
       welcomeBonusEnabled: config.welcomeBonusEnabled,
-      welcomeBonusPoints: config.welcomeBonusPoints
+      welcomeBonusPoints: config.welcomeBonusPoints,
+      config: {
+        enabled: config.enabled,
+        pointsPerOrder: config.pointsPerOrder,
+        conversionPoints: config.conversionPoints,
+        conversionRupees: config.conversionRupees,
+        minimumRedeemablePoints: config.minimumRedeemablePoints,
+        minimumCartValue: config.minimumCartValue
+      }
     });
   } catch (e) {
     res.json({ status: false, message: e.message });
@@ -32,6 +42,7 @@ router.get('/my-points', requireLogin, async (req, res) => {
   try {
     const userId = req.session.userId;
     const summary = await getUserPointsSummary(userId);
+    const config = await getPointsConfig();
 
     const transactions = await prisma.yogisPointsTransaction.findMany({
       where: { userId },
@@ -51,6 +62,18 @@ router.get('/my-points', requireLogin, async (req, res) => {
     res.json({
       status: true,
       ...summary,
+      minOrderValue: config.minimumCartValue,
+      minPoints: config.minimumRedeemablePoints,
+      minimumRedeemablePoints: config.minimumRedeemablePoints,
+      minimumCartValue: config.minimumCartValue,
+      config: {
+        enabled: config.enabled,
+        pointsPerOrder: config.pointsPerOrder,
+        conversionPoints: config.conversionPoints,
+        conversionRupees: config.conversionRupees,
+        minimumRedeemablePoints: config.minimumRedeemablePoints,
+        minimumCartValue: config.minimumCartValue
+      },
       transactions: transactions.map(t => ({
         id: t.id,
         type: t.type,

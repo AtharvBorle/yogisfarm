@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
 import useSEO from '../hooks/useSEO';
 import EarnCoinsNotice from '../components/EarnCoinsNotice';
+import RedeemPointsNotice from '../components/RedeemPointsNotice';
 
 import { X, ArrowRight } from 'react-feather';
 
@@ -43,7 +44,7 @@ const Checkout = () => {
     }, [user, newAddress.name]);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, grandTotal, loading, pointsEarned, pointsPerOrder } = useOrderPricing(cartItems);
+    const { subtotalBase, totalTax, shipping, grandTotal, loading, pointsEarned, pointsPerOrder, yogisPoints, offerPriceSum } = useOrderPricing(cartItems);
     const coinsReward = pointsEarned || pointsPerOrder || 0;
 
 
@@ -220,6 +221,7 @@ const Checkout = () => {
                                 <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{loading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                             </div>
                             <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginTop: '15px' }} />
+                            <RedeemPointsNotice yogisPoints={yogisPoints} cartTotal={offerPriceSum || grandTotal} user={user} page="checkout" size="md" style={{ marginTop: '12px' }} />
                         </div>
                     </div>
 

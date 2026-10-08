@@ -689,29 +689,77 @@ const Dashboard = () => {
                                                                     Value: ₹{pointsData?.rupeeValue ?? 0}
                                                                 </div>
                                                             </div>
-                                                            {pointsData?.config && (
-                                                                <div style={{ fontSize: '12px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.25)', opacity: 0.9 }}>
-                                                                    Conversion: <strong>{pointsData.config.conversionPoints} Points = ₹{pointsData.config.conversionRupees}</strong>
-                                                                </div>
-                                                            )}
+                                                            <div style={{ fontSize: '12px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.25)', opacity: 0.95, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                                                <span>Conversion: <strong>{pointsData?.config?.conversionPoints || pointsData?.conversionRate?.points || 100} Points = ₹{pointsData?.config?.conversionRupees || pointsData?.conversionRate?.rupees || 100}</strong></span>
+                                                                {pointsData?.expiringSoon && (
+                                                                    <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>
+                                                                        {pointsData.expiringSoon.points} pts expire on {formatDate(pointsData.expiringSoon.expiresAt)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Rules / Info */}
                                                     <div className="col-lg-6">
                                                         <div style={{ background: '#f9fbf9', borderRadius: '12px', padding: '20px 24px', border: '1px solid #e2ece5', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                                            <h5 style={{ fontSize: '15px', fontWeight: '700', color: '#253D4E', marginBottom: '12px' }}>How Yogis Points Work</h5>
-                                                            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#555', lineHeight: '1.9' }}>
-                                                                {pointsData?.config?.pointsPerOrder > 0 && (
-                                                                    <li>Earn <strong>+{pointsData.config.pointsPerOrder} Points</strong> automatically on every delivered order.</li>
+                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '6px' }}>
+                                                                <h5 style={{ fontSize: '16px', fontWeight: '700', color: '#253D4E', margin: 0 }}>Redemption Rules</h5>
+                                                                <span style={{ fontSize: '11px', fontWeight: '600', color: '#046938', backgroundColor: '#DCFCE7', padding: '3px 8px', borderRadius: '12px' }}>
+                                                                    💳 Redeem on Payment Page
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Highlighted Rule Cards */}
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                                                                <div style={{ background: '#fff', border: '1px solid #D1E7DD', borderRadius: '8px', padding: '10px 12px' }}>
+                                                                    <div style={{ fontSize: '11px', color: '#667085', fontWeight: '600', textTransform: 'uppercase' }}>Min. Order Value</div>
+                                                                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#046938', marginTop: '2px' }}>
+                                                                        ₹{pointsData?.minimumCartValue || pointsData?.config?.minimumCartValue || 0}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '10px', color: '#555', marginTop: '2px' }}>Required on order</div>
+                                                                </div>
+
+                                                                <div style={{ background: '#fff', border: '1px solid #D1E7DD', borderRadius: '8px', padding: '10px 12px' }}>
+                                                                    <div style={{ fontSize: '11px', color: '#667085', fontWeight: '600', textTransform: 'uppercase' }}>Min. Points Required</div>
+                                                                    <div style={{ fontSize: '18px', fontWeight: '800', color: '#B45309', marginTop: '2px' }}>
+                                                                        {pointsData?.minimumRedeemablePoints || pointsData?.config?.minimumRedeemablePoints || 0} Pts
+                                                                    </div>
+                                                                    <div style={{ fontSize: '10px', color: '#555', marginTop: '2px' }}>Required to redeem</div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* User Eligibility Status Pill */}
+                                                            {(() => {
+                                                                const minPts = Number(pointsData?.minimumRedeemablePoints || pointsData?.config?.minimumRedeemablePoints || 0);
+                                                                const minOrd = Number(pointsData?.minimumCartValue || pointsData?.config?.minimumCartValue || 0);
+                                                                const userBal = Number(pointsData?.balance || 0);
+                                                                const hasEnoughPts = userBal >= minPts;
+
+                                                                return (
+                                                                    <div style={{ 
+                                                                        padding: '8px 12px', 
+                                                                        borderRadius: '6px', 
+                                                                        fontSize: '12px', 
+                                                                        fontWeight: '600', 
+                                                                        background: hasEnoughPts ? '#DCFCE7' : '#FEF3C7',
+                                                                        color: hasEnoughPts ? '#15803D' : '#92400E',
+                                                                        marginBottom: '10px'
+                                                                    }}>
+                                                                        {hasEnoughPts ? (
+                                                                            <span>✓ You have enough points ({userBal} Pts)! You can redeem them on any order of ₹{minOrd} or more on the Payment page.</span>
+                                                                        ) : (
+                                                                            <span>💡 You need {minPts - userBal} more points to reach the minimum redemption threshold of {minPts} points.</span>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })()}
+
+                                                            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#555', lineHeight: '1.7' }}>
+                                                                {(pointsData?.pointsPerOrder || pointsData?.config?.pointsPerOrder) > 0 && (
+                                                                    <li>Earn <strong>+{pointsData?.pointsPerOrder || pointsData?.config?.pointsPerOrder} Points</strong> automatically on every delivered order.</li>
                                                                 )}
-                                                                {pointsData?.config?.minimumRedeemablePoints > 0 && (
-                                                                    <li>Minimum <strong>{pointsData.config.minimumRedeemablePoints} Points</strong> required to redeem at checkout.</li>
-                                                                )}
-                                                                {pointsData?.config?.minimumCartValue > 0 && (
-                                                                    <li>Applicable on carts with minimum value of <strong>₹{pointsData.config.minimumCartValue}</strong>.</li>
-                                                                )}
-                                                                <li>Use all your points at checkout to receive an instant discount!</li>
+                                                                <li>Apply all your points during checkout on the <strong>Payment step</strong> for an instant deduction!</li>
                                                             </ul>
                                                         </div>
                                                     </div>

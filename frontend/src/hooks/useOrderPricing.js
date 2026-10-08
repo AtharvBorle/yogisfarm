@@ -1,22 +1,31 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 
-let cachedPointsPerOrder = null;
+let cachedPointsConfig = null;
 let pointsStatusPromise = null;
 
-const getInitialPointsPerOrder = async () => {
-  if (cachedPointsPerOrder !== null) return cachedPointsPerOrder;
+const getInitialPointsConfig = async () => {
+  if (cachedPointsConfig !== null) return cachedPointsConfig;
   if (!pointsStatusPromise) {
     pointsStatusPromise = api.get('/points/status')
       .then(res => {
-        if (res.data?.status && res.data?.enabled && res.data?.pointsPerOrder > 0) {
-          cachedPointsPerOrder = res.data.pointsPerOrder;
+        if (res.data?.status && res.data?.enabled) {
+          cachedPointsConfig = {
+            enabled: true,
+            pointsPerOrder: res.data.pointsPerOrder || 0,
+            minOrderValue: res.data.minimumCartValue || res.data.minOrderValue || 0,
+            minPoints: res.data.minimumRedeemablePoints || res.data.minPoints || 0,
+            minimumCartValue: res.data.minimumCartValue || 0,
+            minimumRedeemablePoints: res.data.minimumRedeemablePoints || 0,
+            conversionPoints: res.data.conversionPoints || 100,
+            conversionRupees: res.data.conversionRupees || 100
+          };
         } else {
-          cachedPointsPerOrder = 0;
+          cachedPointsConfig = { enabled: false, pointsPerOrder: 0, minOrderValue: 0, minPoints: 0 };
         }
-        return cachedPointsPerOrder;
+        return cachedPointsConfig;
       })
-      .catch(() => 0);
+      .catch(() => ({ enabled: false, pointsPerOrder: 0, minOrderValue: 0, minPoints: 0 }));
   }
   return pointsStatusPromise;
 };
@@ -44,22 +53,23 @@ export function useOrderPricing(cartItems, couponCode = null, useYogisPoints = f
     yogisPointsUsed: 0,
     yogisPointsDiscount: 0,
     discountType: null,
-    yogisPoints: null,
-    pointsEarned: cachedPointsPerOrder || 0,
-    pointsPerOrder: cachedPointsPerOrder || 0
+    yogisPoints: cachedPointsConfig || null,
+    pointsEarned: cachedPointsConfig?.pointsPerOrder || 0,
+    pointsPerOrder: cachedPointsConfig?.pointsPerOrder || 0
   });
   const [loading, setLoading] = useState(true);
   const [lastCalculatedCouponCode, setLastCalculatedCouponCode] = useState(null);
   const [lastCalculatedUsePoints, setLastCalculatedUsePoints] = useState(false);
 
   useEffect(() => {
-    if (cachedPointsPerOrder === null) {
-      getInitialPointsPerOrder().then(pts => {
-        if (pts > 0) {
+    if (cachedPointsConfig === null) {
+      getInitialPointsConfig().then(cfg => {
+        if (cfg) {
           setPricing(prev => ({
             ...prev,
-            pointsPerOrder: prev.pointsPerOrder || pts,
-            pointsEarned: prev.pointsEarned || pts
+            yogisPoints: prev.yogisPoints || cfg,
+            pointsPerOrder: prev.pointsPerOrder || cfg.pointsPerOrder,
+            pointsEarned: prev.pointsEarned || cfg.pointsPerOrder
           }));
         }
       });
