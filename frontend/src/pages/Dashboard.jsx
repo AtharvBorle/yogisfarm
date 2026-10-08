@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 import { ArrowLeft } from 'react-feather';
 import ReferAndEarnTab, { ReferAndEarnBottom } from '../components/ReferAndEarnTab';
+import SpinningCoin from '../components/SpinningCoin';
 
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
@@ -348,18 +349,9 @@ const Dashboard = () => {
                                     </div>
 
                                     {/* Yogi's Points Sidebar Illustration matching Figma */}
-                                    {pointsEnabled && (
+                                    {(pointsEnabled || tab === 'refer' || tab === 'points') && (
                                         <div className="d-none d-md-block" style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
-                                            <img 
-                                                src="/assets/imgs/theme/yogis-coin.png" 
-                                                alt="Yogi's Points" 
-                                                style={{ 
-                                                    width: '150px', 
-                                                    height: '150px', 
-                                                    objectFit: 'contain', 
-                                                    filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.12))' 
-                                                }} 
-                                            />
+                                            <SpinningCoin size={170} speed="4s" />
                                             <div style={{ 
                                                 fontSize: '22px', 
                                                 fontWeight: '800', 
