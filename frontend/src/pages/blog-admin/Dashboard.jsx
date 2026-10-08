@@ -160,13 +160,510 @@ const BlogAdminDashboard = () => {
     }
   };
 
+  const savedSelectionRef = useRef(null);
+
+  const saveSelection = () => {
+    try {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        if (editorRef.current && editorRef.current.contains(range.commonAncestorContainer)) {
+          savedSelectionRef.current = range.cloneRange();
+        }
+      }
+    } catch (e) {}
+  };
+
+  const restoreSelection = () => {
+    try {
+      if (savedSelectionRef.current && editorRef.current) {
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(savedSelectionRef.current);
+        }
+      }
+    } catch (e) {}
+  };
+
+  // Clean HTML pasted or imported from Microsoft Word or external documents
+  const cleanPastedHtml = (rawHtml) => {
+    if (!rawHtml) return '';
+
+    // 1. Remove comments and Office XML wrappers
+    let html = rawHtml
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<xml[\s\S]*?<\/xml>/gi, '')
+      .replace(/<o:p[\s\S]*?<\/o:p>/gi, '')
+      .replace(/<\/?o:[^>]*>/gi, '')
+      .replace(/<\/?w:[^>]*>/gi, '')
+      .replace(/<\/?m:[^>]*>/gi, '');
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const body = doc.body;
+
+    // 2. Convert Word headings (MsoHeading, MsoTitle, etc.)
+    const allParagraphs = Array.from(body.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6'));
+    allParagraphs.forEach((p) => {
+      const className = (p.getAttribute('class') || '').toLowerCase();
+      let targetTag = null;
+
+      if (className.includes('msoheading1') || className.includes('heading 1') || className.includes('msotitle')) {
+        targetTag = 'h1';
+      } else if (className.includes('msoheading2') || className.includes('heading 2') || className.includes('msosubtitle')) {
+        targetTag = 'h2';
+      } else if (className.includes('msoheading3') || className.includes('heading 3')) {
+        targetTag = 'h3';
+      } else if (className.includes('msoheading4') || className.includes('heading 4')) {
+        targetTag = 'h4';
+      } else if (className.includes('msoheading5') || className.includes('heading 5')) {
+        targetTag = 'h5';
+      } else if (className.includes('msoheading6') || className.includes('heading 6')) {
+        targetTag = 'h6';
+      }
+
+      if (targetTag && p.tagName.toLowerCase() !== targetTag) {
+        const heading = doc.createElement(targetTag);
+        heading.innerHTML = p.innerHTML;
+        p.parentNode.replaceChild(heading, p);
+      }
+    });
+
+    // 3. Convert Word list paragraphs (MsoListParagraph) into semantic <ul> / <ol> and <li>
+    const elements = Array.from(body.children);
+    let activeList = null;
+    let activeListType = null;
+
+    elements.forEach((el) => {
+      const cls = (el.getAttribute('class') || '').toLowerCase();
+      const style = (el.getAttribute('style') || '').toLowerCase();
+      const isWordList = cls.includes('msolistparagraph') || style.includes('mso-list:');
+
+      if (isWordList) {
+        const rawText = el.textContent.trim();
+        const isNumbered = /^[0-9]+[\.\)]|^[a-zA-Z][\.\)]|^[ivxIVX]+[\.\)]/.test(rawText);
+        const listType = isNumbered ? 'ol' : 'ul';
+
+        // Remove bullet or number span that Word renders
+        const spans = Array.from(el.querySelectorAll('span'));
+        for (const span of spans) {
+          const sStyle = (span.getAttribute('style') || '').toLowerCase();
+          const sText = span.textContent.trim();
+          if (sStyle.includes('mso-list:ignore') || sStyle.includes('symbol') || /^[·•o\-–—]$/.test(sText) || /^[0-9]+[\.\)]$/.test(sText)) {
+            span.parentNode.removeChild(span);
+            break;
+          }
+        }
+
+        if (!activeList || activeListType !== listType) {
+          activeList = doc.createElement(listType);
+          activeListType = listType;
+          el.parentNode.insertBefore(activeList, el);
+        }
+
+        const li = doc.createElement('li');
+        li.innerHTML = el.innerHTML.trim();
+        activeList.appendChild(li);
+        el.parentNode.removeChild(el);
+      } else {
+        activeList = null;
+        activeListType = null;
+      }
+    });
+
+    // 4. Sanitize and clean all nodes in the body
+    const cleanNode = (node) => {
+      if (node.nodeType === 1) { // Element
+        const tag = node.tagName.toLowerCase();
+
+        // Drop disallowed / harmful tags
+        if (['style', 'script', 'meta', 'link', 'xml', 'head', 'title'].includes(tag)) {
+          node.parentNode.removeChild(node);
+          return;
+        }
+
+        // Preserve class on tables, clean others
+        if (tag === 'table') {
+          node.setAttribute('class', 'blog-table');
+        } else {
+          node.removeAttribute('class');
+        }
+        node.removeAttribute('id');
+
+        // Clean styles
+        const styleAttr = node.getAttribute('style');
+        if (styleAttr) {
+          const validRules = [];
+          const rules = styleAttr.split(';').map(r => r.trim()).filter(Boolean);
+          for (const rule of rules) {
+            const colonIdx = rule.indexOf(':');
+            if (colonIdx === -1) continue;
+            const prop = rule.substring(0, colonIdx).trim().toLowerCase();
+            const val = rule.substring(colonIdx + 1).trim();
+
+            if (prop.startsWith('mso-') || prop.startsWith('-mso-') || prop.startsWith('tab-stops')) continue;
+
+            if (prop === 'color' || prop === 'background-color' || prop === 'background') {
+              const valLower = val.toLowerCase();
+              if (valLower.includes('0a6738') || valLower.includes('046938') || valLower.includes('rgb(4,') || valLower.includes('rgb(10,')) {
+                continue;
+              }
+            }
+
+            if ([
+              'color', 'background-color', 'font-weight', 'font-style', 'text-decoration',
+              'text-align', 'font-size', 'font-family', 'border', 'border-collapse',
+              'border-spacing', 'padding', 'margin', 'margin-left', 'margin-right',
+              'width', 'max-width', 'height', 'line-height', 'vertical-align'
+            ].includes(prop)) {
+              validRules.push(`${prop}: ${val}`);
+            }
+          }
+
+          if (validRules.length > 0) {
+            node.setAttribute('style', validRules.join('; '));
+          } else {
+            node.removeAttribute('style');
+          }
+        }
+
+        Array.from(node.childNodes).forEach(cleanNode);
+      }
+    };
+
+    Array.from(body.childNodes).forEach(cleanNode);
+    return body.innerHTML;
+  };
+
   // Editor command helper
   const execEditorCommand = (command, value = null) => {
     if (isHtmlMode) return;
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+    restoreSelection();
     document.execCommand(command, false, value);
+    saveSelection();
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
+  };
+
+  // Toggle Bold Helper (handles both bold and unbold reliably on normal text, headings, strong, and inline font-weight)
+  const toggleBold = () => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      document.execCommand('bold', false, null);
+      saveSelection();
+      if (editorRef.current) setContent(editorRef.current.innerHTML);
+      return;
+    }
+
+    const range = sel.getRangeAt(0);
+
+    // Check if selection is currently bold
+    let isBold = false;
+    try {
+      isBold = document.queryCommandState('bold');
+    } catch (e) {}
+
+    let anchor = sel.anchorNode;
+    const boldAncestors = [];
+    while (anchor && anchor !== editorRef.current) {
+      if (anchor.nodeType === 1) {
+        const tag = anchor.tagName.toLowerCase();
+        const fw = window.getComputedStyle(anchor).fontWeight;
+        const isFwBold = anchor.style.fontWeight === 'bold' || anchor.style.fontWeight === '700' ||
+                         fw === 'bold' || fw === '700' || parseInt(fw, 10) >= 600;
+        if (tag === 'b' || tag === 'strong' || isFwBold) {
+          isBold = true;
+          boldAncestors.push(anchor);
+        }
+      }
+      anchor = anchor.parentNode;
+    }
+
+    if (isBold) {
+      // Unbold operation
+      document.execCommand('bold', false, null);
+
+      boldAncestors.forEach(el => {
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'b' || tag === 'strong') {
+          el.style.fontWeight = 'normal';
+          const parent = el.parentNode;
+          if (parent && parent !== editorRef.current) {
+            while (el.firstChild) {
+              parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+          }
+        } else {
+          el.style.fontWeight = 'normal';
+        }
+      });
+
+      // If inside a naturally bold heading (h1-h6), wrap selection in font-weight: normal span
+      let headingEl = null;
+      let pNode = sel.anchorNode;
+      while (pNode && pNode !== editorRef.current) {
+        if (pNode.nodeType === 1 && /^h[1-6]$/i.test(pNode.tagName)) {
+          headingEl = pNode;
+          break;
+        }
+        pNode = pNode.parentNode;
+      }
+
+      if (headingEl && !range.collapsed) {
+        const contents = range.extractContents();
+        const span = document.createElement('span');
+        span.style.fontWeight = 'normal';
+        span.appendChild(contents);
+        range.insertNode(span);
+        sel.selectAllChildren(span);
+      }
+    } else {
+      // Bold operation
+      let normalSpan = null;
+      let pNode = sel.anchorNode;
+      while (pNode && pNode !== editorRef.current) {
+        if (pNode.nodeType === 1 && pNode.tagName.toLowerCase() === 'span' && pNode.style.fontWeight === 'normal') {
+          normalSpan = pNode;
+          break;
+        }
+        pNode = pNode.parentNode;
+      }
+
+      if (normalSpan) {
+        normalSpan.style.fontWeight = 'bold';
+      } else {
+        document.execCommand('bold', false, null);
+      }
+    }
+
+    saveSelection();
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // Toggle Italic Helper
+  const toggleItalic = () => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    let isItalic = false;
+    try {
+      isItalic = document.queryCommandState('italic');
+    } catch (e) {}
+
+    document.execCommand('italic', false, null);
+
+    if (isItalic) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        let curr = sel.anchorNode;
+        while (curr && curr !== editorRef.current) {
+          if (curr.nodeType === 1) {
+            const tag = curr.tagName.toLowerCase();
+            if (tag === 'i' || tag === 'em') {
+              curr.style.fontStyle = 'normal';
+              const parent = curr.parentNode;
+              if (parent && parent !== editorRef.current) {
+                while (curr.firstChild) parent.insertBefore(curr.firstChild, curr);
+                parent.removeChild(curr);
+              }
+            }
+            if (curr.style && curr.style.fontStyle === 'italic') {
+              curr.style.fontStyle = 'normal';
+            }
+          }
+          curr = curr.parentNode;
+        }
+      }
+    }
+
+    saveSelection();
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // Toggle Underline Helper
+  const toggleUnderline = () => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    let isUnderline = false;
+    try {
+      isUnderline = document.queryCommandState('underline');
+    } catch (e) {}
+
+    document.execCommand('underline', false, null);
+
+    if (isUnderline) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        let curr = sel.anchorNode;
+        while (curr && curr !== editorRef.current) {
+          if (curr.nodeType === 1) {
+            const tag = curr.tagName.toLowerCase();
+            if (tag === 'u') {
+              const parent = curr.parentNode;
+              if (parent && parent !== editorRef.current) {
+                while (curr.firstChild) parent.insertBefore(curr.firstChild, curr);
+                parent.removeChild(curr);
+              }
+            }
+            if (curr.style && curr.style.textDecoration && curr.style.textDecoration.includes('underline')) {
+              curr.style.textDecoration = 'none';
+            }
+          }
+          curr = curr.parentNode;
+        }
+      }
+    }
+
+    saveSelection();
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // Format Block Helper (Headings / Normal / Blockquote)
+  const applyFormatBlock = (tagName) => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    let success = false;
+    try {
+      success = document.execCommand('formatBlock', false, tagName);
+    } catch (e) {}
+
+    if (!success) {
+      try {
+        const wrapped = tagName.startsWith('<') ? tagName : `<${tagName}>`;
+        document.execCommand('formatBlock', false, wrapped);
+      } catch (e) {}
+    }
+
+    saveSelection();
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // Apply Font Size Helper (maps 1-7 to CSS pixel size and converts <font> to <span>)
+  const applyFontSize = (sizeVal) => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    const sizeMap = {
+      '1': '11px',
+      '2': '13px',
+      '3': '15px',
+      '4': '18px',
+      '5': '24px',
+      '6': '32px',
+      '7': '48px'
+    };
+    const pxSize = sizeMap[sizeVal] || `${sizeVal}px`;
+
+    document.execCommand('fontSize', false, sizeVal);
+
+    if (editorRef.current) {
+      const fontTags = editorRef.current.querySelectorAll('font[size]');
+      fontTags.forEach((font) => {
+        const span = document.createElement('span');
+        span.style.fontSize = pxSize;
+        span.innerHTML = font.innerHTML;
+        font.parentNode.replaceChild(span, font);
+      });
+      setContent(editorRef.current.innerHTML);
+    }
+    saveSelection();
+  };
+
+  // Apply Font Family Helper
+  const applyFontFamily = (fontFamily) => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    document.execCommand('fontName', false, fontFamily);
+
+    if (editorRef.current) {
+      const fontTags = editorRef.current.querySelectorAll('font[face]');
+      fontTags.forEach((font) => {
+        const span = document.createElement('span');
+        span.style.fontFamily = fontFamily;
+        span.innerHTML = font.innerHTML;
+        font.parentNode.replaceChild(span, font);
+      });
+      setContent(editorRef.current.innerHTML);
+    }
+    saveSelection();
+  };
+
+  // Insert Table Helper
+  const insertTable = () => {
+    if (isHtmlMode) return;
+    if (editorRef.current) editorRef.current.focus();
+    restoreSelection();
+
+    const tableHtml = `
+      <table class="blog-table" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <thead>
+          <tr>
+            <th style="border: 1px solid #D0D5DD; padding: 12px; background-color: #F8F9FA; font-weight: 600; text-align: left;">Header 1</th>
+            <th style="border: 1px solid #D0D5DD; padding: 12px; background-color: #F8F9FA; font-weight: 600; text-align: left;">Header 2</th>
+            <th style="border: 1px solid #D0D5DD; padding: 12px; background-color: #F8F9FA; font-weight: 600; text-align: left;">Header 3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 1</td>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 2</td>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 3</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 4</td>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 5</td>
+            <td style="border: 1px solid #D0D5DD; padding: 10px 12px;">Cell 6</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><br></p>
+    `;
+
+    document.execCommand('insertHTML', false, tableHtml);
+    saveSelection();
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  // Insert Link Helper
+  const handleInsertLink = () => {
+    restoreSelection();
+    const url = prompt('Enter the link URL:');
+    if (url) {
+      execEditorCommand('createLink', url);
+    }
+  };
+
+  // Insert Quote Helper
+  const insertQuote = () => {
+    applyFormatBlock('blockquote');
   };
 
   // Editor content changes
@@ -174,84 +671,39 @@ const BlogAdminDashboard = () => {
     if (editorRef.current) {
       setContent(editorRef.current.innerHTML);
     }
+    saveSelection();
   };
 
-  // Handle paste in editor to clean up pasted styles (e.g. green headings, classes, bad font-sizes)
+  // Handle paste in editor to clean up Word formatting and preserve styles
   const handleEditorPaste = (e) => {
-    // We let the browser perform the native paste operation first.
-    // This allows the browser to convert Microsoft Word stylesheets and nested clipboard elements
-    // into standard inline CSS styles (font-family, font-size, colors, bold, lists, etc.) on the elements.
+    const clipboardHtml = e.clipboardData ? e.clipboardData.getData('text/html') : '';
     
-    // We schedule a sanitize pass immediately after the paste completes.
+    if (clipboardHtml) {
+      e.preventDefault();
+      const cleaned = cleanPastedHtml(clipboardHtml);
+      if (cleaned) {
+        document.execCommand('insertHTML', false, cleaned);
+        if (editorRef.current) {
+          setContent(editorRef.current.innerHTML);
+        }
+        saveSelection();
+      }
+      return;
+    }
+
     setTimeout(() => {
       if (editorRef.current) {
-        sanitizeEditorDOM(editorRef.current);
         setContent(editorRef.current.innerHTML);
+        saveSelection();
       }
     }, 10);
   };
 
   // Walk through the editor elements to strip styles/classes that conflict with Yogi's Farms theme
   const sanitizeEditorDOM = (root) => {
-    const walk = (node) => {
-      if (node.nodeType === 1) { // Element node
-        const tagName = node.tagName.toUpperCase();
-
-        // 1. Remove class and id attributes completely so global page stylesheet rules (like .post-title or .section-title h3)
-        // do not force headings green inside the editor.
-        node.removeAttribute('class');
-        node.removeAttribute('id');
-
-        // 2. Check inline style attribute and clean specific conflicting styles (like brand green colors)
-        const styleAttr = node.getAttribute('style');
-        if (styleAttr) {
-          let styleRules = styleAttr.split(';').map(rule => rule.trim()).filter(Boolean);
-          
-          styleRules = styleRules.filter(rule => {
-            const parts = rule.split(':').map(p => p.trim());
-            if (parts.length < 2) return true;
-            const prop = parts[0].toLowerCase();
-            const val = parts[1].toLowerCase();
-
-            // Strip green color values from headings and text so they default to dark neutral color
-            if (prop === 'color') {
-              if (val.includes('green') || val.includes('0a6738') || val.includes('046938') || val.includes('rgb(4,') || val.includes('rgb(10,')) {
-                return false;
-              }
-            }
-
-            // Strip green background highlights
-            if (prop === 'background-color' || prop === 'background') {
-              if (val.includes('green') || val.includes('0a6738') || val.includes('046938') || val.includes('rgb(4,') || val.includes('rgb(10,')) {
-                return false;
-              }
-            }
-
-            return true;
-          });
-
-          if (styleRules.length > 0) {
-            node.setAttribute('style', styleRules.join('; '));
-          } else {
-            node.removeAttribute('style');
-          }
-        }
-
-        // 3. Remove pasted raw <style> tags to avoid polluting the editor
-        if (tagName === 'STYLE') {
-          node.parentNode.removeChild(node);
-          return;
-        }
-      }
-
-      // Process children
-      const children = Array.from(node.childNodes);
-      for (const child of children) {
-        walk(child);
-      }
-    };
-
-    walk(root);
+    if (!root) return;
+    const cleaned = cleanPastedHtml(root.innerHTML);
+    root.innerHTML = cleaned;
   };
 
 
@@ -309,14 +761,13 @@ const BlogAdminDashboard = () => {
         toast.success('Word document imported successfully!', { id: loadToast });
         
         // Load clean HTML into editor content state
-        const importedHtml = res.data.html;
-        setContent(importedHtml);
+        const importedHtml = res.data.html || '';
+        const cleaned = cleanPastedHtml(importedHtml);
+        setContent(cleaned);
         
         if (editorRef.current) {
-          editorRef.current.innerHTML = importedHtml;
-          // Trigger post-paste sanitizer to make sure classes and ids from Word are stripped
-          sanitizeEditorDOM(editorRef.current);
-          setContent(editorRef.current.innerHTML);
+          editorRef.current.innerHTML = cleaned;
+          saveSelection();
         }
       } else {
         toast.error(res.data.message || 'Import failed', { id: loadToast });
@@ -1724,9 +2175,9 @@ const BlogAdminDashboard = () => {
                         {/* Group 1: Undo & Clean */}
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
                           <div style={{ display: 'flex', gap: '2px' }}>
-                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('undo')} title="Undo (Ctrl+Z)">↶</button>
-                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('redo')} title="Redo (Ctrl+Y)">↷</button>
-                            <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('removeFormat')} title="Clear Formatting">🧹</button>
+                            <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('undo')} title="Undo (Ctrl+Z)">↶</button>
+                            <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('redo')} title="Redo (Ctrl+Y)">↷</button>
+                            <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('removeFormat')} title="Clear Formatting">🧹</button>
                           </div>
                           <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Undo</span>
                         </div>
@@ -1738,7 +2189,8 @@ const BlogAdminDashboard = () => {
                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                             {/* Font Select */}
                             <select 
-                              onChange={(e) => execEditorCommand('fontName', e.target.value)}
+                              onMouseDown={saveSelection}
+                              onChange={(e) => applyFontFamily(e.target.value)}
                               defaultValue="Poppins"
                               className="ribbon-select"
                               title="Font Family"
@@ -1753,7 +2205,8 @@ const BlogAdminDashboard = () => {
 
                             {/* Font Size Select */}
                             <select 
-                              onChange={(e) => execEditorCommand('fontSize', e.target.value)}
+                              onMouseDown={saveSelection}
+                              onChange={(e) => applyFontSize(e.target.value)}
                               defaultValue="3"
                               className="ribbon-select"
                               style={{ width: '60px' }}
@@ -1770,10 +2223,10 @@ const BlogAdminDashboard = () => {
 
                             {/* Stylings */}
                             <div style={{ display: 'flex', gap: '1px' }}>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('bold')} title="Bold" style={{ fontWeight: 'bold' }}>B</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('italic')} title="Italic" style={{ fontStyle: 'italic' }}>I</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('underline')} title="Underline" style={{ textDecoration: 'underline' }}>U</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('strikeThrough')} title="Strikethrough" style={{ textDecoration: 'line-through' }}>ab</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={toggleBold} title="Bold" style={{ fontWeight: 'bold' }}>B</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={toggleItalic} title="Italic" style={{ fontStyle: 'italic' }}>I</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={toggleUnderline} title="Underline" style={{ textDecoration: 'underline' }}>U</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('strikeThrough')} title="Strikethrough" style={{ textDecoration: 'line-through' }}>ab</button>
                             </div>
 
                             {/* Colors */}
@@ -1783,7 +2236,8 @@ const BlogAdminDashboard = () => {
                                 <span style={{ fontSize: '9px', color: '#667085', fontWeight: 'bold', lineHeight: '1' }}>Text</span>
                                 <input 
                                   type="color" 
-                                  onChange={(e) => execEditorCommand('foreColor', e.target.value)}
+                                  onMouseDown={saveSelection}
+                                  onInput={(e) => execEditorCommand('foreColor', e.target.value)}
                                   style={{ width: '22px', height: '14px', padding: 0, border: '1px solid #D0D5DD', cursor: 'pointer', backgroundColor: 'transparent' }}
                                   title="Font Color"
                                 />
@@ -1795,7 +2249,8 @@ const BlogAdminDashboard = () => {
                                 <input 
                                   type="color" 
                                   defaultValue="#ffff00"
-                                  onChange={(e) => execEditorCommand('hiliteColor', e.target.value)}
+                                  onMouseDown={saveSelection}
+                                  onInput={(e) => execEditorCommand('hiliteColor', e.target.value)}
                                   style={{ width: '22px', height: '14px', padding: 0, border: '1px solid #D0D5DD', cursor: 'pointer', backgroundColor: 'transparent' }}
                                   title="Text Highlight"
                                 />
@@ -1812,22 +2267,22 @@ const BlogAdminDashboard = () => {
                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                             {/* Lists */}
                             <div style={{ display: 'flex', gap: '1px' }}>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List">• List</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('insertOrderedList')} title="Numbered List">1. List</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('insertUnorderedList')} title="Bullet List">• List</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('insertOrderedList')} title="Numbered List">1. List</button>
                             </div>
 
                             {/* Indents */}
                             <div style={{ display: 'flex', gap: '1px' }}>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('outdent')} title="Decrease Indent">⇤</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('indent')} title="Increase Indent">⇥</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('outdent')} title="Decrease Indent">⇤</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('indent')} title="Increase Indent">⇥</button>
                             </div>
 
                             {/* Alignments */}
                             <div style={{ display: 'flex', gap: '1px' }}>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyLeft')} title="Align Left">Left</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyCenter')} title="Align Center">Center</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyRight')} title="Align Right">Right</button>
-                              <button type="button" className="ribbon-btn" onClick={() => execEditorCommand('justifyFull')} title="Justify">Justify</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('justifyLeft')} title="Align Left">Left</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('justifyCenter')} title="Align Center">Center</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('justifyRight')} title="Align Right">Right</button>
+                              <button type="button" className="ribbon-btn" onMouseDown={(e) => e.preventDefault()} onClick={() => execEditorCommand('justifyFull')} title="Justify">Justify</button>
                             </div>
                           </div>
                           <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Paragraph</span>
@@ -1841,7 +2296,8 @@ const BlogAdminDashboard = () => {
                             <button 
                               type="button" 
                               className="word-style-card" 
-                              onClick={() => execEditorCommand('formatBlock', '<p>')}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => applyFormatBlock('p')}
                               title="Normal Text"
                             >
                               <span style={{ fontWeight: 'normal', fontSize: '11px', color: '#333' }}>Normal</span>
@@ -1849,7 +2305,8 @@ const BlogAdminDashboard = () => {
                             <button 
                               type="button" 
                               className="word-style-card" 
-                              onClick={() => execEditorCommand('formatBlock', '<h1>')}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => applyFormatBlock('h1')}
                               style={{ borderTop: '3px solid #0056b3' }}
                               title="Heading 1"
                             >
@@ -1858,7 +2315,8 @@ const BlogAdminDashboard = () => {
                             <button 
                               type="button" 
                               className="word-style-card" 
-                              onClick={() => execEditorCommand('formatBlock', '<h2>')}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => applyFormatBlock('h2')}
                               style={{ borderTop: '3px solid #2e7d32' }}
                               title="Heading 2"
                             >
@@ -1867,11 +2325,22 @@ const BlogAdminDashboard = () => {
                             <button 
                               type="button" 
                               className="word-style-card" 
-                              onClick={() => execEditorCommand('formatBlock', '<h3>')}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => applyFormatBlock('h3')}
                               style={{ borderTop: '3px solid #c62828' }}
                               title="Heading 3"
                             >
                               <span style={{ fontWeight: 'bold', fontSize: '11px', color: '#c62828' }}>Heading 3</span>
+                            </button>
+                            <button 
+                              type="button" 
+                              className="word-style-card" 
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={insertQuote}
+                              style={{ borderTop: '3px solid #0A6738' }}
+                              title="Quote / Blockquote"
+                            >
+                              <span style={{ fontStyle: 'italic', fontSize: '11px', color: '#0A6738' }}>“ Quote</span>
                             </button>
                           </div>
                           <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Styles</span>
@@ -1885,10 +2354,8 @@ const BlogAdminDashboard = () => {
                             <button
                               type="button"
                               className="ribbon-btn"
-                              onClick={() => {
-                                const url = prompt('Enter the link URL:');
-                                if (url) execEditorCommand('createLink', url);
-                              }}
+                              onMouseDown={saveSelection}
+                              onClick={handleInsertLink}
                               title="Insert Link"
                               style={{ color: '#0288d1', fontWeight: '600' }}
                             >
@@ -1897,6 +2364,7 @@ const BlogAdminDashboard = () => {
                             <button
                               type="button"
                               className="ribbon-btn"
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => execEditorCommand('unlink')}
                               title="Remove Link"
                               style={{ color: '#d32f2f', fontWeight: '600' }}
@@ -1906,6 +2374,17 @@ const BlogAdminDashboard = () => {
                             <button
                               type="button"
                               className="ribbon-btn"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={insertTable}
+                              title="Insert Table"
+                              style={{ color: '#795548', fontWeight: '600' }}
+                            >
+                              📊 Table
+                            </button>
+                            <button
+                              type="button"
+                              className="ribbon-btn"
+                              onMouseDown={saveSelection}
                               onClick={() => fileInputRef.current && fileInputRef.current.click()}
                               title="Insert Image inside content"
                               style={{ color: '#2e7d32', fontWeight: '600' }}
@@ -1915,8 +2394,6 @@ const BlogAdminDashboard = () => {
                           </div>
                           <span style={{ fontSize: '9px', fontWeight: '600', color: '#8c95a5', textTransform: 'uppercase', marginTop: '4px', letterSpacing: '0.5px' }}>Insert</span>
                         </div>
-
-                        <div style={{ width: '1px', backgroundColor: '#D0D5DD', margin: '0 4px', alignSelf: 'stretch' }}></div>
 
                         {/* Group 6: Word Import */}
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', minHeight: '60px' }}>
@@ -1952,7 +2429,7 @@ const BlogAdminDashboard = () => {
                     </div>
                   )}
 
-                  {/* Style override to support default layouts in editor while allowing pasted inline formatting to be preserved */}
+                  {/* Style override to support rich typography and formatting in editor */}
                   <style dangerouslySetInnerHTML={{ __html: `
                     .blog-editor-content h1 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
                     .blog-editor-content h2 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
@@ -1969,36 +2446,125 @@ const BlogAdminDashboard = () => {
                       margin-bottom: 15px;
                     }
 
-                    .blog-editor-content ul {
-                      list-style-type: disc !important;
-                      padding-left: 20px !important;
-                      margin-top: 15px !important;
-                      margin-bottom: 25px !important;
+                    .blog-editor-content b, .blog-editor-content strong {
+                      font-weight: 700;
                     }
-                    .blog-editor-content ol {
-                      list-style-type: decimal !important;
-                      padding-left: 20px !important;
-                      margin-top: 15px !important;
-                      margin-bottom: 25px !important;
-                    }
-                    .blog-editor-content ul li {
-                      list-style-type: disc !important;
-                      margin-bottom: 10px;
-                      font-family: 'Poppins', sans-serif;
-                      font-size: 16px;
-                      color: #4A4A4A;
-                      line-height: 28px;
-                    }
-                    .blog-editor-content ol li {
-                      list-style-type: decimal !important;
-                      margin-bottom: 10px;
-                      font-family: 'Poppins', sans-serif;
-                      font-size: 16px;
-                      color: #4A4A4A;
-                      line-height: 28px;
-                    }
+
                     .blog-editor-content i, .blog-editor-content em {
                       font-style: italic !important;
+                    }
+
+                    .blog-editor-content u {
+                      text-decoration: underline !important;
+                    }
+
+                    .blog-editor-content s, .blog-editor-content strike {
+                      text-decoration: line-through !important;
+                    }
+
+                    .blog-editor-content sub {
+                      font-size: 75%;
+                      line-height: 0;
+                      position: relative;
+                      vertical-align: baseline;
+                      bottom: -0.25em;
+                    }
+
+                    .blog-editor-content sup {
+                      font-size: 75%;
+                      line-height: 0;
+                      position: relative;
+                      vertical-align: baseline;
+                      top: -0.5em;
+                    }
+
+                    .blog-editor-content ul {
+                      list-style-type: disc !important;
+                      padding-left: 24px !important;
+                      margin-top: 15px !important;
+                      margin-bottom: 25px !important;
+                    }
+
+                    .blog-editor-content ol {
+                      list-style-type: decimal !important;
+                      padding-left: 24px !important;
+                      margin-top: 15px !important;
+                      margin-bottom: 25px !important;
+                    }
+
+                    .blog-editor-content ul li {
+                      list-style-type: disc !important;
+                      margin-bottom: 8px;
+                      font-family: 'Poppins', sans-serif;
+                      font-size: 16px;
+                      color: #4A4A4A;
+                      line-height: 28px;
+                    }
+
+                    .blog-editor-content ol li {
+                      list-style-type: decimal !important;
+                      margin-bottom: 8px;
+                      font-family: 'Poppins', sans-serif;
+                      font-size: 16px;
+                      color: #4A4A4A;
+                      line-height: 28px;
+                    }
+
+                    /* Tables */
+                    .blog-editor-content table {
+                      width: 100% !important;
+                      border-collapse: collapse !important;
+                      margin: 20px 0 25px 0 !important;
+                      font-size: 15px;
+                      line-height: 1.6;
+                      border: 1px solid #D0D5DD !important;
+                      background-color: #ffffff;
+                    }
+
+                    .blog-editor-content th {
+                      background-color: #F8F9FA !important;
+                      color: #1a1a1a !important;
+                      font-weight: 600 !important;
+                      padding: 12px 14px !important;
+                      border: 1px solid #D0D5DD !important;
+                      text-align: left !important;
+                    }
+
+                    .blog-editor-content td {
+                      padding: 10px 14px !important;
+                      border: 1px solid #D0D5DD !important;
+                      color: #344054 !important;
+                      vertical-align: top;
+                    }
+
+                    .blog-editor-content tr:nth-child(even) td {
+                      background-color: #FCFCFD;
+                    }
+
+                    /* Blockquotes */
+                    .blog-editor-content blockquote {
+                      border-left: 4px solid #0A6738 !important;
+                      background-color: #F8F9FA !important;
+                      padding: 14px 20px !important;
+                      margin: 20px 0 !important;
+                      color: #4A4A4A !important;
+                      font-style: italic !important;
+                      border-radius: 0 6px 6px 0;
+                    }
+
+                    /* Links */
+                    .blog-editor-content a {
+                      color: #0A6738;
+                      text-decoration: underline;
+                    }
+
+                    /* Responsive Images */
+                    .blog-editor-content img {
+                      max-width: 100% !important;
+                      height: auto !important;
+                      border-radius: 8px !important;
+                      margin: 16px 0 !important;
+                      display: block;
                     }
                   `}} />
 
@@ -2010,6 +2576,10 @@ const BlogAdminDashboard = () => {
                       className="blog-editor-content"
                       onInput={handleEditorInput}
                       onPaste={handleEditorPaste}
+                      onSelect={saveSelection}
+                      onKeyUp={saveSelection}
+                      onMouseUp={saveSelection}
+                      onTouchEnd={saveSelection}
                       style={{
                         minHeight: '360px',
                         border: '1px solid #D0D5DD',
