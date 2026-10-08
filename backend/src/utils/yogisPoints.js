@@ -449,61 +449,89 @@ async function redeemPointsAtomic(userId, orderId, pointsToRedeem, discountAmoun
  * Award Yogis Points on order completion (status = 'delivered')
  */
 async function awardOrderCompletionPoints(orderId, tx = prisma) {
-  const order = await tx.order.findUnique({
-    where: { id: orderId }
-  });
+  const runner = async (client) => {
+    const order = await client.order.findUnique({
+      where: { id: orderId }
+    });
 
-  if (!order || order.pointsAwarded) return null;
+    if (!order) {
+      console.log(`[YOGIS_POINTS] awardOrderCompletionPoints: Order #${orderId} not found`);
+      return null;
+    }
+    if (order.pointsAwarded) {
+      console.log(`[YOGIS_POINTS] awardOrderCompletionPoints: Order #${order.orderNumber} points already awarded`);
+      return null;
+    }
 
-  const config = await getPointsConfig(tx);
-  if (!config.enabled || config.pointsPerOrder <= 0) return null;
+    const config = await getPointsConfig(client);
+    if (!config.enabled) {
+      console.log(`[YOGIS_POINTS] awardOrderCompletionPoints: Yogis Points is disabled globally`);
+      return null;
+    }
+    if (config.pointsPerOrder <= 0) {
+      console.log(`[YOGIS_POINTS] awardOrderCompletionPoints: pointsPerOrder is 0 or less (${config.pointsPerOrder})`);
+      return null;
+    }
+    if (!order.userId) {
+      console.log(`[YOGIS_POINTS] awardOrderCompletionPoints: Order #${order.orderNumber} has no userId`);
+      return null;
+    }
 
-  await ensureUserAccount(order.userId, tx);
+    await ensureUserAccount(order.userId, client);
 
-  // Row lock
-  await tx.$queryRawUnsafe(
-    'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
-    order.userId
-  );
+    // Row lock on account
+    await client.$queryRawUnsafe(
+      'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
+      order.userId
+    );
 
-  const expiryDate = calculateExpiryDate(config);
-  const account = await tx.yogisPointsAccount.update({
-    where: { userId: order.userId },
-    data: { balance: { increment: config.pointsPerOrder } }
-  });
+    const expiryDate = calculateExpiryDate(config);
+    const account = await client.yogisPointsAccount.update({
+      where: { userId: order.userId },
+      data: { balance: { increment: config.pointsPerOrder } }
+    });
 
-  const transaction = await tx.yogisPointsTransaction.create({
-    data: {
-      userId: order.userId,
-      type: 'ORDER_EARN',
+    const transaction = await client.yogisPointsTransaction.create({
+      data: {
+        userId: order.userId,
+        type: 'ORDER_EARN',
+        points: config.pointsPerOrder,
+        balanceAfter: account.balance,
+        orderId: order.id,
+        description: `Earned ${config.pointsPerOrder} Yogis Points on delivery of Order #${order.orderNumber}`,
+        expiresAt: expiryDate
+      }
+    });
+
+    await client.yogisPointsLot.create({
+      data: {
+        userId: order.userId,
+        transactionId: transaction.id,
+        originalPoints: config.pointsPerOrder,
+        remainingPoints: config.pointsPerOrder,
+        expiresAt: expiryDate
+      }
+    });
+
+    await client.order.update({
+      where: { id: order.id },
+      data: { pointsAwarded: true }
+    });
+
+    console.log(`[YOGIS_POINTS] Awarded ${config.pointsPerOrder} points to User #${order.userId} for Order #${order.orderNumber}. New balance: ${account.balance}`);
+
+    return {
+      awarded: true,
       points: config.pointsPerOrder,
-      balanceAfter: account.balance,
-      orderId: order.id,
-      description: `Earned ${config.pointsPerOrder} Yogis Points on delivery of Order #${order.orderNumber}`,
-      expiresAt: expiryDate
-    }
-  });
-
-  await tx.yogisPointsLot.create({
-    data: {
-      userId: order.userId,
-      transactionId: transaction.id,
-      originalPoints: config.pointsPerOrder,
-      remainingPoints: config.pointsPerOrder,
-      expiresAt: expiryDate
-    }
-  });
-
-  await tx.order.update({
-    where: { id: order.id },
-    data: { pointsAwarded: true }
-  });
-
-  return {
-    awarded: true,
-    points: config.pointsPerOrder,
-    newBalance: account.balance
+      newBalance: account.balance
+    };
   };
+
+  if (tx === prisma) {
+    return await prisma.$transaction(async (t) => runner(t));
+  } else {
+    return await runner(tx);
+  }
 }
 
 /**
@@ -512,128 +540,136 @@ async function awardOrderCompletionPoints(orderId, tx = prisma) {
  * - If order earned points: reverses credited points
  */
 async function reverseOrderPoints(orderId, tx = prisma) {
-  const order = await tx.order.findUnique({
-    where: { id: orderId }
-  });
-
-  if (!order) return null;
-
-  const config = await getPointsConfig(tx);
-  await ensureUserAccount(order.userId, tx);
-
-  // Row lock
-  await tx.$queryRawUnsafe(
-    'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
-    order.userId
-  );
-
-  const results = { restored: 0, deducted: 0 };
-
-  // 1. If points were used on this order, restore them
-  if (order.yogisPointsUsed > 0) {
-    const existingRestoration = await tx.yogisPointsTransaction.findFirst({
-      where: {
-        orderId: order.id,
-        type: 'REFUND_REVERSAL',
-        points: { gt: 0 }
-      }
+  const runner = async (client) => {
+    const order = await client.order.findUnique({
+      where: { id: orderId }
     });
 
-    if (!existingRestoration) {
-      const expiryDate = calculateExpiryDate(config);
-      const account = await tx.yogisPointsAccount.update({
-        where: { userId: order.userId },
-        data: { balance: { increment: order.yogisPointsUsed } }
-      });
+    if (!order) return null;
 
-      const restoreTx = await tx.yogisPointsTransaction.create({
-        data: {
-          userId: order.userId,
-          type: 'REFUND_REVERSAL',
-          points: order.yogisPointsUsed,
-          balanceAfter: account.balance,
-          orderId: order.id,
-          description: `Restored ${order.yogisPointsUsed} Yogis Points from cancelled/refunded Order #${order.orderNumber}`,
-          expiresAt: expiryDate
-        }
-      });
+    const config = await getPointsConfig(client);
+    await ensureUserAccount(order.userId, client);
 
-      await tx.yogisPointsLot.create({
-        data: {
-          userId: order.userId,
-          transactionId: restoreTx.id,
-          originalPoints: order.yogisPointsUsed,
-          remainingPoints: order.yogisPointsUsed,
-          expiresAt: expiryDate
-        }
-      });
+    // Row lock
+    await client.$queryRawUnsafe(
+      'SELECT * FROM "yogis_points_accounts" WHERE "user_id" = $1 FOR UPDATE',
+      order.userId
+    );
 
-      results.restored = order.yogisPointsUsed;
-    }
-  }
+    const results = { restored: 0, deducted: 0 };
 
-  // 2. If points were awarded for order completion, reverse them
-  if (order.pointsAwarded) {
-    const existingDeduction = await tx.yogisPointsTransaction.findFirst({
-      where: {
-        orderId: order.id,
-        type: 'REFUND_REVERSAL',
-        points: { lt: 0 }
-      }
-    });
-
-    if (!existingDeduction) {
-      const earnTx = await tx.yogisPointsTransaction.findFirst({
+    // 1. If points were used on this order, restore them
+    if (order.yogisPointsUsed > 0) {
+      const existingRestoration = await client.yogisPointsTransaction.findFirst({
         where: {
           orderId: order.id,
-          type: 'ORDER_EARN'
-        },
-        include: { lots: true }
-      });
-
-      const pointsToReverse = earnTx ? earnTx.points : config.pointsPerOrder;
-
-      // Cancel the remaining points in the lot created for this order
-      if (earnTx && earnTx.lots && earnTx.lots.length) {
-        for (const lot of earnTx.lots) {
-          await tx.yogisPointsLot.update({
-            where: { id: lot.id },
-            data: { remainingPoints: 0 }
-          });
-        }
-      }
-
-      const account = await tx.yogisPointsAccount.findUnique({
-        where: { userId: order.userId }
-      });
-
-      const newBalance = Math.max(0, account.balance - pointsToReverse);
-      await tx.yogisPointsAccount.update({
-        where: { userId: order.userId },
-        data: { balance: newBalance }
-      });
-
-      await tx.yogisPointsTransaction.create({
-        data: {
-          userId: order.userId,
           type: 'REFUND_REVERSAL',
-          points: -pointsToReverse,
-          balanceAfter: newBalance,
-          orderId: order.id,
-          description: `Reversed ${pointsToReverse} earned Yogis Points due to cancellation/refund of Order #${order.orderNumber}`
+          points: { gt: 0 }
         }
       });
 
-      await tx.order.update({
-        where: { id: order.id },
-        data: { pointsAwarded: false }
+      if (!existingRestoration) {
+        const expiryDate = calculateExpiryDate(config);
+        const account = await client.yogisPointsAccount.update({
+          where: { userId: order.userId },
+          data: { balance: { increment: order.yogisPointsUsed } }
+        });
+
+        const restoreTx = await client.yogisPointsTransaction.create({
+          data: {
+            userId: order.userId,
+            type: 'REFUND_REVERSAL',
+            points: order.yogisPointsUsed,
+            balanceAfter: account.balance,
+            orderId: order.id,
+            description: `Restored ${order.yogisPointsUsed} Yogis Points from cancelled/refunded Order #${order.orderNumber}`,
+            expiresAt: expiryDate
+          }
+        });
+
+        await client.yogisPointsLot.create({
+          data: {
+            userId: order.userId,
+            transactionId: restoreTx.id,
+            originalPoints: order.yogisPointsUsed,
+            remainingPoints: order.yogisPointsUsed,
+            expiresAt: expiryDate
+          }
+        });
+
+        results.restored = order.yogisPointsUsed;
+      }
+    }
+
+    // 2. If points were awarded for order completion, reverse them
+    if (order.pointsAwarded) {
+      const existingDeduction = await client.yogisPointsTransaction.findFirst({
+        where: {
+          orderId: order.id,
+          type: 'REFUND_REVERSAL',
+          points: { lt: 0 }
+        }
       });
 
-      results.deducted = pointsToReverse;
-    }
-  }
+      if (!existingDeduction) {
+        const earnTx = await client.yogisPointsTransaction.findFirst({
+          where: {
+            orderId: order.id,
+            type: 'ORDER_EARN'
+          },
+          include: { lots: true }
+        });
 
-  return results;
+        const pointsToReverse = earnTx ? earnTx.points : config.pointsPerOrder;
+
+        // Cancel the remaining points in the lot created for this order
+        if (earnTx && earnTx.lots && earnTx.lots.length) {
+          for (const lot of earnTx.lots) {
+            await client.yogisPointsLot.update({
+              where: { id: lot.id },
+              data: { remainingPoints: 0 }
+            });
+          }
+        }
+
+        const account = await client.yogisPointsAccount.findUnique({
+          where: { userId: order.userId }
+        });
+
+        const newBalance = Math.max(0, account.balance - pointsToReverse);
+        await client.yogisPointsAccount.update({
+          where: { userId: order.userId },
+          data: { balance: newBalance }
+        });
+
+        await client.yogisPointsTransaction.create({
+          data: {
+            userId: order.userId,
+            type: 'REFUND_REVERSAL',
+            points: -pointsToReverse,
+            balanceAfter: newBalance,
+            orderId: order.id,
+            description: `Reversed ${pointsToReverse} earned Yogis Points due to cancellation/refund of Order #${order.orderNumber}`
+          }
+        });
+
+        await client.order.update({
+          where: { id: order.id },
+          data: { pointsAwarded: false }
+        });
+
+        results.deducted = pointsToReverse;
+      }
+    }
+
+    return results;
+  };
+
+  if (tx === prisma) {
+    return await prisma.$transaction(async (t) => runner(t));
+  } else {
+    return await runner(tx);
+  }
 }
 
 /**

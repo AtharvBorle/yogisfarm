@@ -448,7 +448,20 @@ router.get('/', requireLogin, async (req, res) => {
       include: { items: { include: { product: { select: { slug: true, image: true } } } } },
       orderBy: { createdAt: 'desc' }
     });
-    res.json({ status: true, orders });
+
+    const earnTxs = await prisma.yogisPointsTransaction.findMany({
+      where: { userId: req.session.userId, type: 'ORDER_EARN' },
+      select: { orderId: true, points: true }
+    });
+    const earnMap = new Map();
+    earnTxs.forEach(t => { if (t.orderId) earnMap.set(t.orderId, t.points); });
+
+    const enrichedOrders = orders.map(o => ({
+      ...o,
+      pointsEarned: earnMap.get(o.id) || 0
+    }));
+
+    res.json({ status: true, orders: enrichedOrders });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -470,7 +483,14 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
     if (order.userId !== req.session.userId) return res.json({ status: false, message: 'Unauthorized' });
-    res.json({ status: true, order });
+
+    let pointsEarned = 0;
+    const earnTx = await prisma.yogisPointsTransaction.findFirst({
+      where: { orderId: order.id, type: 'ORDER_EARN' }
+    });
+    if (earnTx) pointsEarned = earnTx.points;
+
+    res.json({ status: true, order: { ...order, pointsEarned } });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -495,8 +515,14 @@ router.get('/invoice/:orderNumber', async (req, res) => {
     if (order.couponCode) {
       coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
     }
+
+    let pointsEarned = 0;
+    const earnTx = await prisma.yogisPointsTransaction.findFirst({
+      where: { orderId: order.id, type: 'ORDER_EARN' }
+    });
+    if (earnTx) pointsEarned = earnTx.points;
     
-    res.json({ status: true, order, coupon });
+    res.json({ status: true, order: { ...order, pointsEarned }, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

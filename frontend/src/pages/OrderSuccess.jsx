@@ -155,10 +155,10 @@ const OrderSuccess = () => {
                                 <span style={{ fontWeight: '600' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</span>
                             </div>
                         )}
-                        {order.pointsAwarded && (
+                        {(order.pointsAwarded || order.pointsEarned > 0) && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
                                 <span style={{ fontWeight: '600' }}>Points Earned on this Order:</span>
-                                <span style={{ fontWeight: '700' }}>+{order.pointsAwarded} Points</span>
+                                <span style={{ fontWeight: '700' }}>+{order.pointsEarned || 100} Points</span>
                             </div>
                         )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>

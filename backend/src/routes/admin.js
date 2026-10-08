@@ -836,7 +836,21 @@ router.get('/orders', requireAdmin, async (req, res) => {
       where, orderBy: { createdAt: 'desc' },
       include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true, courierPartner: true }
     });
-    res.json({ status: true, orders });
+
+    const orderIds = orders.map(o => o.id);
+    const earnTxs = await prisma.yogisPointsTransaction.findMany({
+      where: { orderId: { in: orderIds }, type: 'ORDER_EARN' },
+      select: { orderId: true, points: true }
+    });
+    const earnMap = new Map();
+    earnTxs.forEach(t => { if (t.orderId) earnMap.set(t.orderId, t.points); });
+
+    const enrichedOrders = orders.map(o => ({
+      ...o,
+      pointsEarned: earnMap.get(o.id) || 0
+    }));
+
+    res.json({ status: true, orders: enrichedOrders });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -854,7 +868,15 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
       coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
     }
     
-    res.json({ status: true, order, coupon });
+    let pointsEarned = 0;
+    if (order) {
+      const earnTx = await prisma.yogisPointsTransaction.findFirst({
+        where: { orderId: order.id, type: 'ORDER_EARN' }
+      });
+      if (earnTx) pointsEarned = earnTx.points;
+    }
+
+    res.json({ status: true, order: order ? { ...order, pointsEarned } : null, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -919,10 +941,14 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     });
 
     const { awardOrderCompletionPoints, reverseOrderPoints } = require('../utils/yogisPoints');
+    let pointsAwardedInfo = null;
 
     if (orderStatus === 'delivered') {
       try {
-        await awardOrderCompletionPoints(order.id);
+        pointsAwardedInfo = await awardOrderCompletionPoints(order.id);
+        if (pointsAwardedInfo?.awarded) {
+          console.log(`[ADMIN] Awarded ${pointsAwardedInfo.points} Yogis Points on delivery of Order #${order.orderNumber}`);
+        }
       } catch (ptsErr) {
         console.error('Error awarding Yogis Points for delivered order:', ptsErr);
       }
@@ -984,7 +1010,60 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     }
 
     await logAdminAction(req.session.adminId, 'Updated Order Status', `Order: ${order.orderNumber}, Status: ${orderStatus}`);
-    res.json({ status: true, message: 'Order status updated' });
+    res.json({
+      status: true,
+      message: pointsAwardedInfo?.awarded 
+        ? `Order marked delivered and awarded ${pointsAwardedInfo.points} Yogis Points to customer!` 
+        : 'Order status updated',
+      pointsAwarded: pointsAwardedInfo?.awarded || false,
+      pointsAwardedAmount: pointsAwardedInfo?.points || 0
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Dedicated endpoint to award completion points for a delivered order
+router.post('/orders/:id/award-points', requireAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      return res.json({ status: false, message: 'Order not found' });
+    }
+
+    if (order.orderStatus !== 'delivered') {
+      return res.json({ status: false, message: `Points can only be awarded to delivered orders (current status: ${order.orderStatus})` });
+    }
+
+    if (order.pointsAwarded) {
+      return res.json({ status: false, message: 'Points have already been awarded for this order' });
+    }
+
+    const { awardOrderCompletionPoints } = require('../utils/yogisPoints');
+    const result = await awardOrderCompletionPoints(orderId);
+
+    if (result && result.awarded) {
+      await logAdminAction(
+        req.session.adminId,
+        'Awarded Yogis Points',
+        `Awarded ${result.points} points for Order #${order.orderNumber}`
+      );
+      return res.json({
+        status: true,
+        message: `Successfully awarded ${result.points} Yogis Points to customer!`,
+        points: result.points,
+        newBalance: result.newBalance
+      });
+    } else {
+      return res.json({
+        status: false,
+        message: 'Could not award points. Please ensure Yogis Points is enabled and Points Per Order > 0 in settings.'
+      });
+    }
   } catch (e) {
     res.json({ status: false, message: e.message });
   }

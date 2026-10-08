@@ -374,6 +374,10 @@ const Order = () => {
                                     label: `Coupon Discount${selectedOrder.couponCode ? ` (${selectedOrder.couponCode})` : ''}`,
                                     value: `-₹${Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)).toFixed(0)}`
                                 }] : []),
+                                ...(selectedOrder.pointsEarned > 0 || selectedOrder.pointsAwarded ? [{
+                                    label: 'Points Awarded on Completion',
+                                    value: `+${selectedOrder.pointsEarned || 100} Points`
+                                }] : []),
                             ].map(row => (
                                 <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0' }}>
                                     <span style={{ fontWeight: '600' }}>{row.label}</span>

@@ -627,10 +627,10 @@ const Dashboard = () => {
                                                             <span>-₹{Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)).toFixed(2)}</span>
                                                         </div>
                                                     )}
-                                                    {selectedOrder.pointsAwarded && (
+                                                    {(selectedOrder.pointsEarned > 0 || selectedOrder.pointsAwarded) && (
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
                                                             <span style={{ fontWeight: '600' }}>Points Earned on this Order</span>
-                                                            <span style={{ fontWeight: '700' }}>+{selectedOrder.pointsAwarded} Points</span>
+                                                            <span style={{ fontWeight: '700' }}>+{selectedOrder.pointsEarned || pointsData?.config?.pointsPerOrder || 100} Points</span>
                                                         </div>
                                                     )}
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
