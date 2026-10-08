@@ -49,8 +49,10 @@ const SpinningCoin = ({ size = 165, speed = '4s' }) => {
                 display: 'block'
               }}
               onError={(e) => {
-                // Fallback to original user filename if needed
-                e.currentTarget.src = "/yogis_farms_coin_smooth_360_spin%202.svg";
+                if (!e.currentTarget.dataset.retried) {
+                  e.currentTarget.dataset.retried = 'true';
+                  e.currentTarget.src = "/assets/imgs/theme/yogis-coin.png";
+                }
               }}
             />
           </div>
@@ -79,7 +81,10 @@ const SpinningCoin = ({ size = 165, speed = '4s' }) => {
                 display: 'block'
               }}
               onError={(e) => {
-                e.currentTarget.src = "/yogis_farms_coin_smooth_360_spin%202.svg";
+                if (!e.currentTarget.dataset.retried) {
+                  e.currentTarget.dataset.retried = 'true';
+                  e.currentTarget.src = "/assets/imgs/theme/yogis-coin.png";
+                }
               }}
             />
           </div>

@@ -350,7 +350,7 @@ const Dashboard = () => {
 
                                     {/* Yogi's Points Sidebar Illustration matching Figma */}
                                     {(pointsEnabled || tab === 'refer' || tab === 'points') && (
-                                        <div className="d-none d-md-block" style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
+                                        <div style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
                                             <SpinningCoin size={170} speed="4s" />
                                             <div style={{ 
                                                 fontSize: '22px', 
