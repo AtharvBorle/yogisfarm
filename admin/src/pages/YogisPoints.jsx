@@ -51,6 +51,7 @@ const YogisPoints = () => {
   const [txType, setTxType] = useState('');
   const [txSearch, setTxSearch] = useState('');
   const [txPage, setTxPage] = useState(1);
+  const [txLimit, setTxLimit] = useState(10);
   const [txPagination, setTxPagination] = useState({ total: 0, totalPages: 1 });
 
   // Manual Adjustment Modal state
@@ -73,12 +74,12 @@ const YogisPoints = () => {
     }
   };
 
-  const fetchTransactions = async (page = 1) => {
+  const fetchTransactions = async (page = 1, limit = txLimit) => {
     setTxLoading(true);
     try {
       const params = new URLSearchParams();
       params.append('page', page);
-      params.append('limit', 15);
+      params.append('limit', limit);
       if (txType) params.append('type', txType);
       if (txSearch) params.append('search', txSearch);
 
@@ -604,6 +605,31 @@ const YogisPoints = () => {
           </div>
         </div>
 
+        {/* Entries Selector Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '0 4px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)' }}>
+            Show 
+            <select 
+              value={txLimit} 
+              onChange={(e) => {
+                const newLimit = parseInt(e.target.value, 10);
+                setTxLimit(newLimit);
+                fetchTransactions(1, newLimit);
+              }}
+              style={{ padding: '4px 8px', border: '1px solid var(--border)', borderRadius: '4px', background: 'var(--card-bg)', color: 'var(--text)', fontSize: '13px' }}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select> 
+            entries
+          </div>
+          <div style={{ fontSize: '13px', color: '#666' }}>
+            Showing {txPagination.total > 0 ? (txPage - 1) * txLimit + 1 : 0} to {Math.min(txPage * txLimit, txPagination.total)} of {txPagination.total} entries
+          </div>
+        </div>
+
         {/* Transactions Table */}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
@@ -691,24 +717,65 @@ const YogisPoints = () => {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Pagination Controls */}
         {txPagination.totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '20px' }}>
-            <button 
-              disabled={txPage <= 1} 
-              onClick={() => fetchTransactions(txPage - 1)}
-              style={{ padding: '6px 12px', border: '1px solid #ccc', borderRadius: '4px', background: '#fff', cursor: txPage <= 1 ? 'not-allowed' : 'pointer' }}
-            >
-              Previous
-            </button>
-            <span style={{ fontSize: '13px', color: '#666' }}>Page {txPage} of {txPagination.totalPages}</span>
-            <button 
-              disabled={txPage >= txPagination.totalPages} 
-              onClick={() => fetchTransactions(txPage + 1)}
-              style={{ padding: '6px 12px', border: '1px solid #ccc', borderRadius: '4px', background: '#fff', cursor: txPage >= txPagination.totalPages ? 'not-allowed' : 'pointer' }}
-            >
-              Next
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ fontSize: '13px', color: '#666' }}>
+              Showing {txPagination.total > 0 ? (txPage - 1) * txLimit + 1 : 0} to {Math.min(txPage * txLimit, txPagination.total)} of {txPagination.total} entries
+            </div>
+            <div style={{ display: 'flex', border: '1px solid #dee2e6', borderRadius: '4px', overflow: 'hidden' }}>
+              <button 
+                type="button"
+                disabled={txPage <= 1} 
+                onClick={() => fetchTransactions(txPage - 1, txLimit)}
+                style={{ padding: '6px 14px', background: txPage <= 1 ? '#f8f9fa' : '#fff', color: txPage <= 1 ? '#6c757d' : '#046938', border: 'none', borderRight: '1px solid #dee2e6', cursor: txPage <= 1 ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+              >
+                Prev
+              </button>
+              
+              {/* Numbered Page Buttons */}
+              {Array.from({ length: Math.min(5, txPagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (txPagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (txPage <= 3) {
+                  pageNum = i + 1;
+                } else if (txPage >= txPagination.totalPages - 2) {
+                  pageNum = txPagination.totalPages - 4 + i;
+                } else {
+                  pageNum = txPage - 2 + i;
+                }
+                
+                return (
+                  <button 
+                    key={pageNum}
+                    type="button"
+                    onClick={() => fetchTransactions(pageNum, txLimit)}
+                    style={{ 
+                      padding: '6px 12px', 
+                      background: txPage === pageNum ? '#046938' : '#fff', 
+                      color: txPage === pageNum ? '#fff' : '#046938', 
+                      border: 'none', 
+                      borderRight: '1px solid #dee2e6', 
+                      cursor: 'pointer', 
+                      fontSize: '13px',
+                      fontWeight: txPage === pageNum ? 'bold' : 'normal'
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button 
+                type="button"
+                disabled={txPage >= txPagination.totalPages} 
+                onClick={() => fetchTransactions(txPage + 1, txLimit)}
+                style={{ padding: '6px 14px', background: txPage >= txPagination.totalPages ? '#f8f9fa' : '#fff', color: txPage >= txPagination.totalPages ? '#6c757d' : '#046938', border: 'none', cursor: txPage >= txPagination.totalPages ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

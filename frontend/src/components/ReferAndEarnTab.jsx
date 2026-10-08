@@ -23,6 +23,8 @@ const ReferAndEarnTab = ({ user }) => {
   const [data, setData] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [referralPage, setReferralPage] = useState(1);
+  const referralsPerPage = 10;
 
   const fetchReferralDetails = async () => {
     setLoading(true);
@@ -573,8 +575,10 @@ const ReferAndEarnTab = ({ user }) => {
                       </td>
                     </tr>
                   ) : (
-                    summary.referrals.map((item, idx) => (
-                      <tr key={item.id || idx} style={{ borderBottom: idx < summary.referrals.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                    summary.referrals
+                      .slice((referralPage - 1) * referralsPerPage, referralPage * referralsPerPage)
+                      .map((item, idx) => (
+                      <tr key={item.id || idx} style={{ borderBottom: idx < Math.min(referralsPerPage, summary.referrals.length) - 1 ? '1px solid #f1f5f9' : 'none' }}>
                         <td style={{ padding: '14px 18px' }}>
                           <div style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b' }}>
                             {item.maskedName || 'Friend'}
@@ -618,6 +622,67 @@ const ReferAndEarnTab = ({ user }) => {
               </table>
             </div>
           </div>
+
+          {/* Pagination Controls */}
+          {summary.referrals.length > referralsPerPage && (() => {
+            const totalReferralPages = Math.ceil(summary.referrals.length / referralsPerPage);
+            return (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ fontSize: '13px', color: '#64748b' }}>
+                  Showing {(referralPage - 1) * referralsPerPage + 1} to {Math.min(referralPage * referralsPerPage, summary.referrals.length)} of {summary.referrals.length} referrals
+                </div>
+                <div style={{ display: 'flex', border: '1px solid #dee2e6', borderRadius: '4px', overflow: 'hidden' }}>
+                  <button 
+                    type="button" 
+                    disabled={referralPage <= 1} 
+                    onClick={() => setReferralPage(p => p - 1)}
+                    style={{ padding: '6px 14px', background: referralPage <= 1 ? '#f8f9fa' : '#fff', color: referralPage <= 1 ? '#6c757d' : '#046938', border: 'none', borderRight: '1px solid #dee2e6', cursor: referralPage <= 1 ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+                  >
+                    Prev
+                  </button>
+                  {Array.from({ length: Math.min(5, totalReferralPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalReferralPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (referralPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (referralPage >= totalReferralPages - 2) {
+                      pageNum = totalReferralPages - 4 + i;
+                    } else {
+                      pageNum = referralPage - 2 + i;
+                    }
+                    return (
+                      <button 
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setReferralPage(pageNum)}
+                        style={{ 
+                          padding: '6px 12px', 
+                          background: referralPage === pageNum ? '#046938' : '#fff', 
+                          color: referralPage === pageNum ? '#fff' : '#046938', 
+                          border: 'none', 
+                          borderRight: '1px solid #dee2e6', 
+                          cursor: 'pointer', 
+                          fontSize: '13px',
+                          fontWeight: referralPage === pageNum ? 'bold' : 'normal'
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button 
+                    type="button" 
+                    disabled={referralPage >= totalReferralPages} 
+                    onClick={() => setReferralPage(p => p + 1)}
+                    style={{ padding: '6px 14px', background: referralPage >= totalReferralPages ? '#f8f9fa' : '#fff', color: referralPage >= totalReferralPages ? '#6c757d' : '#046938', border: 'none', cursor: referralPage >= totalReferralPages ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           <p style={{
             fontSize: '11px',

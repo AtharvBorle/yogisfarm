@@ -38,6 +38,8 @@ const Dashboard = () => {
     const [pointsEnabled, setPointsEnabled] = useState(false);
     const [referralEnabled, setReferralEnabled] = useState(false);
     const [loadingPoints, setLoadingPoints] = useState(false);
+    const [pointsPage, setPointsPage] = useState(1);
+    const pointsPerPage = 10;
 
     const fetchPoints = async () => {
         setLoadingPoints(true);
@@ -719,7 +721,9 @@ const Dashboard = () => {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
-                                                                    {pointsData.transactions.map(tx => {
+                                                                    {pointsData.transactions
+                                                                        .slice((pointsPage - 1) * pointsPerPage, pointsPage * pointsPerPage)
+                                                                        .map(tx => {
                                                                         const tb = pointsTypeBadge(tx.type);
                                                                         const isPositive = tx.points > 0;
                                                                         return (
@@ -756,6 +760,67 @@ const Dashboard = () => {
                                                             </table>
                                                         </div>
                                                     )}
+
+                                                    {/* Pagination Controls */}
+                                                    {pointsData?.transactions?.length > pointsPerPage && (() => {
+                                                        const totalPointsPages = Math.ceil(pointsData.transactions.length / pointsPerPage);
+                                                        return (
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                                    Showing {(pointsPage - 1) * pointsPerPage + 1} to {Math.min(pointsPage * pointsPerPage, pointsData.transactions.length)} of {pointsData.transactions.length} entries
+                                                                </div>
+                                                                <div style={{ display: 'flex', border: '1px solid #dee2e6', borderRadius: '4px', overflow: 'hidden' }}>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        disabled={pointsPage <= 1} 
+                                                                        onClick={() => setPointsPage(p => p - 1)}
+                                                                        style={{ padding: '6px 14px', background: pointsPage <= 1 ? '#f8f9fa' : '#fff', color: pointsPage <= 1 ? '#6c757d' : '#046938', border: 'none', borderRight: '1px solid #dee2e6', cursor: pointsPage <= 1 ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+                                                                    >
+                                                                        Prev
+                                                                    </button>
+                                                                    {Array.from({ length: Math.min(5, totalPointsPages) }, (_, i) => {
+                                                                        let pageNum;
+                                                                        if (totalPointsPages <= 5) {
+                                                                            pageNum = i + 1;
+                                                                        } else if (pointsPage <= 3) {
+                                                                            pageNum = i + 1;
+                                                                        } else if (pointsPage >= totalPointsPages - 2) {
+                                                                            pageNum = totalPointsPages - 4 + i;
+                                                                        } else {
+                                                                            pageNum = pointsPage - 2 + i;
+                                                                        }
+                                                                        return (
+                                                                            <button 
+                                                                                key={pageNum}
+                                                                                type="button"
+                                                                                onClick={() => setPointsPage(pageNum)}
+                                                                                style={{ 
+                                                                                    padding: '6px 12px', 
+                                                                                    background: pointsPage === pageNum ? '#046938' : '#fff', 
+                                                                                    color: pointsPage === pageNum ? '#fff' : '#046938', 
+                                                                                    border: 'none', 
+                                                                                    borderRight: '1px solid #dee2e6', 
+                                                                                    cursor: 'pointer', 
+                                                                                    fontSize: '13px',
+                                                                                    fontWeight: pointsPage === pageNum ? 'bold' : 'normal'
+                                                                                }}
+                                                                            >
+                                                                                {pageNum}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                    <button 
+                                                                        type="button" 
+                                                                        disabled={pointsPage >= totalPointsPages} 
+                                                                        onClick={() => setPointsPage(p => p + 1)}
+                                                                        style={{ padding: '6px 14px', background: pointsPage >= totalPointsPages ? '#f8f9fa' : '#fff', color: pointsPage >= totalPointsPages ? '#6c757d' : '#046938', border: 'none', cursor: pointsPage >= totalPointsPages ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+                                                                    >
+                                                                        Next
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
 
                                                     {/* Responsive Mobile / Tablet: Spinning Coin below Yogis Points History Table */}
                                                     <div className="yogis-coin-mobile-section" style={{ textAlign: 'center', marginTop: '30px', padding: '10px 0' }}>

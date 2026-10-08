@@ -41,6 +41,7 @@ const ReferAndEarn = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
 
   const fetchConfig = async () => {
@@ -58,12 +59,12 @@ const ReferAndEarn = () => {
     }
   };
 
-  const fetchHistory = async (pageNum = 1) => {
+  const fetchHistory = async (pageNum = 1, currentLimit = limit) => {
     setHistoryLoading(true);
     try {
       const params = new URLSearchParams();
       params.append('page', pageNum);
-      params.append('limit', 15);
+      params.append('limit', currentLimit);
       if (search) params.append('search', search);
 
       const res = await api.get(`/refer-and-earn/history?${params.toString()}`);
@@ -465,6 +466,31 @@ const ReferAndEarn = () => {
           </div>
         </div>
 
+        {/* Entries Selector Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '0 4px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)' }}>
+            Show 
+            <select 
+              value={limit} 
+              onChange={(e) => {
+                const newLimit = parseInt(e.target.value, 10);
+                setLimit(newLimit);
+                fetchHistory(1, newLimit);
+              }}
+              style={{ padding: '4px 8px', border: '1px solid var(--border, #ddd)', borderRadius: '4px', background: 'var(--card-bg, #fff)', color: 'var(--text, #333)', fontSize: '13px' }}
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select> 
+            entries
+          </div>
+          <div style={{ fontSize: '13px', color: '#666' }}>
+            Showing {pagination.total > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination.total)} of {pagination.total} entries
+          </div>
+        </div>
+
         {/* History Table */}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
@@ -558,38 +584,63 @@ const ReferAndEarn = () => {
 
         {/* Pagination Controls */}
         {pagination.totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginTop: '20px' }}>
-            <button 
-              type="button" 
-              disabled={page <= 1}
-              onClick={() => fetchHistory(page - 1)}
-              style={{ 
-                padding: '6px 12px', 
-                borderRadius: '6px', 
-                border: '1px solid #ddd', 
-                background: page <= 1 ? '#f5f5f5' : '#fff', 
-                cursor: page <= 1 ? 'not-allowed' : 'pointer' 
-              }}
-            >
-              Prev
-            </button>
-            <span style={{ fontSize: '13px', color: '#666' }}>
-              Page {page} of {pagination.totalPages}
-            </span>
-            <button 
-              type="button" 
-              disabled={page >= pagination.totalPages}
-              onClick={() => fetchHistory(page + 1)}
-              style={{ 
-                padding: '6px 12px', 
-                borderRadius: '6px', 
-                border: '1px solid #ddd', 
-                background: page >= pagination.totalPages ? '#f5f5f5' : '#fff', 
-                cursor: page >= pagination.totalPages ? 'not-allowed' : 'pointer' 
-              }}
-            >
-              Next
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ fontSize: '13px', color: '#666' }}>
+              Showing {pagination.total > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, pagination.total)} of {pagination.total} entries
+            </div>
+            <div style={{ display: 'flex', border: '1px solid #dee2e6', borderRadius: '4px', overflow: 'hidden' }}>
+              <button 
+                type="button" 
+                disabled={page <= 1} 
+                onClick={() => fetchHistory(page - 1, limit)}
+                style={{ padding: '6px 14px', background: page <= 1 ? '#f8f9fa' : '#fff', color: page <= 1 ? '#6c757d' : '#046938', border: 'none', borderRight: '1px solid #dee2e6', cursor: page <= 1 ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+              >
+                Prev
+              </button>
+              
+              {/* Numbered Page Buttons */}
+              {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (pagination.totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (page <= 3) {
+                  pageNum = i + 1;
+                } else if (page >= pagination.totalPages - 2) {
+                  pageNum = pagination.totalPages - 4 + i;
+                } else {
+                  pageNum = page - 2 + i;
+                }
+                
+                return (
+                  <button 
+                    key={pageNum}
+                    type="button"
+                    onClick={() => fetchHistory(pageNum, limit)}
+                    style={{ 
+                      padding: '6px 12px', 
+                      background: page === pageNum ? '#046938' : '#fff', 
+                      color: page === pageNum ? '#fff' : '#046938', 
+                      border: 'none', 
+                      borderRight: '1px solid #dee2e6', 
+                      cursor: 'pointer', 
+                      fontSize: '13px',
+                      fontWeight: page === pageNum ? 'bold' : 'normal'
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button 
+                type="button" 
+                disabled={page >= pagination.totalPages} 
+                onClick={() => fetchHistory(page + 1, limit)}
+                style={{ padding: '6px 14px', background: page >= pagination.totalPages ? '#f8f9fa' : '#fff', color: page >= pagination.totalPages ? '#6c757d' : '#046938', border: 'none', cursor: page >= pagination.totalPages ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: '500' }}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
