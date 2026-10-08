@@ -22,7 +22,6 @@ const ReferAndEarnTab = ({ user }) => {
   const [data, setData] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   const fetchReferralDetails = async () => {
     setLoading(true);
@@ -123,29 +122,6 @@ const ReferAndEarnTab = ({ user }) => {
       handleCopyCode();
     }
   };
-
-  const toggleFaq = (index) => {
-    setOpenFaqIndex(prev => prev === index ? null : index);
-  };
-
-  const faqs = [
-    {
-      q: "My friend ordered. Why is my reward pending?",
-      a: "A delivered order still needs to complete its return window. Your activity updates once it qualifies. If it stays pending, contact us with your referral code."
-    },
-    {
-      q: "Can my friend use the code without the link?",
-      a: "Yes! Your friend can simply enter your unique referral code in the referral box during signup to claim their bonus points."
-    },
-    {
-      q: "What happens if an order is cancelled or returned?",
-      a: "If a referred customer order is cancelled or returned, the points benefit associated with that specific order is not eligible."
-    },
-    {
-      q: "Where do I apply my referral credit?",
-      a: "Your earned Yogi's Points can be redeemed at checkout for an instant platform discount on your orders whenever you meet the redemption threshold."
-    }
-  ];
 
   if (loading) {
     return (
@@ -653,17 +629,49 @@ const ReferAndEarnTab = ({ user }) => {
         </div>
       </div>
 
+    </div>
+  );
+};
+
+export const ReferAndEarnBottom = () => {
+  const [openFaqIndex, setOpenFaqIndex] = useState(0);
+
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(prev => prev === index ? null : index);
+  };
+
+  const faqs = [
+    {
+      q: "My friend ordered. Why is my reward pending?",
+      a: "A delivered order still needs to complete its return window. Your activity updates once it qualifies. If it stays pending, contact us with your referral code."
+    },
+    {
+      q: "Can my friend use the code without the link?",
+      a: "Yes! Your friend can simply enter your unique referral code in the referral box during signup to claim their bonus points."
+    },
+    {
+      q: "What happens if an order is cancelled or returned?",
+      a: "If a referred customer order is cancelled or returned, the points benefit associated with that specific order is not eligible."
+    },
+    {
+      q: "Where do I apply my referral credit?",
+      a: "Your earned Yogi's Points can be redeemed at checkout for an instant platform discount on your orders whenever you meet the redemption threshold."
+    }
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       {/* ─── Informative Yellow/Mint Banner ─── */}
       <div style={{
         background: '#ecfdf5',
         border: '1px solid #bbf7d0',
         borderRadius: '10px',
-        padding: '12px 18px',
+        padding: '14px 20px',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         color: '#166534',
-        fontSize: '12px',
+        fontSize: '13px',
         lineHeight: '1.5'
       }}>
         <Info size={18} color="#166534" style={{ flexShrink: 0 }} />
@@ -684,65 +692,65 @@ const ReferAndEarnTab = ({ user }) => {
           background: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #eaeaea',
-          padding: '24px',
+          padding: '28px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between'
         }}>
           <div>
-            <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#1e293b', margin: '0 0 4px 0' }}>
+            <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b', margin: '0 0 6px 0' }}>
               Good to know, before you share
             </h4>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 20px 0' }}>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
               Simple, transparent example terms. No hidden fine print.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <CheckCircle size={16} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <CheckCircle size={17} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
+                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
                     For new customers
                   </strong>
-                  <span style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.5' }}>
                     Your friend must be new to Yogi's Farms and use your link or code before paying. One referral benefit per customer; no self-referrals.
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <CheckCircle size={16} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <CheckCircle size={17} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
+                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
                     A qualifying first order
                   </strong>
-                  <span style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.5' }}>
                     Example minimum: ₹999 in product value, excluding delivery fees. The order must be paid, delivered and not cancelled or returned.
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <CheckCircle size={16} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <CheckCircle size={17} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
+                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
                     When your reward is ready
                   </strong>
-                  <span style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.5' }}>
                     Example: ₹100 store credit becomes available after delivery plus a 14-day return window. Cancelled or returned orders do not earn credit.
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <CheckCircle size={16} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <CheckCircle size={17} color="#046938" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
+                  <strong style={{ fontSize: '14px', color: '#1e293b', display: 'block', marginBottom: '2px' }}>
                     Using your credit
                   </strong>
-                  <span style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748b', lineHeight: '1.5' }}>
                     Example: credit expires in 90 days. Apply up to ₹100 on an order of ₹999 or more; no cash withdrawal or stacking with other offers.
                   </span>
                 </div>
@@ -751,20 +759,20 @@ const ReferAndEarnTab = ({ user }) => {
             </div>
           </div>
 
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ marginTop: '26px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
             <Link 
               to="/terms" 
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: '700',
                 color: '#046938',
                 textDecoration: 'none'
               }}
             >
-              Read full referral terms <ExternalLink size={13} />
+              Read full referral terms <ExternalLink size={14} />
             </Link>
           </div>
         </div>
@@ -774,21 +782,21 @@ const ReferAndEarnTab = ({ user }) => {
           background: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #eaeaea',
-          padding: '24px',
+          padding: '28px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between'
         }}>
           <div>
-            <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#1e293b', margin: '0 0 4px 0' }}>
+            <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b', margin: '0 0 6px 0' }}>
               A few things you might wonder
             </h4>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 20px 0' }}>
+            <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 24px 0' }}>
               Help with invites, qualifying orders and rewards.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {faqs.map((faq, i) => {
                 const isOpen = openFaqIndex === i;
                 return (
@@ -805,7 +813,7 @@ const ReferAndEarnTab = ({ user }) => {
                       onClick={() => toggleFaq(i)}
                       style={{
                         width: '100%',
-                        padding: '12px 14px',
+                        padding: '13px 16px',
                         background: isOpen ? '#f8fafc' : '#ffffff',
                         border: 'none',
                         textAlign: 'left',
@@ -813,7 +821,7 @@ const ReferAndEarnTab = ({ user }) => {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        fontSize: '13px',
+                        fontSize: '13.5px',
                         fontWeight: '700',
                         color: '#1e293b'
                       }}
@@ -825,10 +833,10 @@ const ReferAndEarnTab = ({ user }) => {
                     </button>
                     {isOpen && (
                       <div style={{
-                        padding: '12px 14px',
+                        padding: '12px 16px',
                         background: '#ffffff',
                         borderTop: '1px solid #f1f5f9',
-                        fontSize: '12px',
+                        fontSize: '12.5px',
                         color: '#64748b',
                         lineHeight: '1.5'
                       }}>
@@ -843,11 +851,11 @@ const ReferAndEarnTab = ({ user }) => {
 
           {/* Need a hand banner */}
           <div style={{
-            marginTop: '24px',
+            marginTop: '26px',
             background: '#f4f8f3',
             border: '1px solid #dbeef0',
             borderRadius: '10px',
-            padding: '12px 16px',
+            padding: '14px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -855,12 +863,12 @@ const ReferAndEarnTab = ({ user }) => {
             gap: '12px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Headphones size={20} color="#046938" />
+              <Headphones size={22} color="#046938" />
               <div>
                 <strong style={{ fontSize: '13px', color: '#1e293b', display: 'block' }}>
                   Need a hand? We're here.
                 </strong>
-                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                <span style={{ fontSize: '11.5px', color: '#64748b' }}>
                   info@yogisfarms.com
                 </span>
               </div>
@@ -873,7 +881,7 @@ const ReferAndEarnTab = ({ user }) => {
                 color: '#1e293b',
                 border: '1px solid #cbd5e1',
                 borderRadius: '6px',
-                padding: '6px 14px',
+                padding: '7px 16px',
                 fontSize: '12px',
                 fontWeight: '700',
                 textDecoration: 'none'
@@ -885,7 +893,6 @@ const ReferAndEarnTab = ({ user }) => {
         </div>
 
       </div>
-
     </div>
   );
 };

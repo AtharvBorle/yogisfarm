@@ -7,7 +7,7 @@ import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 
 import { ArrowLeft } from 'react-feather';
-import ReferAndEarnTab from '../components/ReferAndEarnTab';
+import ReferAndEarnTab, { ReferAndEarnBottom } from '../components/ReferAndEarnTab';
 
 const Dashboard = () => {
     const { user, logout, loading: authLoading } = useAuth();
@@ -910,6 +910,15 @@ const Dashboard = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {/* Full-width bottom section for Refer & Earn aligned with sidebar */}
+                            {tab === 'refer' && pointsEnabled && referralEnabled && (
+                                <div className="row mt-4">
+                                    <div className="col-12">
+                                        <ReferAndEarnBottom />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
