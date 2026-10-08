@@ -488,7 +488,15 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
     const earnTx = await prisma.yogisPointsTransaction.findFirst({
       where: { orderId: order.id, type: 'ORDER_EARN' }
     });
-    if (earnTx) pointsEarned = earnTx.points;
+    if (earnTx) {
+      pointsEarned = earnTx.points;
+    } else if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'failed') {
+      const { getPointsConfig } = require('../utils/yogisPoints');
+      const pointsConfig = await getPointsConfig();
+      if (pointsConfig.enabled && pointsConfig.pointsPerOrder > 0) {
+        pointsEarned = pointsConfig.pointsPerOrder;
+      }
+    }
 
     res.json({ status: true, order: { ...order, pointsEarned } });
   } catch (e) {
@@ -520,7 +528,15 @@ router.get('/invoice/:orderNumber', async (req, res) => {
     const earnTx = await prisma.yogisPointsTransaction.findFirst({
       where: { orderId: order.id, type: 'ORDER_EARN' }
     });
-    if (earnTx) pointsEarned = earnTx.points;
+    if (earnTx) {
+      pointsEarned = earnTx.points;
+    } else if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'failed') {
+      const { getPointsConfig } = require('../utils/yogisPoints');
+      const pointsConfig = await getPointsConfig();
+      if (pointsConfig.enabled && pointsConfig.pointsPerOrder > 0) {
+        pointsEarned = pointsConfig.pointsPerOrder;
+      }
+    }
     
     res.json({ status: true, order: { ...order, pointsEarned }, coupon });
   } catch (e) {

@@ -7,6 +7,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
+import EarnCoinsNotice from '../components/EarnCoinsNotice';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -47,8 +48,11 @@ const Payment = () => {
         yogisPointsUsed, 
         yogisPointsDiscount, 
         yogisPoints, 
+        pointsEarned,
+        pointsPerOrder,
         loading: pricingLoading 
     } = useOrderPricing(cartItems, appliedCoupon, useYogisPoints);
+    const coinsReward = pointsEarned || pointsPerOrder || 0;
 
     // Auto-uncheck points if eligibility criteria becomes unmet
     useEffect(() => {
@@ -303,6 +307,7 @@ const Payment = () => {
                                 <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>
                                 <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{pricingLoading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                             </div>
+                            <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginTop: '15px' }} />
                         </div>
                     </div>
 

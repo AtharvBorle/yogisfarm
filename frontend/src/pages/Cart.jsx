@@ -8,6 +8,7 @@ import { useOrderPricing } from '../hooks/useOrderPricing';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import FloatingSidebar from '../components/FloatingSidebar';
+import EarnCoinsNotice from '../components/EarnCoinsNotice';
 import useSEO from '../hooks/useSEO';
 
 const CartBanner = () => (
@@ -57,7 +58,8 @@ const Cart = () => {
     }, []);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, loading, grandTotal } = useOrderPricing(cartItems);
+    const { subtotalBase, totalTax, shipping, loading, grandTotal, pointsEarned, pointsPerOrder } = useOrderPricing(cartItems);
+    const coinsReward = pointsEarned || pointsPerOrder || 0;
 
     React.useEffect(() => {
         api.get('/products?popular=true&limit=4').then(res => {
@@ -202,12 +204,15 @@ const Cart = () => {
                                     <div style={{ height: '1px', background: '#D5D5D5', margin: '15px 0' }} />
 
                                     {/* Total Row */}
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>Total</span>
                                         <span style={{ color: '#000', fontFamily: 'Poppins, sans-serif', fontSize: '11px', fontWeight: '700' }}>
                                             ₹{loading ? '...' : (grandTotal || 0).toFixed(0)}
                                         </span>
                                     </div>
+
+                                    {/* Coins Reward Notification */}
+                                    <EarnCoinsNotice coins={coinsReward} size="sm" style={{ marginBottom: '15px' }} />
 
                                     {/* Red Checkout Button */}
                                     <button 
@@ -354,10 +359,11 @@ const Cart = () => {
                                     <span style={{ color: '#0A6738', fontWeight: '600' }}>{loading ? '...' : (shipping === 0 ? 'Free' : `₹${(shipping || 0).toFixed(2)}`)}</span>
                                 </div>
                                 <div style={{ height: '1px', background: '#eee', margin: '20px 0' }}></div>
-                                <div className="d-flex justify-content-between mb-30">
+                                <div className="d-flex justify-content-between mb-20">
                                     <span style={{ color: '#333', fontWeight: '700', fontSize: '18px' }}>Total</span>
                                     <span style={{ color: '#0A6738', fontWeight: '700', fontSize: '18px' }}>₹{loading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                                 </div>
+                                <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginBottom: '20px' }} />
                                 <button onClick={handleCheckout} className="btn btn-checkout w-100">
                                     Proceed To Checkout
                                 </button>

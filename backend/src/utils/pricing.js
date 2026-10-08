@@ -301,7 +301,7 @@ async function evaluateCouponForCart(coupon, cartItems, identifier, type, offerP
  * @returns {Object} Calculated pricing details
  */
 async function calculateOrderTotals(identifier, type = 'userId', couponCode = null, useYogisPoints = false) {
-  const { checkRedemptionEligibility } = require('./yogisPoints');
+  const { checkRedemptionEligibility, getPointsConfig } = require('./yogisPoints');
 
   // 1. Fetch cart with product tax & HSN info
   const whereClause = type === 'userId' ? { userId: identifier } : { sessionId: identifier };
@@ -370,30 +370,39 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   }
 
   // 4. Calculate Yogis Points eligibility & discount (Platform Discount)
+  const pointsConfig = await getPointsConfig();
+  const isPointsEnabled = Boolean(pointsConfig && pointsConfig.enabled);
+  const configuredPointsPerOrder = (isPointsEnabled && pointsConfig.pointsPerOrder > 0) ? pointsConfig.pointsPerOrder : 0;
+
   let yogisPointsInfo = {
-    enabled: false,
+    enabled: isPointsEnabled,
+    pointsPerOrder: configuredPointsPerOrder,
+    pointsEarned: configuredPointsPerOrder,
     eligible: false,
     availablePoints: 0,
     potentialPointsToUse: 0,
     potentialPointsDiscount: 0,
-    perPointValue: 1,
+    perPointValue: pointsConfig ? (pointsConfig.conversionRupees / pointsConfig.conversionPoints) : 1,
     applied: false,
     pointsToUse: 0,
     pointsDiscount: 0
   };
 
-  if (type === 'userId') {
+  if (type === 'userId' && isPointsEnabled) {
     try {
       const eligibility = await checkRedemptionEligibility(identifier, offerPriceSum, discountAmount);
       if (eligibility) {
         yogisPointsInfo = {
-          enabled: eligibility.config ? eligibility.config.enabled : false,
+          ...yogisPointsInfo,
+          enabled: eligibility.config ? eligibility.config.enabled : isPointsEnabled,
+          pointsPerOrder: configuredPointsPerOrder,
+          pointsEarned: configuredPointsPerOrder,
           eligible: eligibility.eligible,
           reason: eligibility.reason || null,
           availablePoints: eligibility.availablePoints || 0,
           potentialPointsToUse: eligibility.pointsToUse || 0,
           potentialPointsDiscount: eligibility.pointsDiscount || 0,
-          perPointValue: eligibility.perPointValue || 1,
+          perPointValue: eligibility.perPointValue || yogisPointsInfo.perPointValue,
           applied: false,
           pointsToUse: 0,
           pointsDiscount: 0
@@ -541,6 +550,8 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     yogisPointsDiscount: totalYogisPointsDiscount,
     discountType,
     yogisPoints: yogisPointsInfo,
+    pointsPerOrder: configuredPointsPerOrder,
+    pointsEarned: configuredPointsPerOrder,
     shipping: shippingTotal,
     shippingTotal,
     shippingTaxable,

@@ -460,10 +460,10 @@ const OrderDetail = () => {
                             <span>{row.value}</span>
                         </div>
                     ))}
-                    {(order.pointsEarned > 0 || order.pointsAwarded) && (
+                    {(Number(order.pointsEarned) > 0 || order.pointsAwarded) && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)', color: '#28a745' }}>
                             <span style={{ fontWeight: '600' }}>Points Awarded on Completion</span>
-                            <span style={{ fontWeight: '700' }}>+{order.pointsEarned || 100} Points</span>
+                            <span style={{ fontWeight: '700' }}>+{order.pointsEarned} Points</span>
                         </div>
                     )}
                     {order.orderStatus === 'delivered' && !order.pointsAwarded && (

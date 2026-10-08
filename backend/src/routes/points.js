@@ -14,6 +14,7 @@ router.get('/status', async (req, res) => {
     res.json({
       status: true,
       enabled: config.enabled,
+      pointsPerOrder: config.enabled ? (config.pointsPerOrder || 0) : 0,
       conversionPoints: config.conversionPoints,
       conversionRupees: config.conversionRupees,
       minimumRedeemablePoints: config.minimumRedeemablePoints,
