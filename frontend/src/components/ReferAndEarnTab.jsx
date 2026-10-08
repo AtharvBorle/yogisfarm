@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Link as LinkIcon
 } from 'lucide-react';
+import SpinningCoin from './SpinningCoin';
 
 const ReferAndEarnTab = ({ user }) => {
   const [loading, setLoading] = useState(true);
@@ -626,6 +627,20 @@ const ReferAndEarnTab = ({ user }) => {
           }}>
             Sample link and history shown for preview. Illustrative coin amounts are shown for preview only and match the example conditions on this page.
           </p>
+
+          {/* Responsive Mobile / Tablet: Spinning Coin below Referral History Table */}
+          <div className="yogis-coin-mobile-section" style={{ textAlign: 'center', marginTop: '30px', padding: '10px 0' }}>
+            <SpinningCoin size={150} speed="4s" />
+            <div style={{ 
+              fontSize: '20px', 
+              fontWeight: '800', 
+              color: '#966023', 
+              marginTop: '10px',
+              letterSpacing: '0.5px'
+            }}>
+              Yogi's Points
+            </div>
+          </div>
         </div>
       </div>
 

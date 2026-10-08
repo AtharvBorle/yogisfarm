@@ -322,6 +322,22 @@ const Dashboard = () => {
 
     return (
         <main className="main">
+            <style>{`
+                .yogis-coin-sidebar {
+                    display: block;
+                }
+                .yogis-coin-mobile-section {
+                    display: none;
+                }
+                @media (max-width: 767px) {
+                    .yogis-coin-sidebar {
+                        display: none !important;
+                    }
+                    .yogis-coin-mobile-section {
+                        display: block !important;
+                    }
+                }
+            `}</style>
             <Breadcrumb items={[{ label: 'Dashboard' }]} />
             <div className="page-content pt-50 pb-50">
                 <div className="container">
@@ -350,7 +366,7 @@ const Dashboard = () => {
 
                                     {/* Yogi's Points Sidebar Illustration - only on Refer & Earn and Yogi's Points sections */}
                                     {(tab === 'refer' || tab === 'points') && (
-                                        <div style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
+                                        <div className="yogis-coin-sidebar" style={{ textAlign: 'center', marginTop: '35px', padding: '15px 10px' }}>
                                             <SpinningCoin size={170} speed="4s" />
                                             <div style={{ 
                                                 fontSize: '22px', 
@@ -740,6 +756,20 @@ const Dashboard = () => {
                                                             </table>
                                                         </div>
                                                     )}
+
+                                                    {/* Responsive Mobile / Tablet: Spinning Coin below Yogis Points History Table */}
+                                                    <div className="yogis-coin-mobile-section" style={{ textAlign: 'center', marginTop: '30px', padding: '10px 0' }}>
+                                                        <SpinningCoin size={150} speed="4s" />
+                                                        <div style={{ 
+                                                            fontSize: '20px', 
+                                                            fontWeight: '800', 
+                                                            color: '#966023', 
+                                                            marginTop: '10px',
+                                                            letterSpacing: '0.5px'
+                                                        }}>
+                                                            Yogi's Points
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
