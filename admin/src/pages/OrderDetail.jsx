@@ -424,9 +424,9 @@ const OrderDetail = () => {
                             label: `Yogis Points Discount (${order.yogisPointsUsed || 0} pts)`,
                             value: `-₹${Number(order.yogisPointsDiscount).toFixed(0)}`
                         }] : []),
-                        ...(Number(order.discount) > 0 ? [{
-                            label: 'Coupon Discount',
-                            value: `-₹${Number(order.discount).toFixed(0)}`
+                        ...(Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 ? [{
+                            label: `Coupon Discount${order.couponCode ? ` (${order.couponCode})` : ''}`,
+                            value: `-₹${Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(0)}`
                         }] : []),
                     ].map(row => (
                         <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)' }}>

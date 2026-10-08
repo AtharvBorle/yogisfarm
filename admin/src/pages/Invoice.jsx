@@ -226,12 +226,12 @@ const Invoice = () => {
                                                 <td style={{ ...tdStyle, fontWeight: 'bold', color: '#15803d' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</td>
                                             </tr>
                                         )}
-                                        {Number(order.discount) > 0 && (
+                                        {Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 && (
                                             <tr>
                                                 <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
-                                                    Coupon Discount :
+                                                    Coupon Discount{order.couponCode ? ` (${order.couponCode})` : ''} :
                                                 </td>
-                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>-₹{Number(order.discount).toFixed(2)}</td>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</td>
                                             </tr>
                                         )}
                                         <tr>

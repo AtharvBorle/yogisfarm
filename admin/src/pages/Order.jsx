@@ -366,6 +366,14 @@ const Order = () => {
                             {[
                                 { label: 'Sub Total', value: `₹${Number(selectedOrder.subtotal).toFixed(0)}` },
                                 { label: 'Shipping Charges', value: `₹${Number(selectedOrder.shipping).toFixed(0)}` },
+                                ...(Number(selectedOrder.yogisPointsDiscount) > 0 ? [{
+                                    label: `Yogis Points Discount (${selectedOrder.yogisPointsUsed || 0} pts)`,
+                                    value: `-₹${Number(selectedOrder.yogisPointsDiscount).toFixed(0)}`
+                                }] : []),
+                                ...(Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)) > 0 ? [{
+                                    label: `Coupon Discount${selectedOrder.couponCode ? ` (${selectedOrder.couponCode})` : ''}`,
+                                    value: `-₹${Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)).toFixed(0)}`
+                                }] : []),
                             ].map(row => (
                                 <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #f0f0f0' }}>
                                     <span style={{ fontWeight: '600' }}>{row.label}</span>

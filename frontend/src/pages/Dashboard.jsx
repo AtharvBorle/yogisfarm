@@ -621,10 +621,10 @@ const Dashboard = () => {
                                                             <span style={{ fontWeight: '700' }}>-₹{Number(selectedOrder.yogisPointsDiscount).toFixed(2)}</span>
                                                         </div>
                                                     )}
-                                                    {Number(selectedOrder.discount) > 0 && (
+                                                    {Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)) > 0 && (
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                                                            <span style={{ fontWeight: '600', color: '#253D4E' }}>Coupon Discount</span>
-                                                            <span>-₹{Number(selectedOrder.discount).toFixed(2)}</span>
+                                                            <span style={{ fontWeight: '600', color: '#253D4E' }}>Coupon Discount{selectedOrder.couponCode ? ` (${selectedOrder.couponCode})` : ''}</span>
+                                                            <span>-₹{Math.max(0, Number(selectedOrder.discount || 0) - Number(selectedOrder.yogisPointsDiscount || 0)).toFixed(2)}</span>
                                                         </div>
                                                     )}
                                                     {selectedOrder.pointsAwarded && (

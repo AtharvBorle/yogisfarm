@@ -420,12 +420,12 @@ const BulkInvoice = () => {
                                             <td className="right bold" style={{ padding: '8px 4px', color: '#15803d' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</td>
                                         </tr>
                                     )}
-                                    {Number(order.discount) > 0 && (
+                                    {Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 && (
                                         <tr>
                                             <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px' }}>
-                                                Coupon Discount :
+                                                Coupon Discount{order.couponCode ? ` (${order.couponCode})` : ''} :
                                             </td>
-                                            <td className="right bold" style={{ padding: '8px 4px' }}>-₹{Number(order.discount).toFixed(2)}</td>
+                                            <td className="right bold" style={{ padding: '8px 4px' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</td>
                                         </tr>
                                     )}
                                     {/* Footer Row */}
