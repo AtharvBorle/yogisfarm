@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
@@ -15,7 +15,25 @@ import iconHome from '../assets/figma/image_find/5-home.svg';
 import iconValues from '../assets/figma/image_find/6-values.svg';
 
 const About = () => {
-    useSEO('about');
+    useSEO({ key: 'about', canonical: 'https://yogisfarms.com/about-us' });
+
+    useEffect(() => {
+        let canonicalTag = document.querySelector('link[rel="canonical"]');
+        let created = false;
+        if (!canonicalTag) {
+            canonicalTag = document.createElement('link');
+            canonicalTag.rel = 'canonical';
+            document.head.appendChild(canonicalTag);
+            created = true;
+        }
+        canonicalTag.href = 'https://yogisfarms.com/about-us';
+
+        return () => {
+            if (created && canonicalTag.parentNode) {
+                canonicalTag.parentNode.removeChild(canonicalTag);
+            }
+        };
+    }, []);
     return (
         <main className="main pages">
             {/* Standard Breadcrumb */}
