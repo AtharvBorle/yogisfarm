@@ -59,7 +59,7 @@ const generateOrderNumber = async () => {
 // Place order
 router.post('/place', requireLogin, async (req, res) => {
   try {
-    const { addressId, paymentMethod = 'cod', couponCode, orderNote, agreeTerms } = req.body;
+    const { addressId, paymentMethod = 'cod', couponCode, orderNote, agreeTerms, useYogisPoints = false } = req.body;
     const userId = req.session.userId;
 
     const finalAgreeTerms = agreeTerms !== undefined ? agreeTerms : true;
@@ -71,7 +71,7 @@ router.post('/place', requireLogin, async (req, res) => {
     if (!address) return res.json({ status: false, message: 'Address not found' });
 
     // === USE CENTRALIZED PRICING ENGINE ===
-    const pricing = await calculateOrderTotals(userId, 'userId', couponCode || null);
+    const pricing = await calculateOrderTotals(userId, 'userId', couponCode || null, Boolean(useYogisPoints));
     
     // === STRICT INVOICE VALIDATION ASSERTIONS (Point 8) ===
     let sumOfItemTotals = 0;
@@ -92,6 +92,8 @@ router.post('/place', requireLogin, async (req, res) => {
     if (Math.abs(calculatedGrandTotal - pricing.grandTotal) > 0.02) {
       throw new Error('Invoice Validation Failed: Grand total mismatch');
     }
+
+    const { redeemPointsAtomic } = require('../utils/yogisPoints');
 
     // ─── ONLINE PAYMENT: Create pending order in DB immediately and return Razorpay details ───
     if (paymentMethod.toLowerCase() === 'online') {
@@ -118,7 +120,11 @@ router.post('/place', requireLogin, async (req, res) => {
           addressState: address.state, addressPincode: address.pincode,
           addressType: address.addressType || 'Home',
           subtotal: pricing.subtotal, shipping: pricing.shipping,
-          discount: pricing.discountAmount, tax: pricing.totalTax,
+          discount: pricing.discountAmount + (pricing.yogisPointsDiscount || 0),
+          discountType: pricing.discountType,
+          yogisPointsUsed: pricing.yogisPointsUsed || 0,
+          yogisPointsDiscount: pricing.yogisPointsDiscount || 0,
+          tax: pricing.totalTax,
           shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
           grandTotal: pricing.grandTotal,
           taxName: 'GST', taxRate: null,
@@ -155,6 +161,13 @@ router.post('/place', requireLogin, async (req, res) => {
         }
       });
 
+      // Atomically hold/redeem points for online order
+      if (pricing.yogisPointsUsed > 0) {
+        await prisma.$transaction(async (tx) => {
+          await redeemPointsAtomic(userId, order.id, pricing.yogisPointsUsed, pricing.yogisPointsDiscount, tx);
+        });
+      }
+
       return res.json({
         status: true,
         message: 'Payment gateway ready',
@@ -181,7 +194,11 @@ router.post('/place', requireLogin, async (req, res) => {
         addressState: address.state, addressPincode: address.pincode,
         addressType: address.addressType || 'Home',
         subtotal: pricing.subtotal, shipping: pricing.shipping,
-        discount: pricing.discountAmount, tax: pricing.totalTax,
+        discount: pricing.discountAmount + (pricing.yogisPointsDiscount || 0),
+        discountType: pricing.discountType,
+        yogisPointsUsed: pricing.yogisPointsUsed || 0,
+        yogisPointsDiscount: pricing.yogisPointsDiscount || 0,
+        tax: pricing.totalTax,
         shippingTotal: pricing.shippingTotal, shippingTaxable: pricing.shippingTaxable, shippingGST: pricing.shippingGST,
         grandTotal: pricing.grandTotal,
         taxName: 'GST', taxRate: null,
@@ -213,6 +230,13 @@ router.post('/place', requireLogin, async (req, res) => {
       },
       include: { items: true, user: { select: { name: true, phone: true, email: true } } }
     });
+
+    // Atomically redeem Yogis Points for COD
+    if (pricing.yogisPointsUsed > 0) {
+      await prisma.$transaction(async (tx) => {
+        await redeemPointsAtomic(userId, order.id, pricing.yogisPointsUsed, pricing.yogisPointsDiscount, tx);
+      });
+    }
 
     // Deduct stock for COD
     for (const ci of pricing.cartItemIds) {
@@ -424,7 +448,20 @@ router.get('/', requireLogin, async (req, res) => {
       include: { items: { include: { product: { select: { slug: true, image: true } } } } },
       orderBy: { createdAt: 'desc' }
     });
-    res.json({ status: true, orders });
+
+    const earnTxs = await prisma.yogisPointsTransaction.findMany({
+      where: { userId: req.session.userId, type: 'ORDER_EARN' },
+      select: { orderId: true, points: true }
+    });
+    const earnMap = new Map();
+    earnTxs.forEach(t => { if (t.orderId) earnMap.set(t.orderId, t.points); });
+
+    const enrichedOrders = orders.map(o => ({
+      ...o,
+      pointsEarned: earnMap.get(o.id) || 0
+    }));
+
+    res.json({ status: true, orders: enrichedOrders });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -446,7 +483,22 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
     if (order.userId !== req.session.userId) return res.json({ status: false, message: 'Unauthorized' });
-    res.json({ status: true, order });
+
+    let pointsEarned = 0;
+    const earnTx = await prisma.yogisPointsTransaction.findFirst({
+      where: { orderId: order.id, type: 'ORDER_EARN' }
+    });
+    if (earnTx) {
+      pointsEarned = earnTx.points;
+    } else if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'failed') {
+      const { getPointsConfig } = require('../utils/yogisPoints');
+      const pointsConfig = await getPointsConfig();
+      if (pointsConfig.enabled && pointsConfig.pointsPerOrder > 0) {
+        pointsEarned = pointsConfig.pointsPerOrder;
+      }
+    }
+
+    res.json({ status: true, order: { ...order, pointsEarned } });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -471,8 +523,22 @@ router.get('/invoice/:orderNumber', async (req, res) => {
     if (order.couponCode) {
       coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
     }
+
+    let pointsEarned = 0;
+    const earnTx = await prisma.yogisPointsTransaction.findFirst({
+      where: { orderId: order.id, type: 'ORDER_EARN' }
+    });
+    if (earnTx) {
+      pointsEarned = earnTx.points;
+    } else if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'failed') {
+      const { getPointsConfig } = require('../utils/yogisPoints');
+      const pointsConfig = await getPointsConfig();
+      if (pointsConfig.enabled && pointsConfig.pointsPerOrder > 0) {
+        pointsEarned = pointsConfig.pointsPerOrder;
+      }
+    }
     
-    res.json({ status: true, order, coupon });
+    res.json({ status: true, order: { ...order, pointsEarned }, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -561,6 +627,12 @@ router.post('/payment-failed', requireLogin, async (req, res) => {
           paymentStatus: 'failed'
         }
       });
+
+      // Restore any points reserved for this failed order
+      if (order.yogisPointsUsed > 0) {
+        const { reverseOrderPoints } = require('../utils/yogisPoints');
+        await reverseOrderPoints(order.id);
+      }
     }
 
     res.json({ status: true, message: 'Order marked as failed' });

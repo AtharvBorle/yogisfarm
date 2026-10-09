@@ -371,7 +371,7 @@ const BlogDetails = () => {
               </div>
             </div>
 
-            {/* Style override to support default layouts while allowing pasted inline formatting to be preserved */}
+            {/* Style override to support rich typography and formatting in blog details */}
             <style dangerouslySetInnerHTML={{ __html: `
               .blog-content-body h1 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
               .blog-content-body h2 { color: #1a1a1a; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.3; margin-top: 24px; margin-bottom: 12px; }
@@ -388,36 +388,125 @@ const BlogDetails = () => {
                 margin-bottom: 15px;
               }
 
-              .blog-content-body ul {
-                list-style-type: disc !important;
-                padding-left: 20px !important;
-                margin-top: 15px !important;
-                margin-bottom: 25px !important;
+              .blog-content-body b, .blog-content-body strong {
+                font-weight: 700;
               }
-              .blog-content-body ol {
-                list-style-type: decimal !important;
-                padding-left: 20px !important;
-                margin-top: 15px !important;
-                margin-bottom: 25px !important;
-              }
-              .blog-content-body ul li {
-                list-style-type: disc !important;
-                margin-bottom: 10px;
-                font-family: 'Poppins', sans-serif;
-                font-size: 16px;
-                color: #4A4A4A;
-                line-height: 28px;
-              }
-              .blog-content-body ol li {
-                list-style-type: decimal !important;
-                margin-bottom: 10px;
-                font-family: 'Poppins', sans-serif;
-                font-size: 16px;
-                color: #4A4A4A;
-                line-height: 28px;
-              }
+
               .blog-content-body i, .blog-content-body em {
                 font-style: italic !important;
+              }
+
+              .blog-content-body u {
+                text-decoration: underline !important;
+              }
+
+              .blog-content-body s, .blog-content-body strike {
+                text-decoration: line-through !important;
+              }
+
+              .blog-content-body sub {
+                font-size: 75%;
+                line-height: 0;
+                position: relative;
+                vertical-align: baseline;
+                bottom: -0.25em;
+              }
+
+              .blog-content-body sup {
+                font-size: 75%;
+                line-height: 0;
+                position: relative;
+                vertical-align: baseline;
+                top: -0.5em;
+              }
+
+              .blog-content-body ul {
+                list-style-type: disc !important;
+                padding-left: 24px !important;
+                margin-top: 15px !important;
+                margin-bottom: 25px !important;
+              }
+
+              .blog-content-body ol {
+                list-style-type: decimal !important;
+                padding-left: 24px !important;
+                margin-top: 15px !important;
+                margin-bottom: 25px !important;
+              }
+
+              .blog-content-body ul li {
+                list-style-type: disc !important;
+                margin-bottom: 8px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
+                color: #4A4A4A;
+                line-height: 28px;
+              }
+
+              .blog-content-body ol li {
+                list-style-type: decimal !important;
+                margin-bottom: 8px;
+                font-family: 'Poppins', sans-serif;
+                font-size: 16px;
+                color: #4A4A4A;
+                line-height: 28px;
+              }
+
+              /* Tables */
+              .blog-content-body table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin: 20px 0 25px 0 !important;
+                font-size: 15px;
+                line-height: 1.6;
+                border: 1px solid #D0D5DD !important;
+                background-color: #ffffff;
+              }
+
+              .blog-content-body th {
+                background-color: #F8F9FA !important;
+                color: #1a1a1a !important;
+                font-weight: 600 !important;
+                padding: 12px 14px !important;
+                border: 1px solid #D0D5DD !important;
+                text-align: left !important;
+              }
+
+              .blog-content-body td {
+                padding: 10px 14px !important;
+                border: 1px solid #D0D5DD !important;
+                color: #344054 !important;
+                vertical-align: top;
+              }
+
+              .blog-content-body tr:nth-child(even) td {
+                background-color: #FCFCFD;
+              }
+
+              /* Blockquotes */
+              .blog-content-body blockquote {
+                border-left: 4px solid #0A6738 !important;
+                background-color: #F8F9FA !important;
+                padding: 14px 20px !important;
+                margin: 20px 0 !important;
+                color: #4A4A4A !important;
+                font-style: italic !important;
+                border-radius: 0 6px 6px 0;
+              }
+
+              /* Links */
+              .blog-content-body a {
+                color: #0A6738;
+                text-decoration: underline;
+              }
+
+              /* Responsive Images */
+              .blog-content-body img {
+                max-width: 100% !important;
+                height: auto !important;
+                border-radius: 8px !important;
+                margin: 16px 0 !important;
+                display: block;
               }
             `}} />
 

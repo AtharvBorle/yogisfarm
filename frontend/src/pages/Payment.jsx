@@ -7,6 +7,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
+import EarnCoinsNotice from '../components/EarnCoinsNotice';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -34,9 +35,32 @@ const Payment = () => {
     const [paymentMethod, setPaymentMethod] = useState('cod');
     const [loading, setLoading] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
+    const [useYogisPoints, setUseYogisPoints] = useState(false);
 
     // === USE CENTRALIZED PRICING HOOK ===
-    const { subtotalBase, totalTax, shipping, discountAmount, grandTotal, coupon, loading: pricingLoading } = useOrderPricing(cartItems, appliedCoupon);
+    const { 
+        subtotalBase, 
+        totalTax, 
+        shipping, 
+        discountAmount, 
+        grandTotal, 
+        coupon, 
+        yogisPointsUsed, 
+        yogisPointsDiscount, 
+        yogisPoints, 
+        pointsEarned,
+        pointsPerOrder,
+        offerPriceSum,
+        loading: pricingLoading 
+    } = useOrderPricing(cartItems, appliedCoupon, useYogisPoints);
+    const coinsReward = pointsEarned || pointsPerOrder || 0;
+
+    // Auto-uncheck points if eligibility criteria becomes unmet
+    useEffect(() => {
+        if (useYogisPoints && yogisPoints && !yogisPoints.eligible) {
+            setUseYogisPoints(false);
+        }
+    }, [yogisPoints, useYogisPoints]);
 
     // Fetch suggested coupons
     useEffect(() => {
@@ -134,6 +158,7 @@ const Payment = () => {
                 addressId: selectedAddress.id,
                 paymentMethod,
                 couponCode: appliedCoupon || undefined,
+                useYogisPoints: Boolean(useYogisPoints),
                 orderNote: notes || undefined,
                 agreeTerms: true
             });
@@ -261,8 +286,14 @@ const Payment = () => {
                             </div>
                             {discountAmount > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
-                                    <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({couponCode}) :</span>
+                                    <span style={{ fontWeight: '600', color: '#dc3545' }}>Discount ({coupon?.code || couponCode}) :</span>
                                     <span style={{ fontWeight: '700', color: '#dc3545', fontSize: '16px' }}>-₹{pricingLoading ? '...' : (discountAmount || 0).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {yogisPointsDiscount > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
+                                    <span style={{ fontWeight: '600', color: '#046938' }}>Yogis Points Discount ({yogisPointsUsed} pts) :</span>
+                                    <span style={{ fontWeight: '700', color: '#046938', fontSize: '16px' }}>-₹{pricingLoading ? '...' : (yogisPointsDiscount || 0).toFixed(2)}</span>
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
@@ -277,6 +308,7 @@ const Payment = () => {
                                 <span style={{ fontWeight: '800', color: '#253D4E', fontSize: '18px' }}>Total :</span>
                                 <span style={{ fontWeight: '800', color: '#046938', fontSize: '22px' }}>₹{pricingLoading ? '...' : (grandTotal || 0).toFixed(0)}</span>
                             </div>
+                            <EarnCoinsNotice coins={coinsReward} size="md" style={{ marginTop: '15px' }} />
                         </div>
                     </div>
 
@@ -385,6 +417,93 @@ const Payment = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Yogis Points Section */}
+                        {yogisPoints?.enabled && (
+                            <div style={{
+                                border: yogisPoints?.eligible ? '2px solid #3BB77E' : '1.5px dashed #F59E0B',
+                                borderRadius: '10px',
+                                padding: '18px 20px',
+                                marginBottom: '30px',
+                                background: yogisPoints?.eligible ? '#f4faf6' : '#FFFDF5'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <img 
+                                            src="/yogis_farms_coin_smooth_360_spin.svg" 
+                                            alt="Coins" 
+                                            style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                                            onError={(e) => { e.currentTarget.src = "/assets/imgs/theme/yogis-coin.png"; }}
+                                        />
+                                        <span style={{ fontWeight: '700', fontSize: '16px', color: '#253D4E' }}>Yogis Points</span>
+                                    </div>
+                                    <div style={{ fontSize: '13px', fontWeight: '600', color: yogisPoints?.eligible ? '#046938' : '#B45309' }}>
+                                        Available: <strong>{yogisPoints.availablePoints || 0} Points</strong>
+                                    </div>
+                                </div>
+
+                                {/* Redemption Rules Pill */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>
+                                    <span style={{
+                                        fontSize: '11px',
+                                        color: (offerPriceSum || subtotalBase) >= (yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) ? '#15803D' : '#92400E',
+                                        backgroundColor: (offerPriceSum || subtotalBase) >= (yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) ? '#DCFCE7' : '#FEF3C7',
+                                        padding: '2px 8px',
+                                        borderRadius: '6px',
+                                        fontWeight: '600'
+                                    }}>
+                                        Min. Order: ₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0}
+                                    </span>
+                                    <span style={{
+                                        fontSize: '11px',
+                                        color: (yogisPoints.availablePoints || 0) >= (yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) ? '#15803D' : '#92400E',
+                                        backgroundColor: (yogisPoints.availablePoints || 0) >= (yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) ? '#DCFCE7' : '#FEF3C7',
+                                        padding: '2px 8px',
+                                        borderRadius: '6px',
+                                        fontWeight: '600'
+                                    }}>
+                                        Min. Points to Redeem: {yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0} Pts
+                                    </span>
+                                </div>
+
+                                {yogisPoints?.eligible ? (
+                                    <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #cce5d6' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', color: '#253D4E', margin: 0, userSelect: 'none' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={useYogisPoints}
+                                                onChange={(e) => setUseYogisPoints(e.target.checked)}
+                                                style={{ width: '18px', height: '18px', accentColor: '#046938', cursor: 'pointer' }}
+                                            />
+                                            <span>Use Yogis Points</span>
+                                        </label>
+                                        {useYogisPoints && (
+                                            <div style={{ marginTop: '8px', fontSize: '13px', color: '#046938', fontWeight: '600', paddingLeft: '28px' }}>
+                                                {yogisPoints.pointsToUse} Points = ₹{yogisPoints.pointsDiscount} discount
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #E5E7EB', fontSize: '12px', color: '#92400E', lineHeight: '1.5' }}>
+                                        {!user ? (
+                                            <div>Please log in to redeem your Yogi's Points.</div>
+                                        ) : (offerPriceSum || subtotalBase) < (yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) ? (
+                                            <div>
+                                                Minimum order value of <strong>₹{yogisPoints.minOrderValue || yogisPoints.minimumCartValue}</strong> required to redeem points. (Current order value: ₹{(offerPriceSum || subtotalBase || 0).toFixed(0)}) — add <strong>₹{((yogisPoints.minOrderValue || yogisPoints.minimumCartValue || 0) - (offerPriceSum || subtotalBase || 0)).toFixed(0)}</strong> more to unlock.
+                                            </div>
+                                        ) : (yogisPoints.availablePoints || 0) < (yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) ? (
+                                            <div>
+                                                Minimum <strong>{yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints} Points</strong> required to redeem. You currently have <strong>{yogisPoints.availablePoints || 0} Points</strong> (need {((yogisPoints.minPoints || yogisPoints.minimumRedeemablePoints || 0) - (yogisPoints.availablePoints || 0))} more).
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                {yogisPoints.reason || 'Points cannot be applied on this order.'}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -61,12 +61,38 @@ const OrderDetail = () => {
 
     useEffect(() => { fetchOrder(); fetchDeliveryBoys(); fetchCourierPartners(); }, [orderNumber]);
 
+    const [awardingPoints, setAwardingPoints] = useState(false);
+
     const updateStatus = async (e) => {
         e.preventDefault();
         try {
             const res = await api.put(`/orders/${order.id}/status`, { orderStatus: statusForm });
-            if (res.data.status) { toast.success('Status updated'); setStatusOpen(false); fetchOrder(); }
-        } catch (err) { toast.error('Update failed'); }
+            if (res.data.status) { 
+                toast.success(res.data.message || 'Status updated'); 
+                setStatusOpen(false); 
+                fetchOrder(); 
+            } else {
+                toast.error(res.data.message || 'Update failed');
+            }
+        } catch (err) { toast.error(err.response?.data?.message || 'Update failed'); }
+    };
+
+    const handleAwardPoints = async () => {
+        if (!window.confirm(`Award Yogi's Points to customer for delivered Order #${order.orderNumber}?`)) return;
+        setAwardingPoints(true);
+        try {
+            const res = await api.post(`/orders/${order.id}/award-points`);
+            if (res.data.status) {
+                toast.success(res.data.message || 'Points awarded successfully!');
+                fetchOrder();
+            } else {
+                toast.error(res.data.message || 'Failed to award points');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Error awarding points');
+        } finally {
+            setAwardingPoints(false);
+        }
     };
 
     const updatePayment = async (e) => {
@@ -420,13 +446,42 @@ const OrderDetail = () => {
                     {[
                         { label: 'Sub Total', value: `₹${Number(order.subtotal).toFixed(0)}` },
                         { label: 'Shipping Charges', value: `₹${Number(order.shipping).toFixed(0)}` },
-                        { label: 'Coupon Discount', value: `₹${Number(order.discount).toFixed(0)}` },
+                        ...(Number(order.yogisPointsDiscount) > 0 ? [{
+                            label: `Yogis Points Discount (${order.yogisPointsUsed || 0} pts)`,
+                            value: `-₹${Number(order.yogisPointsDiscount).toFixed(0)}`
+                        }] : []),
+                        ...(Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 ? [{
+                            label: `Coupon Discount${order.couponCode ? ` (${order.couponCode})` : ''}`,
+                            value: `-₹${Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(0)}`
+                        }] : []),
                     ].map(row => (
                         <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)' }}>
                             <span style={{ fontWeight: '600' }}>{row.label}</span>
                             <span>{row.value}</span>
                         </div>
                     ))}
+                    {(Number(order.pointsEarned) > 0 || order.pointsAwarded) && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 15px', borderBottom: '1px solid var(--border)', color: '#28a745' }}>
+                            <span style={{ fontWeight: '600' }}>Points Awarded on Completion</span>
+                            <span style={{ fontWeight: '700' }}>+{order.pointsEarned} Points</span>
+                        </div>
+                    )}
+                    {order.orderStatus === 'delivered' && !order.pointsAwarded && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', background: '#fdf6e2', borderBottom: '1px solid #fae8b4', color: '#b06000' }}>
+                            <div>
+                                <div style={{ fontWeight: '700', fontSize: '13px' }}>⚠️ Yogis Points Not Yet Awarded</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>Order is delivered, but reward coins have not been credited yet.</div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAwardPoints}
+                                disabled={awardingPoints}
+                                style={{ padding: '6px 14px', background: '#046938', color: '#fff', border: 'none', borderRadius: '4px', cursor: awardingPoints ? 'wait' : 'pointer', fontWeight: '600', fontSize: '12px' }}
+                            >
+                                {awardingPoints ? 'Awarding...' : 'Award Points Now'}
+                            </button>
+                        </div>
+                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', fontWeight: '700', fontSize: '20px' }}>
                         <span>TOTAL</span>
                         <span>₹{Number(order.total).toFixed(0)}</span>

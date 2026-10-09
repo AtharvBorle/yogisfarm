@@ -294,11 +294,15 @@ async function evaluateCouponForCart(coupon, cartItems, identifier, type, offerP
 /**
  * Calculate all order totals from the user's cart.
  * 
- * @param {number} userId - The user whose cart to calculate
+ * @param {number|string} identifier - The user ID or guest session ID
+ * @param {string} type - 'userId' or 'sessionId'
  * @param {string|null} couponCode - Optional coupon code to apply
- * @returns {Object} { offerPriceSum, subtotal, totalTax, discountAmount, shipping, total, orderItems, cartItemIds, appliedCouponId, coupon }
+ * @param {boolean} useYogisPoints - Whether to redeem available Yogis Points
+ * @returns {Object} Calculated pricing details
  */
-async function calculateOrderTotals(identifier, type = 'userId', couponCode = null) {
+async function calculateOrderTotals(identifier, type = 'userId', couponCode = null, useYogisPoints = false) {
+  const { checkRedemptionEligibility, getPointsConfig } = require('./yogisPoints');
+
   // 1. Fetch cart with product tax & HSN info
   const whereClause = type === 'userId' ? { userId: identifier } : { sessionId: identifier };
   const cartItems = await prisma.cart.findMany({
@@ -365,10 +369,100 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     }
   }
 
-  // 4. Second pass: Calculate tax and item totals
+  // 4. Calculate Yogis Points eligibility & discount (Platform Discount)
+  const pointsConfig = await getPointsConfig();
+  const isPointsEnabled = Boolean(pointsConfig && pointsConfig.enabled);
+  const configuredPointsPerOrder = (isPointsEnabled && pointsConfig.pointsPerOrder > 0) ? pointsConfig.pointsPerOrder : 0;
+
+  let yogisPointsInfo = {
+    enabled: isPointsEnabled,
+    pointsPerOrder: configuredPointsPerOrder,
+    pointsEarned: configuredPointsPerOrder,
+    minOrderValue: pointsConfig ? Number(pointsConfig.minimumCartValue) : 0,
+    minPoints: pointsConfig ? Number(pointsConfig.minimumRedeemablePoints) : 0,
+    minimumCartValue: pointsConfig ? Number(pointsConfig.minimumCartValue) : 0,
+    minimumRedeemablePoints: pointsConfig ? Number(pointsConfig.minimumRedeemablePoints) : 0,
+    conversionPoints: pointsConfig ? Number(pointsConfig.conversionPoints) : 100,
+    conversionRupees: pointsConfig ? Number(pointsConfig.conversionRupees) : 100,
+    eligible: false,
+    availablePoints: 0,
+    potentialPointsToUse: 0,
+    potentialPointsDiscount: 0,
+    perPointValue: pointsConfig ? (pointsConfig.conversionRupees / pointsConfig.conversionPoints) : 1,
+    applied: false,
+    pointsToUse: 0,
+    pointsDiscount: 0
+  };
+
+  if (type === 'userId' && isPointsEnabled) {
+    try {
+      const eligibility = await checkRedemptionEligibility(identifier, offerPriceSum, discountAmount);
+      if (eligibility) {
+        yogisPointsInfo = {
+          ...yogisPointsInfo,
+          enabled: eligibility.config ? eligibility.config.enabled : isPointsEnabled,
+          pointsPerOrder: configuredPointsPerOrder,
+          pointsEarned: configuredPointsPerOrder,
+          minOrderValue: pointsConfig ? Number(pointsConfig.minimumCartValue) : 0,
+          minPoints: pointsConfig ? Number(pointsConfig.minimumRedeemablePoints) : 0,
+          minimumCartValue: pointsConfig ? Number(pointsConfig.minimumCartValue) : 0,
+          minimumRedeemablePoints: pointsConfig ? Number(pointsConfig.minimumRedeemablePoints) : 0,
+          conversionPoints: pointsConfig ? Number(pointsConfig.conversionPoints) : 100,
+          conversionRupees: pointsConfig ? Number(pointsConfig.conversionRupees) : 100,
+          eligible: eligibility.eligible,
+          reason: eligibility.reason || null,
+          availablePoints: eligibility.availablePoints !== undefined ? eligibility.availablePoints : 0,
+          potentialPointsToUse: eligibility.pointsToUse || 0,
+          potentialPointsDiscount: eligibility.pointsDiscount || 0,
+          perPointValue: eligibility.perPointValue || yogisPointsInfo.perPointValue,
+          applied: false,
+          pointsToUse: 0,
+          pointsDiscount: 0
+        };
+
+        if (useYogisPoints && eligibility.eligible && eligibility.pointsDiscount > 0) {
+          yogisPointsInfo.applied = true;
+          yogisPointsInfo.pointsToUse = eligibility.pointsToUse;
+          yogisPointsInfo.pointsDiscount = eligibility.pointsDiscount;
+        }
+      }
+    } catch (err) {
+      console.error('Error evaluating Yogis Points eligibility:', err);
+    }
+  }
+
+  // Allocate Yogis Points discount across line items proportionally based on post-coupon item totals
+  const yogisPointsLineDiscounts = Array(cartItems.length).fill(0);
+  const totalNetAfterCoupon = Math.max(0, offerPriceSum - discountAmount);
+
+  if (yogisPointsInfo.applied && yogisPointsInfo.pointsDiscount > 0 && totalNetAfterCoupon > 0) {
+    let allocatedYP = 0;
+    cartItems.forEach((item, index) => {
+      let offerPrice = item.variant
+        ? parseFloat(item.variant.salePrice || item.variant.price)
+        : parseFloat(item.product.salePrice || item.product.price);
+      if (isNaN(offerPrice) || !offerPrice) offerPrice = 0;
+      const itemTotal = offerPrice * item.quantity;
+      const netItemAfterCoupon = Math.max(0, itemTotal - lineDiscounts[index]);
+
+      const itemYPDiscount = Math.round(((netItemAfterCoupon / totalNetAfterCoupon) * yogisPointsInfo.pointsDiscount) * 100) / 100;
+      yogisPointsLineDiscounts[index] = itemYPDiscount;
+      allocatedYP += itemYPDiscount;
+    });
+
+    const ypDiff = Math.round((yogisPointsInfo.pointsDiscount - allocatedYP) * 100) / 100;
+    if (ypDiff !== 0) {
+      const idx = yogisPointsLineDiscounts.findIndex(v => v > 0) !== -1
+        ? yogisPointsLineDiscounts.findIndex(v => v > 0)
+        : 0;
+      yogisPointsLineDiscounts[idx] = Math.round((yogisPointsLineDiscounts[idx] + ypDiff) * 100) / 100;
+    }
+  }
+
+  // 5. Calculate tax and line item totals (GST-Inclusive Back-Calculation)
   let totalTaxAmount = 0;
   let subtotal = 0; // Sum of taxable values
-  
+
   const orderItems = cartItems.map((item, index) => {
     let offerPrice = item.variant
       ? parseFloat(item.variant.salePrice || item.variant.price)
@@ -383,17 +477,16 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     const itemTotal = offerPrice * item.quantity;
     const productDiscount = (originalPrice - offerPrice) * item.quantity;
 
-    // Allocate order discount proportionally
     const odForLine = lineDiscounts[index];
-    const finalItemTotal = itemTotal - odForLine;
-    
+    const ypForLine = yogisPointsLineDiscounts[index];
+    const totalLineDiscount = odForLine + ypForLine;
+    const finalItemTotal = Math.max(0, Math.round((itemTotal - totalLineDiscount) * 100) / 100);
+
     const itemTaxRate = item.product.tax ? parseFloat(item.product.tax.tax) : 0;
     const itemHsnCode = item.product.hsn ? item.product.hsn.hsnCode : null;
-    
-    // Inclusive GST Back-Calculation
+
+    // Inclusive GST Back-Calculation on post-discount line total
     const { taxableValue, gstAmount } = calculateInclusiveGST(finalItemTotal, itemTaxRate);
-    
-    // Strictly correct splitting
     const { cgst, sgst } = splitGST(gstAmount);
 
     totalTaxAmount += gstAmount;
@@ -409,12 +502,14 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
       mrp: originalPrice,
       productDiscount: productDiscount,
       orderDiscount: odForLine,
+      yogisPointsDiscount: ypForLine,
+      platformDiscount: ypForLine,
       taxableValue: taxableValue,
       gstRate: itemTaxRate,
       gstAmount: gstAmount,
       cgst: cgst,
       sgst: sgst,
-      gst: gstAmount, // keeping for backwards compatibility if needed
+      gst: gstAmount,
       taxRate_legacy: itemTaxRate,
       hsnCode: itemHsnCode,
       total: finalItemTotal
@@ -423,7 +518,7 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
 
   const totalTax = totalTaxAmount;
 
-  // 5. Fetch shipping rule
+  // 6. Fetch shipping rule
   const shippingRule = await prisma.shipping.findFirst({ where: { status: 'active' }, orderBy: { minCartValue: 'asc' } });
   let shippingTotal = 0;
   if (shippingRule) {
@@ -435,11 +530,22 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
   const shippingTaxable = shippingTax.taxableValue;
   const shippingGST = shippingTax.gstAmount;
 
-  // 6. Final total
-  const grandTotal = offerPriceSum - discountAmount + shippingTotal;
-  const total = grandTotal; // legacy alias
+  // 7. Final total
+  const totalYogisPointsDiscount = yogisPointsInfo.applied ? yogisPointsInfo.pointsDiscount : 0;
+  const grandTotal = Math.max(0, offerPriceSum - discountAmount - totalYogisPointsDiscount) + shippingTotal;
+  const total = grandTotal;
 
-  // 7. Cart item IDs for stock deduction later
+  // Determine discountType
+  let discountType = null;
+  if (discountAmount > 0 && totalYogisPointsDiscount > 0) {
+    discountType = 'COUPON_AND_POINTS';
+  } else if (discountAmount > 0) {
+    discountType = 'COUPON';
+  } else if (totalYogisPointsDiscount > 0) {
+    discountType = 'YOGIS_POINTS';
+  }
+
+  // 8. Cart item IDs for stock deduction later
   const cartItemIds = cartItems.map(c => ({
     id: c.id,
     productId: c.productId,
@@ -452,6 +558,12 @@ async function calculateOrderTotals(identifier, type = 'userId', couponCode = nu
     subtotal,
     totalTax,
     discountAmount,
+    yogisPointsUsed: yogisPointsInfo.applied ? yogisPointsInfo.pointsToUse : 0,
+    yogisPointsDiscount: totalYogisPointsDiscount,
+    discountType,
+    yogisPoints: yogisPointsInfo,
+    pointsPerOrder: configuredPointsPerOrder,
+    pointsEarned: configuredPointsPerOrder,
     shipping: shippingTotal,
     shippingTotal,
     shippingTaxable,

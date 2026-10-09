@@ -100,7 +100,7 @@ const FloatingSidebar = () => {
             )}
 
             {/* WhatsApp - Always visible */}
-            <a href="https://wa.me/919119501177" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+            <a href="https://wa.me/917030911999" target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
                 <img src={whatsappIcon} alt="WhatsApp" style={{ width: '28px', height: '28px' }} />
             </a>
 

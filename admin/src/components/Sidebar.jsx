@@ -18,7 +18,9 @@ import {
   ClipboardList,
   Zap,
   Receipt,
-  Package
+  Package,
+  Coins,
+  Share2
 } from 'lucide-react';
 
 const navItems = [
@@ -39,6 +41,8 @@ const navItems = [
     { name: 'Review', path: '/reviews', icon: Star },
     { name: 'Filemanager', path: '/filemanager', icon: FolderOpen },
     { name: 'Coupon Code', path: '/coupons', icon: TicketPercent },
+    { name: 'Yogis Points', path: '/yogis-points', icon: Coins },
+    { name: 'Refer & Earn', path: '/refer-and-earn', icon: Share2 },
     { name: 'Logs', path: '/logs', icon: ClipboardList },
 ];
 

@@ -14,6 +14,30 @@ const Login = () => {
     const [step, setStep] = useState(1);
     const [sendingOtp, setSendingOtp] = useState(false);
     const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const getReferralFromUrlOrStorage = () => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            let code = urlParams.get('ref') || urlParams.get('referral');
+            if (!code && window.location.hash.includes('?')) {
+                const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+                code = hashParams.get('ref') || hashParams.get('referral');
+            }
+            if (code && code.trim()) {
+                const clean = code.trim().toUpperCase();
+                localStorage.setItem('yogisfarm_referral_code', clean);
+                return { code: clean, isFromUrl: true };
+            }
+            const stored = localStorage.getItem('yogisfarm_referral_code');
+            if (stored && stored.trim()) {
+                return { code: stored.trim().toUpperCase(), isFromUrl: true };
+            }
+        } catch (_) {}
+        return { code: '', isFromUrl: false };
+    };
+
+    const initialRef = getReferralFromUrlOrStorage();
+    const [referralCode, setReferralCode] = useState(initialRef.code);
+    const [fromReferralLink, setFromReferralLink] = useState(initialRef.isFromUrl);
     const { fetchUser, user, loading: authLoading } = useAuth();
     const { fetchCart } = useCart();
     const navigate = useNavigate();
@@ -21,6 +45,14 @@ const Login = () => {
     const redirect = searchParams.get('redirect') || '/dashboard';
 
     const [resendTimer, setResendTimer] = useState(0);
+
+    React.useEffect(() => {
+        const latest = getReferralFromUrlOrStorage();
+        if (latest.code) {
+            setReferralCode(latest.code);
+            setFromReferralLink(latest.isFromUrl);
+        }
+    }, [searchParams]);
 
     React.useEffect(() => {
         let interval;
@@ -141,14 +173,23 @@ const Login = () => {
             return toast.error('You must agree to the Terms & Conditions and Policies to register.');
         }
         try {
-            const res = await api.post('/auth/submit-details', { name, email });
+            const payload = { name, email };
+            if (referralCode && referralCode.trim()) {
+                payload.referralCode = referralCode.trim().toUpperCase();
+            }
+
+            const res = await api.post('/auth/submit-details', payload);
             if (res.data.status) {
                 toast.success('Registration successful!');
+                if (res.data.referralRewarded) {
+                    toast.success('🎉 Referral bonus points credited!');
+                }
 
                 // Clear localStorage
                 localStorage.removeItem('yogisfarm_login_phone');
                 localStorage.removeItem('yogisfarm_login_otp_sent_time');
                 localStorage.removeItem('yogisfarm_login_step');
+                localStorage.removeItem('yogisfarm_referral_code');
 
                 await fetchUser();
                 fetchCart();
@@ -480,7 +521,7 @@ const Login = () => {
                                 />
                             </div>
 
-                            <div style={{marginBottom: '24px'}}>
+                            <div style={{marginBottom: '16px'}}>
                                 <label style={{fontSize: '13px', fontWeight: '600', display: 'block', marginBottom: '5px'}}>Email Address</label>
                                 <input 
                                     type="email"
@@ -491,6 +532,43 @@ const Login = () => {
                                     required
                                     style={{marginBottom: 0}}
                                 />
+                            </div>
+
+                            <div style={{marginBottom: '20px'}}>
+                                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px'}}>
+                                    <label style={{fontSize: '13px', fontWeight: '600', display: 'block', margin: 0}}>
+                                        Referral Code <span style={{fontWeight: 'normal', color: '#888'}}>(Optional)</span>
+                                    </label>
+                                    {referralCode && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                setReferralCode('');
+                                                setFromReferralLink(false);
+                                                try { localStorage.removeItem('yogisfarm_referral_code'); } catch (_) {}
+                                            }}
+                                            style={{ background: 'none', border: 'none', color: '#e53e3e', fontSize: '12px', cursor: 'pointer', padding: 0 }}
+                                        >
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <input 
+                                    type="text"
+                                    className="login-input-mobile"
+                                    placeholder="Enter referral code (e.g. YOGIS1234)"
+                                    value={referralCode}
+                                    onChange={e => {
+                                        setReferralCode(e.target.value.toUpperCase().replace(/\s/g, ''));
+                                        setFromReferralLink(false);
+                                    }}
+                                    style={{marginBottom: 0, textTransform: 'uppercase', letterSpacing: '0.5px'}}
+                                />
+                                {referralCode && (
+                                    <div style={{fontSize: '12px', color: '#0A6738', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '500'}}>
+                                        <span>✓</span> {fromReferralLink ? 'Referral code applied from invite link' : 'Referral code applied'}
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ marginBottom: '24px' }}>

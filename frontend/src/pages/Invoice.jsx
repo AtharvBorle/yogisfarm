@@ -182,7 +182,7 @@ const Invoice = () => {
                     S.No 18, Saikrupa Bunglow, Sudarshan Park society, Ingale Nagar, Warje, Pune 411058, Pune<br />
                     Pune, Maharashtra - 411058<br />
                     E-Mail Address: info@yogisfarms.com<br />
-                    Phone Number: +91 9119501177
+                    Phone Number: +91 7030911999
                     {gstNumber && <><br />GST Number: <strong>{gstNumber}</strong></>}
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -266,6 +266,22 @@ const Invoice = () => {
                                             </td>
                                             <td style={{ ...tdStyle, fontWeight: 'bold' }}>₹{Number(order.shipping).toFixed(2)}</td>
                                         </tr>
+                                        {Number(order.yogisPointsDiscount) > 0 && (
+                                            <tr>
+                                                <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', color: '#046938' }}>
+                                                    Yogis Points Discount ({order.yogisPointsUsed || 0} pts) :
+                                                </td>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold', color: '#046938' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                        {Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 && (
+                                            <tr>
+                                                <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>
+                                                    Coupon Discount{order.couponCode ? ` (${order.couponCode})` : ''} :
+                                                </td>
+                                                <td style={{ ...tdStyle, fontWeight: 'bold' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</td>
+                                            </tr>
+                                        )}
                                         <tr>
                                             <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
                                             <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>

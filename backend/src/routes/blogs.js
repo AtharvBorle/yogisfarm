@@ -761,11 +761,30 @@ router.post('/import-word', requireAdmin, multer({ storage: multer.memoryStorage
 
     const mammoth = require("mammoth");
     
-    // Configure image converter options to upload images to S3/Disk
+    // Configure rich styleMap to preserve Word document formatting
     const options = {
+      styleMap: [
+        "u => u",
+        "strike => s",
+        "sub => sub",
+        "sup => sup",
+        "b => strong",
+        "i => em",
+        "p[style-name='Heading 1'] => h1:fresh",
+        "p[style-name='Heading 2'] => h2:fresh",
+        "p[style-name='Heading 3'] => h3:fresh",
+        "p[style-name='Heading 4'] => h4:fresh",
+        "p[style-name='Heading 5'] => h5:fresh",
+        "p[style-name='Heading 6'] => h6:fresh",
+        "p[style-name='Title'] => h1:fresh",
+        "p[style-name='Subtitle'] => h2:fresh",
+        "p[style-name='Quote'] => blockquote:fresh",
+        "p[style-name='Intense Quote'] => blockquote:fresh",
+        "table => table.blog-table:fresh"
+      ],
       convertImage: mammoth.images.imgElement(async (image) => {
         const imageBuffer = await image.read();
-        const contentType = image.contentType; // e.g. "image/png"
+        const contentType = image.contentType || "image/png";
         const extension = contentType.split("/")[1] || "png";
         const filename = `${Date.now()}-docx-inline.${extension}`;
 

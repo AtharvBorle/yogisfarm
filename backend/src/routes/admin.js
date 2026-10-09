@@ -836,7 +836,21 @@ router.get('/orders', requireAdmin, async (req, res) => {
       where, orderBy: { createdAt: 'desc' },
       include: { user: { select: { name: true, phone: true, email: true } }, items: true, deliveryBoy: true, courierPartner: true }
     });
-    res.json({ status: true, orders });
+
+    const orderIds = orders.map(o => o.id);
+    const earnTxs = await prisma.yogisPointsTransaction.findMany({
+      where: { orderId: { in: orderIds }, type: 'ORDER_EARN' },
+      select: { orderId: true, points: true }
+    });
+    const earnMap = new Map();
+    earnTxs.forEach(t => { if (t.orderId) earnMap.set(t.orderId, t.points); });
+
+    const enrichedOrders = orders.map(o => ({
+      ...o,
+      pointsEarned: earnMap.get(o.id) || 0
+    }));
+
+    res.json({ status: true, orders: enrichedOrders });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -854,7 +868,15 @@ router.get('/orders/:id', requireAdmin, async (req, res) => {
       coupon = await prisma.coupon.findUnique({ where: { code: order.couponCode } });
     }
     
-    res.json({ status: true, order, coupon });
+    let pointsEarned = 0;
+    if (order) {
+      const earnTx = await prisma.yogisPointsTransaction.findFirst({
+        where: { orderId: order.id, type: 'ORDER_EARN' }
+      });
+      if (earnTx) pointsEarned = earnTx.points;
+    }
+
+    res.json({ status: true, order: order ? { ...order, pointsEarned } : null, coupon });
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -918,23 +940,41 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
       include: { user: { select: { name: true, phone: true } }, items: true }
     });
 
-    if (orderStatus === 'cancelled') {
-        for (const item of order.items) {
-           if (item.variant) {
-               const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
-               if (variant) {
-                   await prisma.productVariant.update({
-                       where: { id: variant.id },
-                       data: { stock: { increment: item.quantity } }
-                   });
-               }
-           } else {
-               await prisma.product.update({
-                   where: { id: item.productId },
-                   data: { stock: { increment: item.quantity } }
-               });
-           }
+    const { awardOrderCompletionPoints, reverseOrderPoints } = require('../utils/yogisPoints');
+    let pointsAwardedInfo = null;
+
+    if (orderStatus === 'delivered') {
+      try {
+        pointsAwardedInfo = await awardOrderCompletionPoints(order.id);
+        if (pointsAwardedInfo?.awarded) {
+          console.log(`[ADMIN] Awarded ${pointsAwardedInfo.points} Yogis Points on delivery of Order #${order.orderNumber}`);
         }
+      } catch (ptsErr) {
+        console.error('Error awarding Yogis Points for delivered order:', ptsErr);
+      }
+    } else if (orderStatus === 'cancelled') {
+      try {
+        await reverseOrderPoints(order.id);
+      } catch (ptsErr) {
+        console.error('Error reversing Yogis Points for cancelled order:', ptsErr);
+      }
+
+      for (const item of order.items) {
+         if (item.variant) {
+             const variant = await prisma.productVariant.findFirst({ where: { name: item.variant, productId: item.productId } });
+             if (variant) {
+                 await prisma.productVariant.update({
+                     where: { id: variant.id },
+                     data: { stock: { increment: item.quantity } }
+                 });
+             }
+         } else {
+             await prisma.product.update({
+                 where: { id: item.productId },
+                 data: { stock: { increment: item.quantity } }
+             });
+         }
+      }
     }
 
     // Send status-specific SMS via Way2Smart
@@ -970,7 +1010,60 @@ router.put('/orders/:id/status', requireAdmin, async (req, res) => {
     }
 
     await logAdminAction(req.session.adminId, 'Updated Order Status', `Order: ${order.orderNumber}, Status: ${orderStatus}`);
-    res.json({ status: true, message: 'Order status updated' });
+    res.json({
+      status: true,
+      message: pointsAwardedInfo?.awarded 
+        ? `Order marked delivered and awarded ${pointsAwardedInfo.points} Yogis Points to customer!` 
+        : 'Order status updated',
+      pointsAwarded: pointsAwardedInfo?.awarded || false,
+      pointsAwardedAmount: pointsAwardedInfo?.points || 0
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Dedicated endpoint to award completion points for a delivered order
+router.post('/orders/:id/award-points', requireAdmin, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      return res.json({ status: false, message: 'Order not found' });
+    }
+
+    if (order.orderStatus !== 'delivered') {
+      return res.json({ status: false, message: `Points can only be awarded to delivered orders (current status: ${order.orderStatus})` });
+    }
+
+    if (order.pointsAwarded) {
+      return res.json({ status: false, message: 'Points have already been awarded for this order' });
+    }
+
+    const { awardOrderCompletionPoints } = require('../utils/yogisPoints');
+    const result = await awardOrderCompletionPoints(orderId);
+
+    if (result && result.awarded) {
+      await logAdminAction(
+        req.session.adminId,
+        'Awarded Yogis Points',
+        `Awarded ${result.points} points for Order #${order.orderNumber}`
+      );
+      return res.json({
+        status: true,
+        message: `Successfully awarded ${result.points} Yogis Points to customer!`,
+        points: result.points,
+        newBalance: result.newBalance
+      });
+    } else {
+      return res.json({
+        status: false,
+        message: 'Could not award points. Please ensure Yogis Points is enabled and Points Per Order > 0 in settings.'
+      });
+    }
   } catch (e) {
     res.json({ status: false, message: e.message });
   }
@@ -984,6 +1077,16 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
       data: { paymentStatus, paymentDescription },
       include: { user: { select: { name: true, phone: true } } }
     });
+
+    if (paymentStatus === 'refunded') {
+      try {
+        const { reverseOrderPoints } = require('../utils/yogisPoints');
+        await reverseOrderPoints(order.id);
+      } catch (ptsErr) {
+        console.error('Error reversing points for refunded order:', ptsErr);
+      }
+    }
+
     // SMS stub — log payment update to console
     console.log(`\n💰 [SMS] Order ${order.orderNumber} payment status: "${paymentStatus}" for ${order.user.name} (${order.user.phone})\n`);
     await logAdminAction(req.session.adminId, 'Updated Order Payment', `Order: ${order.orderNumber}, Status: ${paymentStatus}`);
@@ -1902,4 +2005,212 @@ router.get('/accounts/orders', requireAdmin, async (req, res) => {
   }
 });
 
+// ─── Yogis Points Management Endpoints ───
+const { 
+  getPointsConfig, 
+  updatePointsConfig, 
+  adminAdjustPoints,
+  getAdminReferralHistory
+} = require('../utils/yogisPoints');
+
+// Get configuration and overall stats
+router.get(['/yogis-points/config', '/admin/yogis-points/config'], requireAdmin, async (req, res) => {
+  try {
+    const config = await getPointsConfig();
+
+    const [totalAccounts, activeBalanceAgg, redeemedAgg, earnedAgg, bonusAgg] = await Promise.all([
+      prisma.yogisPointsAccount.count(),
+      prisma.yogisPointsAccount.aggregate({ _sum: { balance: true } }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'REDEEM' },
+        _sum: { points: true }
+      }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'ORDER_EARN' },
+        _sum: { points: true }
+      }),
+      prisma.yogisPointsTransaction.aggregate({
+        where: { type: 'WELCOME_BONUS' },
+        _sum: { points: true }
+      })
+    ]);
+
+    const stats = {
+      totalAccounts,
+      totalActivePoints: activeBalanceAgg._sum.balance || 0,
+      totalRedeemedPoints: Math.abs(redeemedAgg._sum.points || 0),
+      totalEarnedPoints: earnedAgg._sum.points || 0,
+      totalBonusPoints: bonusAgg._sum.points || 0
+    };
+
+    res.json({ status: true, config, stats });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Update configuration
+router.put(['/yogis-points/config', '/admin/yogis-points/config'], requireAdmin, async (req, res) => {
+  try {
+    const config = await updatePointsConfig(req.body);
+    await logAdminAction(
+      req.session.adminId,
+      'Updated Yogis Points Configuration',
+      JSON.stringify(req.body)
+    );
+    res.json({ status: true, message: 'Yogis Points configuration updated successfully', config });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Get transactions log
+router.get(['/yogis-points/transactions', '/admin/yogis-points/transactions'], requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+    const type = req.query.type || undefined;
+    const search = req.query.search ? String(req.query.search).trim() : '';
+
+    const where = {};
+    if (type) where.type = type;
+    if (search) {
+      where.OR = [
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { user: { phone: { contains: search } } },
+        { order: { orderNumber: { contains: search, mode: 'insensitive' } } }
+      ];
+    }
+
+    const [transactions, total] = await Promise.all([
+      prisma.yogisPointsTransaction.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, phone: true, email: true } },
+          order: { select: { id: true, orderNumber: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      }),
+      prisma.yogisPointsTransaction.count({ where })
+    ]);
+
+    res.json({
+      status: true,
+      transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Admin manual point adjustment
+router.post(['/yogis-points/adjust', '/admin/yogis-points/adjust'], requireAdmin, async (req, res) => {
+  try {
+    const { userId, points, description } = req.body;
+    if (!userId) return res.json({ status: false, message: 'User ID is required' });
+    const result = await adminAdjustPoints(parseInt(userId, 10), points, description, req.session.adminId);
+    await logAdminAction(
+      req.session.adminId,
+      'Adjusted Customer Yogis Points',
+      `User ${userId}, Points: ${points}, Reason: ${description}`
+    );
+    res.json({ status: true, message: 'Points adjusted successfully', balance: result.balance });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// ─── Refer & Earn Management Endpoints ───
+// Get configuration and overall stats
+router.get(['/refer-and-earn/config', '/admin/refer-and-earn/config'], requireAdmin, async (req, res) => {
+  try {
+    const config = await getPointsConfig();
+    const historyData = await getAdminReferralHistory({ page: 1, limit: 1 });
+
+    res.json({
+      status: true,
+      config: {
+        pointsEnabled: config.enabled,
+        referralEnabled: config.referralEnabled,
+        referrerRewardPoints: config.referrerRewardPoints,
+        referredRewardPoints: config.referredRewardPoints,
+        conversionPoints: config.conversionPoints,
+        conversionRupees: config.conversionRupees
+      },
+      stats: historyData.metrics
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Update Refer & Earn configuration
+router.put(['/refer-and-earn/config', '/admin/refer-and-earn/config'], requireAdmin, async (req, res) => {
+  try {
+    const { referralEnabled, referrerRewardPoints, referredRewardPoints } = req.body;
+    const currentConfig = await getPointsConfig();
+
+    if (referralEnabled && !currentConfig.enabled) {
+      return res.json({
+        status: false,
+        message: 'Cannot enable Refer & Earn when Yogis Points is disabled. Please enable Yogis Points first.'
+      });
+    }
+
+    const payload = {};
+    if (typeof referralEnabled === 'boolean') payload.referralEnabled = referralEnabled;
+    if (referrerRewardPoints !== undefined) payload.referrerRewardPoints = referrerRewardPoints;
+    if (referredRewardPoints !== undefined) payload.referredRewardPoints = referredRewardPoints;
+
+    const updated = await updatePointsConfig(payload);
+    await logAdminAction(
+      req.session.adminId,
+      'Updated Refer & Earn Configuration',
+      JSON.stringify(payload)
+    );
+
+    res.json({
+      status: true,
+      message: 'Refer & Earn configuration updated successfully',
+      config: {
+        pointsEnabled: updated.enabled,
+        referralEnabled: updated.referralEnabled,
+        referrerRewardPoints: updated.referrerRewardPoints,
+        referredRewardPoints: updated.referredRewardPoints,
+        conversionPoints: updated.conversionPoints,
+        conversionRupees: updated.conversionRupees
+      }
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
+// Get referral history with pagination & search
+router.get(['/refer-and-earn/history', '/admin/refer-and-earn/history'], requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const search = req.query.search ? String(req.query.search).trim() : '';
+
+    const data = await getAdminReferralHistory({ page, limit, search });
+    res.json({
+      status: true,
+      ...data
+    });
+  } catch (e) {
+    res.json({ status: false, message: e.message });
+  }
+});
+
 module.exports = router;
+

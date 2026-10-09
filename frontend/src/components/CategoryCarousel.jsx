@@ -1,9 +1,6 @@
 import React from 'react';
-import SliderComponent from 'react-slick';
 import { useNavigate } from 'react-router-dom';
 import { getAssetUrl } from '../api';
-
-const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 
 const CategoryCarousel = ({ categories }) => {
     const navigate = useNavigate();
@@ -20,16 +17,6 @@ const CategoryCarousel = ({ categories }) => {
         { id: 'fallback_8', name: 'Sunflower Oil', slug: '#', image: '/src/assets/figma/img_11.png' }
     ];
 
-    const categorySettings = {
-        dots: false,
-        infinite: true,
-        speed: 1000,
-        slidesToShow: 8,
-        slidesToScroll: 1,
-        autoplay: true,
-        arrows: true
-    };
-
     return (
         <section 
             style={{
@@ -40,6 +27,64 @@ const CategoryCarousel = ({ categories }) => {
                 backgroundColor: 'var(--yf-bg-white)'
             }}
         >
+            <style>{`
+                .category-scroll-container {
+                    display: flex;
+                    overflow-x: auto;
+                    gap: 20px;
+                    padding: 10px 0;
+                    scrollbar-width: none; /* Firefox */
+                    -ms-overflow-style: none; /* IE 10+ */
+                    justify-content: center;
+                }
+                .category-scroll-container::-webkit-scrollbar {
+                    display: none; /* Safari and Chrome */
+                }
+                .category-item {
+                    cursor: pointer;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 15px;
+                    padding: 0;
+                    margin: 5px;
+                    transition: transform 0.3s ease;
+                    flex-shrink: 0;
+                }
+                @media (hover: hover) {
+                    .category-item:hover {
+                        transform: translateY(-5px);
+                    }
+                }
+                @media (max-width: 1200px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 6 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 992px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 5 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 768px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 4 ? 'flex-start' : 'center'};
+                    }
+                }
+                @media (max-width: 576px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 3 ? 'flex-start' : 'center'};
+                        padding-left: 20px;
+                        padding-right: 20px;
+                    }
+                }
+                @media (max-width: 400px) {
+                    .category-scroll-container {
+                        justify-content: ${displayCategories.length > 2 ? 'flex-start' : 'center'};
+                    }
+                }
+            `}</style>
+
             <div 
                 style={{
                     width: '1440px', // Desktop focus
@@ -63,60 +108,42 @@ const CategoryCarousel = ({ categories }) => {
                     </h3>
                 </div>
 
-                <div style={{ margin: '0 -10px' }}>
-                    <Slider {...categorySettings}>
-                        {displayCategories.map(cat => (
-                            <div key={cat.id} style={{ padding: '0 10px', outline: 'none' }}>
-                                <figure 
-                                    onClick={() => navigate(String(cat.id).startsWith('fallback') ? '#' : `/shop?category=${cat.slug}`)}
-                                    style={{
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        gap: '15px',
-                                        padding: '0',
-                                        margin: '5px',
-                                        transition: 'transform 0.3s ease'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(-5px)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.transform = 'translateY(0)';
-                                    }}
-                                >
-                                    <div style={{
-                                        width: '112px',
-                                        height: '112px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        borderRadius: '9px',
-                                        border: '1px solid #F9F9F9',
-                                        backgroundColor: 'var(--yf-bg-white)',
-                                        overflow: 'hidden'
-                                    }}>
-                                        <img 
-                                            src={String(cat.id).startsWith('fallback') ? cat.image : getAssetUrl(cat.image)} 
-                                            alt={cat.name} 
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                        />
-                                    </div>
-                                    <h6 style={{ 
-                                        color: 'var(--yf-primary-dark)', 
-                                        fontSize: '13px', 
-                                        fontFamily: 'var(--font-poppins)', 
-                                        fontWeight: '600',
-                                        margin: 0,
-                                        textAlign: 'center'
-                                    }}>
-                                        {cat.name}
-                                    </h6>
-                                </figure>
+                <div className="category-scroll-container">
+                    {displayCategories.map(cat => (
+                        <figure 
+                            key={cat.id}
+                            className="category-item"
+                            onClick={() => navigate(String(cat.id).startsWith('fallback') ? '#' : `/shop?category=${cat.slug}`)}
+                        >
+                            <div style={{
+                                width: '112px',
+                                height: '112px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '9px',
+                                border: '1px solid #F9F9F9',
+                                backgroundColor: 'var(--yf-bg-white)',
+                                overflow: 'hidden'
+                            }}>
+                                <img 
+                                    src={String(cat.id).startsWith('fallback') ? cat.image : getAssetUrl(cat.image)} 
+                                    alt={cat.name} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                />
                             </div>
-                        ))}
-                    </Slider>
+                            <h6 style={{ 
+                                color: 'var(--yf-primary-dark)', 
+                                fontSize: '13px', 
+                                fontFamily: 'var(--font-poppins)', 
+                                fontWeight: '600',
+                                margin: 0,
+                                textAlign: 'center'
+                            }}>
+                                {cat.name}
+                            </h6>
+                        </figure>
+                    ))}
                 </div>
             </div>
         </section>

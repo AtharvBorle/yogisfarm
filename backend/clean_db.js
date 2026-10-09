@@ -33,7 +33,11 @@ async function cleanDatabase() {
     'sessions',
     'shipping',
     'blog_posts',
-    'blog_categories'
+    'blog_categories',
+    'referrals',
+    'yogis_points_lots',
+    'yogis_points_transactions',
+    'yogis_points_accounts'
   ];
 
   try {

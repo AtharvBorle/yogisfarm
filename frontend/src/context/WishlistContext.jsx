@@ -11,9 +11,9 @@ export const WishlistProvider = ({ children }) => {
     const [wishlist, setWishlist] = useState([]);
     const { user } = useAuth();
 
-    useEffect(() => {
+    const fetchWishlist = () => {
         if (user) {
-            api.get('/wishlist')
+            return api.get('/wishlist')
                 .then(res => {
                     if (res.data.status) {
                         setWishlist(res.data.items.map(i => i.productId));
@@ -23,6 +23,10 @@ export const WishlistProvider = ({ children }) => {
         } else {
             setWishlist([]); // Clear if logged out
         }
+    };
+
+    useEffect(() => {
+        fetchWishlist();
     }, [user]);
 
     const toggleWishlist = async (productId) => {
@@ -70,7 +74,7 @@ export const WishlistProvider = ({ children }) => {
     };
 
     return (
-        <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist }}>
+        <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist, fetchWishlist }}>
             {children}
         </WishlistContext.Provider>
     );

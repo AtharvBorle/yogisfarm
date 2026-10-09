@@ -3,10 +3,33 @@
 .d-block { display: block !important; }
 .d-flex { display: flex !important; }
 
+@media (min-width: 768px) {
+    .d-md-none { display: none !important; }
+    .d-md-block { display: block !important; }
+    .d-md-flex { display: flex !important; }
+}
+
 @media (min-width: 992px) {
     .d-lg-none { display: none !important; }
     .d-lg-block { display: block !important; }
     .d-lg-flex { display: flex !important; }
+}
+
+/* Yogi's Points Spinning Coin Responsive Placement */
+.yogis-coin-sidebar {
+    display: block;
+}
+.yogis-coin-mobile-section {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .yogis-coin-sidebar {
+        display: none !important;
+    }
+    .yogis-coin-mobile-section {
+        display: block !important;
+    }
 }
 
 .address-active {

@@ -522,12 +522,14 @@ const Home = () => {
                     }
                 }
                 @media (max-width: 767px) {
-                    .auto-scroll-container {
+                    .auto-scroll-container,
+                    .manual-scroll-container {
                         flex-wrap: nowrap !important;
                         scrollbar-width: none;
                         -ms-overflow-style: none;
                     }
-                    .auto-scroll-container::-webkit-scrollbar {
+                    .auto-scroll-container::-webkit-scrollbar,
+                    .manual-scroll-container::-webkit-scrollbar {
                         display: none !important;
                     }
                     .home-slider-img {
@@ -752,7 +754,7 @@ const Home = () => {
                                 <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
                             </div>
                         </div>
-                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
+                        <div className="row flex-nowrap flex-md-wrap overflow-auto manual-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
                             {Array.from({ length: isMobile ? 3 : 6 }).map((_, idx) => (
                                 <CategorySkeleton key={idx} />
                             ))}
@@ -768,7 +770,7 @@ const Home = () => {
                                 <h3 className="global-heading-style" style={{ color: '#0A6738', fontFamily: 'Poppins, sans-serif', fontWeight: 600 }}>Featured Categories</h3>
                             </div>
                         </div>
-                        <div className="row flex-nowrap flex-md-wrap overflow-auto auto-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
+                        <div className="row flex-nowrap flex-md-wrap overflow-auto manual-scroll-container justify-content-center" style={{ paddingBottom: '15px' }}>
                             {categories.map(cat => (
                                 <div key={cat.id} className="col-4 col-sm-3 col-md-2 mb-3" style={{ flexShrink: 0 }}>
                                     <figure

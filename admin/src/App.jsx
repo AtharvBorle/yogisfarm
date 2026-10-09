@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
@@ -24,9 +25,21 @@ import Review from './pages/Review';
 import Collections from './pages/Collections';
 import Logs from './pages/Logs';
 import Accounts from './pages/Accounts';
+import YogisPoints from './pages/YogisPoints';
+import ReferAndEarn from './pages/ReferAndEarn';
 
 function App() {
   const { admin, loading } = useAuth();
+
+  useEffect(() => {
+    const handleWheel = () => {
+      if (document.activeElement && document.activeElement.type === 'number') {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener('wheel', handleWheel, { passive: true });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
 
   if (loading) return <div>Loading...</div>;
 
@@ -51,6 +64,8 @@ function App() {
       <Route path="/contacts" element={admin ? <AdminLayout><Contact /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/filemanager" element={admin ? <AdminLayout><Filemanager /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/coupons" element={admin ? <AdminLayout><Coupon /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/yogis-points" element={admin ? <AdminLayout><YogisPoints /></AdminLayout> : <Navigate to="/login" />} />
+      <Route path="/refer-and-earn" element={admin ? <AdminLayout><ReferAndEarn /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/reviews" element={admin ? <AdminLayout><Review /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/logs" element={admin ? <AdminLayout><Logs /></AdminLayout> : <Navigate to="/login" />} />
       <Route path="/accounts" element={admin ? <AdminLayout><Accounts /></AdminLayout> : <Navigate to="/login" />} />

@@ -143,10 +143,24 @@ const OrderSuccess = () => {
                             <span style={{ fontWeight: '600', color: '#253D4E' }}>Shipping Charges:</span>
                             <span>₹{Number(order.shipping).toFixed(2)}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
-                            <span style={{ fontWeight: '600', color: '#253D4E' }}>Discount Amount:</span>
-                            <span>₹{Number(order.discount).toFixed(2)}</span>
-                        </div>
+                        {Number(order.yogisPointsDiscount) > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
+                                <span style={{ fontWeight: '600' }}>Yogis Points Discount ({order.yogisPointsUsed || 0} pts):</span>
+                                <span style={{ fontWeight: '700' }}>-₹{Number(order.yogisPointsDiscount).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)) > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle }}>
+                                <span style={{ fontWeight: '600', color: '#253D4E' }}>Coupon Discount{order.couponCode ? ` (${order.couponCode})` : ''}:</span>
+                                <span style={{ fontWeight: '600' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {(order.pointsAwarded || Number(order.pointsEarned) > 0) && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: borderStyle, color: '#046938' }}>
+                                <span style={{ fontWeight: '600' }}>Coins to be earned on delivery:</span>
+                                <span style={{ fontWeight: '700' }}>+{order.pointsEarned} Coins</span>
+                            </div>
+                        )}
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontWeight: '700' }}>
                             <span style={{ color: '#046938' }}>Total:</span>
                             <span>₹{Number(order.total).toFixed(0)}</span>

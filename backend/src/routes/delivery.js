@@ -2,6 +2,7 @@ const router = require('express').Router();
 const prisma = require('../db');
 const bcrypt = require('bcryptjs');
 const { sendOutForDeliverySMS, sendDeliveredSMS } = require('../utils/sms');
+const { awardOrderCompletionPoints } = require('../utils/yogisPoints');
 
 // ─── Delivery Boy Auth Middleware ───
 const requireDeliveryBoy = (req, res, next) => {
@@ -267,6 +268,15 @@ router.put('/orders/:id/status', requireDeliveryBoy, async (req, res) => {
           where: { id: boyId },
           data: { outstandingAmount: { increment: Math.round(Number(updatedOrder.total)) } }
         });
+      }
+
+      // Award Yogis Points if delivered
+      if (orderStatus === 'delivered') {
+        try {
+          await awardOrderCompletionPoints(orderId, tx);
+        } catch (ptsErr) {
+          console.error('[DELIVERY] Error awarding Yogis Points for delivered order:', ptsErr);
+        }
       }
     });
 
