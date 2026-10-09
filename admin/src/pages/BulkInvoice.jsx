@@ -428,14 +428,6 @@ const BulkInvoice = () => {
                                             <td className="right bold" style={{ padding: '8px 4px' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</td>
                                         </tr>
                                     )}
-                                    {(order.pointsAwarded || order.pointsEarned > 0) && (
-                                        <tr>
-                                            <td colSpan={isMaharashtra ? "8" : "7"} className="right bold" style={{ padding: '8px 4px', color: '#15803d' }}>
-                                                Yogis Points Earned on Completion :
-                                            </td>
-                                            <td className="right bold" style={{ padding: '8px 4px', color: '#15803d' }}>+{order.pointsEarned || 100} pts</td>
-                                        </tr>
-                                    )}
                                     {/* Footer Row */}
                                     <tr>
                                         <td colSpan="3" className="bold" style={{ padding: '8px 4px' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>

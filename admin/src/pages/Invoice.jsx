@@ -234,14 +234,6 @@ const Invoice = () => {
                                                 <td style={{ ...tdStyle, fontWeight: 'bold' }}>-₹{Math.max(0, Number(order.discount || 0) - Number(order.yogisPointsDiscount || 0)).toFixed(2)}</td>
                                             </tr>
                                         )}
-                                        {(order.pointsAwarded || order.pointsEarned > 0) && (
-                                            <tr>
-                                                <td colSpan={isMaharashtra ? "9" : "8"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold', color: '#15803d' }}>
-                                                    Yogis Points Earned on Completion :
-                                                </td>
-                                                <td style={{ ...tdStyle, fontWeight: 'bold', color: '#15803d' }}>+{order.pointsEarned || 100} pts</td>
-                                            </tr>
-                                        )}
                                         <tr>
                                             <td colSpan="3" style={{ ...tdStyle, textAlign: 'left', fontWeight: 'bold' }}>TOTAL QTY: {order.items.reduce((acc, curr) => acc + curr.quantity, 0)}</td>
                                             <td colSpan={isMaharashtra ? "6" : "5"} style={{ ...tdStyle, textAlign: 'right', fontWeight: 'bold' }}>GRAND TOTAL:</td>
