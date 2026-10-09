@@ -81,6 +81,15 @@ function App() {
     }
   }, [location.search, location.hash]);
 
+  // Google Analytics Pageview tracking on route navigation
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('config', 'G-RYKZJ1778Q', {
+        page_path: location.pathname + location.search
+      });
+    }
+  }, [location.pathname, location.search]);
+
   return (
     <>
       {isPreloading && (

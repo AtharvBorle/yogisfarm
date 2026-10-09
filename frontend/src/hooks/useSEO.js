@@ -27,6 +27,9 @@ export const useSEO = (seoData) => {
   const depDesc = isString ? '' : (seoData?.description || '');
   const depKeywords = isString ? '' : (seoData?.keywords || '');
   const depOgImage = isString ? '' : (seoData?.ogImage || '');
+  const depCanonical = isString 
+    ? (seoData === 'about' ? 'https://yogisfarms.com/about-us' : '') 
+    : (seoData?.canonical || (depKey === 'about' ? 'https://yogisfarms.com/about-us' : ''));
 
   useEffect(() => {
     const updateSEO = async () => {
@@ -157,10 +160,30 @@ export const useSEO = (seoData) => {
         }
         metaOgImage.content = absOgImage;
       }
+
+      // Update or Create Canonical Link
+      if (depCanonical) {
+        let canonicalTag = document.querySelector('link[rel="canonical"]');
+        if (!canonicalTag) {
+          canonicalTag = document.createElement('link');
+          canonicalTag.rel = 'canonical';
+          document.head.appendChild(canonicalTag);
+        }
+        canonicalTag.href = depCanonical;
+      }
     };
 
     updateSEO();
-  }, [isString, depKey, depTitle, depDesc, depKeywords, depOgImage]);
+
+    return () => {
+      if (depCanonical) {
+        const canonicalTag = document.querySelector('link[rel="canonical"]');
+        if (canonicalTag) {
+          canonicalTag.parentNode?.removeChild(canonicalTag);
+        }
+      }
+    };
+  }, [isString, depKey, depTitle, depDesc, depKeywords, depOgImage, depCanonical]);
 };
 
 export default useSEO;
