@@ -14,6 +14,16 @@ const cache = require('../utils/cache');
 let upload;
 let s3;
 
+const sanitizeUploadFilename = (originalname) => {
+  if (!originalname) return 'file';
+  const safeName = path.basename(originalname);
+  const ext = path.extname(safeName);
+  const base = path.basename(safeName, ext);
+  const cleanBase = base.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_');
+  const cleanExt = ext.replace(/[^a-zA-Z0-9.]/g, '');
+  return `${cleanBase}${cleanExt}`;
+};
+
 if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
   s3 = new S3Client({
     region: process.env.AWS_REGION,
@@ -34,7 +44,7 @@ if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
       key: function (req, file, cb) {
         const subdir = req.body.uploadPath || req.query.uploadPath || 'blogs';
         const dirPath = subdir ? `uploads/${subdir}/` : 'uploads/';
-        cb(null, dirPath + Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+        cb(null, dirPath + Date.now() + '-' + sanitizeUploadFilename(file.originalname));
       }
     }),
     limits: { fileSize: 10 * 1024 * 1024 }
@@ -48,7 +58,7 @@ if (process.env.AWS_S3_BUCKET_NAME && process.env.AWS_ACCESS_KEY_ID) {
       cb(null, dir);
     },
     filename: (req, file, cb) => {
-      cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+      cb(null, Date.now() + '-' + sanitizeUploadFilename(file.originalname));
     }
   });
   upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
