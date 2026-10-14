@@ -41,22 +41,45 @@ api.interceptors.response.use((response) => {
   return Promise.reject(error);
 });
 
+export const safeEncodeUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  let encoded = '';
+  try {
+    encoded = encodeURI(decodeURI(url));
+  } catch (e) {
+    encoded = encodeURI(url);
+  }
+  const qIndex = encoded.indexOf('?');
+  if (qIndex !== -1) {
+    return encoded.slice(0, qIndex).replace(/#/g, '%23') + encoded.slice(qIndex);
+  }
+  return encoded.replace(/#/g, '%23');
+};
+
 export const getAssetUrl = (path) => {
   if (!path || typeof path !== 'string') return '';
-  // Already a full URL — return as-is
-  if (path.startsWith('http')) return path;
+  if (path.startsWith('data:') || path.startsWith('blob:')) return path;
+
+  // Already a full URL
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return safeEncodeUrl(path);
+  }
+
   const s3Base = import.meta.env.VITE_S3_BASE_URL;
   if (s3Base) {
-    return `${s3Base}${path.startsWith('/') ? '' : '/'}${path}`;
+    const cleanBase = s3Base.replace(/\/+$/, '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return safeEncodeUrl(`${cleanBase}${cleanPath}`);
   }
 
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   // If frontend and backend are on different origins (dev mode), prepend backend origin
   const isSameOrigin = backendOrigin === window.location.origin || backendOrigin === '';
   if (isSameOrigin) {
-    return cleanPath;
+    return safeEncodeUrl(cleanPath);
   }
-  return `${backendOrigin}${cleanPath}`;
+  return safeEncodeUrl(`${backendOrigin}${cleanPath}`);
 };
 
 export default api;
