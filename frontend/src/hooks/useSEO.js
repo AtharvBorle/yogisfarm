@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import api from '../api';
+import { computeCanonicalUrl, setCanonicalTag } from '../utils/canonical';
 
 let cachedSettingsPromise = null;
 
@@ -37,6 +38,7 @@ export const useSEO = (seoData) => {
       let description = '';
       let keywords = '';
       let ogImage = '';
+      let canonicalSetting = '';
 
       if (isString) {
         if (depKey) {
@@ -47,6 +49,7 @@ export const useSEO = (seoData) => {
               description = settings[`seo_${depKey}_description`] || '';
               keywords = settings[`seo_${depKey}_keywords`] || '';
               ogImage = settings[`seo_${depKey}_og_image`] || '';
+              canonicalSetting = settings[`seo_${depKey}_canonical`] || '';
             }
           } catch (err) {
             console.error('Failed to load SEO settings', err);
@@ -61,6 +64,7 @@ export const useSEO = (seoData) => {
               description = settings[`seo_${depKey}_description`] || depDesc || '';
               keywords = settings[`seo_${depKey}_keywords`] || depKeywords || '';
               ogImage = settings[`seo_${depKey}_og_image`] || depOgImage || '';
+              canonicalSetting = settings[`seo_${depKey}_canonical`] || '';
             } else {
               title = depTitle;
               description = depDesc;
@@ -161,28 +165,12 @@ export const useSEO = (seoData) => {
         metaOgImage.content = absOgImage;
       }
 
-      // Update or Create Canonical Link
-      if (depCanonical) {
-        let canonicalTag = document.querySelector('link[rel="canonical"]');
-        if (!canonicalTag) {
-          canonicalTag = document.createElement('link');
-          canonicalTag.rel = 'canonical';
-          document.head.appendChild(canonicalTag);
-        }
-        canonicalTag.href = depCanonical;
-      }
+      // Automatically update or create Canonical Link and og:url
+      const targetCanonical = computeCanonicalUrl(window.location.pathname, depCanonical || canonicalSetting);
+      setCanonicalTag(targetCanonical);
     };
 
     updateSEO();
-
-    return () => {
-      if (depCanonical) {
-        const canonicalTag = document.querySelector('link[rel="canonical"]');
-        if (canonicalTag) {
-          canonicalTag.parentNode?.removeChild(canonicalTag);
-        }
-      }
-    };
   }, [isString, depKey, depTitle, depDesc, depKeywords, depOgImage, depCanonical]);
 };
 

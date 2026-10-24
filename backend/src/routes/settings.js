@@ -109,6 +109,9 @@ router.get('/seo', requireAdmin, async (req, res) => {
       } else if (s.key.endsWith('_og_image')) {
         pageKey = s.key.slice(4, -9);
         field = 'ogImage';
+      } else if (s.key.endsWith('_canonical')) {
+        pageKey = s.key.slice(4, -10);
+        field = 'canonical';
       }
 
       if (!pageKey) return;
@@ -128,6 +131,7 @@ router.get('/seo', requireAdmin, async (req, res) => {
           description: '',
           keywords: '',
           ogImage: '',
+          canonical: '',
           createdAt: s.createdAt,
           updatedAt: s.updatedAt
         };

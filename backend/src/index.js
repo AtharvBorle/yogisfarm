@@ -152,6 +152,27 @@ app.get('*', async (req, res) => {
     let fallbackKeywords = '';
     let fallbackOgImage = '';
 
+    const CANONICAL_BASE = (process.env.CANONICAL_BASE_URL || process.env.FRONTEND_URL || 'https://yogisfarms.com').replace(/\/+$/, '');
+
+    const computeCanonicalUrl = (pathStr, customCanonical) => {
+      if (customCanonical && typeof customCanonical === 'string' && customCanonical.trim()) {
+        return customCanonical.trim();
+      }
+      if (!pathStr || pathStr === '/' || pathStr === '') {
+        return CANONICAL_BASE;
+      }
+      let clean = pathStr.split('?')[0].split('#')[0].replace(/\/+$/, '');
+      if (!clean) return CANONICAL_BASE;
+
+      if (clean === '/about') clean = '/about-us';
+      if (clean === '/contact') clean = '/contact-us';
+      if (clean === '/blog') clean = '/blogs';
+      if (clean.startsWith('/blog/')) {
+        clean = '/blogs' + clean.substring(5);
+      }
+      return CANONICAL_BASE + clean;
+    };
+
     // Route matching for SEO
     if (urlPath === '/' || urlPath === '') {
       seoKey = 'home';
@@ -161,6 +182,10 @@ app.get('*', async (req, res) => {
       seoKey = 'contact-us';
     } else if (urlPath.startsWith('/shop')) {
       seoKey = 'shop';
+    } else if (urlPath.startsWith('/deals')) {
+      seoKey = 'deals';
+      fallbackTitle = 'Hot Deals | YogisFarms';
+      fallbackDesc = 'Explore exclusive deals, discounts, and combo offers on pure, natural farm products from YogisFarms.';
     } else if (urlPath.startsWith('/blogs') && !urlPath.includes('/blogs/')) {
       seoKey = 'blogs';
     } else if (urlPath.startsWith('/cart')) {
@@ -171,6 +196,19 @@ app.get('*', async (req, res) => {
       seoKey = 'wishlist';
     } else if (urlPath.startsWith('/blogs/')) {
       const slug = urlPath.substring(7).split('?')[0];
+      seoKey = `blogs/${slug}`;
+
+      const blog = await prisma.blogPost.findUnique({
+        where: { slug }
+      });
+      if (blog) {
+        fallbackTitle = blog.title;
+        fallbackDesc = blog.description || '';
+        fallbackKeywords = blog.tags || '';
+        fallbackOgImage = blog.image || '';
+      }
+    } else if (urlPath.startsWith('/blog/')) {
+      const slug = urlPath.substring(6).split('?')[0];
       seoKey = `blogs/${slug}`;
 
       const blog = await prisma.blogPost.findUnique({
@@ -217,7 +255,8 @@ app.get('*', async (req, res) => {
               `seo_${seoKey}_title`,
               `seo_${seoKey}_description`,
               `seo_${seoKey}_keywords`,
-              `seo_${seoKey}_og_image`
+              `seo_${seoKey}_og_image`,
+              `seo_${seoKey}_canonical`
             ]
           }
         }
@@ -256,16 +295,20 @@ app.get('*', async (req, res) => {
     const cleanDesc = escapeHtml(description);
     const cleanKeywords = escapeHtml(keywords);
     const cleanOgImage = escapeHtml(makeAbsoluteUrl(ogImage));
+    const canonical = (seoKey && settingsMap[`seo_${seoKey}_canonical`]) || computeCanonicalUrl(urlPath);
+    const cleanCanonical = escapeHtml(canonical);
 
-    // Strip existing title, description, keywords and og:image tags
+    // Strip existing title, description, keywords, og:image, og:url and canonical tags
     html = html.replace(/<title>[\s\S]*?<\/title>/gi, '');
     html = html.replace(/<meta\s+[^>]*name=["']description["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*property=["']description["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*name=["']keywords["'][^>]*>/gi, '');
     html = html.replace(/<meta\s+[^>]*property=["']og:image["'][^>]*>/gi, '');
+    html = html.replace(/<meta\s+[^>]*property=["']og:url["'][^>]*>/gi, '');
+    html = html.replace(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi, '');
 
     // Inject the new tags right after <head>
-    const seoTags = `\n    <title>${cleanTitle}</title>\n    <meta name="description" content="${cleanDesc}">\n    <meta property="description" content="${cleanDesc}">\n    <meta name="keywords" content="${cleanKeywords}">\n    <meta property="og:image" content="${cleanOgImage}">`;
+    const seoTags = `\n    <title>${cleanTitle}</title>\n    <meta name="description" content="${cleanDesc}">\n    <meta property="description" content="${cleanDesc}">\n    <meta name="keywords" content="${cleanKeywords}">\n    <meta property="og:image" content="${cleanOgImage}">\n    <meta property="og:url" content="${cleanCanonical}">\n    <link rel="canonical" href="${cleanCanonical}">`;
 
     html = html.replace('<head>', `<head>${seoTags}`);
 

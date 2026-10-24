@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
+import { computeCanonicalUrl, setCanonicalTag } from './utils/canonical';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -81,8 +82,12 @@ function App() {
     }
   }, [location.search, location.hash]);
 
-  // Google Analytics Pageview tracking on route navigation
+  // Automatic Canonical URL & Google Analytics tracking on route navigation
   useEffect(() => {
+    // Automatically set canonical tag for any route/page
+    const canonicalUrl = computeCanonicalUrl(location.pathname);
+    setCanonicalTag(canonicalUrl);
+
     if (typeof window.gtag === 'function') {
       window.gtag('config', 'G-RYKZJ1778Q', {
         page_path: location.pathname + location.search

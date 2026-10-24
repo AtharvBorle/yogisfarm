@@ -7,6 +7,7 @@ import { CorePillars, PartnerLogos } from '../components/FeatureBanners';
 import FloatingSidebar from '../components/FloatingSidebar';
 import SliderComponent from 'react-slick';
 import { ChevronRight } from 'lucide-react';
+import useSEO from '../hooks/useSEO';
 
 const Slider = SliderComponent.default ? SliderComponent.default : SliderComponent;
 import "slick-carousel/slick/slick.css"; 
@@ -54,6 +55,12 @@ const NextArrow = (props) => {
 };
 
 const Deals = () => {
+    useSEO({
+        key: 'deals',
+        title: 'Hot Deals | YogisFarms',
+        description: 'Explore exclusive deals, discounts, and combo offers on pure, natural farm products from YogisFarms.',
+        canonical: 'https://yogisfarms.com/deals'
+    });
     const [popularProducts, setPopularProducts] = useState([]);
     const [sections, setSections] = useState([]);
     const [loading, setLoading] = useState(true);
