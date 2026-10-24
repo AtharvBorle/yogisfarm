@@ -1,6 +1,7 @@
 node_modules
 .env
 dist
+dist_*
 build
 .DS_Store
 *.log
@@ -9,10 +10,12 @@ build
 .idea
 package-lock.json
 /admin/dist
+dist_*
 /admin/node_modules
 /backend/node_modules
 /backend/prisma/client
 /frontend/dist
+dist_*
 /frontend/node_modules
 /frontend/.next
 /uploads/*
