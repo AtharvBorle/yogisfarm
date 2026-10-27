@@ -33,6 +33,7 @@ const TakeAction = () => {
     const [selectedDeliveryBoyId, setSelectedDeliveryBoyId] = useState('');
     const [selectedCourierPartnerId, setSelectedCourierPartnerId] = useState('');
     const [trackingId, setTrackingId] = useState('');
+    const [displayTrackingLink, setDisplayTrackingLink] = useState('');
     const [isAssigning, setIsAssigning] = useState(false);
 
     const fetchOrders = async () => {
@@ -140,7 +141,8 @@ const TakeAction = () => {
                 deliveryType: deliveryOptionType,
                 deliveryBoyId: deliveryOptionType === 'delivery_boy' ? parseInt(selectedDeliveryBoyId) : null,
                 courierPartnerId: deliveryOptionType === 'courier' ? parseInt(selectedCourierPartnerId) : null,
-                trackingId: deliveryOptionType === 'courier' ? trackingId : null
+                trackingId: deliveryOptionType === 'courier' ? trackingId : null,
+                displayTrackingLink: deliveryOptionType === 'courier' ? displayTrackingLink : null
             }));
             
             await Promise.all(promises);
@@ -148,6 +150,10 @@ const TakeAction = () => {
             toast.success('Delivery partner assigned to selected orders');
             setDeliveryOptionModal({ open: false });
             setSelectedOrderIds([]);
+            setSelectedDeliveryBoyId('');
+            setSelectedCourierPartnerId('');
+            setTrackingId('');
+            setDisplayTrackingLink('');
             fetchOrders();
         } catch (err) {
             toast.error('Failed to assign delivery partner');
@@ -460,14 +466,18 @@ const TakeAction = () => {
                                 </select>
                             </div>
                             <div>
-                                <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '5px', display: 'block' }}>Tracking ID / Link</label>
-                                <input type="text" value={trackingId} onChange={e => setTrackingId(e.target.value)} placeholder="Enter tracking ID or URL" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }} required />
+                                <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '5px', display: 'block' }}>Tracking ID</label>
+                                <input type="text" value={trackingId} onChange={e => setTrackingId(e.target.value)} placeholder="Enter tracking ID" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }} required />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '13px', fontWeight: '600', marginBottom: '5px', display: 'block' }}>Display Tracking Link</label>
+                                <input type="text" value={displayTrackingLink} onChange={e => setDisplayTrackingLink(e.target.value)} placeholder="Enter tracking link to display on tracking page" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', boxSizing: 'border-box' }} />
                             </div>
                         </>
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                        <button type="button" onClick={() => setDeliveryOptionModal({ open: false })} style={{ padding: '10px 20px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                        <button type="button" onClick={() => { setDeliveryOptionModal({ open: false }); setTrackingId(''); setDisplayTrackingLink(''); }} style={{ padding: '10px 20px', background: '#f8f9fa', border: '1px solid #ddd', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                         <button type="submit" disabled={isAssigning} style={{ padding: '10px 20px', background: '#046938', color: '#fff', border: 'none', borderRadius: '6px', cursor: isAssigning ? 'not-allowed' : 'pointer', fontWeight: '600' }}>
                             {isAssigning ? 'Assigning...' : 'Assign Deliveries'}
                         </button>

@@ -144,7 +144,45 @@ const TrackOrder = () => {
                                             <span style={{ color: '#7E7E7E', fontSize: '13px' }}>Payment</span>
                                             <div style={{ fontWeight: '700', color: '#253D4E', fontSize: '16px', textTransform: 'uppercase' }}>{order.paymentMethod}</div>
                                         </div>
+                                        {order.trackingId && (
+                                            <div>
+                                                <span style={{ color: '#7E7E7E', fontSize: '13px' }}>Tracking ID</span>
+                                                <div style={{ fontWeight: '700', color: '#253D4E', fontSize: '16px' }}>{order.trackingId}</div>
+                                            </div>
+                                        )}
                                     </div>
+
+                                    {/* Courier Partner Notification & External Tracking Link */}
+                                    {(order.displayTrackingLink || (order.deliveryType === 'courier' && order.courierPartner?.trackingLink)) && (() => {
+                                        const rawLink = order.displayTrackingLink || (order.courierPartner?.trackingLink ? (order.trackingId ? (order.courierPartner.trackingLink + order.trackingId) : order.courierPartner.trackingLink) : '');
+                                        const fullUrl = rawLink.startsWith('http://') || rawLink.startsWith('https://') ? rawLink : ('https://' + rawLink);
+                                        return (
+                                            <div style={{
+                                                margin: '0 0 25px 0',
+                                                padding: '16px 20px',
+                                                backgroundColor: '#eef8f2',
+                                                border: '1px solid #c3e6cb',
+                                                borderRadius: '8px',
+                                                color: '#155724',
+                                                fontSize: '15px',
+                                                lineHeight: '1.6'
+                                            }}>
+                                                Your order has been assigned to a courier partner.{' '}
+                                                <a
+                                                    href={fullUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    style={{
+                                                        color: '#046938',
+                                                        fontWeight: '700',
+                                                        textDecoration: 'underline'
+                                                    }}
+                                                >
+                                                    Click here to get more information.
+                                                </a>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Status Timeline */}
                                     {isCancelled ? (

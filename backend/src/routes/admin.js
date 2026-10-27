@@ -1109,15 +1109,17 @@ router.put('/orders/:id/payment', requireAdmin, async (req, res) => {
 // ─── Delivery Option Assignment ───
 router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
   try {
-    const { deliveryType, deliveryBoyId, courierPartnerId, trackingId } = req.body;
+    const { deliveryType, deliveryBoyId, courierPartnerId, trackingId, displayTrackingLink } = req.body;
     const data = { deliveryType };
     if (deliveryType === 'delivery_boy') {
       data.deliveryBoyId = parseInt(deliveryBoyId);
       data.courierPartnerId = null;
       data.trackingId = null;
+      data.displayTrackingLink = null;
     } else if (deliveryType === 'courier') {
       data.courierPartnerId = parseInt(courierPartnerId);
-      data.trackingId = trackingId || null;
+      data.trackingId = trackingId ? String(trackingId).trim() : null;
+      data.displayTrackingLink = displayTrackingLink ? String(displayTrackingLink).trim() : null;
       data.deliveryBoyId = null;
     }
 
@@ -1138,17 +1140,24 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
 
     // Start background task to send SMS without blocking the UI response
     (async () => {
-      // 1. Send the SHIPPED SMS first
-      if (data.orderStatus === 'shipped') {
+      // 1. Send the SHIPPED SMS
+      // Send every time courier partner is assigned or reassigned:
+      if (deliveryType === 'courier' && courierPartnerId) {
         const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
         let trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
-        if (deliveryType === 'courier' && courierPartnerId) {
-          const partner = await prisma.courierPartner.findUnique({ where: { id: parseInt(courierPartnerId) } });
-          if (partner && partner.trackingLink) {
-            trackingLink = trackingId ? `${partner.trackingLink}${trackingId}` : partner.trackingLink;
-          }
+        const partner = await prisma.courierPartner.findUnique({ where: { id: parseInt(courierPartnerId) } });
+        if (partner && partner.trackingLink) {
+          trackingLink = trackingId ? `${partner.trackingLink}${trackingId}` : partner.trackingLink;
         }
-        await sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+        if (order.user && order.user.phone) {
+          await sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+        }
+      } else if (data.orderStatus === 'shipped') {
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const trackingLink = `${FRONTEND_URL}/track-order?order=${order.orderNumber}`;
+        if (order.user && order.user.phone) {
+          await sendShippedSMS(order.user.phone, order.orderNumber, trackingLink);
+        }
       }
 
       // 2. Send the ASSIGNED SMS second, with a delay if shipped was just sent

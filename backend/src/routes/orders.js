@@ -478,7 +478,8 @@ router.get('/detail/:orderNumber', requireLogin, async (req, res) => {
       include: {
         items: { include: { product: { select: { slug: true, image: true, name: true, id: true, tax: true, categoryId: true, featured: true, status: true, hoverImage: true, brand: true, images: true } } } },
         user: { select: { name: true, phone: true, email: true } },
-        deliveryBoy: true
+        deliveryBoy: true,
+        courierPartner: true
       }
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
@@ -552,7 +553,7 @@ router.get('/track/:orderNumber', async (req, res) => {
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },
-      include: { items: true }
+      include: { items: true, courierPartner: true }
     });
     if (!order) return res.json({ status: false, message: 'Order not found' });
     res.json({ status: true, order });

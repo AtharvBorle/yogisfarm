@@ -24,6 +24,7 @@ const OrderDetail = () => {
     const [selectedDeliveryBoyId, setSelectedDeliveryBoyId] = useState('');
     const [selectedCourierPartnerId, setSelectedCourierPartnerId] = useState('');
     const [trackingId, setTrackingId] = useState('');
+    const [displayTrackingLink, setDisplayTrackingLink] = useState('');
 
     // Manage form
     const [manageType, setManageType] = useState('delivery_boy');
@@ -114,6 +115,7 @@ const OrderDetail = () => {
                 if (!selectedCourierPartnerId) { toast.error('Please select a courier partner'); return; }
                 payload.courierPartnerId = selectedCourierPartnerId;
                 payload.trackingId = trackingId;
+                payload.displayTrackingLink = displayTrackingLink;
             }
             const res = await api.put(`/orders/${order.id}/delivery-option`, payload);
             if (res.data.status) { toast.success('Delivery option updated'); setDeliveryOptionOpen(false); fetchOrder(); }
@@ -178,6 +180,7 @@ const OrderDetail = () => {
         setSelectedDeliveryBoyId(order.deliveryBoyId || '');
         setSelectedCourierPartnerId(order.courierPartnerId || '');
         setTrackingId(order.trackingId || '');
+        setDisplayTrackingLink(order.displayTrackingLink || '');
         setDeliveryOptionOpen(true);
     };
 
@@ -385,12 +388,20 @@ const OrderDetail = () => {
                             {order.trackingId && (
                                 <span style={{ fontSize: '13px', color: '#555' }}>Tracking ID: <strong>{order.trackingId}</strong></span>
                             )}
-                            {order.courierPartner.trackingLink && (
-                                <a href={order.courierPartner.trackingLink} target="_blank" rel="noreferrer"
+                            {order.displayTrackingLink && (
+                                <span style={{ fontSize: '13px', color: '#555' }}>Display Tracking Link: <strong>{order.displayTrackingLink}</strong></span>
+                            )}
+                            {order.displayTrackingLink ? (
+                                <a href={order.displayTrackingLink.startsWith('http') ? order.displayTrackingLink : `https://${order.displayTrackingLink}`} target="_blank" rel="noreferrer"
                                     style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#007bff', color: '#fff', textDecoration: 'none' }}>
                                     Track
                                 </a>
-                            )}
+                            ) : order.courierPartner.trackingLink ? (
+                                <a href={order.trackingId ? `${order.courierPartner.trackingLink}${order.trackingId}` : order.courierPartner.trackingLink} target="_blank" rel="noreferrer"
+                                    style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#007bff', color: '#fff', textDecoration: 'none' }}>
+                                    Track
+                                </a>
+                            ) : null}
                             <span style={{ padding: '3px 10px', borderRadius: '4px', fontSize: '11px', background: '#28a745', color: '#fff' }}>Assigned</span>
                         </div>
                     ) : order.deliveryBoy ? (
@@ -606,6 +617,11 @@ const OrderDetail = () => {
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Tracking ID</label>
                                 <input type="text" value={trackingId} onChange={e => setTrackingId(e.target.value)}
                                     placeholder="Enter tracking ID" className="admin-input" style={{ width: '100%' }} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600', color: 'var(--text)' }}>Display Tracking Link</label>
+                                <input type="text" value={displayTrackingLink} onChange={e => setDisplayTrackingLink(e.target.value)}
+                                    placeholder="Enter tracking link to display on tracking page" className="admin-input" style={{ width: '100%' }} />
                             </div>
                         </>
                     )}

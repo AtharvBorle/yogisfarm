@@ -278,6 +278,7 @@ model Order {
   deliveryType       String?  @map("delivery_type") @db.VarChar(20)
   courierPartnerId   Int?     @map("courier_partner_id")
   trackingId         String?  @map("tracking_id") @db.VarChar(100)
+  displayTrackingLink String?  @map("display_tracking_link") @db.VarChar(500)
   createdAt          DateTime @default(now()) @map("created_at")
   labelPrintedAt     DateTime? @map("label_printed_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
