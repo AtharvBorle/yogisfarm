@@ -1133,10 +1133,31 @@ router.put('/orders/:id/delivery-option', requireAdmin, async (req, res) => {
       data.labelPrintedAt = new Date();
     }
 
-    const order = await prisma.order.update({
-      where: { id: parseInt(req.params.id) }, data,
-      include: { user: { select: { name: true, phone: true } } }
-    });
+    let order;
+    try {
+      order = await prisma.order.update({
+        where: { id: parseInt(req.params.id) }, data,
+        include: { user: { select: { name: true, phone: true } } }
+      });
+    } catch (updateErr) {
+      if (updateErr.message && (updateErr.message.includes('display_tracking_link') || updateErr.message.includes('displayTrackingLink'))) {
+        try {
+          await prisma.$executeRawUnsafe('ALTER TABLE orders ADD COLUMN IF NOT EXISTS display_tracking_link VARCHAR(500);');
+          order = await prisma.order.update({
+            where: { id: parseInt(req.params.id) }, data,
+            include: { user: { select: { name: true, phone: true } } }
+          });
+        } catch (retryErr) {
+          delete data.displayTrackingLink;
+          order = await prisma.order.update({
+            where: { id: parseInt(req.params.id) }, data,
+            include: { user: { select: { name: true, phone: true } } }
+          });
+        }
+      } else {
+        throw updateErr;
+      }
+    }
 
     // Start background task to send SMS without blocking the UI response
     (async () => {

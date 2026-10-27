@@ -25,6 +25,7 @@ const OrderDetail = () => {
     const [selectedCourierPartnerId, setSelectedCourierPartnerId] = useState('');
     const [trackingId, setTrackingId] = useState('');
     const [displayTrackingLink, setDisplayTrackingLink] = useState('');
+    const [isAssigning, setIsAssigning] = useState(false);
 
     // Manage form
     const [manageType, setManageType] = useState('delivery_boy');
@@ -117,9 +118,20 @@ const OrderDetail = () => {
                 payload.trackingId = trackingId;
                 payload.displayTrackingLink = displayTrackingLink;
             }
+            setIsAssigning(true);
             const res = await api.put(`/orders/${order.id}/delivery-option`, payload);
-            if (res.data.status) { toast.success('Delivery option updated'); setDeliveryOptionOpen(false); fetchOrder(); }
-        } catch (err) { toast.error('Assignment failed'); }
+            if (res.data.status) {
+                toast.success('Delivery option updated');
+                setDeliveryOptionOpen(false);
+                fetchOrder();
+            } else {
+                toast.error(res.data.message || 'Assignment failed');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || err.message || 'Assignment failed');
+        } finally {
+            setIsAssigning(false);
+        }
     };
 
     const handleAddDeliveryBoy = async (e) => {
@@ -627,7 +639,7 @@ const OrderDetail = () => {
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <button type="submit" style={{ padding: '8px 20px', background: '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>Assign</button>
+                        <button type="submit" disabled={isAssigning} style={{ padding: '8px 20px', background: isAssigning ? '#88cca8' : '#3BB77E', color: '#fff', border: 'none', borderRadius: '4px', cursor: isAssigning ? 'not-allowed' : 'pointer', fontWeight: '600' }}>{isAssigning ? 'Assigning...' : 'Assign'}</button>
                     </div>
                 </form>
             </GenericModal>
