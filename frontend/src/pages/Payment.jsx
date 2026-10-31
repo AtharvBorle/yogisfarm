@@ -8,6 +8,8 @@ import FeatureBanners from '../components/FeatureBanners';
 import toast from 'react-hot-toast';
 import { useOrderPricing } from '../hooks/useOrderPricing';
 import EarnCoinsNotice from '../components/EarnCoinsNotice';
+import { isPuneAddress } from '../utils/deliveryLocation';
+import PuneDeliveryNotice from '../components/PuneDeliveryNotice';
 
 import { DollarSign, ArrowRight } from 'react-feather';
 
@@ -152,6 +154,10 @@ const Payment = () => {
 
     const handlePlaceOrder = async () => {
         if (!selectedAddress) { toast.error('Please select a delivery address'); return; }
+        if (!isPuneAddress(selectedAddress)) {
+            toast.error("Currently, we provide delivery services only within Pune city.");
+            return;
+        }
         setLoading(true);
         try {
             const res = await api.post('/orders/place', {
@@ -324,9 +330,21 @@ const Payment = () => {
                                 <span>Mobile No : {user?.phone || 'N/A'}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #f0f0f0' }}>
-                                <span>Delivery Address : {selectedAddress ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state},India` : 'No address'}</span>
-                                <Link to="/checkout" style={{ color: '#046938', fontSize: '14px' }}>Change</Link>
+                                <div>
+                                    <span>Delivery Address : {selectedAddress ? `${selectedAddress.address}, ${selectedAddress.city}, ${selectedAddress.state}, India` : 'No address'}</span>
+                                    {selectedAddress && !isPuneAddress(selectedAddress) && (
+                                        <span style={{ background: '#FFF1F0', color: '#CF1322', border: '1px solid #FFA39E', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', marginLeft: '8px', fontWeight: '600' }}>
+                                            Outside Pune
+                                        </span>
+                                    )}
+                                </div>
+                                <Link to="/checkout" style={{ color: '#046938', fontSize: '14px', fontWeight: '600' }}>Change</Link>
                             </div>
+                            {selectedAddress && !isPuneAddress(selectedAddress) && (
+                                <div style={{ padding: '15px 20px', borderBottom: '1px solid #f0f0f0', background: '#FAFAFA' }}>
+                                    <PuneDeliveryNotice compact onAddAddress={() => navigate('/checkout')} />
+                                </div>
+                            )}
                             {coupon ? (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8f9fa' }}>
                                     <div>
@@ -538,10 +556,22 @@ const Payment = () => {
 
                 {/* Complete Order */}
                 <div style={{ textAlign: 'center' }}>
-                    <button onClick={handlePlaceOrder} disabled={loading}
-                        style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: loading ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                        {loading ? 'Processing...' : 'Complete Order'} <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
-                    </button>
+                    {selectedAddress && !isPuneAddress(selectedAddress) ? (
+                        <div style={{ maxWidth: '650px', margin: '0 auto' }}>
+                            <PuneDeliveryNotice onAddAddress={() => navigate('/checkout')} />
+                            <div style={{ marginTop: '15px' }}>
+                                <button disabled
+                                    style={{ background: '#ccc', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                                    Delivery Unavailable Outside Pune
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <button onClick={handlePlaceOrder} disabled={loading}
+                            style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: loading ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                            {loading ? 'Processing...' : 'Complete Order'} <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
+                        </button>
+                    )}
                 </div>
             </div>
 

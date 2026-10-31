@@ -5,6 +5,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { sendOrderConfirmSMS } = require('../utils/sms');
 const { calculateOrderTotals } = require('../utils/pricing');
+const { isPuneAddress } = require('../utils/deliveryLocation');
 
 // Generate order number matching reference format: YF260430A0001AZ
 const generateOrderNumber = async () => {
@@ -69,6 +70,13 @@ router.post('/place', requireLogin, async (req, res) => {
 
     const address = await prisma.address.findFirst({ where: { id: parseInt(addressId), userId } });
     if (!address) return res.json({ status: false, message: 'Address not found' });
+
+    if (!isPuneAddress(address)) {
+      return res.json({
+        status: false,
+        message: "Thank you for visiting Yogi's Farms! Currently, we provide delivery services only within Pune city. Unfortunately, we are unable to accept or deliver orders outside Pune."
+      });
+    }
 
     // === USE CENTRALIZED PRICING ENGINE ===
     const pricing = await calculateOrderTotals(userId, 'userId', couponCode || null, Boolean(useYogisPoints));

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api, { getAssetUrl } from '../api';
+import { isPuneAddress } from '../utils/deliveryLocation';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import Breadcrumb from '../components/Breadcrumb';
@@ -971,6 +972,11 @@ const Dashboard = () => {
                                                                 <div style={{ marginTop: '5px', display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
                                                                     {addr.isDefault && <span className="badge bg-success">Default</span>}
                                                                     <span className="badge" style={{ background: '#f0f0f0', color: '#555' }}>{addr.addressType || 'Home'}</span>
+                                                                    {!isPuneAddress(addr) && (
+                                                                        <span className="badge" style={{ background: '#FFF1F0', color: '#CF1322', border: '1px solid #FFA39E', fontWeight: '600' }}>
+                                                                            Outside Pune (Delivery unavailable)
+                                                                        </span>
+                                                                    )}
                                                                     <button onClick={() => { setNewAddress(addr); setShowAddressForm(true); }} style={{ marginLeft: 'auto', background: 'none', border: '1px solid #e6e6e6', padding: '3px 10px', borderRadius: '4px', fontSize: '12px', color: '#046938', cursor: 'pointer' }}>Edit</button>
                                                                     <button onClick={() => handleDeleteAddress(addr.id)} style={{ background: 'none', border: '1px solid #ff4d4f', padding: '3px 10px', borderRadius: '4px', fontSize: '12px', color: '#ff4d4f', cursor: 'pointer' }}>Delete</button>
                                                                 </div>

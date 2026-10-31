@@ -10,6 +10,8 @@ import { useOrderPricing } from '../hooks/useOrderPricing';
 import useSEO from '../hooks/useSEO';
 import EarnCoinsNotice from '../components/EarnCoinsNotice';
 import RedeemPointsNotice from '../components/RedeemPointsNotice';
+import { isPuneAddress } from '../utils/deliveryLocation';
+import PuneDeliveryNotice from '../components/PuneDeliveryNotice';
 
 import { X, ArrowRight } from 'react-feather';
 
@@ -68,6 +70,10 @@ const Checkout = () => {
 
     const handleProceedToPayment = () => {
         if (!selectedAddress) { toast.error('Please select a delivery address'); return; }
+        if (!isPuneAddress(selectedAddress)) {
+            toast.error("Currently, we provide delivery services only within Pune city.");
+            return;
+        }
         navigate('/payment', { state: { addressId: selectedAddress.id } });
     };
 
@@ -236,15 +242,57 @@ const Checkout = () => {
                                 </div>
                             ) : (
                                 <div>
-                                    {addresses.map(addr => (
-                                        <div key={addr.id} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }} onClick={() => setSelectedAddress(addr)}>
-                                            <input type="radio" checked={selectedAddress?.id === addr.id} onChange={() => setSelectedAddress(addr)} style={{ width: '18px', height: '18px', accentColor: '#046938', marginRight: '15px' }} />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontWeight: '600', color: '#253D4E', fontSize: '15px', marginBottom: '4px' }}>{addr.name} - {addr.phone} <span style={{background: '#f0f0f0', color: '#555', fontSize: '12px', padding: '2px 8px', borderRadius: '10px', marginLeft: '8px'}}>{addr.addressType || 'Home'}</span></div>
-                                                <div style={{ color: '#7E7E7E', fontSize: '14px' }}>{addr.address}, {addr.city}, {addr.state} - {addr.pincode}</div>
+                                    {addresses.map(addr => {
+                                        const isPune = isPuneAddress(addr);
+                                        const isSelected = selectedAddress?.id === addr.id;
+                                        return (
+                                            <div
+                                                key={addr.id}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    padding: '15px 20px',
+                                                    borderBottom: '1px solid #f0f0f0',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: isSelected ? (isPune ? 'rgba(4, 105, 56, 0.04)' : '#FFFBE6') : 'transparent',
+                                                    borderLeft: isSelected ? `4px solid ${isPune ? '#046938' : '#FAAD14'}` : '4px solid transparent',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                onClick={() => setSelectedAddress(addr)}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    checked={isSelected}
+                                                    onChange={() => setSelectedAddress(addr)}
+                                                    style={{ width: '18px', height: '18px', accentColor: isPune ? '#046938' : '#FAAD14', marginRight: '15px' }}
+                                                />
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{ fontWeight: '600', color: '#253D4E', fontSize: '15px', marginBottom: '4px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                                                        <span>{addr.name} - {addr.phone}</span>
+                                                        <span style={{ background: '#f0f0f0', color: '#555', fontSize: '12px', padding: '2px 8px', borderRadius: '10px' }}>
+                                                            {addr.addressType || 'Home'}
+                                                        </span>
+                                                        {!isPune && (
+                                                            <span style={{ background: '#FFF1F0', color: '#CF1322', border: '1px solid #FFA39E', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>
+                                                                Outside Pune
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ color: '#7E7E7E', fontSize: '14px' }}>
+                                                        {addr.address}, {addr.city}, {addr.state} - {addr.pincode}
+                                                    </div>
+                                                </div>
                                             </div>
+                                        );
+                                    })}
+
+                                    {/* Inline notice if currently selected address is outside Pune */}
+                                    {selectedAddress && !isPuneAddress(selectedAddress) && (
+                                        <div style={{ padding: '16px 20px', borderTop: '1px solid #f0f0f0', background: '#FAFAFA' }}>
+                                            <PuneDeliveryNotice compact onAddAddress={() => setShowModal(true)} />
                                         </div>
-                                    ))}
+                                    )}
+
                                     <div style={{ padding: '15px 20px', textAlign: 'center' }}>
                                         <button onClick={() => setShowModal(true)} style={{ background: 'none', border: 'none', color: '#046938', fontSize: '14px', fontWeight: '600', cursor: 'pointer' }}>+ Add New Address</button>
                                     </div>
@@ -254,11 +302,17 @@ const Checkout = () => {
                     </div>
                 </div>
                 {addresses.length > 0 && selectedAddress && (
-                    <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                        <button onClick={handleProceedToPayment}
-                            style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                            Proceed To Payment <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
-                        </button>
+                    <div style={{ textAlign: 'center', marginTop: '30px' }}>
+                        {!isPuneAddress(selectedAddress) ? (
+                            <div style={{ maxWidth: '650px', margin: '0 auto' }}>
+                                <PuneDeliveryNotice onAddAddress={() => setShowModal(true)} />
+                            </div>
+                        ) : (
+                            <button onClick={handleProceedToPayment}
+                                style={{ background: '#253D4E', color: '#fff', border: 'none', borderRadius: '5px', padding: '14px 40px', fontWeight: '700', fontSize: '16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                                Proceed To Payment <span style={{ fontSize: '18px' }}><ArrowRight size={16} /></span>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -306,6 +360,21 @@ const Checkout = () => {
                                 <label style={{ width: '100px', fontSize: '14px', color: '#7E7E7E' }}>City</label>
                                 <input type="text" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} style={{ flex: 1, border: '1px solid #e6e6e6', borderRadius: '5px', padding: '10px', outline: 'none' }} />
                             </div>
+
+                            {newAddress.pincode && newAddress.pincode.length === 6 && !isPuneAddress(newAddress) && (
+                                <div style={{
+                                    padding: '10px 14px',
+                                    backgroundColor: '#FFFBE6',
+                                    border: '1px solid #FFE58F',
+                                    borderRadius: '6px',
+                                    fontSize: '13px',
+                                    color: '#AD4E00',
+                                    marginBottom: '15px',
+                                    lineHeight: '1.5'
+                                }}>
+                                    ⚠️ <strong>Note:</strong> Currently, delivery services are available only within Pune city. Orders cannot be delivered to addresses outside Pune.
+                                </div>
+                            )}
 
                             <div style={{ marginBottom: '15px', display: 'flex', alignItems: 'flex-start' }}>
                                 <label style={{ width: '100px', fontSize: '14px', color: '#7E7E7E', marginTop: '10px' }}>Address</label>
